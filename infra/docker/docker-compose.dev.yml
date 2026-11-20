@@ -1,0 +1,22 @@
+# LOCAL development database only (never the VPS). Optional: requires Docker Desktop.
+# Usage (from repo root):
+#   copy infra/docker/docker.env.example to infra/docker/docker.env and set local passwords, then
+#   docker compose --env-file infra/docker/docker.env -f infra/docker/docker-compose.dev.yml up -d
+# The baseline schema is imported only when the volume is first created.
+name: testboard-local
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Please_set_in_docker_env}
+      MYSQL_DATABASE: testboard
+      MYSQL_USER: ${MYSQL_USER:-testboard_dev}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Please_set_in_docker_env}
+    ports:
+      - '127.0.0.1:3307:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ../../database/baseline/schema_baseline_reference.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+volumes:
+  mysql-data:

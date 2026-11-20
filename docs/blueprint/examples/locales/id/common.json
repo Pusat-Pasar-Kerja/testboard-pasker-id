@@ -1,0 +1,16 @@
+{
+  "app.title": "TestBoard PASKER ID",
+  "nav.dashboard": "Dasbor",
+  "nav.cases": "Test Case",
+  "nav.runs": "Pelaksanaan UAT",
+  "nav.bugs": "Daftar Bug",
+  "nav.imports": "Impor",
+  "nav.reports": "Laporan",
+  "action.save": "Simpan",
+  "action.cancel": "Batal",
+  "action.upload": "Unggah Bukti",
+  "execution.PASSED": "Berhasil Diuji",
+  "execution.FAILED": "Gagal Diuji",
+  "execution.NOT_RUN": "Belum Diuji",
+  "upload.processing": "File sedang diproses"
+}

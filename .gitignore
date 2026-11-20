@@ -1,0 +1,33 @@
+# Dependencies & build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# Secrets - never commit real environment files
+.env
+.env.*
+!.env.example
+infra/docker/docker.env
+
+# Private evidence / uploads / temp (must never be in Git or a public webroot)
+.private-storage/
+uploads/
+tmp/
+
+# Real UAT workbooks contain staff data & screenshots - never commit them
+*.xlsx
+!docs/blueprint/examples/Template_Import_Test_Case_UAT.xlsx
+*.xlsm
+*.xls
+
+# Logs & OS / editor noise
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/

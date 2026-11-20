@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "project_code": "PROJECT_DEMO",
+  "source_kind": "AI",
+  "source_locale": "id",
+  "suite_name": "Autentikasi - CONTOH DATA DUMMY",
+  "cases": [
+    {
+      "case_code": "UAT-AUTH-001",
+      "module_code": "AUTH",
+      "suite_name": "Autentikasi - CONTOH DATA DUMMY",
+      "category": "Akses dan Navigasi",
+      "title": "Pengguna dapat masuk dengan kredensial yang valid",
+      "requirement_refs": "FSD-AUTH-001",
+      "priority_code": "MUST_HAVE",
+      "test_type_code": "POSITIVE",
+      "actor_label": "Pengguna",
+      "preconditions": "Akun pengujian aktif dan kredensial valid tersedia.",
+      "test_steps_text": "1. Buka halaman login.\n2. Isi email dan kata sandi akun uji.\n3. Klik tombol Masuk.",
+      "expected_result": "Sistem memverifikasi kredensial dan mengarahkan pengguna ke dashboard sesuai hak akses.",
+      "source_locale": "id",
+      "source_document": "FSD Autentikasi - CONTOH DATA DUMMY"
+    },
+    {
+      "case_code": "UAT-AUTH-002",
+      "module_code": "AUTH",
+      "suite_name": "Autentikasi - CONTOH DATA DUMMY",
+      "category": "Validasi Form",
+      "title": "Sistem menolak kata sandi yang salah",
+      "requirement_refs": "FSD-AUTH-002",
+      "priority_code": "MUST_HAVE",
+      "test_type_code": "NEGATIVE",
+      "actor_label": "Pengguna",
+      "preconditions": "Akun pengujian aktif tersedia.",
+      "test_steps_text": "1. Buka halaman login.\n2. Masukkan email yang terdaftar dan kata sandi yang salah.\n3. Klik tombol Masuk.",
+      "expected_result": "Sistem menampilkan pemberitahuan autentikasi gagal dan tidak memberikan sesi akses.",
+      "source_locale": "id",
+      "source_document": "FSD Autentikasi - CONTOH DATA DUMMY"
+    }
+  ]
+}

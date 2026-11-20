@@ -1,0 +1,16 @@
+{
+  "app.title": "TestBoard PASKER ID",
+  "nav.dashboard": "Dashboard",
+  "nav.cases": "Test Cases",
+  "nav.runs": "Test Runs",
+  "nav.bugs": "Bug Tracker",
+  "nav.imports": "Imports",
+  "nav.reports": "Reports",
+  "action.save": "Save",
+  "action.cancel": "Cancel",
+  "action.upload": "Upload Evidence",
+  "execution.PASSED": "Passed",
+  "execution.FAILED": "Failed",
+  "execution.NOT_RUN": "Not Tested",
+  "upload.processing": "File is being processed"
+}

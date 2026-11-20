@@ -1,0 +1,49 @@
+{
+  "app": {
+    "title": "TestBoard PASKER ID",
+    "shortTitle": "TestBoard",
+    "tagline": "Platform for test case documentation, UAT execution, test evidence and bug tracking."
+  },
+  "language": {
+    "label": "Language",
+    "id": "Indonesia",
+    "en": "English",
+    "switchTo": "Switch language to {{language}}"
+  },
+  "mode": {
+    "demo": "DEMO - fictitious sample data",
+    "live": "Connected to API"
+  },
+  "foundation": {
+    "heading": "Application foundation ready",
+    "description": "Milestone 0: monorepo structure, base API, uniform error format and mock data adapter. Full screens follow in Milestone 1.",
+    "apiStatus": "API status",
+    "service": "Service",
+    "version": "Version",
+    "database": "Database",
+    "checkedAt": "Checked",
+    "retry": "Retry"
+  },
+  "status": {
+    "ok": "Healthy",
+    "loading": "Checking…",
+    "error": "Unable to connect",
+    "database": {
+      "not_configured": "Not configured",
+      "up": "Connected",
+      "down": "Disconnected"
+    }
+  },
+  "errors": {
+    "VALIDATION_ERROR": "The submitted data is invalid.",
+    "UNAUTHENTICATED": "Please sign in first.",
+    "FORBIDDEN": "You do not have permission for this action.",
+    "NOT_FOUND": "The data was not found.",
+    "CONFLICT": "The data conflicts with its latest state.",
+    "PAYLOAD_TOO_LARGE": "The data or file is too large.",
+    "UNSUPPORTED_MEDIA_TYPE": "This file type is not supported.",
+    "RATE_LIMITED": "Too many requests. Please try again later.",
+    "INTERNAL_ERROR": "Something went wrong. Please try again.",
+    "reference": "Reference code: {{id}}"
+  }
+}

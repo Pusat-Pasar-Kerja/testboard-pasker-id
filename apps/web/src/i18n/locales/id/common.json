@@ -1,0 +1,49 @@
+{
+  "app": {
+    "title": "TestBoard PASKER ID",
+    "shortTitle": "TestBoard",
+    "tagline": "Platform dokumentasi test case, pelaksanaan UAT, bukti uji, dan pelacakan bug."
+  },
+  "language": {
+    "label": "Bahasa",
+    "id": "Indonesia",
+    "en": "English",
+    "switchTo": "Ganti bahasa ke {{language}}"
+  },
+  "mode": {
+    "demo": "DEMO - data contoh fiktif",
+    "live": "Terhubung ke API"
+  },
+  "foundation": {
+    "heading": "Fondasi aplikasi siap",
+    "description": "Milestone 0: struktur monorepo, API dasar, format error seragam, dan adaptor data mock. Layar lengkap menyusul pada Milestone 1.",
+    "apiStatus": "Status API",
+    "service": "Layanan",
+    "version": "Versi",
+    "database": "Database",
+    "checkedAt": "Diperiksa",
+    "retry": "Coba lagi"
+  },
+  "status": {
+    "ok": "Normal",
+    "loading": "Memeriksa…",
+    "error": "Tidak dapat terhubung",
+    "database": {
+      "not_configured": "Belum dikonfigurasi",
+      "up": "Tersambung",
+      "down": "Tidak tersambung"
+    }
+  },
+  "errors": {
+    "VALIDATION_ERROR": "Data yang dimasukkan tidak valid.",
+    "UNAUTHENTICATED": "Silakan masuk terlebih dahulu.",
+    "FORBIDDEN": "Anda tidak memiliki izin untuk tindakan ini.",
+    "NOT_FOUND": "Data tidak ditemukan.",
+    "CONFLICT": "Data bertentangan dengan kondisi terbaru.",
+    "PAYLOAD_TOO_LARGE": "Ukuran data atau file terlalu besar.",
+    "UNSUPPORTED_MEDIA_TYPE": "Jenis file tidak didukung.",
+    "RATE_LIMITED": "Terlalu banyak permintaan. Coba lagi nanti.",
+    "INTERNAL_ERROR": "Terjadi kesalahan. Silakan coba lagi.",
+    "reference": "Kode referensi: {{id}}"
+  }
+}

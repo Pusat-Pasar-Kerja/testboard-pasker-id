@@ -1,0 +1,40 @@
+{
+  "name": "testboard-pasker-id",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TestBoard PASKER ID - multi-project UAT, test execution, evidence and bug tracking web app",
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "workspaces": [
+    "packages/shared",
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w @testboard/api\" \"npm run dev -w @testboard/web\"",
+    "dev:api": "npm run dev -w @testboard/api",
+    "dev:web": "npm run dev -w @testboard/web",
+    "build": "npm run build -w @testboard/shared && npm run build -w @testboard/api && npm run build -w @testboard/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "test": "npm run test --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "concurrently": "^10.0.7",
+    "eslint": "^10.15.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.8",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.73.0"
+  }
+}

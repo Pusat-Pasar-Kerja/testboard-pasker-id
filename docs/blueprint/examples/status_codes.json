@@ -1,0 +1,81 @@
+{
+  "test_case_status": [
+    "DRAFT",
+    "READY",
+    "ARCHIVED"
+  ],
+  "execution_status": [
+    "NOT_RUN",
+    "IN_PROGRESS",
+    "PASSED",
+    "FAILED",
+    "BLOCKED",
+    "SKIPPED"
+  ],
+  "execution_kind": [
+    "INITIAL",
+    "RETEST",
+    "RERUN"
+  ],
+  "defect_status": [
+    "OPEN",
+    "IN_PROGRESS",
+    "FIXED",
+    "READY_FOR_RETEST",
+    "VERIFIED",
+    "REOPENED",
+    "CLOSED",
+    "WONT_FIX"
+  ],
+  "defect_severity": [
+    "CRITICAL",
+    "HIGH",
+    "MEDIUM",
+    "LOW",
+    "INFO"
+  ],
+  "defect_priority": [
+    "URGENT",
+    "HIGH",
+    "MEDIUM",
+    "LOW"
+  ],
+  "test_case_priority": [
+    "MUST_HAVE",
+    "SHOULD_HAVE",
+    "COULD_HAVE",
+    "WONT_HAVE"
+  ],
+  "test_type": [
+    "POSITIVE",
+    "NEGATIVE",
+    "RBAC",
+    "SLA",
+    "UI_UX",
+    "INTEGRATION",
+    "OTHER"
+  ],
+  "member_role": [
+    "ADMIN",
+    "QA_LEAD",
+    "TESTER",
+    "DEVELOPER",
+    "VIEWER"
+  ],
+  "file_processing": [
+    "PROCESSING",
+    "READY",
+    "FAILED",
+    "REJECTED"
+  ],
+  "file_scan": [
+    "PENDING",
+    "CLEAN",
+    "INFECTED",
+    "ERROR"
+  ],
+  "source_locale": [
+    "id",
+    "en"
+  ]
+}

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# TEMPLATE FOR REVIEW ONLY - DO NOT EXECUTE ON PROD UNTIL HARDENED.
+# Requires repo folder, npm workspaces, approved service setup, backup & rollback plan.
+set -euo pipefail
+
+REPO=/opt/lampp/htdocs/paskerid/public/testboard
+cd "$REPO"
+
+test -d .git || { echo "Refusing: not a Git checkout"; exit 1; }
+test -f package.json || { echo "Refusing: app not yet scaffolded"; exit 1; }
+
+echo "[TestBoard] Pulling approved main..."
+git pull --ff-only origin main
+
+echo "[TestBoard] Installing dependencies..."
+npm ci
+
+echo "[TestBoard] Building workspaces..."
+npm run build --workspace apps/web
+npm run build --workspace apps/api
+
+echo "[TestBoard] Builds finished. Production switch/restart not automated in this draft."
+echo "Before go-live: secure Apache to serve ONLY dist, backup DB, handle reverse proxy/service, health checks, release backup and rollback."
+# NOT EXECUTED: sudo systemctl restart testboard-api
+# NOT EXECUTED: copy/switch dist to actual public docroot
