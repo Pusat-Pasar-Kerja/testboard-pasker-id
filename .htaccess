@@ -1,0 +1,44 @@
+# TestBoard PASKER ID - Apache rules for a checkout INSIDE the public web root
+# (/opt/lampp/htdocs/paskerid/public/testboard -> https://<domain>/testboard/).
+#
+# Whitelist (ADR 0010): only two things are reachable from the internet:
+#   /testboard/api/...  -> proxied to the API on 127.0.0.1:8787 (loopback only)
+#   everything else     -> served from the web build (apps/web/dist), which has its own
+#                          .htaccess for the single-page-app fallback.
+# Source code, .git, .env, database files, node_modules: 404, even if requested directly.
+# Verify after every deploy: ops/testboard.sh smoke (TB-OPS-001/002).
+
+Options -Indexes -MultiViews
+DirectoryIndex disabled
+ServerSignature Off
+
+# Belt and braces: these never leave the server, whatever the rewrite rules below do.
+<FilesMatch "(^\.|\.(env|sql|sh|ts|tsx|mjs|cjs|lock|log|bak|cnf|conf|example|yml|yaml|gz|tar|zip)$|^(package(-lock)?\.json|tsconfig.*\.json)$)">
+  Require all denied
+</FilesMatch>
+
+# Without mod_rewrite nothing here is safe to serve.
+<IfModule !mod_rewrite.c>
+  Require all denied
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Hidden files and folders anywhere in the path (.git, .env, .private-storage, ...).
+  RewriteRule (^|/)\. - [R=404,L]
+
+  # API -> Node service on loopback. Requires mod_proxy + mod_proxy_http.
+  # API_PORT in the API settings must stay 8787.
+  RewriteRule ^api/(.*)$ http://127.0.0.1:8787/api/$1 [P,L]
+
+  # Everything else is looked up inside the web build (second pass handled by
+  # apps/web/dist/.htaccess). Missing build -> 404, never the source tree.
+  RewriteRule ^(.*)$ apps/web/dist/$1 [L]
+</IfModule>
+
+# Security headers for the web build live in apps/web/dist/.htaccess; API responses carry
+# their own (setting them here too would send conflicting duplicates through the proxy).
+<IfModule mod_headers.c>
+  Header always unset X-Powered-By
+</IfModule>

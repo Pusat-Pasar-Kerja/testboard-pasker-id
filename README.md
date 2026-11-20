@@ -63,6 +63,18 @@ git tag -a v0.1.1 -m "v0.1.1"
 git push origin develop --follow-tags
 ```
 
+## Deploy ke VPS
+
+Panduan langkah demi langkah tanpa sudo: [`docs/deploy/vps-deploy.md`](docs/deploy/vps-deploy.md). Semua operasi server lewat satu skrip:
+
+```bash
+bash ops/testboard.sh check     # periksa server (hanya membaca)
+bash ops/testboard.sh setup     # sekali: folder data di luar web root, Node.js, cron
+bash ops/testboard.sh deploy    # backup -> build -> migrasi (dengan persetujuan) -> restart -> uji keamanan
+```
+
+Checklist go-live: [`docs/deploy/production-checklist.md`](docs/deploy/production-checklist.md). Keputusan: [ADR 0010](docs/adr/0010-production-deploy.md).
+
 ## Keamanan data
 
 Repo ini **publik**. Jangan commit `.env`, kredensial, workbook UAT asli, screenshot bukti nyata, atau data pribadi penguji. Lihat [`AGENTS.md`](AGENTS.md).

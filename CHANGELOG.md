@@ -2,6 +2,27 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.7.3] - 2026-11-20
+
+Milestone 7 bagian 3: paket deploy VPS tanpa sudo, sesuai keputusan pemilik proyek (ADR 0010).
+
+### Ditambahkan
+
+- `.htaccess` di root repo dengan daftar putih. Yang bisa dibuka hanya `/testboard/api/*` (diteruskan ke API di 127.0.0.1:8787) dan file hasil build web (dengan `.htaccess` sendiri untuk SPA, cache, CSP, dan header keamanan). `.git`, `.env`, kode sumber, SQL, skrip, dan `node_modules` selalu 404/403, termasuk URL ter-encode dan `../`.
+- `ops/testboard.sh`, satu skrip tanpa sudo:
+  - `check`: laporan server, hanya membaca.
+  - `setup`: folder data `~/testboard-data` di luar web root, Node.js 24 resmi dengan verifikasi checksum, pengaturan rahasia berizin 600, dan cron.
+  - `deploy`: backup, build dengan pergantian folder web secara atomik, migrasi dengan persetujuan dan akun admin yang tidak disimpan, restart, health check, rollback otomatis, dan uji keamanan publik.
+  - Perintah lain: `rollback`, `start`/`stop`/`status`, `watchdog` (dengan rotasi log), `backup` (30 hari, manifest + checksum), `restore` (uji ke database sementara atau `--production`), `smoke`, `create-admin`, `cron`.
+- `ops/update.sh.example` kini pengganti `update.sh` di server (memanggil deploy lengkap).
+- Template pengaturan produksi `ops/env/api.env.example`.
+- Panduan deploy berbahasa Indonesia (`docs/deploy/vps-deploy.md`), checklist go-live (`docs/deploy/production-checklist.md`), dan ADR 0010.
+
+### Diverifikasi di lokal
+
+- Apache 2.4 (XAMPP) dengan aturan induk ala Laravel: 25 pemeriksaan `smoke` lulus (halaman, deep link, API lewat proxy, semua path rahasia tertutup).
+- Backup + uji restore ke MariaDB 10.4 lokal: checksum, jumlah baris semua tabel, view, dan file bukti cocok.
+
 ## [0.7.2] - 2026-11-20
 
 Milestone 7 bagian 2 (API): pengamanan untuk produksi dan retensi data.

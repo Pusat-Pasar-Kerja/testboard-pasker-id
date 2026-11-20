@@ -1,25 +1,13 @@
 #!/usr/bin/env bash
-# TEMPLATE FOR REVIEW ONLY - DO NOT EXECUTE ON PROD UNTIL HARDENED.
-# Requires repo folder, npm workspaces, approved service setup, backup & rollback plan.
+# Replacement for the server's own update.sh (ADR 0010, docs/deploy/vps-deploy.md).
+#
+# On the VPS, once:   cp ops/update.sh.example update.sh && chmod +x update.sh
+# From then on:       ./update.sh            (latest main)
+#                     ./update.sh v1.0.0     (a specific release tag)
+#
+# It no longer only pulls files: it backs up, builds, asks before database migrations,
+# restarts the API, rolls back automatically when the new version is unhealthy, and runs
+# the public safety checks.
 set -euo pipefail
-
-REPO=/opt/lampp/htdocs/paskerid/public/testboard
-cd "$REPO"
-
-test -d .git || { echo "Refusing: not a Git checkout"; exit 1; }
-test -f package.json || { echo "Refusing: app not yet scaffolded"; exit 1; }
-
-echo "[TestBoard] Pulling approved main..."
-git pull --ff-only origin main
-
-echo "[TestBoard] Installing dependencies..."
-npm ci
-
-echo "[TestBoard] Building workspaces..."
-npm run build --workspace apps/web
-npm run build --workspace apps/api
-
-echo "[TestBoard] Builds finished. Production switch/restart not automated in this draft."
-echo "Before go-live: secure Apache to serve ONLY dist, backup DB, handle reverse proxy/service, health checks, release backup and rollback."
-# NOT EXECUTED: sudo systemctl restart testboard-api
-# NOT EXECUTED: copy/switch dist to actual public docroot
+cd "$(dirname "$0")"
+exec bash ops/testboard.sh deploy "$@"
