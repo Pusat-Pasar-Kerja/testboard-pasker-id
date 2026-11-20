@@ -1,4 +1,7 @@
 import type {
+  ImportConfigInput,
+  ImportJobDto,
+  ImportRowDto,
   AttachedFileDto,
   EvidenceItem,
   EvidenceRef,
@@ -178,6 +181,11 @@ export interface UploadOptions {
 
 export type FileUrlKind = 'preview' | 'thumbnail' | 'download'
 
+export interface ImportRowQuery extends PageQuery {
+  /** ok = valid without warnings, review = valid with warnings. */
+  status?: 'ok' | 'review' | 'DUPLICATE' | 'ERROR' | 'IMPORTED' | 'SKIPPED'
+}
+
 export interface AdminUserInput {
   email: string
   display_name: string
@@ -313,6 +321,25 @@ export interface DataSource {
   ): Promise<AttachedFileDto[]>
   detachCaseFile(projectCode: string, caseId: string, fileId: string): Promise<void>
 
+  // Import (Milestone 6, ADR 0009)
+  uploadImport(projectCode: string, file: File, options?: UploadOptions): Promise<ImportJobDto>
+  listImports(projectCode: string, query?: PageQuery): Promise<Paginated<ImportJobDto>>
+  getImport(projectCode: string, jobId: string): Promise<ImportJobDto>
+  configureImport(
+    projectCode: string,
+    jobId: string,
+    config: ImportConfigInput,
+  ): Promise<ImportJobDto>
+  listImportRows(
+    projectCode: string,
+    jobId: string,
+    query?: ImportRowQuery,
+  ): Promise<Paginated<ImportRowDto>>
+  commitImport(projectCode: string, jobId: string): Promise<ImportJobDto>
+  deleteImport(projectCode: string, jobId: string): Promise<void>
+  /** Authorized URLs: the formula-safe error CSV, or an embedded workbook image. */
+  importUrl(projectCode: string, jobId: string, what: 'errors' | { image: string }): string
+
   // Super Admin (ADR 0004)
   listUsers(q?: string): Promise<AdminUserDto[]>
   createUser(
@@ -434,6 +461,26 @@ export function createHttpDataSource(client: ApiClient): DataSource {
       client.post(`${p(code)}/test-cases/${seg(id)}/files`, { files }),
     detachCaseFile: (code, id, fileId) =>
       client.delete(`${p(code)}/test-cases/${seg(id)}/files/${seg(fileId)}`),
+
+    uploadImport: (code, file, options) => {
+      const form = new FormData()
+      form.append('file', file, file.name)
+      return client.upload(`${p(code)}/imports`, form, options)
+    },
+    listImports: (code, query) => client.get(`${p(code)}/imports${toQueryString(query)}`),
+    getImport: (code, id) => client.get(`${p(code)}/imports/${seg(id)}`),
+    configureImport: (code, id, config) =>
+      client.put(`${p(code)}/imports/${seg(id)}/config`, config),
+    listImportRows: (code, id, query) =>
+      client.get(`${p(code)}/imports/${seg(id)}/rows${toQueryString(query)}`),
+    commitImport: (code, id) => client.post(`${p(code)}/imports/${seg(id)}/commit`),
+    deleteImport: (code, id) => client.delete(`${p(code)}/imports/${seg(id)}`),
+    importUrl: (code, id, what) =>
+      client.url(
+        what === 'errors'
+          ? `${p(code)}/imports/${seg(id)}/errors.csv`
+          : `${p(code)}/imports/${seg(id)}/images/${seg(what.image)}`,
+      ),
 
     listUsers: (q) => client.get(`/admin/users${toQueryString({ q })}`),
     createUser: (input) => client.post('/admin/users', input),

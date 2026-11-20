@@ -91,17 +91,6 @@ export function cellRef(ref: string): { col: number; row: number } {
   return { col: col - 1, row: Number(m[2]) }
 }
 
-export function columnName(col: number): string {
-  let n = col + 1
-  let name = ''
-  while (n > 0) {
-    const r = (n - 1) % 26
-    name = String.fromCharCode(65 + r) + name
-    n = Math.floor((n - 1) / 26)
-  }
-  return name
-}
-
 const BUILTIN_DATE_FORMATS = new Set([
   14, 15, 16, 17, 18, 19, 20, 21, 22, 27, 30, 36, 45, 46, 47, 50, 57,
 ])

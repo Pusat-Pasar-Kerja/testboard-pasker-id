@@ -128,6 +128,8 @@ export interface MockExecution {
   operating_system?: string | null
   step_results?: ExecutionStepResultDto[]
   files?: MockFileLink[]
+  /** Imported legacy result: tester name as text, never an account (ADR 0009). */
+  legacyTester?: string | null
 }
 
 /** Demo evidence: kept in memory only (object URLs), never sent anywhere. */

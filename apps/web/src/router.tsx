@@ -9,6 +9,8 @@ import { ComingSoonPage } from './pages/ComingSoonPage'
 import { CyclesPage } from './pages/CyclesPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { EvidencePage } from './pages/EvidencePage'
+import { ImportJobPage } from './pages/ImportJobPage'
+import { ImportsPage } from './pages/ImportsPage'
 import { ExecutionPage } from './pages/ExecutionPage'
 import { LoginPage } from './pages/LoginPage'
 import { MembersPage } from './pages/MembersPage'
@@ -59,7 +61,8 @@ export const routes: RouteObject[] = [
           { path: 'bugs/:bugId/edit', element: <BugFormPage mode="edit" /> },
           { path: 'cycles', element: <CyclesPage /> },
           { path: 'evidence', element: <EvidencePage /> },
-          { path: 'imports', element: <ComingSoonPage feature="imports" /> },
+          { path: 'imports', element: <ImportsPage /> },
+          { path: 'imports/:jobId', element: <ImportJobPage /> },
           { path: 'reports', element: <ComingSoonPage feature="reports" /> },
           { path: 'members', element: <MembersPage /> },
           { path: 'settings', element: <ProjectSettingsPage /> },

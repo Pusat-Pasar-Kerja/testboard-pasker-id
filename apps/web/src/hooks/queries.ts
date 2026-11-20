@@ -1,5 +1,11 @@
 import { keepPreviousData, useQuery, type QueryClient } from '@tanstack/react-query'
-import type { DefectQuery, FileQuery, TestCaseQuery } from '../services/data-source'
+import type {
+  DefectQuery,
+  FileQuery,
+  ImportRowQuery,
+  PageQuery,
+  TestCaseQuery,
+} from '../services/data-source'
 import { useDataSource } from '../services/use-data-source'
 
 /** React Query hooks over the DataSource seam (mock or http). */
@@ -152,5 +158,34 @@ export function useFiles(code: string, query: FileQuery) {
     queryKey: ['files', code, query],
     queryFn: () => ds.listFiles(code, query),
     placeholderData: keepPreviousData,
+  })
+}
+
+export function useImports(code: string, query: PageQuery) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['imports', code, query],
+    queryFn: () => ds.listImports(code, query),
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** Polls while the import is being applied in the background. */
+export function useImport(code: string, id: string) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['import', code, id],
+    queryFn: () => ds.getImport(code, id),
+    refetchInterval: (query) => (query.state.data?.status_code === 'IMPORTING' ? 1000 : false),
+  })
+}
+
+export function useImportRows(code: string, id: string, query: ImportRowQuery, enabled = true) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['import-rows', code, id, query],
+    queryFn: () => ds.listImportRows(code, id, query),
+    placeholderData: keepPreviousData,
+    enabled,
   })
 }

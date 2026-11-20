@@ -12,12 +12,13 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { Section } from '../components/ui/Section'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
 import { useToast } from '../components/ui/toast-context'
+import type { TFunction } from 'i18next'
 import { useAdminUsers, useCurrentUser } from '../hooks/queries'
 import { ApiClientError } from '../services/api-client'
 import { useDataSource } from '../services/use-data-source'
 import { NotFoundPage } from './NotFoundPage'
 
-function message(t: ReturnType<typeof useTranslation>['t'], error: unknown) {
+function message(t: TFunction, error: unknown) {
   if (error instanceof ApiClientError) {
     if (error.status === 409) return error.details[0] ? t('form.alreadyUsed') : error.message
     return error.status === 422 ? t('form.invalid') : t(`errors.${error.code}`)

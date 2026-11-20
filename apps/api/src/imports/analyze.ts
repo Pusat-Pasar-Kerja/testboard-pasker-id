@@ -2,6 +2,7 @@ import {
   aiImportSchema,
   CASE_IMPORT_FIELDS,
   detectHeaderRow,
+  HEADER_SCAN_ROWS,
   moduleCodeFromName,
   normalizeHeader,
   parseCsv,
@@ -195,6 +196,9 @@ export function sheetInfo(sheet: ParsedSheet, format: ImportSourceFormat): Impor
       .slice(headerIndex + 1)
       .filter((r) => r.some((c) => c.trim() !== ''))
       .slice(0, 3),
+    top_rows: sheet.rows
+      .slice(0, HEADER_SCAN_ROWS)
+      .map((r) => r.slice(0, 60).map((c) => c.slice(0, 200))),
     reference_document: referenceDocument,
     reference_version: referenceVersion,
     suggested_module_code: moduleCodeFromName(sheet.name),

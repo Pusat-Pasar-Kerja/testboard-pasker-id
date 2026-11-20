@@ -53,9 +53,9 @@ describe('routing & shell', () => {
   })
 
   it('shows a coming-soon page for features of later milestones', async () => {
-    renderRoute(`${P}/imports`)
+    renderRoute(`${P}/reports`)
     expect(
-      await screen.findByText('Fitur Impor dibangun pada Milestone 6. Lihat roadmap di README.'),
+      await screen.findByText('Fitur Laporan dibangun pada Milestone 7. Lihat roadmap di README.'),
     ).toBeInTheDocument()
   })
 })

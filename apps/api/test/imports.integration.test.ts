@@ -330,6 +330,8 @@ describe('legacy workbooks', () => {
       total_cases: 4,
     })
     expect(run.json.counts).toMatchObject({ PASSED: 1, FAILED: 1, NOT_RUN: 2 })
+    expect(run.json.starts_at).toMatch(/^2026-07-30/)
+    expect(run.json.ends_at).toMatch(/^2026-07-31/)
     const failed = run.json.run_cases.find((r: { case_code: string }) => r.case_code === 'P1-002')
     const detail = await lead.get(`${P()}/run-cases/${failed.run_case_id}`)
     expect(detail.json.attempts[0]).toMatchObject({

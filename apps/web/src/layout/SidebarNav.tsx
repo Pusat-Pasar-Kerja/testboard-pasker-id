@@ -35,7 +35,7 @@ const ITEMS: { key: NavKey; path: string; icon: LucideIcon; soon?: boolean }[] =
   { key: 'runs', path: 'runs', icon: PlayCircle },
   { key: 'bugs', path: 'bugs', icon: Bug },
   { key: 'evidence', path: 'evidence', icon: Images },
-  { key: 'imports', path: 'imports', icon: FileUp, soon: true },
+  { key: 'imports', path: 'imports', icon: FileUp },
   { key: 'reports', path: 'reports', icon: ChartColumn, soon: true },
   { key: 'team', path: 'members', icon: Users },
 ]

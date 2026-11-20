@@ -1,4 +1,4 @@
-import { isOpenDefect, totalOf } from '@testboard/shared'
+import { isOpenDefect, suggestMapping, totalOf } from '@testboard/shared'
 import { describe, expect, it } from 'vitest'
 import { createMockDb } from '../mocks/seed'
 import { ApiClientError } from './api-client'
@@ -403,5 +403,84 @@ describe('evidence (Milestone 5, simulated pipeline in the demo)', () => {
     db.currentUserId = '6'
     const source = createMockDataSource({ latencyMs: 0, db, superAdmin: false })
     await expect(source.uploadFile(MAIN, png())).rejects.toMatchObject({ status: 403 })
+  })
+})
+
+describe('import (Milestone 6, demo: CSV/JSON with the shared planner)', () => {
+  const HEADER =
+    'case_code,module_code,suite_name,category,title,requirement_refs,priority_code,test_type_code,actor_label,preconditions,test_steps_text,expected_result,source_locale,source_document,result_status,tester_name,tested_at'
+  const csv = (rows: string[]) =>
+    new File([[HEADER, ...rows].join('\n')], 'impor.csv', { type: 'text/csv' })
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 120))
+  const mappingOf = (header: string[]) => suggestMapping(header)
+
+  it('previews, applies and refuses to duplicate on re-import (TB-IMP-001/005)', async () => {
+    const db = createMockDb()
+    const source = createMockDataSource({ latencyMs: 0, db })
+    const file = csv([
+      'IMP-001,IMPOR,Suite Impor,,Unggah file dengan benar,,,,,,1. Unggah,File tersimpan,id,,,,',
+      'IMP-002,IMPOR,Suite Impor,,Tolak file terlalu besar,,,,,,1. Unggah,Pesan galat,id,,,,',
+      'IMP-002,IMPOR,Suite Impor,,Salinan,,,,,,,Pesan galat,id,,,,',
+    ])
+    const job = await source.uploadImport(MAIN, file)
+    const sheet = job.sheets[0]
+    const config = {
+      sheets: [{ name: 'CSV', header_row: 1, mapping: mappingOf(sheet?.header_cells ?? []) }],
+    }
+    const preview = await source.configureImport(MAIN, job.id, config)
+    expect(preview.preview?.counts).toMatchObject({ create: 2, duplicate: 1 })
+    await source.commitImport(MAIN, job.id)
+    await settle()
+    const done = await source.getImport(MAIN, job.id)
+    expect(done).toMatchObject({
+      status_code: 'COMPLETED',
+      result: { created_cases: 2, skipped_rows: 1 },
+    })
+    expect(db.cases.find((c) => c.case_code === 'IMP-001')?.case_status).toBe('DRAFT')
+
+    const again = await source.uploadImport(MAIN, file)
+    const second = await source.configureImport(MAIN, again.id, config)
+    expect(second.preview?.counts).toMatchObject({ create: 0, duplicate: 3 })
+  })
+
+  it('migrates results into a completed run with tester names as text only', async () => {
+    const db = createMockDb()
+    const source = createMockDataSource({ latencyMs: 0, db })
+    const job = await source.uploadImport(
+      MAIN,
+      csv([
+        'MIG-001,MIG,,,Login lama,,,,,,,Masuk,id,,Berhasil Diuji,Penguji Lama,30/07/2026',
+        'MIG-002,MIG,,,Logout lama,,,,,,,Keluar,id,,Closed,Penguji Lama,31/07/2026',
+      ]),
+    )
+    const users = db.users.length
+    await source.configureImport(MAIN, job.id, {
+      sheets: [
+        { name: 'CSV', header_row: 1, mapping: mappingOf(job.sheets[0]?.header_cells ?? []) },
+      ],
+      include_results: true,
+      run: { name: 'Migrasi demo' },
+    })
+    await source.commitImport(MAIN, job.id)
+    await settle()
+    const done = await source.getImport(MAIN, job.id)
+    expect(done.result).toMatchObject({ created_cases: 2, executions: 1 })
+    const run = db.runs.find((r) => r.id === done.result?.run?.id)
+    expect(run?.status_code).toBe('COMPLETED')
+    expect(run?.starts_at).toMatch(/^2026-07-30/)
+    expect(run?.ends_at).toMatch(/^2026-07-31/)
+    const exec = db.executions.find(
+      (e) => db.runCases.find((rc) => rc.id === e.runCaseId)?.runId === run?.id,
+    )
+    expect(exec).toMatchObject({ result_status: 'PASSED', legacyTester: 'Penguji Lama' })
+    expect(db.users.length).toBe(users)
+  })
+
+  it('explains that Excel import needs the server in the demo', async () => {
+    const source = ds()
+    await expect(source.uploadImport(MAIN, new File(['PK'], 'uat.xlsx'))).rejects.toMatchObject({
+      status: 422,
+      details: [{ field: 'file', message: 'DEMO_XLSX' }],
+    })
   })
 })

@@ -1,4 +1,27 @@
 import {
+  aiImportSchema,
+  CASE_IMPORT_FIELDS,
+  finishPlan,
+  importConfigSchema,
+  mergeForMode,
+  moduleCodeFromName,
+  parseCsv,
+  planRows,
+  RECORDABLE_RESULTS,
+  type CheckedCase,
+  type ExistingCase,
+  type ImportConfig,
+  type ImportJobDto,
+  type ImportJobStatus,
+  type ImportPreview,
+  type ImportResultSummary,
+  type ImportRowDto,
+  type ImportSheetInfo,
+  type ImportSourceFormat,
+  type ImportSourceKind,
+  type PlanSheet,
+  type PreparedRow,
+  type RecordableResult,
   EVIDENCE_RULES,
   evidenceTypeFor,
   extensionOf,
@@ -66,6 +89,7 @@ import {
   type MockFile,
   type MockFileLink,
   type MockRun,
+  type MockRunCase,
 } from '../mocks/seed'
 import { ApiClientError } from './api-client'
 import type {
@@ -73,6 +97,7 @@ import type {
   DataSource,
   DefectQuery,
   FileQuery,
+  ImportRowQuery,
   PageQuery,
   TestCaseInput,
   TestCaseQuery,
@@ -378,6 +403,269 @@ export function createMockDataSource(
     }
   }
 
+  // ---- Milestone 6: import (demo: CSV/JSON in memory, same planner as the API) ------
+  interface MockImportJob {
+    id: string
+    projectId: string
+    filename: string
+    format: ImportSourceFormat
+    kind: ImportSourceKind
+    status: ImportJobStatus
+    sheets: PlanSheet[]
+    defaults: { suite_name?: string; source_locale?: 'id' | 'en' }
+    config: ImportConfig | null
+    rows: (PreparedRow & { id: string; final?: 'IMPORTED' | 'SKIPPED' | 'ERROR' })[]
+    preview: ImportPreview | null
+    result: ImportResultSummary | null
+    createdBy: string
+    created_at: string
+    completed_at: string | null
+  }
+  const importJobs: MockImportJob[] = []
+  const readText = async (file: Blob): Promise<string> => {
+    if (typeof file.text === 'function') return file.text()
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result ?? ''))
+      reader.onerror = () => reject(new Error('read failed'))
+      reader.readAsText(file)
+    })
+  }
+  const importJobIn = (projectId: string, jobId: string) =>
+    importJobs.find((j) => j.id === jobId && j.projectId === projectId) ?? notFound()
+  const sheetInfoOf = (sheet: PlanSheet): ImportSheetInfo => ({
+    name: sheet.name,
+    hidden: false,
+    row_count: sheet.rows.length,
+    column_count: Math.max(0, ...sheet.rows.map((r) => r.length)),
+    image_count: 0,
+    suggested_header_row: 1,
+    header_cells: sheet.rows[0] ?? [],
+    sample_rows: sheet.rows.slice(1, 4),
+    top_rows: sheet.rows.slice(0, 30),
+    reference_document: null,
+    reference_version: null,
+    suggested_module_code: moduleCodeFromName(sheet.name),
+  })
+  const importDto = (job: MockImportJob): ImportJobDto => {
+    const counts = job.preview?.counts
+    return {
+      id: job.id,
+      original_filename: job.filename,
+      source_format: job.format,
+      source_kind: job.kind,
+      import_mode: job.config?.import_mode ?? 'CREATE_ONLY',
+      status_code: job.status,
+      total_rows: counts?.total ?? 0,
+      valid_rows: counts ? counts.valid + counts.review : 0,
+      imported_rows: job.result
+        ? job.result.created_cases + job.result.updated_cases + job.result.executions
+        : 0,
+      skipped_rows: job.result?.skipped_rows ?? counts?.duplicate ?? 0,
+      invalid_rows: counts?.invalid ?? 0,
+      created_by: userRef(job.createdBy),
+      created_at: job.created_at,
+      completed_at: job.completed_at,
+      sheets: job.sheets.map(sheetInfoOf),
+      config: job.config,
+      preview: job.preview,
+      result: job.result,
+      failure: null,
+    }
+  }
+  const checkedOf = (c: MockCase): CheckedCase => ({
+    case_code: c.case_code,
+    module_code: moduleDto(c.moduleId)?.module_code ?? null,
+    suite_name: c.suiteName || null,
+    sequence_number: null,
+    category: c.category || null,
+    title: c.title,
+    requirement_refs: c.requirement_refs,
+    priority_code: c.priority_code,
+    test_type_code: c.test_type_code,
+    actor_label: c.actor_label || null,
+    preconditions: c.preconditions || null,
+    test_steps_text: c.steps.map((s, i) => `${i + 1}. ${s}`).join('\n') || null,
+    expected_result: c.expected_result,
+    source_locale: 'id',
+    source_document: null,
+  })
+  /** Apply a previewed demo import: cases, modules/suites and (optionally) a results run. */
+  const applyImport = (job: MockImportJob) => {
+    const config = job.config as ImportConfig
+    const summary: ImportResultSummary = {
+      created_cases: 0,
+      updated_cases: 0,
+      unchanged_cases: 0,
+      skipped_rows: 0,
+      run: null,
+      executions: 0,
+      images_imported: 0,
+      images_failed: 0,
+      images_left_out: 0,
+    }
+    const caseFor = new Map<string, MockCase>()
+    for (const row of job.rows) {
+      if (row.status === 'DUPLICATE') {
+        row.final = 'SKIPPED'
+        summary.skipped_rows++
+        continue
+      }
+      if (row.status !== 'VALID') continue
+      const v = row.values
+      let mod = db.modules.find(
+        (m) => m.projectId === job.projectId && m.module_code === v.module_code,
+      )
+      if (!mod) {
+        mod = {
+          id: newId(),
+          projectId: job.projectId,
+          module_code: v.module_code as string,
+          name: v.module_code as string,
+        }
+        db.modules.push(mod)
+      }
+      if (
+        v.suite_name &&
+        !suites.some((s) => s.projectId === job.projectId && s.name === v.suite_name)
+      ) {
+        suites.push({
+          id: newId(),
+          projectId: job.projectId,
+          moduleId: mod.id,
+          name: v.suite_name,
+          reference_document: null,
+          reference_version: null,
+          created_at: now(),
+        })
+      }
+      const steps = stepsFromText(v.test_steps_text).map((s) => s.instruction)
+      let target: MockCase | undefined
+      if (row.action === 'CREATE') {
+        target = {
+          id: newId(),
+          projectId: job.projectId,
+          moduleId: mod.id,
+          suiteName: v.suite_name ?? '',
+          case_code: v.case_code ?? nextCode(job.projectId, v.module_code),
+          category: v.category ?? '',
+          title: v.title,
+          requirement_refs: v.requirement_refs,
+          priority_code: v.priority_code,
+          test_type_code: v.test_type_code,
+          actor_label: v.actor_label ?? '',
+          preconditions: v.preconditions ?? '',
+          steps,
+          expected_result: v.expected_result,
+          case_status: config.include_results ? 'READY' : config.case_status,
+          current_version: 1,
+          createdBy: db.currentUserId,
+          updatedBy: db.currentUserId,
+          created_at: now(),
+          updated_at: now(),
+          revisions: [],
+        }
+        addRevision(target, `Imported: ${job.filename} (${row.sheet}!${row.row})`)
+        db.cases.push(target)
+        summary.created_cases++
+        row.final = 'IMPORTED'
+      } else {
+        target = db.cases.find((c) => c.id === row.target_id)
+        if (!target) continue
+        if (row.action === 'UPDATE') {
+          const merged = mergeForMode(checkedOf(target), v, config.import_mode)
+          Object.assign(target, {
+            moduleId: mod.id,
+            suiteName: merged.suite_name ?? '',
+            category: merged.category ?? '',
+            title: merged.title,
+            requirement_refs: merged.requirement_refs,
+            priority_code: merged.priority_code,
+            test_type_code: merged.test_type_code,
+            actor_label: merged.actor_label ?? '',
+            preconditions: merged.preconditions ?? '',
+            steps: stepsFromText(merged.test_steps_text).map((s) => s.instruction),
+            expected_result: merged.expected_result,
+            current_version: target.current_version + 1,
+            updated_at: now(),
+          })
+          addRevision(target, `Import update: ${job.filename}`)
+          summary.updated_cases++
+          row.final = 'IMPORTED'
+        } else {
+          summary.unchanged_cases++
+          row.final = config.include_results ? 'IMPORTED' : 'SKIPPED'
+          if (!config.include_results) summary.skipped_rows++
+        }
+        if (config.include_results && target.case_status === 'DRAFT') target.case_status = 'READY'
+      }
+      row.target_id = target.id
+      caseFor.set(row.id, target)
+    }
+
+    if (config.include_results && config.run && caseFor.size > 0) {
+      const stamp = now()
+      const prefix = `RUN-${stamp.slice(0, 10).replace(/-/g, '')}-`
+      const dates = job.rows
+        .filter((row) => caseFor.has(row.id) && row.result.tested_at)
+        .map((row) => `${(row.result.tested_at as string).slice(0, 10)}T00:00:00.000Z`)
+        .sort()
+      const run: MockRun = {
+        id: newId(),
+        projectId: job.projectId,
+        cycleId: config.run.cycle_id ?? '',
+        run_code: `${prefix}${db.runs.filter((r) => r.run_code.startsWith(prefix)).length + 1}`,
+        name: config.run.name,
+        environment_name: config.run.environment_name ?? '',
+        build_version: config.run.build_version ?? '',
+        environment_url: '',
+        status_code: 'COMPLETED',
+        starts_at: dates[0] ?? stamp,
+        ends_at: dates.at(-1) ?? stamp,
+      }
+      db.runs.push(run)
+      summary.run = { id: run.id, run_code: run.run_code }
+      let order = 0
+      const inRun = new Set<string>()
+      for (const row of job.rows) {
+        const target = caseFor.get(row.id)
+        if (!target || inRun.has(target.id)) continue
+        inRun.add(target.id)
+        const rc: MockRunCase = {
+          id: newId(),
+          runId: run.id,
+          caseId: target.id,
+          assignedTo: null,
+          case_version: target.current_version,
+          sort_order: ++order,
+          snapshot: snapshotOfCase(target),
+        }
+        db.runCases.push(rc)
+        const status = row.result.status
+        if (status && (RECORDABLE_RESULTS as readonly string[]).includes(status)) {
+          db.executions.push({
+            id: newId(),
+            runCaseId: rc.id,
+            attempt_number: 1,
+            execution_kind: 'INITIAL',
+            result_status: status as RecordableResult,
+            actual_result: row.result.actual_result,
+            notes: row.result.notes,
+            testerId: '',
+            legacyTester: row.result.tester_name,
+            tested_at: row.result.tested_at
+              ? `${row.result.tested_at.slice(0, 10)}T00:00:00.000Z`
+              : stamp,
+          })
+          summary.executions++
+        }
+      }
+    }
+    job.result = summary
+    job.status = (job.preview?.counts.invalid ?? 0) > 0 ? 'PARTIAL' : 'COMPLETED'
+    job.completed_at = now()
+  }
+
   // ---- Milestone 5: evidence (demo: simulated pipeline in memory, ADR 0008) ------------
   const SIGNATURES: Record<string, number[]> = {
     png: [0x89, 0x50, 0x4e, 0x47],
@@ -680,7 +968,7 @@ export function createMockDataSource(
     actual_result: e.actual_result,
     notes: e.notes ?? null,
     tester: userRef(e.testerId),
-    legacy_tester_name: null,
+    legacy_tester_name: e.legacyTester ?? null,
     tested_at: e.tested_at,
     browser_name: e.browser_name ?? null,
     device_name: e.device_name ?? null,
@@ -1707,5 +1995,184 @@ export function createMockDataSource(
         const c = db.cases.find((x) => x.id === caseId && x.projectId === p.id) ?? notFound()
         removeLink(c, fileId)
       }),
+    uploadImport: async (code, file, options = {}) => {
+      const p = project(code)
+      requireRole(p.id, 'import.manage')
+      const ext = extensionOf(file.name)
+      if (ext === 'xlsx') {
+        // Workbooks need the server-side reader (images, merged cells, zip checks).
+        fail(422, 'VALIDATION_ERROR', 'file', 'DEMO_XLSX')
+      }
+      if (ext !== 'csv' && ext !== 'json') fail(422, 'VALIDATION_ERROR', 'file', 'TYPE_NOT_ALLOWED')
+      if (file.size === 0) fail(422, 'VALIDATION_ERROR', 'file', 'EMPTY')
+      const text = await readText(file)
+      options.onProgress?.(1)
+      let sheets: PlanSheet[]
+      let kind: ImportSourceKind = 'MANUAL'
+      const defaults: MockImportJob['defaults'] = {}
+      if (ext === 'csv') {
+        const rows = parseCsv(text)
+        if (rows.length === 0) fail(422, 'VALIDATION_ERROR', 'file', 'EMPTY')
+        sheets = [{ name: 'CSV', rows, hiddenRows: [], images: [] }]
+      } else {
+        let json: unknown
+        try {
+          json = JSON.parse(text.charCodeAt(0) === 0xfeff ? text.slice(1) : text)
+        } catch {
+          return fail(422, 'VALIDATION_ERROR', 'file', 'INVALID_JSON')
+        }
+        const parsed = aiImportSchema.safeParse(json)
+        if (!parsed.success) return fail(422, 'VALIDATION_ERROR', 'file', 'SCHEMA_MISMATCH')
+        kind = parsed.data.source_kind
+        defaults.suite_name = parsed.data.suite_name
+        defaults.source_locale = parsed.data.source_locale
+        const header: string[] = [...CASE_IMPORT_FIELDS]
+        const cell = (v: unknown) => (v === null || v === undefined ? '' : String(v))
+        sheets = [
+          {
+            name: 'JSON',
+            rows: [header, ...parsed.data.cases.map((c) => header.map((key) => cell(c[key])))],
+            hiddenRows: [],
+            images: [],
+          },
+        ]
+      }
+      const job: MockImportJob = {
+        id: newId(),
+        projectId: p.id,
+        filename: file.name,
+        format: ext === 'csv' ? 'CSV' : 'JSON',
+        kind,
+        status: 'UPLOADED',
+        sheets,
+        defaults,
+        config: null,
+        rows: [],
+        preview: null,
+        result: null,
+        createdBy: db.currentUserId,
+        created_at: now(),
+        completed_at: null,
+      }
+      importJobs.push(job)
+      return delay(() => importDto(job))
+    },
+
+    listImports: (code, query: PageQuery = {}) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'import.manage')
+        return paginate(
+          importJobs
+            .filter((j) => j.projectId === p.id)
+            .reverse()
+            .map(importDto),
+          query,
+        )
+      }),
+
+    getImport: (code, jobId) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'import.manage')
+        return importDto(importJobIn(p.id, jobId))
+      }),
+
+    configureImport: (code, jobId, input) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'import.manage')
+        const job = importJobIn(p.id, jobId)
+        if (job.status !== 'UPLOADED' && job.status !== 'PREVIEW') {
+          conflict('This import can no longer be changed.')
+        }
+        const parsed = importConfigSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const config = parsed.data as ImportConfig
+        const { rows, images, codes } = planRows(job.sheets, config, job.defaults)
+        const existing = new Map<string, ExistingCase>()
+        for (const c of db.cases) {
+          if (c.projectId === p.id && codes.includes(c.case_code)) {
+            existing.set(c.case_code, {
+              id: c.id,
+              case_status: c.case_status,
+              values: checkedOf(c),
+            })
+          }
+        }
+        const modules = new Set(
+          db.modules.filter((m) => m.projectId === p.id).map((m) => m.module_code),
+        )
+        const knownSuites = new Set(
+          suites
+            .filter((s) => s.projectId === p.id)
+            .map((s) => `${moduleDto(s.moduleId)?.module_code ?? ''}|${s.name}`),
+        )
+        job.preview = finishPlan(rows, images, config, existing, modules, knownSuites)
+        job.rows = rows.map((row) => ({ ...row, id: newId() }))
+        job.config = config
+        job.status = 'PREVIEW'
+        return importDto(job)
+      }),
+
+    listImportRows: (code, jobId, query: ImportRowQuery = {}) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'import.manage')
+        const job = importJobIn(p.id, jobId)
+        const state = (row: MockImportJob['rows'][number]) => row.final ?? row.status
+        const items = job.rows
+          .filter((row) =>
+            !query.status
+              ? true
+              : query.status === 'ok'
+                ? state(row) === 'VALID' && row.issues.length === 0
+                : query.status === 'review'
+                  ? state(row) === 'VALID' && row.issues.length > 0
+                  : state(row) === query.status,
+          )
+          .map((row): ImportRowDto => ({
+            id: row.id,
+            sheet_name: row.sheet,
+            source_row_number: row.row,
+            external_case_code: row.values.case_code,
+            status_code: state(row),
+            action: row.action,
+            title: row.values.title,
+            module_code: row.values.module_code,
+            result_status:
+              row.result.status && row.result.status !== 'IGNORE' ? row.result.status : null,
+            issues: row.issues,
+            duplicate_of: row.duplicate_of,
+            target_test_case_id: row.target_id,
+            image_count: row.images.length,
+          }))
+        return paginate(items, query)
+      }),
+
+    commitImport: (code, jobId) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'import.manage')
+        const job = importJobIn(p.id, jobId)
+        if (job.status !== 'PREVIEW') conflict('This import is not ready to be applied.')
+        job.status = 'IMPORTING'
+        const answer = importDto(job)
+        setTimeout(() => applyImport(job), Math.max(latencyMs * 2, 30))
+        return answer
+      }),
+
+    deleteImport: (code, jobId) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'import.manage')
+        const job = importJobIn(p.id, jobId)
+        if (!['UPLOADED', 'PREVIEW', 'FAILED'].includes(job.status)) {
+          conflict('An applied import is kept as history.')
+        }
+        importJobs.splice(importJobs.indexOf(job), 1)
+      }),
+
+    importUrl: () => '',
   }
 }

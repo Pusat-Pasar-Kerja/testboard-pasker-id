@@ -15,7 +15,7 @@ import { useToast } from '../components/ui/toast-context'
 import { useCan } from '../hooks/permissions'
 import { useCurrentUser, useMembers } from '../hooks/queries'
 import { projectPath, useProjectCode } from '../hooks/route-state'
-import { ApiClientError } from '../services/api-client'
+import { apiErrorText } from '../lib/api-errors'
 import { useDataSource } from '../services/use-data-source'
 
 /** Two-tab link bar shared by the Team & Settings pages. */
@@ -37,16 +37,6 @@ export function TeamTabs({ code }: { code: string }) {
       </NavLink>
     </nav>
   )
-}
-
-function errorText(t: ReturnType<typeof useTranslation>['t'], error: unknown): string {
-  if (error instanceof ApiClientError) {
-    const field = error.details[0]?.message
-    return error.status === 409 || error.status === 422
-      ? (field ?? error.message)
-      : t(`errors.${error.code}`)
-  }
-  return t('errors.INTERNAL_ERROR')
 }
 
 function AddMemberForm({ code }: { code: string }) {
@@ -97,7 +87,7 @@ function AddMemberForm({ code }: { code: string }) {
         {t('actions.add')}
       </Button>
       <div className="sm:col-span-3">
-        <FormAlert message={add.isError ? errorText(t, add.error) : null} />
+        <FormAlert message={add.isError ? apiErrorText(t, add.error) : null} />
       </div>
     </form>
   )
@@ -121,7 +111,7 @@ function MemberRow({
   const selectId = useId()
   const [confirm, setConfirm] = useState(false)
   const name = member.user.display_name
-  const onError = (error: unknown) => toast.show(errorText(t, error), 'error')
+  const onError = (error: unknown) => toast.show(apiErrorText(t, error), 'error')
 
   const changeRole = useMutation({
     mutationFn: (role: MemberRole) => ds.updateMember(code, member.user.id, role),

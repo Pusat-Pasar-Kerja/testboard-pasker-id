@@ -54,6 +54,9 @@ export const IMPORT_FIELDS = [...CASE_IMPORT_FIELDS, ...RESULT_IMPORT_FIELDS] as
 export type ImportField = (typeof IMPORT_FIELDS)[number]
 
 const MIB = 1024 * 1024
+/** Rows sent to the wizard for choosing the header row. */
+export const HEADER_SCAN_ROWS = 30
+
 export const IMPORT_LIMITS = {
   fileBytes: 40 * MIB,
   /** Total size of the XLSX parts once unzipped (zip-bomb guard). */
@@ -550,6 +553,8 @@ export interface ImportSheetInfo {
   header_cells: string[]
   /** A few rows right below the header, for the mapping screen. */
   sample_rows: string[][]
+  /** First rows of the sheet, so the header row can be changed in the wizard. */
+  top_rows: string[][]
   /** Document metadata found above the header (Dokumen Acuan, Versi Dokumen ...). */
   reference_document: string | null
   reference_version: string | null

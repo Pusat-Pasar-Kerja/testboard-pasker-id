@@ -2,6 +2,24 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.7.0] - 2026-11-20
+
+**Milestone 6 selesai**: test case dan hasil UAT lama bisa diimpor dari Excel, CSV, atau JSON lewat wizard di UI (mode API dan demo).
+
+### Ditambahkan
+
+- Halaman Impor: unggah tarik-lepas dengan progres, template CSV dan contoh JSON AI (data dummy), riwayat job impor beserta status, hanya untuk QA Lead/Admin proyek.
+- Wizard job impor: pilih sheet, nomor baris header (dengan cuplikan baris teratas), modul/suite bawaan per sheet, pemetaan kolom (terisi otomatis dari nama kolom lama), mode bila kode sudah ada, status test case baru, lalu "Periksa" untuk pratinjau.
+- Pratinjau: jumlah dibuat/diperbarui/tidak berubah/perlu ditinjau/duplikat/tidak valid, modul & suite baru, pemetaan status hasil lama (label seperti Closed tidak diterjemahkan otomatis), gambar tertanam yang otomatis terpasang vs perlu ditinjau (dengan pratinjau gambar), daftar baris per status dengan alasan, unduh daftar masalah (CSV), dan petunjuk bila tidak ada baris data.
+- Migrasi hasil UAT lama: nama run, lingkungan, build/versi; konfirmasi menyebut run yang akan dibuat; hasil akhir menautkan ke test case dan run (periode run mengikuti tanggal uji di file).
+- Mode demo mensimulasikan impor CSV/JSON (aturan sama dengan API); impor Excel menjelaskan bahwa fitur itu butuh server.
+- Tes: aturan impor di data demo dan alur UI (unggah → periksa → terapkan, migrasi hasil ke run, Excel di demo, akses hanya lead).
+
+### Diubah
+
+- Perencana impor (pemetaan, validasi, duplikat, pratinjau) dipindah ke `@testboard/shared` sehingga API dan demo memakai aturan yang sama.
+- Periode run migrasi hanya dihitung dari baris yang benar-benar masuk run.
+
 ## [0.6.1] - 2026-11-20
 
 Milestone 6 bagian API: impor test case dan migrasi hasil UAT lama.

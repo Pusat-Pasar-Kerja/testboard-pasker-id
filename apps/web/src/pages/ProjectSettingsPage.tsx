@@ -12,11 +12,12 @@ import { useToast } from '../components/ui/toast-context'
 import { useCan } from '../hooks/permissions'
 import { useModules, useSuites } from '../hooks/queries'
 import { projectPath, useProjectCode } from '../hooks/route-state'
+import type { TFunction } from 'i18next'
 import { ApiClientError } from '../services/api-client'
 import { useDataSource } from '../services/use-data-source'
 import { TeamTabs } from './MembersPage'
 
-function apiMessage(t: ReturnType<typeof useTranslation>['t'], error: unknown) {
+function apiMessage(t: TFunction, error: unknown) {
   if (error instanceof ApiClientError) {
     if (error.status === 409) return t('form.alreadyUsed')
     return error.status === 422 ? t('form.invalid') : t(`errors.${error.code}`)
