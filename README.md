@@ -38,8 +38,9 @@ npm run dev
 | `npm run lint` / `npm run typecheck` / `npm test` | Pemeriksaan kualitas                                       |
 | `npm run build`                                   | Build shared, API (`apps/api/dist`), web (`apps/web/dist`) |
 | `npm run check`                                   | Semua pemeriksaan di atas + format (dipakai CI)            |
+| `npm run db:init` / `db:start` / `db:stop`        | Database lokal MariaDB 10.4.32 (port 3307)                 |
 
-Database lokal (Docker + MariaDB 10.4.32, sama dengan VPS) baru dibutuhkan mulai Milestone 3; lihat [`database/README.md`](database/README.md) dan [ADR 0003](docs/adr/0003-database-engine.md). **Jangan** memakai database VPS untuk development.
+Database lokal: MariaDB 10.4.32 (sama dengan VPS) tanpa Docker, cukup `npm run db:init` sekali lalu `npm run db:start`; lihat [`database/README.md`](database/README.md) dan [ADR 0003](docs/adr/0003-database-engine.md). **Jangan** memakai database VPS untuk development.
 
 ## Versioning & branch
 

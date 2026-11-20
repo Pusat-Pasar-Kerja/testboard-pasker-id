@@ -91,11 +91,12 @@ export function Tabs({
         })}
       </div>
       <div
+        key={current.id}
         role="tabpanel"
         id={`${baseId}-panel-${current.id}`}
         aria-labelledby={`${baseId}-tab-${current.id}`}
         tabIndex={0}
-        className="pt-5 focus-visible:outline-offset-4"
+        className="animate-fade-in pt-5 focus-visible:outline-offset-4"
       >
         {current.content}
       </div>

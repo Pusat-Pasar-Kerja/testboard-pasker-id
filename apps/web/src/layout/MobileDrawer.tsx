@@ -55,13 +55,17 @@ export function MobileDrawer({
   if (!open) return null
   return (
     <div className="fixed inset-0 z-40 lg:hidden">
-      <div aria-hidden="true" className="absolute inset-0 bg-ink/40" onClick={onClose} />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 animate-fade-in bg-ink/30 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={t('nav.main')}
-        className="absolute inset-y-0 left-0 flex w-[min(20rem,85vw)] flex-col bg-surface shadow-xl"
+        className="absolute inset-y-0 left-0 flex w-[min(20rem,85vw)] animate-drawer-in flex-col bg-surface shadow-lg"
       >
         <button
           type="button"

@@ -4,7 +4,13 @@ import { createApp } from '../src/app.js'
 import type { AppConfig } from '../src/config/env.js'
 import { AppError } from '../src/lib/errors.js'
 
-const config: AppConfig = { nodeEnv: 'test', host: '127.0.0.1', port: 0, logRequests: false }
+const config: AppConfig = {
+  nodeEnv: 'test',
+  host: '127.0.0.1',
+  port: 0,
+  logRequests: false,
+  db: null,
+}
 
 function makeApp() {
   const logError = vi.fn()
@@ -34,6 +40,18 @@ describe('GET /api/v1/health', () => {
     const { app } = makeApp()
     const res = await app.request('/api/v1/health', { headers: { 'X-Request-Id': 'req-abc-123' } })
     expect(res.headers.get('X-Request-Id')).toBe('req-abc-123')
+  })
+
+  it('reports the database state and returns 503 degraded when it is down', async () => {
+    const up = createApp({ config, version: 'x', checkDatabase: async () => 'up' })
+    const upRes = await up.request('/api/v1/health')
+    expect(upRes.status).toBe(200)
+    expect(await upRes.json()).toMatchObject({ status: 'ok', database: 'up' })
+
+    const down = createApp({ config, version: 'x', checkDatabase: async () => 'down' })
+    const downRes = await down.request('/api/v1/health')
+    expect(downRes.status).toBe(503)
+    expect(await downRes.json()).toMatchObject({ status: 'degraded', database: 'down' })
   })
 
   it('sets secure headers', async () => {

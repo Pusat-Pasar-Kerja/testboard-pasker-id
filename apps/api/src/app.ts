@@ -4,6 +4,7 @@ import { logger } from 'hono/logger'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 import type { AppConfig } from './config/env.js'
+import type { DatabaseHealth } from './db/pool.js'
 import {
   consoleErrorLogger,
   createErrorHandler,
@@ -18,12 +19,15 @@ export interface AppDeps {
   config: AppConfig
   version?: string
   logError?: ErrorLogger
+  /** Database probe; omitted when no database is configured. */
+  checkDatabase?: () => Promise<DatabaseHealth>
 }
 
 export function createApp({
   config,
   version = readAppVersion(),
   logError = consoleErrorLogger,
+  checkDatabase = async () => 'not_configured',
 }: AppDeps) {
   const app = new Hono<AppEnv>()
 
@@ -33,7 +37,7 @@ export function createApp({
   if (config.logRequests) app.use('*', logger())
 
   const api = new Hono<AppEnv>()
-  api.route('/health', healthRoutes(version))
+  api.route('/health', healthRoutes(version, checkDatabase))
 
   app.route(API_BASE_PATH, api)
 

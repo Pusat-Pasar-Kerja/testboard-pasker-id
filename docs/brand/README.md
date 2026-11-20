@@ -9,7 +9,7 @@ Logo TestBoard **mengikuti tata bahasa visual keluarga logo hub Kemnaker** (Kari
 | Karirhub      | Siku tebal membulat                    | kanan-atas    | `#339AF0`     |
 | Skillhub      | Chevron tebal membulat                 | kiri-tengah   | `#1E40AF`     |
 | Maganghub     | Busur "C" tebal                        | tengah        | `#0B60EA`     |
-| **TestBoard** | **Centang tebal membulat** (tes lulus) | **kiri-atas** | **`#3347E0`** |
+| **TestBoard** | **Centang tebal membulat** (tes lulus) | **kiri-atas** | **`#4361D6`** |
 
 Aturan bersama yang diikuti:
 
@@ -24,9 +24,10 @@ Aturan bersama yang diikuti:
 
 ## Warna aplikasi
 
-Warna utama UI diturunkan dari `#3347E0` (skala `brand-50` s.d. `brand-900` di `apps/web/src/styles.css`). Warna status tetap semantik (hijau = lulus, merah = gagal, kuning = terhambat) dan selalu disertai label/ikon, tidak hanya warna. Font Inter dibundel lokal (`@fontsource-variable/inter`), tanpa CDN eksternal.
+Warna utama UI diturunkan dari `#4361D6` (biru lembut; kontras 5,4:1 terhadap putih, lolos WCAG AA) (skala `brand-50` s.d. `brand-900` di `apps/web/src/styles.css`). Warna status tetap semantik (hijau = lulus, merah = gagal, kuning = terhambat) dan selalu disertai label/ikon, tidak hanya warna. Font Inter dibundel lokal (`@fontsource-variable/inter`), tanpa CDN eksternal.
 
 ## Hal yang perlu dikonfirmasi pemilik brand
 
-- Shade biru `#3347E0` dan teks endorsement "oleh PASKER ID" (alternatif: "oleh Kemnaker").
+- Warna: pemilik proyek membebaskan pilihan dengan syarat lembut dan nyaman (20 Nov 2026) -> `#4361D6`, versi lebih kalem dari `#3347E0` sebelumnya.
+- Teks endorsement "oleh PASKER ID" (alternatif: "oleh Kemnaker").
 - Logo Sertihub (jika ada) untuk memastikan TestBoard tidak bentrok warna/bentuk.

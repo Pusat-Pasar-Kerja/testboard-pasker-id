@@ -12,9 +12,25 @@ Prinsip:
 - Tidak ada `DROP TABLE` / perubahan destruktif pada data produksi.
 - File lampiran tidak disimpan sebagai BLOB; `file_objects` hanya berisi metadata.
 
-## Database lokal (Docker)
+## Database lokal (tanpa Docker - cara utama)
 
-Engine: **MariaDB 10.4.32**, sama persis dengan VPS ([ADR 0003](../docs/adr/0003-database-engine.md)).
+Engine: **MariaDB 10.4.32** dari XAMPP yang sudah terpasang, sama persis dengan VPS ([ADR 0003](../docs/adr/0003-database-engine.md), [ADR 0004](../docs/adr/0004-keputusan-20-nov-2026.md)). Berjalan sebagai **instance terpisah** (data di `.local-db/`, port 3307), jadi database XAMPP Anda tidak tersentuh.
+
+```bash
+npm run db:init     # sekali: buat instance, database testboard, user dev, impor schema baseline
+npm run db:start    # nyalakan (misalnya setelah laptop restart)
+npm run db:stop     # matikan
+npm run db:status   # versi, sql_mode, collation, jumlah tabel
+```
+
+- `db:init` menyalin pengaturan VPS (`sql_mode`, `utf8mb4_general_ci`) dan menulis `apps/api/.env` (git-ignored) berisi kredensial lokal acak.
+- User aplikasi lokal `testboard_dev` hanya punya `SELECT/INSERT/UPDATE/DELETE` (sama seperti `testboard_app` di VPS); migration dijalankan sebagai root lokal.
+- Koneksi DBeaver: host `127.0.0.1`, port **3307**, database `testboard`; kredensial ada di `apps/api/.env`. **Ini database laptop, bukan VPS.**
+- Binary di lokasi lain: set variabel `MARIADB_BIN` (default folder `mysql\bin` milik XAMPP di drive C).
+
+## Alternatif: Docker
+
+Engine sama (`mariadb:10.4.32`), untuk pengembang yang punya Docker.
 
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) lalu jalankan aplikasinya.
 2. Salin `infra/docker/docker.env.example` menjadi `infra/docker/docker.env`, isi password lokal (bebas, hanya untuk laptop).

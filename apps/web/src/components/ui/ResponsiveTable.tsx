@@ -86,7 +86,7 @@ export function ResponsiveTable<T>({
             <li key={rowKey(row)}>
               <Link
                 to={rowLink(row)}
-                className="block rounded-lg border border-line bg-surface p-3 hover:border-brand-300"
+                className="block rounded-lg border border-line bg-surface p-3 hover:border-brand-200 hover:shadow-sm"
               >
                 {head.code && (
                   <span className="text-xs font-semibold text-brand-700">{head.code}</span>

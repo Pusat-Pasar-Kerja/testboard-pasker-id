@@ -10,7 +10,7 @@
 
 ## Keputusan
 
-1. Database lokal = container **`mariadb:10.4.32`** (persis sama dengan produksi), port `127.0.0.1:3307`, file `infra/docker/docker-compose.dev.yml`. Schema baseline di-import otomatis saat volume pertama kali dibuat.
+1. Database lokal = **MariaDB 10.4.32** (persis sama dengan produksi), port `127.0.0.1:3307`. **Diperbarui di ADR 0004:** karena Docker tidak bisa dipasang, cara utama adalah instance terpisah dari binary XAMPP (`npm run db:init`); container `mariadb:10.4.32` (`infra/docker/docker-compose.dev.yml`) tetap opsi alternatif.
 2. Kode backend wajib kompatibel dengan **MariaDB 10.4** (dan tetap jalan di versi MariaDB yang lebih baru).
 3. Timestamp disimpan UTC (container memakai `--default-time-zone=+00:00`); tampilan Asia/Jakarta di UI.
 
@@ -27,4 +27,4 @@
 ## Risiko
 
 - **MariaDB 10.4 sudah end-of-life sejak Juni 2024** (tidak ada lagi patch keamanan). Disarankan merencanakan upgrade VPS ke versi LTS (mis. 10.11 atau 11.4) sebelum go-live publik, dengan backup + uji restore. Upgrade adalah keputusan infrastruktur; aplikasi dibuat agar tidak bergantung pada fitur khusus 10.4.
-- Pengaturan server VPS (`sql_mode`, `character_set_server`, `collation_server`, `time_zone`) belum diketahui; perlu dicocokkan sebelum Milestone 3.
+- Pengaturan server VPS sudah diketahui dan disamakan di lokal - lihat ADR 0004 bagian 3.

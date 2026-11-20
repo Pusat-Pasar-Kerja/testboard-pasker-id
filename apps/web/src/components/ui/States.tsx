@@ -13,7 +13,7 @@ export function LoadingState({ rows = 5 }: { rows?: number }) {
         <div
           key={index}
           aria-hidden="true"
-          className="h-10 animate-pulse rounded-lg bg-neutral-soft"
+          className="h-10 animate-soft-pulse rounded-lg bg-neutral-soft"
           style={{ opacity: 1 - index * 0.12 }}
         />
       ))}

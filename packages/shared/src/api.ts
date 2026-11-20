@@ -49,7 +49,8 @@ export interface Paginated<T> {
 }
 
 export interface HealthResponse {
-  status: 'ok'
+  /** 'degraded' (HTTP 503) when a required dependency such as the database is down. */
+  status: 'ok' | 'degraded'
   service: 'testboard-api'
   version: string
   time: string

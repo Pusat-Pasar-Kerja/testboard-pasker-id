@@ -29,7 +29,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['apps/api/**/*.ts', 'packages/**/*.ts', '**/*.config.{js,ts}'],
+    files: ['apps/api/**/*.ts', 'packages/**/*.ts', '**/*.config.{js,ts}', 'scripts/**/*.{js,mjs}'],
     languageOptions: { globals: globals.node },
   },
   prettier,

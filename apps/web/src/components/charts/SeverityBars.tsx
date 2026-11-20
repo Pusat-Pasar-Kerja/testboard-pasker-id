@@ -35,7 +35,7 @@ export function SeverityBars({
               <span className="flex items-center gap-2">
                 <span
                   aria-hidden="true"
-                  className="h-4 rounded-r bg-brand-600 transition-opacity group-hover:opacity-80"
+                  className="h-4 rounded-r bg-brand-500 transition-[width,opacity] duration-500 ease-soft group-hover:opacity-80"
                   style={{ width: value === 0 ? '0' : `calc(${(value / max) * 100}% - 2.5rem)` }}
                 />
                 <span aria-hidden="true" className="text-sm font-semibold tabular-nums">

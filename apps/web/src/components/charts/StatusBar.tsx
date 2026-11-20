@@ -68,7 +68,7 @@ export function StatusBar({
         {parts.map((part) => (
           <span
             key={part.status}
-            className={`${FILL[part.status]} h-full first:rounded-l-full last:rounded-r-full`}
+            className={`${FILL[part.status]} h-full transition-[width] duration-500 ease-soft first:rounded-l-full last:rounded-r-full`}
             style={{ width: `${part.share}%` }}
           />
         ))}
@@ -89,7 +89,7 @@ export function StatusBar({
             key={part.status}
             tabIndex={0}
             aria-label={describe(part)}
-            className={`group relative flex h-full min-w-1 items-center rounded px-1.5 text-xs font-semibold tabular-nums outline-offset-2 transition-opacity hover:opacity-85 ${FILL[part.status]} ${INK[part.status]}`}
+            className={`group relative flex h-full min-w-1 items-center rounded px-1.5 text-xs font-semibold tabular-nums outline-offset-2 transition-[width,opacity] duration-500 ease-soft hover:opacity-85 ${FILL[part.status]} ${INK[part.status]}`}
             style={{ width: `${part.share}%` }}
           >
             {part.share >= LABEL_MIN_SHARE && (
@@ -97,7 +97,7 @@ export function StatusBar({
             )}
             <span
               role="tooltip"
-              className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 rounded-md bg-ink px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow group-hover:block group-focus-visible:block"
+              className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 animate-fade-in rounded-md bg-ink px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow group-hover:block group-focus-visible:block"
             >
               <strong className="font-semibold">{formatNumber(part.count, locale)}</strong>{' '}
               {t(`codes.execution.${part.status}`)}

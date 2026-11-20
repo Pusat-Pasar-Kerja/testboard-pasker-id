@@ -40,7 +40,7 @@ export function UserMenu() {
           )}
         </span>
       </summary>
-      <div className="absolute right-0 z-30 mt-2 w-64 rounded-xl border border-line bg-surface p-2 shadow-lg">
+      <div className="absolute right-0 z-30 mt-2 w-64 origin-top-right animate-pop-in rounded-xl border border-line bg-surface p-2 shadow-lg">
         <p className="px-3 py-2 text-sm">
           {t('shell.signedInAs', { name })}
           {demo && <span className="mt-1 block text-xs text-warning">{t('mode.demo')}</span>}

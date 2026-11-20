@@ -26,7 +26,7 @@ export function ProjectsPage() {
             <li key={project.project_code}>
               <Link
                 to={projectPath(project.project_code)}
-                className="flex h-full flex-col gap-3 rounded-xl border border-line bg-surface p-5 shadow-xs hover:border-brand-300 hover:bg-brand-50/40"
+                className="flex h-full flex-col gap-3 rounded-xl border border-line bg-surface p-5 shadow-xs hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-sm"
               >
                 <span className="text-xs font-semibold tracking-wide text-brand-700">
                   {project.project_code}

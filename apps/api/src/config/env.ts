@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { DbConfig } from '../db/pool.js'
 
 const booleanFromString = z
   .enum(['true', 'false', '1', '0'])
@@ -9,6 +10,12 @@ const EnvSchema = z.object({
   API_HOST: z.string().min(1).default('127.0.0.1'),
   API_PORT: z.coerce.number().int().min(1).max(65535).default(8787),
   LOG_REQUESTS: booleanFromString.optional(),
+  DB_HOST: z.string().min(1).optional(),
+  DB_PORT: z.coerce.number().int().min(1).max(65535).default(3306),
+  DB_NAME: z.string().min(1).optional(),
+  DB_USER: z.string().min(1).optional(),
+  DB_PASSWORD: z.string().optional(),
+  DB_POOL_SIZE: z.coerce.number().int().min(1).max(50).default(10),
 })
 
 export interface AppConfig {
@@ -16,6 +23,8 @@ export interface AppConfig {
   host: string
   port: number
   logRequests: boolean
+  /** null = database not configured (e.g. demo/healthcheck-only runs). */
+  db: DbConfig | null
 }
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', 'localhost'])
@@ -37,10 +46,34 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
     throw new Error('In production API_HOST must be a loopback address (e.g. 127.0.0.1).')
   }
 
+  let db: DbConfig | null = null
+  if (values.DB_HOST) {
+    const missing = (['DB_NAME', 'DB_USER', 'DB_PASSWORD'] as const).filter(
+      (key) => values[key] === undefined || values[key] === '',
+    )
+    if (missing.length > 0) {
+      throw new Error(`Invalid API environment configuration: ${missing.join(', ')}`)
+    }
+    db = {
+      host: values.DB_HOST,
+      port: values.DB_PORT,
+      database: values.DB_NAME as string,
+      user: values.DB_USER as string,
+      password: values.DB_PASSWORD as string,
+      connectionLimit: values.DB_POOL_SIZE,
+    }
+  }
+  if (values.NODE_ENV === 'production' && !db) {
+    throw new Error(
+      'In production the database settings (DB_HOST, DB_NAME, DB_USER, DB_PASSWORD) are required.',
+    )
+  }
+
   return {
     nodeEnv: values.NODE_ENV,
     host: values.API_HOST,
     port: values.API_PORT,
     logRequests: values.LOG_REQUESTS ?? values.NODE_ENV === 'development',
+    db,
   }
 }

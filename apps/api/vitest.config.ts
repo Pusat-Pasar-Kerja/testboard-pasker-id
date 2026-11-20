@@ -7,5 +7,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['test/**/*.test.ts'],
+    // Integration tests need the local database: run them with `npm run test:integration`.
+    exclude: ['test/**/*.integration.test.ts'],
   },
 })

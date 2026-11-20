@@ -1,7 +1,7 @@
 import { Menu, Search } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Outlet, useNavigate, useParams } from 'react-router'
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router'
 import { TestBoardLogo } from '../components/brand/TestBoardLogo'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { projectPath } from '../hooks/route-state'
@@ -49,6 +49,7 @@ function TopbarSearch({ projectCode }: { projectCode: string }) {
 export function AppShell() {
   const { t } = useTranslation()
   const { projectCode } = useParams()
+  const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   // Every drawer link calls closeMenu, so navigation from the drawer always closes it.
   const closeMenu = useCallback(() => setMenuOpen(false), [])
@@ -99,7 +100,9 @@ export function AppShell() {
           tabIndex={-1}
           className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 sm:px-6 lg:px-8"
         >
-          <Outlet />
+          <div key={pathname} className="animate-page-in">
+            <Outlet />
+          </div>
         </main>
       </div>
 

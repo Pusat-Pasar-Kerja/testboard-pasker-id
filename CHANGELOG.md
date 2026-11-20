@@ -2,6 +2,21 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.2.1] - 2026-11-20
+
+### Ditambahkan
+
+- Database lokal **tanpa Docker**: `npm run db:init|db:start|db:stop|db:status` menjalankan instance MariaDB 10.4.32 terpisah dari binary XAMPP (data di `.local-db/` drive D, port 3307), dengan `sql_mode` dan collation persis seperti VPS, user dev CRUD-only, dan schema baseline terimpor.
+- API terhubung ke database: pool mysql2 (sesi UTC, BIGINT sebagai string, `sql_mode` sesi sama dengan server), `/api/v1/health` melaporkan status database (503 `degraded` bila mati).
+- Tes integrasi database lokal (`npm run test:integration -w @testboard/api`): versi & pengaturan sama dengan VPS, UTC per koneksi, BIGINT aman, 27 tabel + view, user aplikasi tanpa hak DDL.
+- Usulan migration Milestone 2 (belum diterapkan): `schema_migrations`, `user_sessions`, `user_system_roles` (Super Admin), `system_settings`, `auth_login_attempts` - sintaks sudah divalidasi di database sementara.
+- ADR 0004: Super Admin global, DB lokal tanpa Docker, pengaturan DB VPS, brand lembut, konfirmasi kompresi wajib pada setiap upload.
+
+### Diubah
+
+- Tampilan lebih lembut: biru `#4361D6` (kontras AA), kanvas dan garis lebih kalem, bayangan tipis; logo ikut warna baru.
+- Animasi halus: transisi halaman, tab, drawer, menu, tooltip, dan bar grafik dengan kurva perlambatan lembut; otomatis nonaktif bila OS memakai "kurangi gerakan".
+
 ## [0.2.0] - 2026-11-20
 
 Milestone 1 selesai: design system & prototype demo yang bisa diklik (data contoh fiktif).

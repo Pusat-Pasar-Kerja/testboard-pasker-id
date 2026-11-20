@@ -28,7 +28,10 @@ export function StatTile({
   )
   const base = 'block rounded-xl border border-line bg-surface p-4 shadow-xs'
   return to ? (
-    <Link to={to} className={`${base} hover:border-brand-300 hover:bg-brand-50/40`}>
+    <Link
+      to={to}
+      className={`${base} hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-sm`}
+    >
       {body}
     </Link>
   ) : (

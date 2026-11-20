@@ -14,6 +14,7 @@ infra/docker/docker.env
 
 # Private evidence / uploads / temp (must never be in Git or a public webroot)
 .private-storage/
+.local-db/
 uploads/
 tmp/
 

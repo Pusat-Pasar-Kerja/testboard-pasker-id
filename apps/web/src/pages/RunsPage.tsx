@@ -32,7 +32,7 @@ export function RunsPage() {
             <li key={run.id}>
               <Link
                 to={projectPath(code, `runs/${run.id}`)}
-                className="block rounded-xl border border-line bg-surface p-5 shadow-xs hover:border-brand-300"
+                className="block rounded-xl border border-line bg-surface p-5 shadow-xs hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-sm"
               >
                 <span className="flex flex-wrap items-start justify-between gap-3">
                   <span className="min-w-0">

@@ -20,7 +20,7 @@
 | ID             | Pertanyaan                                                                                                                                                               | Dibutuhkan pada |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
 | ~~DB lokal~~   | **Diputus:** Docker + MariaDB 10.4.32 (sama dengan VPS) - lihat ADR 0003                                                                                                 | Milestone 3     |
-| DEC-01         | Perlu Super Admin global lintas project?                                                                                                                                 | Milestone 2     |
+| ~~DEC-01~~     | **Diputus:** Super Admin global, akses & konfigurasi penuh - ADR 0004                                                                                                    | Milestone 2     |
 | DEC-02         | Cara membuat akun admin pertama (seed CLI) & tabel session                                                                                                               | Milestone 2     |
 | Import P2      | Sheet baseline Phase 2 (sheet utama vs versi "3" yang di-hide, kode case bentrok)                                                                                        | Milestone 6     |
 | Import mapping | `Jenis Pengujian` legacy `Keamanan`, `Nonfungsional`, `Audit`, `Pelaporan` belum ada di kode schema; template menyebut `SECURITY`/`PERFORMANCE` yang tidak ada di schema | Milestone 6     |
