@@ -53,6 +53,19 @@ Kirimkan seluruh hasilnya ke pengembang. Isinya tidak memuat password. Perhatika
 
 ## Langkah 3 - Setup pertama (sekali saja)
 
+**Bila Anda login sebagai `root`** (hasil `check` menulis "Login sebagai root"), buat dulu
+user khusus supaya API tidak berjalan dengan hak admin penuh, lalu pindah ke user itu.
+Mulai sekarang semua perintah TestBoard dijalankan sebagai user ini:
+
+```bash
+adduser --disabled-password --gecos "" testboard
+chown -R testboard:testboard /opt/lampp/htdocs/paskerid/public/testboard
+su - testboard
+cd /opt/lampp/htdocs/paskerid/public/testboard
+```
+
+Lalu:
+
 ```bash
 bash ops/testboard.sh setup
 ```
@@ -153,14 +166,16 @@ Backup ada di disk server yang sama. Sesekali unduh folder backup terbaru ke tem
 
 ## Bila ada masalah
 
-| Gejala                                                   | Kemungkinan penyebab / tindakan                                                                                              |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `smoke` menunjukkan `TERBUKA` untuk `.git`, `.env`, dll. | `.htaccess` tidak dibaca (`AllowOverride None`) atau `mod_rewrite` mati. Jangan go-live; minta admin server mengaktifkannya. |
-| Halaman tampil tetapi "API lewat Apache tidak menjawab"  | `mod_proxy`/`mod_proxy_http` tidak aktif, atau API mati (`bash ops/testboard.sh status`).                                    |
-| `deploy` berhenti di migrasi                             | Akun admin MySQL salah atau ditolak. Ulangi `./update.sh`; backup `pre-deploy` sudah ada.                                    |
-| API tidak sehat setelah start                            | Lihat `tail -n 50 ~/testboard-data/logs/api.log` (biasanya akun database di `api.env`).                                      |
-| Node.js gagal jalan ("GLIBC ... not found")              | Sistem operasi VPS terlalu lama untuk Node.js 24; kirim hasil `check` ke pengembang.                                         |
-| Deploy lain "sedang berjalan" padahal tidak              | Hapus kunci: `rmdir ~/testboard-data/run/deploy.lock`                                                                        |
+| Gejala                                                   | Kemungkinan penyebab / tindakan                                                                                                               |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `smoke` menunjukkan `TERBUKA` untuk `.git`, `.env`, dll. | `.htaccess` tidak dibaca (`AllowOverride None`) atau `mod_rewrite` mati. Jangan go-live; minta admin server mengaktifkannya.                  |
+| Halaman tampil tetapi "API lewat Apache tidak menjawab"  | `mod_proxy`/`mod_proxy_http` tidak aktif, atau API mati (`bash ops/testboard.sh status`).                                                     |
+| `deploy` berhenti di migrasi                             | Akun admin MySQL salah atau ditolak. Ulangi `./update.sh`; backup `pre-deploy` sudah ada.                                                     |
+| API tidak sehat setelah start                            | Lihat `tail -n 50 ~/testboard-data/logs/api.log` (biasanya akun database di `api.env`).                                                       |
+| Node.js gagal jalan ("GLIBC ... not found")              | Sistem operasi VPS terlalu lama untuk Node.js 24; kirim hasil `check` ke pengembang.                                                          |
+| Deploy lain "sedang berjalan" padahal tidak              | Hapus kunci: `rmdir ~/testboard-data/run/deploy.lock`                                                                                         |
+| Halaman "Web Page Blocked!" saat menyimpan data          | Firewall (WAF) di depan situs menahan isi permintaan (mis. teks berisi contoh SQL/skrip). Minta tim jaringan mengecualikan `/testboard/api/`. |
+| `git` menolak dengan "dubious ownership"                 | Perintah dijalankan sebagai root. Masuk dulu sebagai user TestBoard: `su - testboard`.                                                        |
 
 ## Yang tidak boleh dilakukan
 

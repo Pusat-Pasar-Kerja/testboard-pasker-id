@@ -140,8 +140,12 @@ app_version() { grep -m 1 -o '"version": *"[^"]*"' "$APP_DIR/package.json" | cut
 cmd_check() {
   say "Pemeriksaan server (hanya membaca, tidak mengubah apa pun)"
   local user; user="$(id -un)"
-  if [ "$(id -u)" = "0" ]; then warn "Login sebagai root. Bisa, tetapi lebih aman memakai user biasa."; else ok "User: $user"; fi
-  if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then info "sudo tanpa password: tersedia (opsional, tidak wajib)"; else info "sudo: tidak tersedia/terkunci (tidak masalah, semua langkah tanpa sudo)"; fi
+  if [ "$(id -u)" = "0" ]; then
+    warn "Login sebagai root (hak admin penuh). Jalankan TestBoard sebagai user khusus, mis. 'testboard' (lihat panduan)."
+  else
+    ok "User: $user"
+    if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then info "sudo tanpa password: tersedia (opsional, tidak wajib)"; else info "sudo: tidak tersedia/terkunci (tidak masalah, semua langkah tanpa sudo)"; fi
+  fi
   [ -r /etc/os-release ] && info "OS: $(. /etc/os-release && echo "${PRETTY_NAME:-?}") $(uname -m)"
   info "glibc: $(ldd --version 2>/dev/null | head -n 1 || echo '?')"
   info "Memori: $(free -m 2>/dev/null | awk '/^Mem:/ {print $2 " MB total, " $7 " MB tersedia"}' || echo '?')"
@@ -176,7 +180,7 @@ cmd_check() {
     for module in rewrite proxy proxy_http headers; do
       if grep -Eq "^[[:space:]]*LoadModule[[:space:]]+${module}_module" "$conf"; then ok "mod_$module aktif"; else bad "mod_$module tidak aktif di $conf"; fi
     done
-    info "AllowOverride di konfigurasi utama: $(grep -E '^[[:space:]]*AllowOverride' "$conf" | awk '{print $2}' | sort | uniq -c | tr '\n' ' ')"
+    info "AllowOverride: yang menentukan adalah uji 'smoke' (.htaccess harus terbaca di folder testboard)"
   else
     warn "Konfigurasi Apache tidak terbaca (bukan masalah; uji lewat 'smoke' setelah deploy)"
   fi
@@ -612,19 +616,51 @@ cmd_smoke() {
     fails=$((fails + 1))
   else ok "Daftar isi folder tidak bisa dilihat"; fi
 
-  # TB-OPS-002: none of these may ever be downloadable.
-  for path in .git/HEAD .git/config .env .htaccess apps/api/.env apps/api/src/index.ts \
-    apps/api/dist/index.js apps/web/src/main.tsx package.json package-lock.json \
-    database/baseline/schema_baseline_reference.sql database/migrations/0001_schema_migrations.sql \
-    ops/testboard.sh ops/env/api.env.example update.sh node_modules/hono/package.json \
-    docs/adr/0010-production-deploy.md .private-storage/ %2egit/HEAD .%67it/HEAD \
-    apps/web/dist/../../../.git/HEAD; do
-    code="$(http_code "${url}${path}")"
-    case "$code" in
-      400 | 403 | 404) ok "Tertutup ($code): $path" ;;
-      *) bad "TERBUKA ($code): $path"; fails=$((fails + 1)) ;;
-    esac
+  # TB-OPS-002: none of these may ever be downloadable. Only a 2xx answer means "open":
+  # a firewall in front of the site may answer blocked paths with its own 403/500 page.
+  local secrets=(.git/HEAD .git/config .env .htaccess apps/api/.env apps/api/src/index.ts
+    apps/api/dist/index.js apps/web/src/main.tsx package.json package-lock.json
+    database/baseline/schema_baseline_reference.sql database/migrations/0001_schema_migrations.sql
+    ops/testboard.sh ops/env/api.env.example update.sh node_modules/hono/package.json
+    docs/adr/0010-production-deploy.md .private-storage/ %2egit/HEAD .%67it/HEAD
+    apps/web/dist/../../../.git/HEAD)
+  probe_secrets() { # probe_secrets LABEL BASE_URL [extra curl args...]
+    local label="$1" base="$2" code path
+    shift 2
+    for path in "${secrets[@]}"; do
+      code="$(curl -s --path-as-is -o /dev/null -w '%{http_code}' --max-time 15 "$@" "${base}${path}" || echo 000)"
+      case "$code" in
+        2??) bad "TERBUKA ($code, $label): $path"; fails=$((fails + 1)) ;;
+        000) bad "Tidak terjawab ($label): $path"; fails=$((fails + 1)) ;;
+        *) ok "Tertutup ($code, $label): $path" ;;
+      esac
+    done
+  }
+  probe_secrets "publik" "$url"
+
+  # The same paths straight to this server's Apache, bypassing any firewall in front, so
+  # the result proves the .htaccess rules themselves (not only the firewall). Tries the
+  # site's own scheme/port first, then plain HTTP (a firewall may terminate HTTPS); a
+  # listener that only redirects proves nothing and is skipped.
+  local rest="${url#*://}" scheme="${url%%://*}" hostport host port path_part candidate
+  local s p base code answered=""
+  hostport="${rest%%/*}"
+  path_part="/${rest#*/}"
+  host="${hostport%:*}"
+  port="${hostport##*:}"
+  [ "$port" = "$hostport" ] && { [ "$scheme" = "https" ] && port=443 || port=80; }
+  for candidate in "$scheme:$port" "http:80"; do
+    s="${candidate%%:*}"
+    p="${candidate##*:}"
+    base="$s://$host:$p$path_part"
+    code="$(curl -sk -o /dev/null -w '%{http_code}' --max-time 10 --resolve "$host:$p:127.0.0.1" "$base" || echo 000)"
+    case "$code" in 000 | 3??) continue ;; esac
+    probe_secrets "Apache server ini" "$base" -k --resolve "$host:$p:127.0.0.1"
+    answered=1
+    break
   done
+  [ -n "$answered" ] || info "Apache di server ini tidak terjangkau langsung (127.0.0.1); uji langsung dilewati."
+
   if [ "$fails" = "0" ]; then say "Semua uji alamat publik LULUS"; return 0; fi
   printf '\n%s[testboard] %s uji gagal%s\n' "$C_R" "$fails" "$C_0"
   return 1

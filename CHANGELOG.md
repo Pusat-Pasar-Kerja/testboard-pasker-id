@@ -2,6 +2,21 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.8.1] - 2026-11-20
+
+Perbaikan dari pemeriksaan pertama di VPS.
+
+### Diperbaiki
+
+- `.htaccess`: sebelum deploy pertama (hasil build web belum ada), aturan rewrite berputar dan menghasilkan 500. Kini permintaan berhenti dengan 404 biasa. Diuji pada Apache 2.4: aturan lama 500 ("exceeded internal redirects"), aturan baru 404, dan file rahasia tetap 403.
+- `ops/testboard.sh smoke` tidak lagi memberi alarm palsu bila firewall (WAF) di depan situs memblokir path rahasia dengan halamannya sendiri (mis. status 500). Kini hanya jawaban 2xx yang dianggap "terbuka".
+- `smoke` sekarang juga menguji path rahasia langsung ke Apache di server itu (melewati firewall), sehingga yang terbukti adalah aturan `.htaccess`-nya sendiri. Coba skema/port situs dulu, lalu HTTP biasa; pendengar yang hanya mengalihkan (redirect) dilewati.
+- `check`: login sebagai root kini disebut "hak admin penuh" dengan saran memakai user khusus; baris AllowOverride yang membingungkan diganti petunjuk ke uji `smoke`.
+
+### Dokumentasi
+
+- Panduan deploy: langkah membuat user khusus `testboard` bila login sebagai root, serta penanganan halaman "Web Page Blocked!" dari firewall dan pesan git "dubious ownership".
+
 ## [0.8.0] - 2026-11-20
 
 **Milestone 7 selesai di repo**: halaman Laporan (ringkasan, ekspor, log aktivitas), pengamanan produksi, retensi data, serta paket deploy VPS tanpa sudo. Go-live di VPS menunggu langkah di `docs/deploy/vps-deploy.md` dan persetujuan rilis ke `main`.

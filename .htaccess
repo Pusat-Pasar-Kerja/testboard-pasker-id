@@ -25,6 +25,11 @@ ServerSignature Off
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  # A request already sent into the build comes back here only when the build is missing
+  # (before the first deploy): stop with a plain 404 instead of rewriting in a loop (500).
+  RewriteCond %{ENV:REDIRECT_STATUS} !^$
+  RewriteRule ^ - [L]
+
   # Hidden files and folders anywhere in the path (.git, .env, .private-storage, ...).
   RewriteRule (^|/)\. - [R=404,L]
 
