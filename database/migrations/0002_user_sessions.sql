@@ -1,6 +1,6 @@
 -- ============================================================================
 -- 0002 - Server-side login sessions (DEC-02, doc 09 "Session policy")
--- STATUS : USULAN (belum diterapkan di mana pun).
+-- STATUS : Disetujui pemilik proyek (20 Nov 2026). Status penerapan tercatat di schema_migrations.
 -- IMPACT : tabel baru; FK ke users(id) ON DELETE CASCADE. Tidak mengubah tabel baseline.
 -- DESIGN : cookie HttpOnly+Secure+SameSite berisi token acak; DB hanya menyimpan HASH-nya,
 --          jadi kebocoran DB tidak membocorkan sesi aktif. Token CSRF juga disimpan sebagai hash.

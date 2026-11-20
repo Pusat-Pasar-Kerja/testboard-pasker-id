@@ -39,6 +39,8 @@ npm run dev
 | `npm run build`                                   | Build shared, API (`apps/api/dist`), web (`apps/web/dist`) |
 | `npm run check`                                   | Semua pemeriksaan di atas + format (dipakai CI)            |
 | `npm run db:init` / `db:start` / `db:stop`        | Database lokal MariaDB 10.4.32 (port 3307)                 |
+| `npm run db:migrate` / `db:seed`                  | Terapkan migration / isi data demo fiktif (lokal)          |
+| `npm run test:integration -w @testboard/api`      | Tes API terhadap database lokal (`testboard_test`)         |
 
 Database lokal: MariaDB 10.4.32 (sama dengan VPS) tanpa Docker, cukup `npm run db:init` sekali lalu `npm run db:start`; lihat [`database/README.md`](database/README.md) dan [ADR 0003](docs/adr/0003-database-engine.md). **Jangan** memakai database VPS untuk development.
 
@@ -60,13 +62,13 @@ Repo ini **publik**. Jangan commit `.env`, kredensial, workbook UAT asli, screen
 
 ## Roadmap
 
-| Milestone | Isi                                                                       | Status             |
-| --------- | ------------------------------------------------------------------------- | ------------------ |
-| M0        | Repo, tooling, healthcheck API, adaptor mock, format error                | Selesai (`v0.1.0`) |
-| M1        | Design system, AppShell, layar prototype dengan data mock, bilingual      | Selesai (`v0.2.0`) |
-| M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi | Berikutnya         |
-| M3        | Cycle, run, execution append-only, dashboard latest status                |                    |
-| M4        | Bug tracking + workflow status + riwayat                                  |                    |
-| M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             |                    |
-| M6        | Import XLSX/CSV/JSON (legacy & AI)                                        |                    |
-| M7        | Laporan, hardening, deployment VPS                                        |                    |
+| Milestone | Isi                                                                       | Status                              |
+| --------- | ------------------------------------------------------------------------- | ----------------------------------- |
+| M0        | Repo, tooling, healthcheck API, adaptor mock, format error                | Selesai (`v0.1.0`)                  |
+| M1        | Design system, AppShell, layar prototype dengan data mock, bilingual      | Selesai (`v0.2.0`)                  |
+| M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi | API selesai (`v0.2.2`), UI menyusul |
+| M3        | Cycle, run, execution append-only, dashboard latest status                |                                     |
+| M4        | Bug tracking + workflow status + riwayat                                  |                                     |
+| M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             |                                     |
+| M6        | Import XLSX/CSV/JSON (legacy & AI)                                        |                                     |
+| M7        | Laporan, hardening, deployment VPS                                        |                                     |

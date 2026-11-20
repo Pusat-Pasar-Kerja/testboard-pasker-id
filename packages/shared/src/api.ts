@@ -22,6 +22,7 @@ export const API_ERROR_CODES = [
   'PAYLOAD_TOO_LARGE',
   'UNSUPPORTED_MEDIA_TYPE',
   'RATE_LIMITED',
+  'SERVICE_UNAVAILABLE',
   'INTERNAL_ERROR',
 ] as const
 export type ApiErrorCode = (typeof API_ERROR_CODES)[number]

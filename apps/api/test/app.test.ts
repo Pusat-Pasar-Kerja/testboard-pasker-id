@@ -10,6 +10,10 @@ const config: AppConfig = {
   port: 0,
   logRequests: false,
   db: null,
+  allowedOrigins: ['http://127.0.0.1:5173'],
+  cookieSecure: false,
+  sessionHours: 12,
+  sessionIdleMinutes: 120,
 }
 
 function makeApp() {
@@ -64,7 +68,7 @@ describe('GET /api/v1/health', () => {
 describe('error envelope', () => {
   it('returns NOT_FOUND in the uniform format for unknown routes', async () => {
     const { app } = makeApp()
-    const res = await app.request('/api/v1/does-not-exist', {
+    const res = await app.request('/does-not-exist', {
       headers: { 'X-Request-Id': 'req-404' },
     })
 
@@ -76,6 +80,13 @@ describe('error envelope', () => {
       details: [],
       request_id: 'req-404',
     })
+  })
+
+  it('answers 503 for data routes when no database is configured', async () => {
+    const { app } = makeApp()
+    const res = await app.request('/api/v1/projects')
+    expect(res.status).toBe(503)
+    expect(((await res.json()) as ApiErrorBody).error.code).toBe('SERVICE_UNAVAILABLE')
   })
 
   it('maps AppError to its status, code and field details', async () => {

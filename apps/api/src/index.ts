@@ -11,6 +11,7 @@ const config = loadConfig(process.env)
 const pool = config.db ? createPool(config.db) : null
 const app = createApp({
   config,
+  pool,
   checkDatabase: pool ? () => pingDatabase(pool) : undefined,
 })
 

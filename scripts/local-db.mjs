@@ -10,6 +10,7 @@
  *   npm run db:start    start the instance in the background
  *   npm run db:stop     stop it
  *   npm run db:status   show version, settings and table count
+ *   (npm run dev starts it automatically when it is set up)
  *
  * Env overrides: MARIADB_BIN (default C:\xampp\mysql\bin), TESTBOARD_LOCAL_DB_DIR, TESTBOARD_LOCAL_DB_PORT.
  */
@@ -176,7 +177,17 @@ FLUSH PRIVILEGES;`)
   console.log('[db] done. Local passwords are stored only in .local-db/ and apps/api/.env.')
 }
 
-const commands = { init, start, stop, status }
+/** Used by `npm run dev`: start the DB if it is set up, otherwise just explain and continue. */
+async function ensure() {
+  if (!existsSync(join(DATA, 'my.ini'))) {
+    console.log('[db] local database not set up (npm run db:init); continuing without it.')
+    return
+  }
+  if (await portOpen(PORT)) return
+  await start()
+}
+
+const commands = { init, start, stop, status, ensure }
 const command = commands[process.argv[2] ?? '']
-if (!command) fail('usage: node scripts/local-db.mjs <init|start|stop|status>')
+if (!command) fail('usage: node scripts/local-db.mjs <init|start|stop|status|ensure>')
 await command()

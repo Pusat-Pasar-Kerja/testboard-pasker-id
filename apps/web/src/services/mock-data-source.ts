@@ -200,6 +200,7 @@ export function createMockDataSource(
           display_name: user.display_name,
           email: user.email,
           preferred_locale: 'id',
+          is_super_admin: false,
           projects: db.projects
             .filter((p) => p.members.some((m) => m.userId === user.id))
             .map((p) => ({ project_code: p.project_code, role_code: roleIn(p.id) })),

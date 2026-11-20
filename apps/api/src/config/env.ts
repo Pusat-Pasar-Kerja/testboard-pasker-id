@@ -16,6 +16,11 @@ const EnvSchema = z.object({
   DB_USER: z.string().min(1).optional(),
   DB_PASSWORD: z.string().optional(),
   DB_POOL_SIZE: z.coerce.number().int().min(1).max(50).default(10),
+  /** Comma-separated browser origins allowed to call mutating endpoints (CSRF defence). */
+  ALLOWED_ORIGINS: z.string().optional(),
+  COOKIE_SECURE: booleanFromString.optional(),
+  SESSION_HOURS: z.coerce.number().int().min(1).max(72).default(12),
+  SESSION_IDLE_MINUTES: z.coerce.number().int().min(5).max(1440).default(120),
 })
 
 export interface AppConfig {
@@ -25,6 +30,11 @@ export interface AppConfig {
   logRequests: boolean
   /** null = database not configured (e.g. demo/healthcheck-only runs). */
   db: DbConfig | null
+  allowedOrigins: string[]
+  /** Secure cookies (HTTPS only). Always true in production. */
+  cookieSecure: boolean
+  sessionHours: number
+  sessionIdleMinutes: number
 }
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', 'localhost'])
@@ -63,6 +73,13 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
       connectionLimit: values.DB_POOL_SIZE,
     }
   }
+  const allowedOrigins = (values.ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean)
+  if (values.NODE_ENV === 'production' && allowedOrigins.length === 0) {
+    throw new Error('In production ALLOWED_ORIGINS must list the public site origin(s).')
+  }
   if (values.NODE_ENV === 'production' && !db) {
     throw new Error(
       'In production the database settings (DB_HOST, DB_NAME, DB_USER, DB_PASSWORD) are required.',
@@ -75,5 +92,12 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
     port: values.API_PORT,
     logRequests: values.LOG_REQUESTS ?? values.NODE_ENV === 'development',
     db,
+    allowedOrigins:
+      allowedOrigins.length > 0
+        ? allowedOrigins
+        : ['http://127.0.0.1:5173', 'http://localhost:5173'],
+    cookieSecure: values.NODE_ENV === 'production' ? true : (values.COOKIE_SECURE ?? false),
+    sessionHours: values.SESSION_HOURS,
+    sessionIdleMinutes: values.SESSION_IDLE_MINUTES,
   }
 }

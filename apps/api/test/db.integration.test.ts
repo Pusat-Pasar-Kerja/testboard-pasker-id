@@ -1,20 +1,13 @@
-import { existsSync } from 'node:fs'
 import type { Pool, RowDataPacket } from 'mysql2/promise'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { loadConfig } from '../src/config/env.js'
 import { createPool, pingDatabase } from '../src/db/pool.js'
+import { testConfig } from './support/harness.js'
 
 /**
- * Runs against the LOCAL MariaDB instance (npm run db:init / db:start), configured in
- * apps/api/.env. Verifies the assumptions the backend relies on (ADR 0003/0004).
+ * Runs against the LOCAL MariaDB instance (throwaway `testboard_test` database built by
+ * global-setup). Verifies the assumptions the backend relies on (ADR 0003/0004).
  */
-const envFile = new URL('../.env', import.meta.url)
-if (existsSync(envFile)) process.loadEnvFile(envFile)
-const config = loadConfig(process.env)
-if (!config.db) throw new Error('DB_* settings missing: run `npm run db:init` first.')
-if (!['127.0.0.1', 'localhost', '::1'].includes(config.db.host)) {
-  throw new Error('Integration tests only run against a local database, never a remote server.')
-}
+const config = testConfig()
 
 let pool: Pool
 
@@ -60,12 +53,12 @@ describe('local database (mirrors VPS MariaDB 10.4.32)', () => {
     expect(rows[0]?.big).toBe('18446744073709551615')
   })
 
-  it('has the baseline schema: 27 tables and the latest-status view', async () => {
+  it('has the baseline schema plus migrations and the latest-status view', async () => {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT SUM(table_type = 'BASE TABLE') AS tables, SUM(table_type = 'VIEW') AS views
          FROM information_schema.tables WHERE table_schema = DATABASE()`,
     )
-    expect(Number(rows[0]?.tables)).toBeGreaterThanOrEqual(27)
+    expect(Number(rows[0]?.tables)).toBe(27 + 5)
     expect(Number(rows[0]?.views)).toBe(1)
   })
 

@@ -1,6 +1,6 @@
 -- ============================================================================
 -- 0001 - Migration tracking table
--- STATUS : USULAN (belum diterapkan di mana pun). Terapkan ke DB LOKAL setelah disetujui.
+-- STATUS : Disetujui pemilik proyek (20 Nov 2026). Status penerapan tercatat di schema_migrations.
 -- ENGINE : MariaDB 10.4.32 (sama dengan VPS)
 -- IMPACT : tabel baru saja; tidak mengubah 27 tabel baseline.
 -- RUN AS : akun migrasi (root lokal / akun DBA di VPS), BUKAN testboard_app.

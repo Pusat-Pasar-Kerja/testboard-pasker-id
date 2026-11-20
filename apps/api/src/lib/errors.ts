@@ -34,6 +34,7 @@ const STATUS_TO_CODE: Partial<Record<number, ApiErrorCode>> = {
   415: 'UNSUPPORTED_MEDIA_TYPE',
   422: 'VALIDATION_ERROR',
   429: 'RATE_LIMITED',
+  503: 'SERVICE_UNAVAILABLE',
 }
 
 const DEFAULT_MESSAGES: Record<ApiErrorCode, string> = {
@@ -45,6 +46,7 @@ const DEFAULT_MESSAGES: Record<ApiErrorCode, string> = {
   PAYLOAD_TOO_LARGE: 'The request payload is too large.',
   UNSUPPORTED_MEDIA_TYPE: 'The file or content type is not supported.',
   RATE_LIMITED: 'Too many requests. Please try again later.',
+  SERVICE_UNAVAILABLE: 'The service is temporarily unavailable.',
   INTERNAL_ERROR: 'An unexpected error occurred.',
 }
 

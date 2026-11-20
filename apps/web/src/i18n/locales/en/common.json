@@ -302,6 +302,7 @@
     "PAYLOAD_TOO_LARGE": "The data or file is too large.",
     "UNSUPPORTED_MEDIA_TYPE": "This file type is not supported.",
     "RATE_LIMITED": "Too many requests. Please try again later.",
+    "SERVICE_UNAVAILABLE": "The service is temporarily unavailable. Please try again shortly.",
     "INTERNAL_ERROR": "Something went wrong. Please try again.",
     "reference": "Reference code: {{id}}"
   }

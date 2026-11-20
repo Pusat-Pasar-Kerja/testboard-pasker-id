@@ -1,6 +1,6 @@
 -- ============================================================================
 -- 0003 - Global (system-wide) roles: SUPER_ADMIN (DEC-01, ADR 0004)
--- STATUS : USULAN (belum diterapkan di mana pun).
+-- STATUS : Disetujui pemilik proyek (20 Nov 2026). Status penerapan tercatat di schema_migrations.
 -- IMPACT : tabel baru; tidak menambah kolom ke users. Peran per proyek tetap di project_members.
 -- RULES  : Super Admin mengakses dan mengonfigurasi semuanya, tetapi semua aksinya tetap
 --          dicatat di audit_logs. Super Admin pertama dibuat lewat CLI di server.

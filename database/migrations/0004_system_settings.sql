@@ -1,6 +1,6 @@
 -- ============================================================================
 -- 0004 - Website-wide settings managed by Super Admin (ADR 0004)
--- STATUS : USULAN (belum diterapkan di mana pun).
+-- STATUS : Disetujui pemilik proyek (20 Nov 2026). Status penerapan tercatat di schema_migrations.
 -- IMPACT : tabel baru. Pengaturan per proyek tetap di project_settings (baseline).
 -- EXAMPLES: upload.max_file_mb, upload.allowed_types, auth.session_hours, ui.default_locale
 -- NOTE   : MariaDB 10.4 -> JSON = LONGTEXT + CHECK(JSON_VALID); backend mem-parse sendiri.

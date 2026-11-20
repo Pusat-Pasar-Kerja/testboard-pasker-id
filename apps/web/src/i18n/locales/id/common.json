@@ -302,6 +302,7 @@
     "PAYLOAD_TOO_LARGE": "Ukuran data atau file terlalu besar.",
     "UNSUPPORTED_MEDIA_TYPE": "Jenis file tidak didukung.",
     "RATE_LIMITED": "Terlalu banyak permintaan. Coba lagi nanti.",
+    "SERVICE_UNAVAILABLE": "Layanan sedang tidak tersedia. Coba lagi sebentar lagi.",
     "INTERNAL_ERROR": "Terjadi kesalahan. Silakan coba lagi.",
     "reference": "Kode referensi: {{id}}"
   }

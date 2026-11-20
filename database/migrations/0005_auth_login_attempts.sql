@@ -1,6 +1,6 @@
 -- ============================================================================
 -- 0005 - Login attempts for rate limiting and adaptive lockout (doc 09, TB-AUTH-002)
--- STATUS : USULAN (belum diterapkan di mana pun).
+-- STATUS : Disetujui pemilik proyek (20 Nov 2026). Status penerapan tercatat di schema_migrations.
 -- IMPACT : tabel baru; tanpa FK (percobaan untuk email yang tidak terdaftar juga dicatat).
 -- PRIVACY: email TIDAK disimpan mentah - hanya SHA-256 dari email yang dinormalkan.
 --          Data lama dibersihkan berkala (mis. lebih dari 30 hari) oleh job backend.

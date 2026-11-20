@@ -29,7 +29,41 @@ export interface UserRef {
 export interface CurrentUser extends UserRef {
   email: string
   preferred_locale: Locale
+  /** System role (ADR 0004): full access to every project and website settings. */
+  is_super_admin: boolean
   projects: { project_code: string; role_code: MemberRole }[]
+}
+
+export interface MemberDto {
+  user: UserRef & { email: string; is_active: boolean }
+  role_code: MemberRole
+  joined_at: string
+}
+
+export interface AdminUserDto {
+  id: IdString
+  display_name: string
+  email: string
+  preferred_locale: Locale
+  is_active: boolean
+  is_super_admin: boolean
+  created_at: string
+}
+
+export interface SuiteDto {
+  id: IdString
+  name: string
+  module: ModuleDto | null
+  description: string | null
+  reference_document: string | null
+  reference_url: string | null
+  reference_version: string | null
+  owner_unit: string | null
+  scope_description: string | null
+  preparation_date: string | null
+  source_notes: string | null
+  case_count: number
+  created_at: string
 }
 
 export interface ProjectSummary {
@@ -46,6 +80,7 @@ export interface ModuleDto {
   id: IdString
   module_code: string
   name: string
+  description?: string | null
 }
 
 export interface TestCaseListItem {

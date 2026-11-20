@@ -1,22 +1,31 @@
 import { API_BASE_PATH, REQUEST_ID_HEADER } from '@testboard/shared'
 import { Hono } from 'hono'
+import { bodyLimit } from 'hono/body-limit'
 import { logger } from 'hono/logger'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
+import type { Pool } from 'mysql2/promise'
+import { csrfMiddleware, sessionMiddleware } from './auth/middleware.js'
 import type { AppConfig } from './config/env.js'
 import type { DatabaseHealth } from './db/pool.js'
 import {
+  AppError,
   consoleErrorLogger,
   createErrorHandler,
   errorBody,
   type ErrorLogger,
 } from './lib/errors.js'
 import { readAppVersion } from './lib/version.js'
+import { adminRoutes } from './routes/admin.js'
+import { authRoutes } from './routes/auth.js'
 import { healthRoutes } from './routes/health.js'
+import { projectRoutes } from './routes/projects.js'
 import type { AppEnv } from './types.js'
 
 export interface AppDeps {
   config: AppConfig
+  /** Database pool; without it only /health is served (other routes answer 503). */
+  pool?: Pool | null
   version?: string
   logError?: ErrorLogger
   /** Database probe; omitted when no database is configured. */
@@ -25,6 +34,7 @@ export interface AppDeps {
 
 export function createApp({
   config,
+  pool = null,
   version = readAppVersion(),
   logError = consoleErrorLogger,
   checkDatabase = async () => 'not_configured',
@@ -38,6 +48,25 @@ export function createApp({
 
   const api = new Hono<AppEnv>()
   api.route('/health', healthRoutes(version, checkDatabase))
+
+  if (pool) {
+    // JSON APIs never need large bodies; uploads get their own limits in Milestone 5.
+    api.use('*', bodyLimit({ maxSize: 1024 * 1024 }))
+    api.use('*', sessionMiddleware(pool, config))
+    api.use('*', csrfMiddleware(config))
+    api.use('*', async (c, next) => {
+      await next()
+      // Authenticated API responses are private and must never be cached by proxies.
+      c.header('Cache-Control', 'no-store')
+    })
+    api.route('/', authRoutes(pool, config))
+    api.route('/', projectRoutes(pool))
+    api.route('/admin', adminRoutes(pool))
+  } else {
+    api.all('*', () => {
+      throw new AppError(503, 'SERVICE_UNAVAILABLE', 'Database is not configured.')
+    })
+  }
 
   app.route(API_BASE_PATH, api)
 

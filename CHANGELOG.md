@@ -2,6 +2,21 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.2.2] - 2026-11-20
+
+Milestone 2 bagian backend (API). Integrasi UI login & form test case menyusul (target `v0.3.0`).
+
+### Ditambahkan
+
+- Migration 0001-0005 disetujui dan **diterapkan ke database lokal** lewat runner baru `npm run db:migrate` (checksum, menolak file yang berubah). VPS belum.
+- `npm run dev` otomatis menyalakan database lokal bila sudah di-setup.
+- Auth: `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`, `PATCH /profile`, `POST /profile/change-password` - Argon2id, sesi server-side (hash token), cookie HttpOnly/SameSite, CSRF terikat sesi + cek origin, lockout percobaan login, audit LOGIN/LOGOUT.
+- RBAC: matriks izin bersama (`@testboard/shared`), akses proyek (non-anggota = 404), Super Admin global.
+- API proyek, anggota, modul, suite, test case (list/filter/search/paginasi, detail, buat dengan kode otomatis, edit = versi + revisi, `expected_version`, arsip, clone, riwayat revisi), admin pengguna & pengaturan website. Semua perubahan dicatat di `audit_logs` dalam transaksi yang sama.
+- `npm run admin:create-super -w @testboard/api` (Super Admin pertama, untuk server) dan `npm run db:seed` (data demo fiktif + akun lokal).
+- Tes integrasi (database `testboard_test` yang dibangun ulang setiap run): TB-AUTH-001..004, TB-RBAC-001..003, TB-CASE-001..004, CSRF, lockout, Super Admin; tes unit matriks izin & skema.
+- ADR 0005 (desain auth, sesi, CSRF, RBAC, test case).
+
 ## [0.2.1] - 2026-11-20
 
 ### Ditambahkan
