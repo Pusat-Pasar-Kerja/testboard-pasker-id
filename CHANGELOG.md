@@ -2,6 +2,13 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.2.3] - 2026-11-20
+
+### Ditambahkan
+
+- API baca (read-only) untuk layar yang sudah ada di UI: `GET /projects/:p/runs`, `/runs/:id` (judul dari snapshot run, jumlah percobaan, bug terkait), `/defects` (filter `open`/status/severity/prioritas, cari, paginasi), `/defects/:id` (eksekusi terkait, riwayat status, komentar), `/reports/summary` (dasbor dari status terbaru per test case). Aksi tulis run/eksekusi tetap di Milestone 3, alur bug di Milestone 4.
+- Tes integrasi: retest dihitung sekali (TB-DASH-001), snapshot run, filter bug terbuka, isolasi antar proyek.
+
 ## [0.2.2] - 2026-11-20
 
 Milestone 2 bagian backend (API). Integrasi UI login & form test case menyusul (target `v0.3.0`).
