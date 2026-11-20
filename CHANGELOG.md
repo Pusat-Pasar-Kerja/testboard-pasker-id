@@ -2,6 +2,22 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.8.2] - 2026-11-20
+
+Deploy bisa dijalankan sebagai root tanpa harus berpindah user.
+
+### Diubah
+
+- `ops/testboard.sh` yang dijalankan sebagai root kini otomatis:
+  - membuat akun Linux `testboard` saat `setup`, tanpa password dan tanpa login dari luar;
+  - menyerahkan folder TestBoard ke akun itu;
+  - menjalankan dirinya ulang atas nama akun tersebut.
+
+  Pemilik cukup tetap login sebagai root (termasuk lewat `./update.sh`); aplikasi, cron, dan data (`/home/testboard/testboard-data`) tetap tidak pernah berjalan sebagai root.
+
+- Perintah baru `bash ops/testboard.sh maintenance [--dry-run]` untuk pembersihan data, tanpa perlu menyusun perintah npm sendiri.
+- Panduan deploy dan ADR 0010: penjelasan singkat apa itu user `testboard`, path data absolut, tanpa langkah `su`.
+
 ## [0.8.1] - 2026-11-20
 
 Perbaikan dari pemeriksaan pertama di VPS.

@@ -10,10 +10,13 @@
 #   bash ops/testboard.sh restore <dir> [--production]   default: test restore into a scratch database
 #   bash ops/testboard.sh smoke [url]           public URL checks (TB-OPS-001/002)
 #   bash ops/testboard.sh create-admin --email a@b --name "Nama"
+#   bash ops/testboard.sh maintenance [--dry-run]   retention clean-up now (the API also runs it daily)
 #   bash ops/testboard.sh cron                  (re)install the cron jobs: watchdog, nightly backup, start at boot
 #   bash ops/testboard.sh watchdog              used by cron: restart the API if it stopped
 #
-# Data lives in $TESTBOARD_HOME (default ~/testboard-data), OUTSIDE the public web folder:
+# Run it as root or as the TestBoard user: as root it switches to the user "testboard" itself.
+# Data lives in $TESTBOARD_HOME (default ~/testboard-data of that user, e.g.
+# /home/testboard/testboard-data), OUTSIDE the public web folder:
 #   config/api.env (secrets, 600)  storage/ (evidence)  backups/  logs/  run/  node/  deploy.conf
 # Secrets are never printed, never passed on a command line, never written into this folder.
 
@@ -21,6 +24,45 @@ set -Eeuo pipefail
 umask 022
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SERVICE_USER="${TESTBOARD_USER:-testboard}"
+
+# Root logins: the owner may keep working as root, but TestBoard itself never runs as root.
+# The script creates a locked Linux account (no password, no outside login) on `setup`,
+# hands the application folder to it, and re-runs itself as that account. Nobody has to
+# switch users by hand. (TESTBOARD_ALLOW_ROOT=1 skips this; not recommended.)
+if [ "$(id -u)" = "0" ] && [ "${TESTBOARD_ALLOW_ROOT:-0}" != "1" ]; then
+  case "${1:-help}" in
+    help | -h | --help) ;;
+    *)
+      if ! id "$SERVICE_USER" >/dev/null 2>&1; then
+        case "${1:-}" in
+          setup)
+            printf '[testboard] Membuat user Linux "%s" untuk menjalankan TestBoard (tanpa password, tidak bisa login dari luar)\n' "$SERVICE_USER"
+            useradd --create-home --shell /bin/bash "$SERVICE_USER"
+            ;;
+          check) ;; # read-only; runs as root until setup has created the account
+          *)
+            printf '[testboard] User "%s" belum ada. Jalankan dulu: bash ops/testboard.sh setup\n' "$SERVICE_USER" >&2
+            exit 1
+            ;;
+        esac
+      fi
+      if id "$SERVICE_USER" >/dev/null 2>&1; then
+        # Files pulled or created as root would block updates and builds.
+        if [ -n "$(find "$APP_DIR" ! -user "$SERVICE_USER" -print -quit 2>/dev/null)" ]; then
+          chown -R "$SERVICE_USER:$SERVICE_USER" "$APP_DIR"
+        fi
+        SERVICE_HOME="$(getent passwd "$SERVICE_USER" | cut -d: -f6)"
+        if command -v runuser >/dev/null 2>&1; then
+          exec runuser -u "$SERVICE_USER" -- env HOME="$SERVICE_HOME" USER="$SERVICE_USER" \
+            bash "$APP_DIR/ops/testboard.sh" "$@"
+        fi
+        exec su -s /bin/bash "$SERVICE_USER" -c "$(printf '%q ' env HOME="$SERVICE_HOME" bash "$APP_DIR/ops/testboard.sh" "$@")"
+      fi
+      ;;
+  esac
+fi
+
 TESTBOARD_HOME="${TESTBOARD_HOME:-$HOME/testboard-data}"
 DEPLOY_CONF="$TESTBOARD_HOME/deploy.conf"
 ENV_FILE="$TESTBOARD_HOME/config/api.env"
@@ -141,7 +183,7 @@ cmd_check() {
   say "Pemeriksaan server (hanya membaca, tidak mengubah apa pun)"
   local user; user="$(id -un)"
   if [ "$(id -u)" = "0" ]; then
-    warn "Login sebagai root (hak admin penuh). Jalankan TestBoard sebagai user khusus, mis. 'testboard' (lihat panduan)."
+    ok "Login sebagai root. 'setup' akan membuat user Linux '$SERVICE_USER' dan skrip ini otomatis menjalankan TestBoard sebagai user itu; Anda tetap login sebagai root."
   else
     ok "User: $user"
     if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then info "sudo tanpa password: tersedia (opsional, tidak wajib)"; else info "sudo: tidak tersedia/terkunci (tidak masalah, semua langkah tanpa sudo)"; fi
@@ -591,6 +633,11 @@ cmd_rollback() {
   ok "Rollback selesai"
 }
 
+cmd_maintenance() {
+  [ -f "$ENV_FILE" ] || die "Belum ada $ENV_FILE. Jalankan: bash ops/testboard.sh setup"
+  (cd "$APP_DIR" && TESTBOARD_ENV_FILE="$ENV_FILE" npm run -s maintenance -w @testboard/api -- "$@")
+}
+
 cmd_create_admin() {
   [ -f "$ENV_FILE" ] || die "Belum ada $ENV_FILE. Jalankan: bash ops/testboard.sh setup"
   (cd "$APP_DIR" && TESTBOARD_ENV_FILE="$ENV_FILE" npm run -s admin:create-super -w @testboard/api -- "$@")
@@ -701,5 +748,6 @@ case "$command" in
   __build) build_all ;;
   cron) cmd_cron ;;
   create-admin) cmd_create_admin "$@" ;;
-  *) sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' ;;
+  maintenance) cmd_maintenance "$@" ;;
+  *) sed -n '2,/^# Secrets/p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' ;;
 esac

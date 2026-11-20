@@ -13,7 +13,7 @@ Centang di VPS sebelum go-live. Kolom "Lokal" = sudah dibuktikan di laptop penge
 | 6   | API hanya di 127.0.0.1:8787, bisa diakses lewat `/testboard/api/` saja                                 | `smoke` + konfigurasi (API menolak host publik) | ya    | [ ] |
 | 7   | Login, logout, salah password, akun nonaktif (TB-AUTH-001..004)                                        | coba di browser                                 | tes   | [ ] |
 | 8   | VIEWER tidak bisa membuat/mengubah; anggota proyek lain tidak melihat data (TB-RBAC-001/002)           | coba dengan 2 akun                              | tes   | [ ] |
-| 9   | Unggah bukti tersimpan di `~/testboard-data/storage`, bukan di folder publik                           | unggah 1 screenshot, cek folder                 | tes   | [ ] |
+| 9   | Unggah bukti tersimpan di `/home/testboard/testboard-data/storage`, bukan di folder publik             | unggah 1 screenshot, cek folder                 | tes   | [ ] |
 | 10  | Backup malam berjalan; uji restore berhasil (TB-OPS-003)                                               | `backup` + `restore <folder>`                   | ya    | [ ] |
 | 11  | Rollback aplikasi berfungsi                                                                            | `rollback` lalu `./update.sh`                   | -     | [ ] |
 | 12  | Super Admin pertama dibuat dan password sementara diganti                                              | `create-admin`                                  | -     | [ ] |

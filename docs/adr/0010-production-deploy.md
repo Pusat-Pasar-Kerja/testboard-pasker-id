@@ -39,7 +39,16 @@ sendiri menghilangkan risiko ini dan bisa dipilih kemudian tanpa mengubah kode.
 
 ### 2. Tanpa sudo
 
-Semua operasi berjalan sebagai user biasa yang sudah dipakai untuk `git pull`:
+Semua operasi berjalan sebagai user biasa, tidak pernah sebagai root.
+
+**Pembaruan 20 Nov 2026 (pemeriksaan VPS):** pemilik ternyata login sebagai `root` dan tidak
+ingin berpindah user. Karena itu `ops/testboard.sh` yang dijalankan sebagai root membuat
+akun Linux terkunci `testboard` (tanpa password, tanpa login dari luar) saat `setup`,
+menyerahkan folder aplikasi kepadanya, lalu menjalankan dirinya ulang atas nama akun itu
+(`runuser`). Pemilik tetap bekerja sebagai root; aplikasi, cron, dan data
+(`/home/testboard/testboard-data`) milik `testboard`.
+
+Sebagai user biasa:
 
 - Node.js 24 dipasang ke `~/testboard-data/node` dari nodejs.org dengan verifikasi SHA-256.
 - API dijalankan `ops/testboard.sh start` (nohup + pidfile), dijaga `watchdog` via **cron user**

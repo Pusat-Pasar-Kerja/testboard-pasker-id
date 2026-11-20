@@ -1,19 +1,27 @@
 # Panduan deploy TestBoard ke VPS (tanpa sudo)
 
-Panduan ini untuk dijalankan **di VPS lewat SSH**, dengan user yang sama yang biasa
-menjalankan `update.sh`. Tidak butuh sudo. Semua perintah ditulis lengkap, tinggal salin.
+Panduan ini untuk dijalankan **di VPS lewat SSH**, boleh sebagai `root` seperti biasa.
+Semua perintah ditulis lengkap, tinggal salin.
+
+**Tentang user `testboard`:** di Linux, setiap program berjalan "atas nama" sebuah akun
+(user). Program yang berjalan sebagai `root` boleh melakukan apa saja di server, jadi bila
+suatu hari ada celah di aplikasi, penyerang ikut berkuasa penuh. Karena itu `setup` membuat
+akun khusus bernama `testboard` (tanpa password, tidak bisa dipakai login dari luar) dan
+TestBoard selalu berjalan atas nama akun itu. **Anda tidak perlu login atau pindah ke akun
+itu**: cukup jalankan `bash ops/testboard.sh ...` sebagai root, skripnya yang berpindah
+sendiri.
 Latar belakang keputusan: [ADR 0010](../adr/0010-production-deploy.md).
 
 ## Gambaran: apa ada di mana
 
-| Bagian                         | Lokasi di VPS                                 | Bisa dibuka dari internet?             |
-| ------------------------------ | --------------------------------------------- | -------------------------------------- |
-| Kode (repo Git)                | `/opt/lampp/htdocs/paskerid/public/testboard` | **Tidak**, dikunci `.htaccess`         |
-| Tampilan web (hasil build)     | `.../testboard/apps/web/dist`                 | Ya, di `https://<domain>/testboard/`   |
-| API (Node.js)                  | berjalan di `127.0.0.1:8787`                  | Hanya lewat `/testboard/api/` (Apache) |
-| Pengaturan rahasia (`api.env`) | `~/testboard-data/config/api.env` (izin 600)  | Tidak (di luar folder publik)          |
-| File bukti                     | `~/testboard-data/storage`                    | Tidak (hanya lewat API dengan izin)    |
-| Backup, log, Node.js           | `~/testboard-data/backups`, `logs`, `node`    | Tidak                                  |
+| Bagian                         | Lokasi di VPS                                              | Bisa dibuka dari internet?             |
+| ------------------------------ | ---------------------------------------------------------- | -------------------------------------- |
+| Kode (repo Git)                | `/opt/lampp/htdocs/paskerid/public/testboard`              | **Tidak**, dikunci `.htaccess`         |
+| Tampilan web (hasil build)     | `.../testboard/apps/web/dist`                              | Ya, di `https://<domain>/testboard/`   |
+| API (Node.js)                  | berjalan di `127.0.0.1:8787`                               | Hanya lewat `/testboard/api/` (Apache) |
+| Pengaturan rahasia (`api.env`) | `/home/testboard/testboard-data/config/api.env` (izin 600) | Tidak (di luar folder publik)          |
+| File bukti                     | `/home/testboard/testboard-data/storage`                   | Tidak (hanya lewat API dengan izin)    |
+| Backup, log, Node.js           | `/home/testboard/testboard-data/backups`, `logs`, `node`   | Tidak                                  |
 
 `~` adalah folder home user SSH Anda. Jangan pernah memindahkan `api.env` atau backup ke
 dalam `public/testboard`.
@@ -53,37 +61,27 @@ Kirimkan seluruh hasilnya ke pengembang. Isinya tidak memuat password. Perhatika
 
 ## Langkah 3 - Setup pertama (sekali saja)
 
-**Bila Anda login sebagai `root`** (hasil `check` menulis "Login sebagai root"), buat dulu
-user khusus supaya API tidak berjalan dengan hak admin penuh, lalu pindah ke user itu.
-Mulai sekarang semua perintah TestBoard dijalankan sebagai user ini:
-
 ```bash
-adduser --disabled-password --gecos "" testboard
-chown -R testboard:testboard /opt/lampp/htdocs/paskerid/public/testboard
-su - testboard
 cd /opt/lampp/htdocs/paskerid/public/testboard
-```
-
-Lalu:
-
-```bash
 bash ops/testboard.sh setup
 ```
 
 Yang terjadi:
 
-1. Ditanya **alamat publik**, isi misalnya `https://domain-anda/testboard/`.
-2. Folder `~/testboard-data` dibuat (izin hanya untuk Anda).
-3. Bila Node.js 22.12+ belum ada, Node.js 24 resmi diunduh dari nodejs.org (diverifikasi
-   checksum) ke `~/testboard-data/node`. Tidak mengubah sistem.
-4. File `~/testboard-data/config/api.env` dibuat dari template.
-5. Jadwal otomatis (cron) dipasang: API menyala saat server reboot, pengecekan tiap 5 menit,
+1. Bila dijalankan sebagai root: akun Linux `testboard` dibuat dan folder TestBoard
+   diserahkan kepadanya (lihat penjelasan di awal panduan).
+2. Ditanya **alamat publik**, isi misalnya `https://domain-anda/testboard/`.
+3. Folder data `/home/testboard/testboard-data` dibuat (hanya bisa dibuka akun itu dan root).
+4. Bila Node.js 22.12+ belum ada, Node.js 24 resmi diunduh dari nodejs.org (diverifikasi
+   checksum) ke `/home/testboard/testboard-data/node`. Tidak mengubah sistem.
+5. File `/home/testboard/testboard-data/config/api.env` dibuat dari template.
+6. Jadwal otomatis (cron) dipasang: API menyala saat server reboot, pengecekan tiap 5 menit,
    backup tiap malam pukul 02.30.
 
 Lalu isi akun database aplikasi:
 
 ```bash
-nano ~/testboard-data/config/api.env
+nano /home/testboard/testboard-data/config/api.env
 ```
 
 Ganti `__DB_USER__` dan `__DB_PASSWORD__`. Simpan dengan `Ctrl+O`, `Enter`, keluar `Ctrl+X`.
@@ -136,7 +134,7 @@ Mulai sekarang update cukup `./update.sh` (semua langkah aman di Langkah 4 ikut 
 
 ```bash
 bash ops/testboard.sh backup uji
-bash ops/testboard.sh restore ~/testboard-data/backups/<nama-folder-yang-baru-dibuat>
+bash ops/testboard.sh restore /home/testboard/testboard-data/backups/<nama-folder-yang-baru-dibuat>
 ```
 
 Restore uji memakai database sementara `testboard_restore_check` (butuh akun admin MySQL),
@@ -145,17 +143,17 @@ aktif tidak disentuh.
 
 ## Sehari-hari
 
-| Keperluan                        | Perintah                                                                                                                                                  |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Update ke versi terbaru          | `./update.sh`                                                                                                                                             |
-| Update ke versi tertentu         | `./update.sh v1.0.0`                                                                                                                                      |
-| Kembali ke versi sebelumnya      | `bash ops/testboard.sh rollback`                                                                                                                          |
-| Status API                       | `bash ops/testboard.sh status`                                                                                                                            |
-| Nyalakan / matikan / restart API | `bash ops/testboard.sh start` / `stop` / `restart`                                                                                                        |
-| Lihat log API                    | `tail -n 100 ~/testboard-data/logs/api.log`                                                                                                               |
-| Backup manual                    | `bash ops/testboard.sh backup`                                                                                                                            |
-| Uji keamanan alamat publik       | `bash ops/testboard.sh smoke`                                                                                                                             |
-| Lihat file yang akan dibersihkan | `cd /opt/lampp/htdocs/paskerid/public/testboard && TESTBOARD_ENV_FILE=~/testboard-data/config/api.env npm run maintenance -w @testboard/api -- --dry-run` |
+| Keperluan                        | Perintah                                                  |
+| -------------------------------- | --------------------------------------------------------- |
+| Update ke versi terbaru          | `./update.sh`                                             |
+| Update ke versi tertentu         | `./update.sh v1.0.0`                                      |
+| Kembali ke versi sebelumnya      | `bash ops/testboard.sh rollback`                          |
+| Status API                       | `bash ops/testboard.sh status`                            |
+| Nyalakan / matikan / restart API | `bash ops/testboard.sh start` / `stop` / `restart`        |
+| Lihat log API                    | `tail -n 100 /home/testboard/testboard-data/logs/api.log` |
+| Backup manual                    | `bash ops/testboard.sh backup`                            |
+| Uji keamanan alamat publik       | `bash ops/testboard.sh smoke`                             |
+| Lihat file yang akan dibersihkan | `bash ops/testboard.sh maintenance --dry-run`             |
 
 Otomatis: backup tiap malam (disimpan 30 hari, minimal 3 terakhir selalu ada), pembersihan
 data tiap hari (unggahan yang tidak pernah dipakai dihapus setelah 90 hari; bukti yang dipakai
@@ -166,16 +164,16 @@ Backup ada di disk server yang sama. Sesekali unduh folder backup terbaru ke tem
 
 ## Bila ada masalah
 
-| Gejala                                                   | Kemungkinan penyebab / tindakan                                                                                                               |
-| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `smoke` menunjukkan `TERBUKA` untuk `.git`, `.env`, dll. | `.htaccess` tidak dibaca (`AllowOverride None`) atau `mod_rewrite` mati. Jangan go-live; minta admin server mengaktifkannya.                  |
-| Halaman tampil tetapi "API lewat Apache tidak menjawab"  | `mod_proxy`/`mod_proxy_http` tidak aktif, atau API mati (`bash ops/testboard.sh status`).                                                     |
-| `deploy` berhenti di migrasi                             | Akun admin MySQL salah atau ditolak. Ulangi `./update.sh`; backup `pre-deploy` sudah ada.                                                     |
-| API tidak sehat setelah start                            | Lihat `tail -n 50 ~/testboard-data/logs/api.log` (biasanya akun database di `api.env`).                                                       |
-| Node.js gagal jalan ("GLIBC ... not found")              | Sistem operasi VPS terlalu lama untuk Node.js 24; kirim hasil `check` ke pengembang.                                                          |
-| Deploy lain "sedang berjalan" padahal tidak              | Hapus kunci: `rmdir ~/testboard-data/run/deploy.lock`                                                                                         |
-| Halaman "Web Page Blocked!" saat menyimpan data          | Firewall (WAF) di depan situs menahan isi permintaan (mis. teks berisi contoh SQL/skrip). Minta tim jaringan mengecualikan `/testboard/api/`. |
-| `git` menolak dengan "dubious ownership"                 | Perintah dijalankan sebagai root. Masuk dulu sebagai user TestBoard: `su - testboard`.                                                        |
+| Gejala                                                   | Kemungkinan penyebab / tindakan                                                                                                                                           |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `smoke` menunjukkan `TERBUKA` untuk `.git`, `.env`, dll. | `.htaccess` tidak dibaca (`AllowOverride None`) atau `mod_rewrite` mati. Jangan go-live; minta admin server mengaktifkannya.                                              |
+| Halaman tampil tetapi "API lewat Apache tidak menjawab"  | `mod_proxy`/`mod_proxy_http` tidak aktif, atau API mati (`bash ops/testboard.sh status`).                                                                                 |
+| `deploy` berhenti di migrasi                             | Akun admin MySQL salah atau ditolak. Ulangi `./update.sh`; backup `pre-deploy` sudah ada.                                                                                 |
+| API tidak sehat setelah start                            | Lihat `tail -n 50 /home/testboard/testboard-data/logs/api.log` (biasanya akun database di `api.env`).                                                                     |
+| Node.js gagal jalan ("GLIBC ... not found")              | Sistem operasi VPS terlalu lama untuk Node.js 24; kirim hasil `check` ke pengembang.                                                                                      |
+| Deploy lain "sedang berjalan" padahal tidak              | Hapus kunci: `rmdir /home/testboard/testboard-data/run/deploy.lock`                                                                                                       |
+| Halaman "Web Page Blocked!" saat menyimpan data          | Firewall (WAF) di depan situs menahan isi permintaan (mis. teks berisi contoh SQL/skrip). Minta tim jaringan mengecualikan `/testboard/api/`.                             |
+| `git` menolak dengan "dubious ownership"                 | `git` dijalankan langsung sebagai root di folder TestBoard. Pakai `./update.sh` atau `bash ops/testboard.sh deploy`; keduanya otomatis berjalan sebagai akun `testboard`. |
 
 ## Yang tidak boleh dilakukan
 
