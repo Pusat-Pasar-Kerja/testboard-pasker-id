@@ -76,6 +76,6 @@ Repo ini **publik**. Jangan commit `.env`, kredensial, workbook UAT asli, screen
 | M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi | Selesai (`v0.3.0`) |
 | M3        | Cycle, run, execution append-only, dashboard latest status                | Selesai (`v0.4.0`) |
 | M4        | Bug tracking + workflow status + riwayat                                  | Selesai (`v0.5.0`) |
-| M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             |                    |
+| M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             | Selesai (`v0.6.0`) |
 | M6        | Import XLSX/CSV/JSON (legacy & AI)                                        |                    |
 | M7        | Laporan, hardening, deployment VPS                                        |                    |

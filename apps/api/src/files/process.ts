@@ -60,7 +60,8 @@ export async function processImage(
     if (ext === 'png') {
       candidates.push({
         bytes: await base()
-          .png({ compressionLevel: 9, adaptiveFiltering: true, effort: 10 })
+          // No `effort`/`palette`: in sharp those switch PNG to palette quantisation (lossy).
+          .png({ compressionLevel: 9, adaptiveFiltering: true })
           .toBuffer(),
         ext: 'png',
         method: 'PNG_OPTIMIZE',
@@ -121,11 +122,14 @@ export async function processImage(
       : [meta.width, meta.height]
   if (out.width !== w || out.height !== h) return reject('PROCESSING_ERROR')
 
-  const thumbnail = await sharp(chosen.bytes)
+  // A thumbnail only when it saves bytes: flat UI screenshots are often smaller as a
+  // whole lossless image than as a lossy preview, and then the image itself is shown.
+  const preview = await sharp(chosen.bytes)
     .rotate()
     .resize({ width: 480, height: 480, fit: 'inside', withoutEnlargement: true })
     .webp({ quality: 80 })
     .toBuffer()
+  const thumbnail = preview.length < chosen.bytes.length ? preview : undefined
 
   return {
     ok: true,

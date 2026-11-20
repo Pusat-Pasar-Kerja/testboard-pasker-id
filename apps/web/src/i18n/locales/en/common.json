@@ -82,13 +82,14 @@
     "keyword": "Keyword",
     "module": "Module",
     "priority": "Priority",
-    "type": "Test type",
+    "type": "Type",
     "status": "Status",
     "severity": "Severity",
     "run": "Run",
     "all": "All",
     "allRuns": "All runs",
-    "openOnly": "Not done yet"
+    "openOnly": "Not done yet",
+    "fileStatus": "File status"
   },
   "codes": {
     "execution": {
@@ -174,6 +175,17 @@
       "PLANNED": "Planned",
       "ACTIVE": "Active",
       "COMPLETED": "Completed"
+    },
+    "evidenceType": {
+      "SCREENSHOT": "Screenshot",
+      "DOCUMENT": "Document",
+      "LOG": "Log"
+    },
+    "fileStatus": {
+      "PROCESSING": "Processing",
+      "READY": "Ready",
+      "FAILED": "Failed",
+      "REJECTED": "Rejected"
     }
   },
   "fields": {
@@ -295,18 +307,17 @@
       "tabOverview": "Overview",
       "tabRevisions": "Revisions",
       "tabRuns": "Used in runs",
-      "tabEvidence": "Evidence",
       "revision": "Revision {{n}}",
       "noRevisions": "No revisions yet.",
       "notUsed": "This test case has not been used in any run yet.",
       "stepsPreserved": "Step text is shown exactly as in the source.",
-      "evidenceLater": "Evidence attachments (screenshots, videos, documents) arrive in Milestone 5.",
       "archiveTitle": "Archive {{code}}?",
       "archiveBody": "The case is hidden from the active list. Its run history and revisions are kept, and it can be restored.",
       "archived": "{{code}} archived.",
       "restored": "{{code}} restored as Draft.",
       "cloned": "Duplicate {{code}} created as Draft.",
-      "archivedNotice": "This test case is archived. Restore it before editing."
+      "archivedNotice": "This test case is archived. Restore it before editing.",
+      "files": "Reference documents"
     },
     "runs": {
       "title": "Test Runs",
@@ -412,7 +423,8 @@
       "unlink": "Unlink {{case}} attempt #{{n}}",
       "unlinkTitle": "Unlink {{case}} attempt #{{n}}?",
       "unlinkBody": "The test result is not deleted; only its link to this bug is removed.",
-      "unlinked": "Link removed."
+      "unlinked": "Link removed.",
+      "files": "Attachments"
     },
     "comingSoon": {
       "title": "Coming soon",
@@ -562,7 +574,6 @@
       "historyHeading": "Attempt history",
       "historyEmpty": "No attempts yet.",
       "stepResults": "Step results",
-      "evidenceSoon": "Evidence upload (screenshots/video) arrives in Milestone 5.",
       "bugsHeading": "Linked bugs",
       "bugsEmpty": "No linked bugs yet.",
       "openEnvironment": "Open the test environment",
@@ -575,7 +586,8 @@
       "linkAction": "Link {{code}}",
       "linked": "Bug {{code}} linked to attempt #{{n}}.",
       "bugsHint": "A failed result never creates a bug by itself. Report a new bug or link an existing one.",
-      "bugsNeedAttempt": "Record a test result first to report or link a bug."
+      "bugsNeedAttempt": "Record a test result first to report or link a bug.",
+      "evidenceHeading": "Evidence (screenshots, documents, logs)"
     },
     "bugForm": {
       "newTitle": "Report a bug",
@@ -590,7 +602,25 @@
       "assigneeHint": "Only a QA lead or admin can assign a bug.",
       "lockedField": "Some fields are locked because your role cannot change them.",
       "created": "Bug {{code}} created.",
-      "saved": "Bug changes saved."
+      "saved": "Bug changes saved.",
+      "attemptFiles": "Include the evidence of attempt #{{n}}",
+      "newFiles": "More evidence"
+    },
+    "evidence": {
+      "title": "Evidence Center",
+      "subtitle": "All evidence files of the project: screenshots, documents and logs. Only project members can open them.",
+      "empty": "No evidence files in this project yet.",
+      "emptyFiltered": "No files match the filters.",
+      "searchPlaceholder": "Search file name…",
+      "unlinkedOnly": "Not used yet",
+      "usedIn": "Used in",
+      "notUsed": "Not used anywhere yet",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteBody": "An unused file is hidden and can no longer be opened.",
+      "deleted": "File deleted.",
+      "upload": "Upload files",
+      "uploadHint": "Files uploaded here can be attached later to test results, bugs or test cases.",
+      "uploader": "Uploaded by {{name}}"
     }
   },
   "errors": {
@@ -616,5 +646,76 @@
     "leave": "Leave",
     "conflict": "Someone else changed this item. Reload to see the latest version.",
     "alreadyUsed": "Already used"
+  },
+  "evidence": {
+    "dropTitle": "Drag files here or paste a screenshot (Ctrl+V)",
+    "choose": "Choose files",
+    "rules": "Screenshots PNG/JPG/WebP up to 15 MB · Documents PDF/DOCX/XLSX up to 25 MB · Logs TXT/CSV/JSON/HAR up to 20 MB",
+    "status": {
+      "uploading": "Uploading {{percent}}%",
+      "processing": "Checking and compressing…",
+      "ready": "Ready",
+      "rejected": "Rejected",
+      "failed": "Failed",
+      "error": "Upload failed"
+    },
+    "reason": {
+      "EMPTY": "Empty file",
+      "TOO_LARGE": "Exceeds the size limit",
+      "TYPE_NOT_ALLOWED": "File type not allowed",
+      "SIGNATURE_MISMATCH": "Content does not match the file type",
+      "CORRUPT": "File is damaged or unreadable",
+      "TOO_MANY_PIXELS": "Image is too large",
+      "ACTIVE_CONTENT": "Contains macros, scripts or embedded objects",
+      "ARCHIVE_BOMB": "Unusual compressed content",
+      "NOT_TEXT": "Not a text file",
+      "INVALID_JSON": "Invalid JSON",
+      "INFECTED": "Detected as harmful",
+      "SCAN_ERROR": "Security check failed",
+      "PROCESSING_ERROR": "Processing failed",
+      "INTERRUPTED": "Interrupted, please upload again"
+    },
+    "note": {
+      "NO_SIZE_GAIN": "cannot get smaller without losing quality",
+      "ALREADY_COMPRESSED": "format is already compressed",
+      "HAR_REDACTED": "cookies and tokens redacted"
+    },
+    "method": {
+      "WEBP_LOSSLESS": "lossless WebP",
+      "PNG_OPTIMIZE": "optimised PNG",
+      "JPEG_MOZJPEG_Q90": "high-quality JPEG",
+      "METADATA_STRIP": "metadata removed",
+      "GZIP": "gzip",
+      "NONE": "stored as is"
+    },
+    "saving": "saved {{percent}}%",
+    "scan": {
+      "BASIC": "Passed basic checks",
+      "CLAMAV": "Passed ClamAV antivirus"
+    },
+    "caption": "Caption for {{name}}",
+    "captionPlaceholder": "Caption (optional)",
+    "step": "Step for {{name}}",
+    "noStep": "No step",
+    "stepOption": "Step {{n}}",
+    "remove": "Remove {{name}}",
+    "retry": "Retry {{name}}",
+    "waitUploads": "Wait until every file has been checked.",
+    "rejected": "{{name}} rejected: {{reason}}",
+    "preview": "View {{name}}",
+    "download": "Download",
+    "open": "Open",
+    "close": "Close preview",
+    "prev": "Previous",
+    "next": "Next",
+    "counter": "{{n}} of {{total}}",
+    "attach": "Attach ({{count}})",
+    "attached": "{{count}} files attached.",
+    "detach": "Detach {{name}}",
+    "detached": "File detached.",
+    "empty": "No attachments yet.",
+    "failedWarning": "A failed result should come with a screenshot as evidence.",
+    "addMore": "Add evidence",
+    "stepBadge": "Step {{n}}"
   }
 }

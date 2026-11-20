@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery, type QueryClient } from '@tanstack/react-query'
-import type { DefectQuery, TestCaseQuery } from '../services/data-source'
+import type { DefectQuery, FileQuery, TestCaseQuery } from '../services/data-source'
 import { useDataSource } from '../services/use-data-source'
 
 /** React Query hooks over the DataSource seam (mock or http). */
@@ -144,4 +144,13 @@ export async function invalidateDefectData(queryClient: QueryClient, code: strin
       ['runs', code],
     ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
   )
+}
+
+export function useFiles(code: string, query: FileQuery) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['files', code, query],
+    queryFn: () => ds.listFiles(code, query),
+    placeholderData: keepPreviousData,
+  })
 }

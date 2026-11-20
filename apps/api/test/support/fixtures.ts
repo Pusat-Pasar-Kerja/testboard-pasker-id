@@ -127,3 +127,19 @@ export const harWithSecrets = () =>
 /** Standard antivirus test signature, assembled so this file is not itself flagged. */
 export const eicar = () =>
   ['X5O!P%@AP[4\\PZX54(P^)7CC)7}$', 'EICAR-STANDARD-ANTIVIRUS', '-TEST-FILE!$H+H*'].join('')
+
+/** Photo-like noisy pixels: many colours, big even when lossless. */
+export function noisePixels(width = 1200, height = 800): Buffer {
+  const px = Buffer.alloc(width * height * 3)
+  let seed = 42
+  for (let i = 0; i < px.length; i++) {
+    seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff
+    px[i] = seed >> 23
+  }
+  return px
+}
+
+export const noisyPng = () =>
+  sharp(noisePixels(), { raw: { width: 1200, height: 800, channels: 3 } })
+    .png()
+    .toBuffer()

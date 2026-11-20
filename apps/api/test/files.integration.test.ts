@@ -6,6 +6,8 @@ import {
   eicar,
   harWithSecrets,
   jpegWithGps,
+  noisePixels,
+  noisyPng,
   pdf,
   uiPixels,
   uiPng,
@@ -124,7 +126,6 @@ describe('upload pipeline (doc 07)', () => {
     expect(['WEBP_LOSSLESS', 'PNG_OPTIMIZE']).toContain(file.compression_method)
     expect(file.stored_size_bytes).toBeLessThan(file.original_size_bytes / 2)
     expect([file.width_px, file.height_px]).toEqual([900, 560])
-    expect(file.has_thumbnail).toBe(true)
 
     const download = await tester.raw(`${P()}/files/${file.id}/download`)
     expect(download.status).toBe(200)
@@ -134,9 +135,20 @@ describe('upload pipeline (doc 07)', () => {
     const decoded = await sharp(download.bytes).removeAlpha().raw().toBuffer()
     expect(decoded.equals(uiPixels())).toBe(true)
 
-    const thumb = await tester.raw(`${P()}/files/${file.id}/thumbnail`)
+    // A flat UI screen is smaller as a whole than as a lossy thumbnail: none is kept.
+    expect(file.has_thumbnail).toBe(false)
+  })
+
+  it('keeps a small thumbnail for large photo-like screenshots', async () => {
+    const { files } = await uploadDone(tester, [{ name: 'foto-layar.png', data: await noisyPng() }])
+    expect(files[0]).toMatchObject({ processing_status: 'READY', has_thumbnail: true })
+    const thumb = await tester.raw(`${P()}/files/${files[0].id}/thumbnail`)
     expect(thumb.headers.get('content-type')).toBe('image/webp')
     expect((await sharp(thumb.bytes).metadata()).width).toBeLessThanOrEqual(480)
+    expect(thumb.bytes.length).toBeLessThan(files[0].stored_size_bytes)
+    // Many colours must survive exactly (no palette quantisation).
+    const stored = (await tester.raw(`${P()}/files/${files[0].id}/download`)).bytes
+    expect((await sharp(stored).removeAlpha().raw().toBuffer()).equals(noisePixels())).toBe(true)
   })
 
   it('removes EXIF/GPS from photos', async () => {

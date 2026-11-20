@@ -114,7 +114,58 @@ export function createApiClient(
     return (await response.json()) as T
   }
 
+  /**
+   * Multipart upload with progress. XHR is used because fetch cannot report upload
+   * progress; same-origin cookies and the CSRF header are sent like any other request.
+   */
+  function upload<T>(
+    path: string,
+    form: FormData,
+    options: { onProgress?: (fraction: number) => void; signal?: AbortSignal } = {},
+  ): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', `${baseUrl}${path}`)
+      xhr.withCredentials = true
+      xhr.setRequestHeader('Accept', 'application/json')
+      const token = csrf()
+      if (token) xhr.setRequestHeader('X-CSRF-Token', token)
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) options.onProgress?.(event.loaded / event.total)
+      }
+      xhr.onerror = () => reject(new ApiClientError(0, 'INTERNAL_ERROR', 'Network error', null))
+      xhr.onabort = () => reject(new DOMException('Upload cancelled', 'AbortError'))
+      xhr.onload = () => {
+        let json: unknown
+        try {
+          json = xhr.responseText ? JSON.parse(xhr.responseText) : null
+        } catch {
+          json = null
+        }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(json as T)
+          return
+        }
+        const parsed = parseErrorBody(json)
+        reject(
+          new ApiClientError(
+            xhr.status,
+            parsed?.code ?? 'INTERNAL_ERROR',
+            parsed?.message ?? xhr.statusText,
+            parsed?.request_id ?? xhr.getResponseHeader('X-Request-Id'),
+            parsed?.details ?? [],
+          ),
+        )
+      }
+      options.signal?.addEventListener('abort', () => xhr.abort(), { once: true })
+      xhr.send(form)
+    })
+  }
+
   return {
+    /** Absolute path for authorized file streams (img src, download links). */
+    url: (path: string) => `${baseUrl}${path}`,
+    upload,
     get: <T>(path: string) => request<T>('GET', path),
     post: <T>(path: string, body: unknown = {}, headers?: Record<string, string>) =>
       request<T>('POST', path, body, headers),

@@ -1,16 +1,19 @@
-import { Images } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router'
+import { AttachmentsPanel } from '../components/evidence/AttachmentsPanel'
 import { CaseStatusBadge, ExecutionStatusBadge } from '../components/status/StatusBadges'
 import { Badge } from '../components/ui/Badge'
 import { PageHeader } from '../components/ui/PageHeader'
 import { DescriptionList, Section } from '../components/ui/Section'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
 import { Tabs } from '../components/ui/Tabs'
+import { useCan } from '../hooks/permissions'
 import { useTestCase } from '../hooks/queries'
 import { projectPath, useProjectCode } from '../hooks/route-state'
 import { formatDateTime, toLocale } from '../lib/format'
 import { ApiClientError } from '../services/api-client'
+import { useDataSource } from '../services/use-data-source'
 import { NotFoundPage } from './NotFoundPage'
 import { TestCaseActions } from './TestCaseActions'
 
@@ -20,6 +23,9 @@ export function TestCaseDetailPage() {
   const code = useProjectCode()
   const { caseId = '' } = useParams()
   const [params, setParams] = useSearchParams()
+  const can = useCan(code)
+  const ds = useDataSource()
+  const queryClient = useQueryClient()
   const testCase = useTestCase(code, caseId)
   const none = t('fields.none')
 
@@ -181,14 +187,25 @@ export function TestCaseDetailPage() {
           },
           {
             id: 'evidence',
-            label: t('pages.caseDetail.tabEvidence'),
+            label: t('pages.caseDetail.files'),
+            count: c.files.length,
             content: (
-              <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line-strong bg-surface px-4 py-12 text-center">
-                <Images aria-hidden="true" className="size-10 text-ink-muted" />
-                <p className="max-w-md text-sm text-ink-muted">
-                  {t('pages.caseDetail.evidenceLater')}
-                </p>
-              </div>
+              <Section headingLevel={3}>
+                <AttachmentsPanel
+                  projectCode={code}
+                  files={c.files}
+                  canAttach={can('case.write')}
+                  canDetach={() => can('case.write')}
+                  onAttach={async (refs) => {
+                    await ds.attachCaseFiles(code, c.id, refs)
+                    await queryClient.invalidateQueries({ queryKey: ['test-case', code, c.id] })
+                  }}
+                  onDetach={async (fileId) => {
+                    await ds.detachCaseFile(code, c.id, fileId)
+                    await queryClient.invalidateQueries({ queryKey: ['test-case', code, c.id] })
+                  }}
+                />
+              </Section>
             ),
           },
         ]}

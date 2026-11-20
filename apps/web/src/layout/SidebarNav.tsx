@@ -34,7 +34,7 @@ const ITEMS: { key: NavKey; path: string; icon: LucideIcon; soon?: boolean }[] =
   { key: 'cycles', path: 'cycles', icon: CalendarRange },
   { key: 'runs', path: 'runs', icon: PlayCircle },
   { key: 'bugs', path: 'bugs', icon: Bug },
-  { key: 'evidence', path: 'evidence', icon: Images, soon: true },
+  { key: 'evidence', path: 'evidence', icon: Images },
   { key: 'imports', path: 'imports', icon: FileUp, soon: true },
   { key: 'reports', path: 'reports', icon: ChartColumn, soon: true },
   { key: 'team', path: 'members', icon: Users },

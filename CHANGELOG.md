@@ -2,6 +2,26 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.6.0] - 2026-11-20
+
+**Milestone 5 selesai**: bukti (screenshot, dokumen, log) bisa diunggah, diperiksa, dikompres, dilihat, dan dilampirkan dari UI (mode API dan demo).
+
+### Ditambahkan
+
+- Pengunggah bukti: pilih banyak file, tarik-lepas, atau tempel screenshot dari clipboard (Ctrl+V); progres unggah per file, status pemeriksaan, hasil kompresi ("170 KB → 6,9 KB · hemat 96% · WebP lossless"), alasan penolakan yang jelas, ulangi, hapus, keterangan, dan tautan ke nomor langkah.
+- Workspace eksekusi: bukti disimpan bersama hasil uji (simpan ditahan sampai semua file selesai diperiksa), peringatan lembut bila hasil gagal tanpa screenshot, galeri per percobaan, dan "Tambah bukti" ke percobaan sendiri yang sudah tersimpan.
+- Bug: bagian Lampiran (lampirkan/lepas sesuai peran); saat melaporkan bug dari hasil gagal, screenshot percobaan itu otomatis ikut (file yang sama, tidak disalin) dan bisa ditambah bukti baru.
+- Test case: tab Dokumen acuan untuk QA Lead/Admin.
+- Pusat Bukti: semua file proyek dengan filter jenis/status/nama/belum dipakai, ukuran sebelum/sesudah, pengunggah, tempat file dipakai (tautan ke percobaan/bug/test case), pratinjau, unduh, dan hapus untuk file yang belum dipakai.
+- Penampil screenshot (lightbox) dengan navigasi panah/Esc; semua pratinjau dan unduhan lewat izin API, tidak ada tautan publik.
+- Mode demo mensimulasikan alur yang sama (cek jenis asli, penolakan, proses, hasil kompresi khas).
+- Tes: aturan bukti di data demo dan alur UI (unggah saat uji, file palsu ditolak, pakai ulang di bug, Pusat Bukti, viewer).
+
+### Diubah
+
+- Optimasi PNG kini benar-benar lossless (opsi `effort` di sharp diam-diam mengaktifkan kuantisasi palet); tes regresi gambar banyak warna harus identik piksel.
+- Thumbnail hanya dibuat bila lebih kecil dari gambar utuh (screenshot UI datar sering lebih kecil utuh dalam WebP lossless).
+
 ## [0.5.1] - 2026-11-20
 
 Milestone 5 bagian API: unggah bukti dengan pemeriksaan dan kompresi.

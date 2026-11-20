@@ -63,3 +63,22 @@ export function formatPercent(value: number, locale: Locale, fractionDigits = 1)
     }).format(value) + '%'
   )
 }
+
+/** File size in B/KB/MB (base 1024, as shown by operating systems). */
+export function formatBytes(bytes: number, locale: Locale): string {
+  const units = ['B', 'KB', 'MB', 'GB']
+  let value = bytes
+  let unit = 0
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024
+    unit++
+  }
+  const digits = unit === 0 || value >= 100 ? 0 : 1
+  return `${formatNumber(Number(value.toFixed(digits)), locale)} ${units[unit]}`
+}
+
+/** Percentage saved by compression, or null when nothing was saved. */
+export function savedPercent(original: number, stored: number | null): number | null {
+  if (!stored || original <= 0 || stored >= original) return null
+  return Math.round((1 - stored / original) * 100)
+}

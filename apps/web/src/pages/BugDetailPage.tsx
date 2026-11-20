@@ -24,6 +24,7 @@ import {
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
+import { AttachmentsPanel } from '../components/evidence/AttachmentsPanel'
 import {
   DefectPriorityBadge,
   DefectStatusBadge,
@@ -38,7 +39,7 @@ import { DescriptionList, Section } from '../components/ui/Section'
 import { ErrorState, LoadingState } from '../components/ui/States'
 import { useToast } from '../components/ui/toast-context'
 import { useCan, useDefectActor } from '../hooks/permissions'
-import { invalidateDefectData, useDefect } from '../hooks/queries'
+import { invalidateDefectData, useCurrentUser, useDefect } from '../hooks/queries'
 import { projectPath, useProjectCode } from '../hooks/route-state'
 import { apiErrorText } from '../lib/api-errors'
 import { formatDateTime, formatShortDateTime, toLocale } from '../lib/format'
@@ -356,6 +357,9 @@ export function BugDetailPage() {
   const defect = useDefect(code, bugId)
   const actor = useDefectActor(code, defect.data)
   const can = useCan(code)
+  const me = useCurrentUser()
+  const ds = useDataSource()
+  const queryClient = useQueryClient()
   const none = t('fields.none')
 
   if (defect.isPending) return <LoadingState rows={6} />
@@ -412,6 +416,31 @@ export function BugDetailPage() {
                 { label: t('fields.expectedBehavior'), value: d.expected_behavior ?? none },
                 { label: t('fields.actualBehavior'), value: d.actual_behavior ?? none },
               ]}
+            />
+          </Section>
+
+          <Section title={t('pages.bugDetail.files')}>
+            <AttachmentsPanel
+              projectCode={code}
+              files={d.files}
+              canAttach={
+                can('file.upload') &&
+                actor !== null &&
+                (actor.role !== 'DEVELOPER' || actor.isAssignee)
+              }
+              canDetach={(file) =>
+                actor?.role === 'ADMIN' ||
+                actor?.role === 'QA_LEAD' ||
+                (file.uploaded_by !== null && file.uploaded_by.id === me.data?.id)
+              }
+              onAttach={async (refs) => {
+                await ds.attachDefectFiles(code, d.id, refs)
+                await invalidateDefectData(queryClient, code)
+              }}
+              onDetach={async (fileId) => {
+                await ds.detachDefectFile(code, d.id, fileId)
+                await invalidateDefectData(queryClient, code)
+              }}
             />
           </Section>
 

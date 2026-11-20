@@ -9,6 +9,7 @@ import {
   type DefectActor,
   type DefectDetail,
   type DefectField,
+  type AttachedFileDto,
   type ModuleDto,
   type RunCaseDetail,
 } from '@testboard/shared'
@@ -17,6 +18,8 @@ import { Info, Save } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useBlocker, useNavigate, useParams, useSearchParams } from 'react-router'
+import { EvidenceUploader } from '../components/evidence/EvidenceUploader'
+import { useEvidenceUploads } from '../components/evidence/use-evidence-uploads'
 import { Button, ButtonLink } from '../components/ui/Button'
 import { ConfirmDialog } from '../components/ui/Dialog'
 import { FormAlert, SelectField, TextArea, TextField } from '../components/ui/Form'
@@ -67,6 +70,8 @@ interface AttemptLink {
   runCode: string
   caseCode: string
   attempt: number
+  /** Evidence of that attempt, offered for reuse on the bug (same file, no copy). */
+  files: AttachedFileDto[]
 }
 
 function fromDefect(d: DefectDetail): BugForm {
@@ -119,6 +124,7 @@ function fromAttempt(
       runCode: detail.run.run_code,
       caseCode: snap.case_code,
       attempt: attempt.attempt_number,
+      files: attempt.files,
     },
   }
 }
@@ -147,6 +153,10 @@ function BugFormBody({
   const [formError, setFormError] = useState<string | null>(null)
   const idempotencyKey = useRef(newIdempotencyKey())
   const allowLeave = useRef(false)
+  const uploads = useEvidenceUploads(code)
+  const [reuse, setReuse] = useState<Set<string>>(
+    () => new Set((link?.files ?? []).map((f) => f.id)),
+  )
 
   const isLead = actor.role === 'ADMIN' || actor.role === 'QA_LEAD'
   const editable = new Set<string>(
@@ -156,7 +166,7 @@ function BugFormBody({
   if (!existing && !isLead) editable.delete('assigned_to')
   const locked = (field: keyof BugForm) => !editable.has(field)
 
-  const dirty = JSON.stringify(form) !== JSON.stringify(initial)
+  const dirty = JSON.stringify(form) !== JSON.stringify(initial) || uploads.items.length > 0
   const blocker = useBlocker(() => dirty && !allowLeave.current)
   useEffect(() => {
     if (!dirty) return
@@ -183,6 +193,7 @@ function BugFormBody({
         : ds.createDefect(code, input, idempotencyKey.current),
     onSuccess: async (bug) => {
       allowLeave.current = true
+      uploads.clear()
       await invalidateDefectData(queryClient, code)
       toast.show(
         existing ? t('pages.bugForm.saved') : t('pages.bugForm.created', { code: bug.bug_code }),
@@ -213,6 +224,10 @@ function BugFormBody({
   function onSubmit(event: FormEvent) {
     event.preventDefault()
     setFormError(null)
+    if (uploads.busy) {
+      setFormError(t('evidence.waitUploads'))
+      return
+    }
     const value = (field: keyof BugForm) => (form[field].trim() === '' ? null : form[field])
     const full: DefectInput = {
       title: form.title,
@@ -251,6 +266,13 @@ function BugFormBody({
         source_kind: form.source_kind as DefectInput['source_kind'],
         ...(link ? { execution_ids: [link.executionId] } : {}),
       }
+      const evidence = [
+        ...(link?.files ?? [])
+          .filter((f) => reuse.has(f.id))
+          .map((f) => ({ file_id: f.id, caption: f.caption })),
+        ...uploads.refs,
+      ]
+      if (evidence.length > 0) input.evidence = evidence
     }
     const result = (existing ? defectUpdateSchema : defectCreateSchema).safeParse(input)
     if (!result.success) {
@@ -307,54 +329,100 @@ function BugFormBody({
           </p>
         )}
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <Section title={t('pages.bugForm.describe')}>
-            <div className="space-y-5">
-              <TextField
-                label={t('fields.title')}
-                required
-                value={form.title}
-                onChange={(e) => set('title')(e.target.value)}
-                hint={t('pages.bugForm.titleHint')}
-                error={errors.title}
-                disabled={locked('title')}
-              />
-              <TextArea
-                label={t('fields.description')}
-                value={form.description}
-                onChange={(e) => set('description')(e.target.value)}
-                error={errors.description}
-                disabled={locked('description')}
-                rows={3}
-              />
-              <TextArea
-                label={t('fields.stepsToReproduce')}
-                value={form.steps_to_reproduce}
-                onChange={(e) => set('steps_to_reproduce')(e.target.value)}
-                error={errors.steps_to_reproduce}
-                disabled={locked('steps_to_reproduce')}
-                rows={5}
-                placeholder={'1. ...\n2. ...'}
-              />
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="space-y-6">
+            <Section title={t('pages.bugForm.describe')}>
+              <div className="space-y-5">
+                <TextField
+                  label={t('fields.title')}
+                  required
+                  value={form.title}
+                  onChange={(e) => set('title')(e.target.value)}
+                  hint={t('pages.bugForm.titleHint')}
+                  error={errors.title}
+                  disabled={locked('title')}
+                />
                 <TextArea
-                  label={t('fields.expectedBehavior')}
-                  value={form.expected_behavior}
-                  onChange={(e) => set('expected_behavior')(e.target.value)}
-                  error={errors.expected_behavior}
-                  disabled={locked('expected_behavior')}
+                  label={t('fields.description')}
+                  value={form.description}
+                  onChange={(e) => set('description')(e.target.value)}
+                  error={errors.description}
+                  disabled={locked('description')}
                   rows={3}
                 />
                 <TextArea
-                  label={t('fields.actualBehavior')}
-                  value={form.actual_behavior}
-                  onChange={(e) => set('actual_behavior')(e.target.value)}
-                  error={errors.actual_behavior}
-                  disabled={locked('actual_behavior')}
-                  rows={3}
+                  label={t('fields.stepsToReproduce')}
+                  value={form.steps_to_reproduce}
+                  onChange={(e) => set('steps_to_reproduce')(e.target.value)}
+                  error={errors.steps_to_reproduce}
+                  disabled={locked('steps_to_reproduce')}
+                  rows={5}
+                  placeholder={'1. ...\n2. ...'}
                 />
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <TextArea
+                    label={t('fields.expectedBehavior')}
+                    value={form.expected_behavior}
+                    onChange={(e) => set('expected_behavior')(e.target.value)}
+                    error={errors.expected_behavior}
+                    disabled={locked('expected_behavior')}
+                    rows={3}
+                  />
+                  <TextArea
+                    label={t('fields.actualBehavior')}
+                    value={form.actual_behavior}
+                    onChange={(e) => set('actual_behavior')(e.target.value)}
+                    error={errors.actual_behavior}
+                    disabled={locked('actual_behavior')}
+                    rows={3}
+                  />
+                </div>
               </div>
-            </div>
-          </Section>
+            </Section>
+
+            {!existing && (
+              <Section title={t('pages.execution.evidenceHeading')}>
+                <div className="space-y-4">
+                  {link && link.files.length > 0 && (
+                    <fieldset className="space-y-2">
+                      <legend className="mb-1 text-sm font-medium">
+                        {t('pages.bugForm.attemptFiles', { n: link.attempt })}
+                      </legend>
+                      {link.files.map((file) => (
+                        <label
+                          key={file.id}
+                          className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-line px-3 text-sm hover:bg-brand-50/60"
+                        >
+                          <input
+                            type="checkbox"
+                            className="size-4.5 accent-brand-700"
+                            checked={reuse.has(file.id)}
+                            onChange={() =>
+                              setReuse((prev) => {
+                                const next = new Set(prev)
+                                if (next.has(file.id)) next.delete(file.id)
+                                else next.add(file.id)
+                                return next
+                              })
+                            }
+                          />
+                          <span className="min-w-0 flex-1 truncate">
+                            {file.caption ?? file.original_filename}
+                          </span>
+                          <span className="text-xs text-ink-muted">
+                            {t(`codes.evidenceType.${file.evidence_type}`)}
+                          </span>
+                        </label>
+                      ))}
+                    </fieldset>
+                  )}
+                  <EvidenceUploader
+                    uploads={uploads}
+                    label={link && link.files.length > 0 ? t('pages.bugForm.newFiles') : undefined}
+                  />
+                </div>
+              </Section>
+            )}
+          </div>
 
           <div className="space-y-6">
             <Section title={t('pages.bugForm.classify')}>

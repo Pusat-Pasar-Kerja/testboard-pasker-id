@@ -8,6 +8,7 @@ import { BugsPage } from './pages/BugsPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
 import { CyclesPage } from './pages/CyclesPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { EvidencePage } from './pages/EvidencePage'
 import { ExecutionPage } from './pages/ExecutionPage'
 import { LoginPage } from './pages/LoginPage'
 import { MembersPage } from './pages/MembersPage'
@@ -57,7 +58,7 @@ export const routes: RouteObject[] = [
           { path: 'bugs/:bugId', element: <BugDetailPage /> },
           { path: 'bugs/:bugId/edit', element: <BugFormPage mode="edit" /> },
           { path: 'cycles', element: <CyclesPage /> },
-          { path: 'evidence', element: <ComingSoonPage feature="evidence" /> },
+          { path: 'evidence', element: <EvidencePage /> },
           { path: 'imports', element: <ComingSoonPage feature="imports" /> },
           { path: 'reports', element: <ComingSoonPage feature="reports" /> },
           { path: 'members', element: <MembersPage /> },

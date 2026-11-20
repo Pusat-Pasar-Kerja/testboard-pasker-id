@@ -14,7 +14,8 @@ import {
   ChevronRight,
   CircleAlert,
   ExternalLink,
-  ImageUp,
+  ImagePlus,
+  Paperclip,
   Info,
   ListChecks,
   Save,
@@ -38,6 +39,9 @@ import { ConfirmDialog } from '../components/ui/Dialog'
 import { FormAlert, SelectField, TextArea, TextField } from '../components/ui/Form'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Section } from '../components/ui/Section'
+import { EvidenceGallery } from '../components/evidence/EvidenceGallery'
+import { EvidenceUploader } from '../components/evidence/EvidenceUploader'
+import { useEvidenceUploads } from '../components/evidence/use-evidence-uploads'
 import { SearchField } from '../components/ui/Filters'
 import { ErrorState, LoadingState } from '../components/ui/States'
 import { Tabs } from '../components/ui/Tabs'
@@ -80,9 +84,15 @@ function Notice({ tone = 'info', children }: { tone?: 'info' | 'warning'; childr
 function AttemptCard({
   attempt,
   highlight = false,
+  projectCode,
+  canAddEvidence = false,
+  canDetachEvidence = false,
 }: {
   attempt: ExecutionDto
   highlight?: boolean
+  projectCode: string
+  canAddEvidence?: boolean
+  canDetachEvidence?: boolean
 }) {
   const { t, i18n } = useTranslation()
   const locale = toLocale(i18n.resolvedLanguage)
@@ -140,7 +150,92 @@ function AttemptCard({
           )}
         </div>
       )}
+      <AttemptEvidence
+        projectCode={projectCode}
+        attempt={attempt}
+        canAdd={canAddEvidence}
+        canDetach={canDetachEvidence}
+      />
     </article>
+  )
+}
+
+/** Evidence of one attempt; the tester of the attempt (or a lead) can add more later. */
+function AttemptEvidence({
+  projectCode,
+  attempt,
+  canAdd,
+  canDetach,
+}: {
+  projectCode: string
+  attempt: ExecutionDto
+  canAdd: boolean
+  canDetach: boolean
+}) {
+  const { t } = useTranslation()
+  const ds = useDataSource()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [adding, setAdding] = useState(false)
+  const uploads = useEvidenceUploads(projectCode)
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['run-case', projectCode] })
+  const attach = useMutation({
+    mutationFn: () => ds.attachExecutionFiles(projectCode, attempt.id, uploads.refs),
+    onSuccess: async () => {
+      toast.show(t('evidence.attached', { count: uploads.refs.length }))
+      uploads.clear()
+      setAdding(false)
+      await refresh()
+    },
+    onError: (error) => toast.show(apiErrorText(t, error)),
+  })
+  const detach = useMutation({
+    mutationFn: (fileId: string) => ds.detachExecutionFile(projectCode, attempt.id, fileId),
+    onSuccess: async () => {
+      toast.show(t('evidence.detached'))
+      await refresh()
+    },
+    onError: (error) => toast.show(apiErrorText(t, error)),
+  })
+  if (attempt.files.length === 0 && !canAdd) return null
+  return (
+    <div className="mt-2 space-y-2">
+      <EvidenceGallery
+        projectCode={projectCode}
+        files={attempt.files}
+        compact
+        onDetach={canDetach ? (file) => detach.mutate(file.id) : undefined}
+      />
+      {canAdd && !adding && (
+        <Button variant="ghost" icon={ImagePlus} onClick={() => setAdding(true)}>
+          {t('evidence.addMore')}
+        </Button>
+      )}
+      {adding && (
+        <div className="space-y-2 rounded-lg border border-line p-3">
+          <EvidenceUploader uploads={uploads} />
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                uploads.items.forEach((item) => uploads.remove(item.key))
+                setAdding(false)
+              }}
+            >
+              {t('actions.cancel')}
+            </Button>
+            <Button
+              icon={Paperclip}
+              disabled={uploads.readyCount === 0 || uploads.busy}
+              loading={attach.isPending}
+              onClick={() => attach.mutate()}
+            >
+              {t('evidence.attach', { count: uploads.readyCount })}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -303,6 +398,7 @@ function Workspace({ detail }: { detail: RunCaseDetail }) {
   const [formError, setFormError] = useState<string | null>(null)
   const [tab, setTab] = useState('scenario')
   const idempotencyKey = useRef(newIdempotencyKey())
+  const uploads = useEvidenceUploads(code)
   const allowLeave = useRef(false)
 
   // Who may record here (doc 09 + ADR 0006). The API enforces the same rules.
@@ -319,7 +415,9 @@ function Workspace({ detail }: { detail: RunCaseDetail }) {
   const canRecord = blockedReason === null
 
   const marked = Object.values(steps).filter((s) => s.status !== 'NOT_RUN').length
-  const dirty = Boolean(result || actual.trim() || notes.trim() || marked > 0)
+  const dirty = Boolean(
+    result || actual.trim() || notes.trim() || marked > 0 || uploads.items.length > 0,
+  )
   const blocker = useBlocker(() => dirty && !allowLeave.current)
   useEffect(() => {
     if (!dirty) return
@@ -346,6 +444,7 @@ function Workspace({ detail }: { detail: RunCaseDetail }) {
           status: t(`codes.execution.${attempt.result_status}`),
         }),
       )
+      uploads.clear()
       if (next && detail.next_run_case_id) {
         navigate(casePath(detail.next_run_case_id))
         return
@@ -379,6 +478,10 @@ function Workspace({ detail }: { detail: RunCaseDetail }) {
 
   function submit(next: boolean) {
     setFormError(null)
+    if (uploads.busy) {
+      setFormError(t('evidence.waitUploads'))
+      return
+    }
     const stepResults = snap.steps.flatMap((s) => {
       const state = steps[s.step_number]
       return state && state.status !== 'NOT_RUN'
@@ -400,6 +503,7 @@ function Workspace({ detail }: { detail: RunCaseDetail }) {
       device_name: env.device_name.trim() || null,
       operating_system: env.operating_system.trim() || null,
       ...(stepResults.length > 0 ? { step_results: stepResults } : {}),
+      ...(uploads.refs.length > 0 ? { evidence: uploads.refs } : {}),
     }
     const parsed = executionCreateSchema.safeParse(input)
     if (!parsed.success) {
@@ -550,7 +654,7 @@ function Workspace({ detail }: { detail: RunCaseDetail }) {
               <p className="mb-1 text-xs font-medium text-ink-muted">
                 {t('pages.execution.previous')}
               </p>
-              <AttemptCard attempt={last} highlight />
+              <AttemptCard attempt={last} highlight projectCode={code} />
             </div>
           )}
           <ResultPicker
@@ -627,10 +731,17 @@ function Workspace({ detail }: { detail: RunCaseDetail }) {
               />
             </div>
           </details>
-          <p className="flex items-start gap-2 text-xs text-ink-muted">
-            <ImageUp aria-hidden="true" className="size-4 shrink-0" />
-            {t('pages.execution.evidenceSoon')}
-          </p>
+          <EvidenceUploader
+            uploads={uploads}
+            steps={snap.steps}
+            label={t('pages.execution.evidenceHeading')}
+          />
+          {result === 'FAILED' && uploads.readyCount === 0 && (
+            <p className="flex items-start gap-2 text-xs font-medium text-warning">
+              <CircleAlert aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+              {t('evidence.failedWarning')}
+            </p>
+          )}
           <p className="text-xs text-ink-muted">
             {t('pages.execution.attemptNext', { n: (last?.attempt_number ?? 0) + 1 })}
           </p>
@@ -669,7 +780,16 @@ function Workspace({ detail }: { detail: RunCaseDetail }) {
         <ol className="space-y-3">
           {detail.attempts.map((attempt) => (
             <li key={attempt.id}>
-              <AttemptCard attempt={attempt} />
+              <AttemptCard
+                attempt={attempt}
+                projectCode={code}
+                canAddEvidence={
+                  detail.run.status_code !== 'LOCKED' &&
+                  can('file.upload') &&
+                  (isLead || attempt.tester?.id === me.data?.id)
+                }
+                canDetachEvidence={isLead && detail.run.status_code !== 'LOCKED'}
+              />
             </li>
           ))}
         </ol>

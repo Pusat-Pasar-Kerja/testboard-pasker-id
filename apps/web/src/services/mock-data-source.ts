@@ -1,4 +1,14 @@
 import {
+  EVIDENCE_RULES,
+  evidenceTypeFor,
+  extensionOf,
+  isFileUsable,
+  type AttachedFileDto,
+  type EvidenceItem,
+  type EvidenceRef,
+  type FileDto,
+  type FileFailureReason,
+  type FileUsage,
   canTransitionDefect,
   DEFECT_FIELDS,
   defectCommentSchema,
@@ -52,6 +62,9 @@ import {
   type MockCase,
   type MockDb,
   type MockDefect,
+  type MockExecution,
+  type MockFile,
+  type MockFileLink,
   type MockRun,
 } from '../mocks/seed'
 import { ApiClientError } from './api-client'
@@ -59,6 +72,7 @@ import type {
   AddRunCasesResult,
   DataSource,
   DefectQuery,
+  FileQuery,
   PageQuery,
   TestCaseInput,
   TestCaseQuery,
@@ -364,6 +378,146 @@ export function createMockDataSource(
     }
   }
 
+  // ---- Milestone 5: evidence (demo: simulated pipeline in memory, ADR 0008) ------------
+  const SIGNATURES: Record<string, number[]> = {
+    png: [0x89, 0x50, 0x4e, 0x47],
+    jpg: [0xff, 0xd8, 0xff],
+    jpeg: [0xff, 0xd8, 0xff],
+    webp: [0x52, 0x49, 0x46, 0x46],
+    pdf: [0x25, 0x50, 0x44, 0x46],
+    docx: [0x50, 0x4b, 0x03, 0x04],
+    xlsx: [0x50, 0x4b, 0x03, 0x04],
+  }
+  const readHead = async (file: Blob): Promise<Uint8Array> => {
+    const part = file.slice(0, 16)
+    if (typeof part.arrayBuffer === 'function') return new Uint8Array(await part.arrayBuffer())
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(new Uint8Array(reader.result as ArrayBuffer))
+      reader.onerror = () => resolve(new Uint8Array())
+      reader.readAsArrayBuffer(part)
+    })
+  }
+  const objectUrl = (file: Blob) =>
+    typeof URL.createObjectURL === 'function' ? URL.createObjectURL(file) : null
+  const fileDto = (f: MockFile): FileDto => ({
+    id: f.id,
+    evidence_type: f.evidence_type,
+    original_filename: f.original_filename,
+    original_mime: f.original_mime,
+    stored_mime: f.stored_mime,
+    original_size_bytes: f.original_size_bytes,
+    stored_size_bytes: f.stored_size_bytes,
+    compression_method: f.compression_method,
+    compression_note: f.compression_note,
+    processing_status: f.processing_status,
+    scan_status: f.scan_status,
+    scan_engine: f.scan_engine,
+    failure_reason: f.failure_reason,
+    width_px: null,
+    height_px: null,
+    has_thumbnail: f.evidence_type === 'SCREENSHOT' && f.processing_status === 'READY',
+    uploaded_by: userRef(f.uploadedBy),
+    uploaded_at: f.uploaded_at,
+    processed_at: f.processed_at,
+  })
+  const attachedDtos = (links: MockFileLink[] | undefined): AttachedFileDto[] =>
+    (links ?? []).flatMap((link) => {
+      const f = db.files.find((x) => x.id === link.fileId && !x.deleted)
+      return f ? [{ ...fileDto(f), caption: link.caption, step_number: link.step_number }] : []
+    })
+  const fileIn = (projectId: string, fileId: string) =>
+    db.files.find((f) => f.id === fileId && f.projectId === projectId && !f.deleted) ?? notFound()
+  const assertMockAttachable = (projectId: string, refs: EvidenceRef[]) => {
+    for (const ref of refs) {
+      const f = db.files.find(
+        (x) => x.id === ref.file_id && x.projectId === projectId && !x.deleted,
+      )
+      if (!f) fail(422, 'VALIDATION_ERROR', 'files', 'File not found in this project')
+      else if (!isFileUsable(f)) fail(422, 'VALIDATION_ERROR', 'files', 'File is not ready')
+    }
+  }
+  const addLinks = (target: { files?: MockFileLink[] }, refs: EvidenceRef[]) => {
+    target.files ??= []
+    for (const ref of refs) {
+      if (target.files.some((l) => l.fileId === ref.file_id)) continue
+      target.files.push({
+        fileId: ref.file_id,
+        caption: ref.caption?.trim() || null,
+        step_number: ref.step_number ?? null,
+      })
+    }
+  }
+  const removeLink = (target: { files?: MockFileLink[] }, fileId: string) => {
+    const index = (target.files ?? []).findIndex((l) => l.fileId === fileId)
+    if (index < 0) notFound()
+    target.files?.splice(index, 1)
+  }
+  const usagesOfFile = (fileId: string): FileUsage[] => {
+    const usages: FileUsage[] = []
+    for (const e of db.executions) {
+      if (!e.files?.some((l) => l.fileId === fileId)) continue
+      const rc = db.runCases.find((x) => x.id === e.runCaseId)
+      const run = db.runs.find((r) => r.id === rc?.runId)
+      const c = db.cases.find((x) => x.id === rc?.caseId)
+      if (rc && run && c) {
+        usages.push({
+          kind: 'EXECUTION',
+          label: `${run.run_code} / ${c.case_code} #${e.attempt_number}`,
+          path: `runs/${run.id}/cases/${rc.id}`,
+        })
+      }
+    }
+    for (const d of db.defects) {
+      if (d.files?.some((l) => l.fileId === fileId)) {
+        usages.push({ kind: 'DEFECT', label: d.bug_code, path: `bugs/${d.id}` })
+      }
+    }
+    for (const c of db.cases) {
+      if (c.files?.some((l) => l.fileId === fileId)) {
+        usages.push({ kind: 'TEST_CASE', label: c.case_code, path: `test-cases/${c.id}` })
+      }
+    }
+    return usages
+  }
+  /** What the real pipeline would typically record for each type (simulation only). */
+  const finishProcessing = (f: MockFile, ext: string) => {
+    const size = f.original_size_bytes
+    let stored = size
+    let method = 'NONE'
+    const notes: string[] = []
+    if (ext === 'png') {
+      stored = Math.max(1, Math.round(size * 0.42))
+      method = 'WEBP_LOSSLESS'
+      f.stored_mime = 'image/webp'
+    } else if (ext === 'jpg' || ext === 'jpeg') {
+      stored = Math.max(1, size - Math.min(4096, Math.round(size * 0.03)))
+      method = 'METADATA_STRIP'
+      notes.push('NO_SIZE_GAIN')
+    } else if (ext === 'webp') {
+      notes.push('NO_SIZE_GAIN')
+    } else if (f.evidence_type === 'DOCUMENT') {
+      notes.push('ALREADY_COMPRESSED')
+    } else {
+      stored = Math.max(1, Math.round(size * 0.22))
+      method = 'GZIP'
+      if (ext === 'har') notes.push('HAR_REDACTED')
+    }
+    Object.assign(f, {
+      stored_size_bytes: stored,
+      compression_method: method,
+      compression_note: notes.join(',') || null,
+      processing_status: 'READY',
+      scan_status: 'CLEAN',
+      scan_engine: 'BASIC',
+      processed_at: now(),
+    })
+  }
+  const isLeadIn = (projectId: string) => {
+    const role = effectiveRole(projectId)
+    return role === 'ADMIN' || role === 'QA_LEAD'
+  }
+
   // ---- Milestone 4: bug workflow (demo, same rules as the API, ADR 0007) ------------
   const effectiveRole = (projectId: string): MemberRole =>
     superAdmins.has(db.currentUserId) ? 'ADMIN' : roleIn(projectId)
@@ -480,7 +634,7 @@ export function createMockDataSource(
       body: c.body,
       created_at: c.created_at,
     })),
-    files: [],
+    files: attachedDtos(d.files),
   })
   const defectReplays = new Map<string, DefectDetail>()
 
@@ -532,7 +686,7 @@ export function createMockDataSource(
     device_name: e.device_name ?? null,
     operating_system: e.operating_system ?? null,
     step_results: e.step_results ?? [],
-    files: [],
+    files: attachedDtos(e.files),
   })
   const assertRunEditable = (run: MockRun, allowCompleted = false) => {
     if (run.status_code === 'LOCKED' || (run.status_code === 'COMPLETED' && !allowCompleted)) {
@@ -919,7 +1073,7 @@ export function createMockDataSource(
                 attempts: attempts.length,
               }
             }),
-          files: [],
+          files: attachedDtos(c.files),
         }
       }),
 
@@ -1174,7 +1328,7 @@ export function createMockDataSource(
         if (!parsed.success) return validationError(parsed.error.issues)
         const data = parsed.data
         const attempt = attemptsOf(runCaseId).reduce((m, e) => Math.max(m, e.attempt_number), 0) + 1
-        const execution = {
+        const execution: MockExecution = {
           id: newId(),
           runCaseId,
           attempt_number: attempt,
@@ -1193,6 +1347,10 @@ export function createMockDataSource(
             result_status: s.result_status,
             actual_result: s.actual_result ?? null,
           })),
+        }
+        if (data.evidence?.length) {
+          assertMockAttachable(p.id, data.evidence)
+          addLinks(execution, data.evidence)
         }
         db.executions.push(execution)
         const dto = executionDto(execution)
@@ -1250,6 +1408,7 @@ export function createMockDataSource(
         if (executionIds.some((id) => !executionInProject(p.id, id))) {
           fail(422, 'VALIDATION_ERROR', 'execution_ids', 'Test attempt not found in this project')
         }
+        if (data.evidence?.length) assertMockAttachable(p.id, data.evidence)
         const bugCode = data.bug_code ?? nextBugCode(p)
         if (db.defects.some((d) => d.projectId === p.id && d.bug_code === bugCode)) {
           fail(409, 'CONFLICT', 'bug_code', 'Already used')
@@ -1281,6 +1440,7 @@ export function createMockDataSource(
           history: [{ from: null, to: 'OPEN', by: db.currentUserId, comment: null, at }],
           comments: [],
         }
+        if (data.evidence?.length) addLinks(defect, data.evidence)
         db.defects.push(defect)
         const dto = defectDetail(defect)
         defectReplays.set(replayKey, dto)
@@ -1391,6 +1551,161 @@ export function createMockDataSource(
         if (index < 0) notFound()
         d.executionIds.splice(index, 1)
         return defectDetail(d)
+      }),
+    uploadFile: async (code, file, options = {}) => {
+      const p = project(code)
+      requireRole(p.id, 'file.upload')
+      const type = evidenceTypeFor(file.name)
+      if (!type) {
+        return delay(() => ({
+          files: [],
+          rejected: [{ original_filename: file.name, failure_reason: 'TYPE_NOT_ALLOWED' as const }],
+        }))
+      }
+      const ext = extensionOf(file.name)
+      const head = await readHead(file)
+      let reason: FileFailureReason | null = null
+      const signature = SIGNATURES[ext]
+      if (file.size === 0) reason = 'EMPTY'
+      else if (file.size > EVIDENCE_RULES[type].maxBytes) reason = 'TOO_LARGE'
+      else if (signature && !signature.every((byte, i) => head[i] === byte)) {
+        reason = 'SIGNATURE_MISMATCH'
+      } else if (!signature && head.includes(0)) reason = 'NOT_TEXT'
+      if (options.signal?.aborted) throw new DOMException('Upload cancelled', 'AbortError')
+      options.onProgress?.(1)
+      const mime = file.type || 'application/octet-stream'
+      const f: MockFile = {
+        id: newId(),
+        projectId: p.id,
+        evidence_type: type,
+        original_filename: file.name,
+        original_mime: mime,
+        stored_mime: mime,
+        original_size_bytes: file.size,
+        stored_size_bytes: null,
+        compression_method: null,
+        compression_note: null,
+        processing_status: reason ? 'REJECTED' : 'PROCESSING',
+        scan_status: 'PENDING',
+        scan_engine: null,
+        failure_reason: reason,
+        uploadedBy: db.currentUserId,
+        uploaded_at: now(),
+        processed_at: reason ? now() : null,
+        deleted: false,
+        url: reason ? null : objectUrl(file),
+      }
+      db.files.push(f)
+      // The answer reflects the moment of upload; checking finishes a little later.
+      const created = fileDto(f)
+      if (!reason) setTimeout(() => finishProcessing(f, ext), Math.max(latencyMs * 3, 60))
+      return delay(() => ({ files: [created], rejected: [] }))
+    },
+
+    getFileStatus: (code, fileId) => delay(() => fileDto(fileIn(project(code).id, fileId))),
+
+    listFiles: (code, query: FileQuery = {}) =>
+      delay(() => {
+        const p = project(code)
+        const q = query.q?.trim().toLowerCase()
+        const items = db.files
+          .filter((f) => f.projectId === p.id && !f.deleted)
+          .filter((f) => !query.type || f.evidence_type === query.type)
+          .filter((f) => !query.status || f.processing_status === query.status)
+          .filter((f) => !q || f.original_filename.toLowerCase().includes(q))
+          .map((f): EvidenceItem => ({ ...fileDto(f), usages: usagesOfFile(f.id) }))
+          .filter((f) => !query.unlinked || f.usages.length === 0)
+          .reverse()
+        return paginate(items, query)
+      }),
+
+    deleteFile: (code, fileId) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'file.upload')
+        const f = fileIn(p.id, fileId)
+        if (!isLeadIn(p.id) && f.uploadedBy !== db.currentUserId) {
+          forbidden('Only the uploader or a lead can remove this file.')
+        }
+        if (usagesOfFile(f.id).length > 0) {
+          conflict('This file is attached as evidence and cannot be removed.')
+        }
+        f.deleted = true
+      }),
+
+    fileUrl: (_code, fileId) => db.files.find((f) => f.id === fileId)?.url ?? '',
+
+    attachExecutionFiles: (code, executionId, refs) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'file.upload')
+        const e = db.executions.find((x) => x.id === executionId) ?? notFound()
+        const rc = db.runCases.find((x) => x.id === e.runCaseId)
+        const run = runIn(p.id, rc?.runId ?? '')
+        if (!isLeadIn(p.id) && e.testerId !== db.currentUserId) {
+          forbidden('Only the tester of this attempt can add evidence.')
+        }
+        if (run.status_code === 'LOCKED') conflict('The run is locked and cannot be changed.')
+        assertMockAttachable(p.id, refs)
+        addLinks(e, refs)
+        return attachedDtos(e.files)
+      }),
+
+    detachExecutionFile: (code, executionId, fileId) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'run.write')
+        const e = db.executions.find((x) => x.id === executionId) ?? notFound()
+        const rc = db.runCases.find((x) => x.id === e.runCaseId)
+        if (runIn(p.id, rc?.runId ?? '').status_code === 'LOCKED') {
+          conflict('The run is locked and cannot be changed.')
+        }
+        removeLink(e, fileId)
+      }),
+
+    attachDefectFiles: (code, defectId, refs) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'file.upload')
+        const d = defectIn(p.id, defectId)
+        const actor = defectActor(p.id, d)
+        if (actor.role === 'DEVELOPER' && !actor.isAssignee) {
+          forbidden('Only the assigned developer can add evidence.')
+        }
+        assertMockAttachable(p.id, refs)
+        addLinks(d, refs)
+        return defectDetail(d)
+      }),
+
+    detachDefectFile: (code, defectId, fileId) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'file.upload')
+        const d = defectIn(p.id, defectId)
+        const f = db.files.find((x) => x.id === fileId)
+        if (!isLeadIn(p.id) && f?.uploadedBy !== db.currentUserId) {
+          forbidden('Only the uploader or a lead can detach this file.')
+        }
+        removeLink(d, fileId)
+        return defectDetail(d)
+      }),
+
+    attachCaseFiles: (code, caseId, refs) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'case.write')
+        const c = db.cases.find((x) => x.id === caseId && x.projectId === p.id) ?? notFound()
+        assertMockAttachable(p.id, refs)
+        addLinks(c, refs)
+        return attachedDtos(c.files)
+      }),
+
+    detachCaseFile: (code, caseId, fileId) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'case.write')
+        const c = db.cases.find((x) => x.id === caseId && x.projectId === p.id) ?? notFound()
+        removeLink(c, fileId)
       }),
   }
 }

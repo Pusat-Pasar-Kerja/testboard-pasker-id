@@ -342,3 +342,66 @@ describe('bug workflow (Milestone 4, same rules as the API)', () => {
     })
   })
 })
+
+describe('evidence (Milestone 5, simulated pipeline in the demo)', () => {
+  const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
+  const png = (name = 'layar.png', size = 4000) =>
+    new File([new Uint8Array([...PNG, ...new Array(size).fill(7)])], name, { type: 'image/png' })
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 150))
+
+  it('checks the real type, then finishes processing as READY + CLEAN with compression', async () => {
+    const source = ds()
+    const { files } = await source.uploadFile(MAIN, png())
+    expect(files[0]?.processing_status).toBe('PROCESSING')
+    await settle()
+    const done = await source.getFileStatus(MAIN, files[0]?.id ?? '')
+    expect(done).toMatchObject({
+      processing_status: 'READY',
+      scan_status: 'CLEAN',
+      scan_engine: 'BASIC',
+      compression_method: 'WEBP_LOSSLESS',
+    })
+    expect(done.stored_size_bytes).toBeLessThan(done.original_size_bytes)
+
+    const fake = await source.uploadFile(
+      MAIN,
+      new File(['<?php echo 1; ?>'], 'bukan-gambar.png', { type: 'image/png' }),
+    )
+    expect(fake.files[0]).toMatchObject({
+      processing_status: 'REJECTED',
+      failure_reason: 'SIGNATURE_MISMATCH',
+    })
+    const exe = await source.uploadFile(MAIN, new File(['MZ'], 'setup.exe'))
+    expect(exe.rejected).toEqual([
+      { original_filename: 'setup.exe', failure_reason: 'TYPE_NOT_ALLOWED' },
+    ])
+  })
+
+  it('attaches READY files only, tracks where they are used and protects used files', async () => {
+    const db = createMockDb()
+    const source = createMockDataSource({ latencyMs: 0, db })
+    const { files } = await source.uploadFile(MAIN, png())
+    const id = files[0]?.id ?? ''
+    const bug = db.defects[0]
+    await expect(
+      source.attachDefectFiles(MAIN, bug?.id ?? '', [{ file_id: id }]),
+    ).rejects.toMatchObject({ status: 422 })
+    await settle()
+    const detail = await source.attachDefectFiles(MAIN, bug?.id ?? '', [
+      { file_id: id, caption: 'Layar putih' },
+    ])
+    expect(detail.files[0]).toMatchObject({ id, caption: 'Layar putih' })
+    const listed = await source.listFiles(MAIN, {})
+    expect(listed.data.find((f) => f.id === id)?.usages).toEqual([
+      { kind: 'DEFECT', label: bug?.bug_code, path: `bugs/${bug?.id}` },
+    ])
+    await expect(source.deleteFile(MAIN, id)).rejects.toMatchObject({ status: 409 })
+  })
+
+  it('does not let viewers upload', async () => {
+    const db = createMockDb()
+    db.currentUserId = '6'
+    const source = createMockDataSource({ latencyMs: 0, db, superAdmin: false })
+    await expect(source.uploadFile(MAIN, png())).rejects.toMatchObject({ status: 403 })
+  })
+})

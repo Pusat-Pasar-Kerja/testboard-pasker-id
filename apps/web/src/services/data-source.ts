@@ -1,4 +1,11 @@
 import type {
+  AttachedFileDto,
+  EvidenceItem,
+  EvidenceRef,
+  EvidenceType,
+  FileDto,
+  FileFailureReason,
+  FileProcessingStatus,
   AdminUserDto,
   CurrentUser,
   CycleDto,
@@ -110,6 +117,8 @@ export interface ExecutionInput {
   device_name?: string | null
   operating_system?: string | null
   step_results?: { step_number: number; result_status: string; actual_result?: string | null }[]
+  /** Uploaded READY files to attach to this attempt. */
+  evidence?: EvidenceRef[]
 }
 
 export interface AddRunCasesResult {
@@ -138,6 +147,8 @@ export interface DefectInput {
   execution_ids?: string[]
   /** Edit only: the `updated_at` the form was loaded with. */
   expected_updated_at?: string
+  /** Create only: uploaded READY files (or files of the attempt) to attach. */
+  evidence?: EvidenceRef[]
 }
 
 export interface DefectStatusChange {
@@ -146,6 +157,26 @@ export interface DefectStatusChange {
   comment?: string | null
   fixed_in_version?: string | null
 }
+
+export interface FileQuery extends PageQuery {
+  q?: string
+  type?: EvidenceType
+  status?: FileProcessingStatus
+  /** Only uploads not attached anywhere. */
+  unlinked?: boolean
+}
+
+export interface UploadResult {
+  files: FileDto[]
+  rejected: { original_filename: string; failure_reason: FileFailureReason }[]
+}
+
+export interface UploadOptions {
+  onProgress?: (fraction: number) => void
+  signal?: AbortSignal
+}
+
+export type FileUrlKind = 'preview' | 'thumbnail' | 'download'
 
 export interface AdminUserInput {
   email: string
@@ -256,6 +287,32 @@ export interface DataSource {
     executionId: string,
   ): Promise<DefectDetail>
 
+  // Evidence (Milestone 5, ADR 0008)
+  uploadFile(projectCode: string, file: File, options?: UploadOptions): Promise<UploadResult>
+  getFileStatus(projectCode: string, fileId: string): Promise<FileDto>
+  listFiles(projectCode: string, query?: FileQuery): Promise<Paginated<EvidenceItem>>
+  deleteFile(projectCode: string, fileId: string): Promise<void>
+  /** Authorized stream URL (same-origin session cookie); never a public link. */
+  fileUrl(projectCode: string, fileId: string, kind: FileUrlKind): string
+  attachExecutionFiles(
+    projectCode: string,
+    executionId: string,
+    files: EvidenceRef[],
+  ): Promise<AttachedFileDto[]>
+  detachExecutionFile(projectCode: string, executionId: string, fileId: string): Promise<void>
+  attachDefectFiles(
+    projectCode: string,
+    defectId: string,
+    files: EvidenceRef[],
+  ): Promise<DefectDetail>
+  detachDefectFile(projectCode: string, defectId: string, fileId: string): Promise<DefectDetail>
+  attachCaseFiles(
+    projectCode: string,
+    caseId: string,
+    files: EvidenceRef[],
+  ): Promise<AttachedFileDto[]>
+  detachCaseFile(projectCode: string, caseId: string, fileId: string): Promise<void>
+
   // Super Admin (ADR 0004)
   listUsers(q?: string): Promise<AdminUserDto[]>
   createUser(
@@ -352,6 +409,31 @@ export function createHttpDataSource(client: ApiClient): DataSource {
       client.post(`${p(code)}/defects/${seg(id)}/executions`, { execution_id: executionId }),
     unlinkDefectExecution: (code, id, executionId) =>
       client.delete(`${p(code)}/defects/${seg(id)}/executions/${seg(executionId)}`),
+
+    uploadFile: (code, file, options) => {
+      const form = new FormData()
+      form.append('files', file, file.name)
+      return client.upload(`${p(code)}/files`, form, options)
+    },
+    getFileStatus: (code, id) => client.get(`${p(code)}/files/${seg(id)}/status`),
+    listFiles: (code, query) =>
+      client.get(
+        `${p(code)}/files${toQueryString({ ...query, unlinked: query?.unlinked ? '1' : undefined })}`,
+      ),
+    deleteFile: (code, id) => client.delete(`${p(code)}/files/${seg(id)}`),
+    fileUrl: (code, id, kind) => client.url(`${p(code)}/files/${seg(id)}/${kind}`),
+    attachExecutionFiles: (code, id, files) =>
+      client.post(`${p(code)}/executions/${seg(id)}/files`, { files }),
+    detachExecutionFile: (code, id, fileId) =>
+      client.delete(`${p(code)}/executions/${seg(id)}/files/${seg(fileId)}`),
+    attachDefectFiles: (code, id, files) =>
+      client.post(`${p(code)}/defects/${seg(id)}/files`, { files }),
+    detachDefectFile: (code, id, fileId) =>
+      client.delete(`${p(code)}/defects/${seg(id)}/files/${seg(fileId)}`),
+    attachCaseFiles: (code, id, files) =>
+      client.post(`${p(code)}/test-cases/${seg(id)}/files`, { files }),
+    detachCaseFile: (code, id, fileId) =>
+      client.delete(`${p(code)}/test-cases/${seg(id)}/files/${seg(fileId)}`),
 
     listUsers: (q) => client.get(`/admin/users${toQueryString({ q })}`),
     createUser: (input) => client.post('/admin/users', input),

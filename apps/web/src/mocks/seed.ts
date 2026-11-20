@@ -14,6 +14,10 @@ import type {
   ExecutionKind,
   ExecutionStatus,
   ExecutionStepResultDto,
+  EvidenceType,
+  FileFailureReason,
+  FileProcessingStatus,
+  FileScanStatus,
   MemberRole,
   RunStatus,
   TestCasePriority,
@@ -70,6 +74,7 @@ export interface MockCase {
     change_reason: string
     changed_at: string
   }[]
+  files?: MockFileLink[]
 }
 
 export interface MockRun {
@@ -122,6 +127,37 @@ export interface MockExecution {
   device_name?: string | null
   operating_system?: string | null
   step_results?: ExecutionStepResultDto[]
+  files?: MockFileLink[]
+}
+
+/** Demo evidence: kept in memory only (object URLs), never sent anywhere. */
+export interface MockFile {
+  id: string
+  projectId: string
+  evidence_type: EvidenceType
+  original_filename: string
+  original_mime: string
+  stored_mime: string
+  original_size_bytes: number
+  stored_size_bytes: number | null
+  compression_method: string | null
+  compression_note: string | null
+  processing_status: FileProcessingStatus
+  scan_status: FileScanStatus
+  scan_engine: string | null
+  failure_reason: FileFailureReason | null
+  uploadedBy: string
+  uploaded_at: string
+  processed_at: string | null
+  deleted: boolean
+  /** Object URL of the browser-side file, for previews in the demo. */
+  url: string | null
+}
+
+export interface MockFileLink {
+  fileId: string
+  caption: string | null
+  step_number: number | null
 }
 
 export interface MockDefect {
@@ -155,6 +191,7 @@ export interface MockDefect {
     at: string
   }[]
   comments: { id: string; authorId: string; body: string; created_at: string }[]
+  files?: MockFileLink[]
 }
 
 export interface MockDb {
@@ -168,6 +205,7 @@ export interface MockDb {
   runCases: MockRunCase[]
   executions: MockExecution[]
   defects: MockDefect[]
+  files: MockFile[]
 }
 
 /** Small deterministic PRNG (mulberry32). */
@@ -733,6 +771,7 @@ export function createMockDb(seed = 20261120): MockDb {
     runCases: [],
     executions: [],
     defects: [],
+    files: [],
   }
 
   PROJECTS.forEach((blueprint, projectIndex) => {

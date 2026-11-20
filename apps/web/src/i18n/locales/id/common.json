@@ -82,13 +82,14 @@
     "keyword": "Kata kunci",
     "module": "Modul",
     "priority": "Prioritas",
-    "type": "Jenis pengujian",
+    "type": "Jenis",
     "status": "Status",
     "severity": "Severity",
     "run": "Run",
     "all": "Semua",
     "allRuns": "Semua run",
-    "openOnly": "Belum selesai"
+    "openOnly": "Belum selesai",
+    "fileStatus": "Status file"
   },
   "codes": {
     "execution": {
@@ -174,6 +175,17 @@
       "PLANNED": "Direncanakan",
       "ACTIVE": "Berjalan",
       "COMPLETED": "Selesai"
+    },
+    "evidenceType": {
+      "SCREENSHOT": "Screenshot",
+      "DOCUMENT": "Dokumen",
+      "LOG": "Log"
+    },
+    "fileStatus": {
+      "PROCESSING": "Diproses",
+      "READY": "Siap",
+      "FAILED": "Gagal",
+      "REJECTED": "Ditolak"
     }
   },
   "fields": {
@@ -295,18 +307,17 @@
       "tabOverview": "Ringkasan",
       "tabRevisions": "Revisi",
       "tabRuns": "Dipakai di run",
-      "tabEvidence": "Bukti",
       "revision": "Revisi {{n}}",
       "noRevisions": "Belum ada revisi.",
       "notUsed": "Test case ini belum dipakai di run mana pun.",
       "stepsPreserved": "Teks langkah ditampilkan apa adanya dari sumber.",
-      "evidenceLater": "Lampiran bukti (screenshot, video, dokumen) tersedia pada Milestone 5.",
       "archiveTitle": "Arsipkan {{code}}?",
       "archiveBody": "Test case disembunyikan dari daftar aktif. Riwayat run dan revisinya tetap tersimpan, dan bisa dipulihkan.",
       "archived": "{{code}} diarsipkan.",
       "restored": "{{code}} dipulihkan sebagai Draf.",
       "cloned": "Duplikat {{code}} dibuat sebagai Draf.",
-      "archivedNotice": "Test case ini diarsipkan. Pulihkan dulu sebelum mengubahnya."
+      "archivedNotice": "Test case ini diarsipkan. Pulihkan dulu sebelum mengubahnya.",
+      "files": "Dokumen acuan"
     },
     "runs": {
       "title": "Pelaksanaan UAT",
@@ -412,7 +423,8 @@
       "unlink": "Lepas tautan {{case}} percobaan #{{n}}",
       "unlinkTitle": "Lepas tautan ke {{case}} percobaan #{{n}}?",
       "unlinkBody": "Hasil uji tidak terhapus; hanya tautannya ke bug ini yang dilepas.",
-      "unlinked": "Tautan dilepas."
+      "unlinked": "Tautan dilepas.",
+      "files": "Lampiran"
     },
     "comingSoon": {
       "title": "Segera hadir",
@@ -562,7 +574,6 @@
       "historyHeading": "Riwayat percobaan",
       "historyEmpty": "Belum ada percobaan.",
       "stepResults": "Hasil per langkah",
-      "evidenceSoon": "Unggah bukti (tangkapan layar/video) tersedia di Milestone 5.",
       "bugsHeading": "Bug terkait",
       "bugsEmpty": "Belum ada bug terkait.",
       "openEnvironment": "Buka lingkungan uji",
@@ -575,7 +586,8 @@
       "linkAction": "Tautkan {{code}}",
       "linked": "Bug {{code}} ditautkan ke percobaan #{{n}}.",
       "bugsHint": "Hasil gagal tidak membuat bug otomatis. Laporkan bug baru atau tautkan bug yang sudah ada.",
-      "bugsNeedAttempt": "Catat hasil uji dulu untuk melaporkan atau menautkan bug."
+      "bugsNeedAttempt": "Catat hasil uji dulu untuk melaporkan atau menautkan bug.",
+      "evidenceHeading": "Bukti (screenshot, dokumen, log)"
     },
     "bugForm": {
       "newTitle": "Laporkan bug",
@@ -590,7 +602,25 @@
       "assigneeHint": "Hanya QA Lead atau Admin yang dapat menugaskan bug.",
       "lockedField": "Sebagian kolom terkunci karena peran Anda tidak dapat mengubahnya.",
       "created": "Bug {{code}} dibuat.",
-      "saved": "Perubahan bug disimpan."
+      "saved": "Perubahan bug disimpan.",
+      "attemptFiles": "Sertakan bukti dari percobaan #{{n}}",
+      "newFiles": "Bukti tambahan"
+    },
+    "evidence": {
+      "title": "Pusat Bukti",
+      "subtitle": "Semua file bukti proyek: screenshot, dokumen, dan log. Hanya anggota proyek yang bisa membukanya.",
+      "empty": "Belum ada file bukti di proyek ini.",
+      "emptyFiltered": "Tidak ada file yang cocok dengan filter.",
+      "searchPlaceholder": "Cari nama file…",
+      "unlinkedOnly": "Belum dipakai",
+      "usedIn": "Dipakai di",
+      "notUsed": "Belum dipakai di mana pun",
+      "deleteTitle": "Hapus {{name}}?",
+      "deleteBody": "File yang belum dipakai akan disembunyikan dan tidak bisa dibuka lagi.",
+      "deleted": "File dihapus.",
+      "upload": "Unggah file",
+      "uploadHint": "File yang diunggah di sini bisa dilampirkan nanti ke hasil uji, bug, atau test case.",
+      "uploader": "Diunggah oleh {{name}}"
     }
   },
   "errors": {
@@ -616,5 +646,76 @@
     "leave": "Tinggalkan",
     "conflict": "Data ini sudah diubah orang lain. Muat ulang untuk melihat versi terbaru.",
     "alreadyUsed": "Sudah dipakai"
+  },
+  "evidence": {
+    "dropTitle": "Tarik file ke sini atau tempel screenshot (Ctrl+V)",
+    "choose": "Pilih file",
+    "rules": "Screenshot PNG/JPG/WebP maks 15 MB · Dokumen PDF/DOCX/XLSX maks 25 MB · Log TXT/CSV/JSON/HAR maks 20 MB",
+    "status": {
+      "uploading": "Mengunggah {{percent}}%",
+      "processing": "Memeriksa dan mengompres…",
+      "ready": "Siap",
+      "rejected": "Ditolak",
+      "failed": "Gagal",
+      "error": "Gagal mengunggah"
+    },
+    "reason": {
+      "EMPTY": "File kosong",
+      "TOO_LARGE": "Melebihi batas ukuran",
+      "TYPE_NOT_ALLOWED": "Jenis file tidak diizinkan",
+      "SIGNATURE_MISMATCH": "Isi file tidak sesuai jenisnya",
+      "CORRUPT": "File rusak atau tidak bisa dibaca",
+      "TOO_MANY_PIXELS": "Gambar terlalu besar",
+      "ACTIVE_CONTENT": "Berisi makro, skrip, atau objek tertanam",
+      "ARCHIVE_BOMB": "Isi terkompresi tidak wajar",
+      "NOT_TEXT": "Bukan file teks",
+      "INVALID_JSON": "JSON tidak valid",
+      "INFECTED": "Terdeteksi berbahaya",
+      "SCAN_ERROR": "Pemeriksaan keamanan gagal",
+      "PROCESSING_ERROR": "Gagal diproses",
+      "INTERRUPTED": "Terputus, silakan unggah ulang"
+    },
+    "note": {
+      "NO_SIZE_GAIN": "tidak bisa lebih kecil tanpa menurunkan kualitas",
+      "ALREADY_COMPRESSED": "format sudah terkompresi",
+      "HAR_REDACTED": "cookie dan token disensor"
+    },
+    "method": {
+      "WEBP_LOSSLESS": "WebP lossless",
+      "PNG_OPTIMIZE": "PNG dioptimalkan",
+      "JPEG_MOZJPEG_Q90": "JPEG kualitas tinggi",
+      "METADATA_STRIP": "metadata dibuang",
+      "GZIP": "gzip",
+      "NONE": "disimpan apa adanya"
+    },
+    "saving": "hemat {{percent}}%",
+    "scan": {
+      "BASIC": "Lolos pemeriksaan dasar",
+      "CLAMAV": "Lolos antivirus ClamAV"
+    },
+    "caption": "Keterangan untuk {{name}}",
+    "captionPlaceholder": "Keterangan (opsional)",
+    "step": "Langkah untuk {{name}}",
+    "noStep": "Tanpa langkah",
+    "stepOption": "Langkah {{n}}",
+    "remove": "Hapus {{name}}",
+    "retry": "Ulangi {{name}}",
+    "waitUploads": "Tunggu sampai semua file selesai diperiksa.",
+    "rejected": "{{name}} ditolak: {{reason}}",
+    "preview": "Lihat {{name}}",
+    "download": "Unduh",
+    "open": "Buka",
+    "close": "Tutup pratinjau",
+    "prev": "Sebelumnya",
+    "next": "Berikutnya",
+    "counter": "{{n}} dari {{total}}",
+    "attach": "Lampirkan ({{count}})",
+    "attached": "{{count}} file dilampirkan.",
+    "detach": "Lepas {{name}}",
+    "detached": "File dilepas.",
+    "empty": "Belum ada lampiran.",
+    "failedWarning": "Hasil gagal sebaiknya disertai screenshot sebagai bukti.",
+    "addMore": "Tambah bukti",
+    "stepBadge": "Langkah {{n}}"
   }
 }
