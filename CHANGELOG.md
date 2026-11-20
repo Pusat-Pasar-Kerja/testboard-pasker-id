@@ -2,6 +2,16 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.8.4] - 2026-11-20
+
+### Dokumentasi
+
+- Panduan deploy: bagian baru "Bila situs tidak bisa dibuka".
+  - Cara membedakan IP jaringan sendiri yang diblokir firewall (cek dari data seluler) dari server yang benar-benar bermasalah.
+  - Yang harus dilakukan saat diblokir: jangan mencoba berulang, minta tim jaringan membuka blokir dengan menyebut waktu dan IP publik, kerja lewat hotspot.
+  - Pemeriksaan langsung di VPS tanpa lewat firewall, dengan tabel arti hasilnya.
+- Larangan baru: jangan menjalankan uji keamanan berulang ke alamat publik.
+
 ## [0.8.3] - 2026-11-20
 
 Perbaikan uji keamanan `smoke` dari deploy pertama di VPS.

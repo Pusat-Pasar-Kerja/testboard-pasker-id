@@ -180,8 +180,45 @@ Backup ada di disk server yang sama. Sesekali unduh folder backup terbaru ke tem
 | Halaman "Web Page Blocked!" saat menyimpan data               | Firewall (WAF) di depan situs menahan isi permintaan (mis. teks berisi contoh SQL/skrip). Minta tim jaringan mengecualikan `/testboard/api/`.                             |
 | `git` menolak dengan "dubious ownership"                      | `git` dijalankan langsung sebagai root di folder TestBoard. Pakai `./update.sh` atau `bash ops/testboard.sh deploy`; keduanya otomatis berjalan sebagai akun `testboard`. |
 
+## Bila situs tidak bisa dibuka
+
+Di depan situs ada firewall (WAF). Bila sebuah komputer mengirim banyak permintaan yang
+terlihat seperti serangan (mis. puluhan alamat `.git` atau `.env` dalam beberapa menit),
+firewall memblokir **IP jaringan komputer itu** untuk sementara. Dari komputer itu seluruh
+situs induk ikut tidak bisa dibuka (koneksi diputus saat HTTPS), padahal untuk orang lain
+situsnya normal. Ini pernah terjadi saat uji `smoke` versi lama dijalankan dari laptop;
+sejak v0.8.3 uji path rahasia hanya dikirim langsung ke Apache di server.
+
+1. **Buka situs dari jaringan lain**, mis. HP dengan **data seluler** (Wi-Fi dimatikan).
+   - **Terbuka?** Berarti hanya jaringan Anda yang diblokir; servernya sehat. Lanjut ke 2.
+   - **Tidak terbuka juga?** Lanjut ke 3.
+2. **Hanya jaringan Anda yang diblokir:**
+   - Jangan membuka situs berulang-ulang dari jaringan itu; sebagian firewall memperpanjang
+     blokir setiap ada percobaan baru.
+   - Blokir biasanya lepas sendiri setelah beberapa menit sampai satu jam (diatur tim
+     jaringan, tidak bisa diubah dari VPS).
+   - Supaya lepas sekarang, minta tim pengelola firewall membuka blokir. Sampaikan tanggal
+     dan jam kejadian, IP publik jaringan Anda (lihat di `https://ifconfig.me` dari jaringan
+     itu), dan penyebabnya bila tahu (mis. uji keamanan ke `/testboard/`).
+   - Sementara itu, kerja lewat jaringan lain (hotspot HP).
+3. **Cek server langsung di VPS** (sebagai root, tidak lewat firewall). Ganti
+   `DOMAIN-ANDA` dengan domain situs:
+
+   ```bash
+   curl -s -o /dev/null -w '%{http_code}\n' -k --resolve DOMAIN-ANDA:443:127.0.0.1 https://DOMAIN-ANDA/
+   bash /opt/lampp/htdocs/paskerid/public/testboard/ops/testboard.sh status
+   ```
+
+   | Hasil                                  | Artinya / tindakan                                                                                                             |
+   | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+   | `200` dan API `"status":"ok"`          | Server sehat; masalahnya di firewall atau jaringan. Hubungi tim jaringan.                                                      |
+   | `000` atau `5xx` pada perintah pertama | Apache bermasalah (memengaruhi situs induk juga). Cek `/opt/lampp/lampp status`; hubungi admin server.                         |
+   | `200`, tetapi API tidak berjalan/sehat | Hanya TestBoard yang mati: `bash ops/testboard.sh start`, lalu lihat `tail -n 50 /home/testboard/testboard-data/logs/api.log`. |
+
 ## Yang tidak boleh dilakukan
 
+- Menjalankan uji keamanan (`smoke` versi lama, pemindai, atau `curl` beruntun ke `.git`/`.env`)
+  berkali-kali ke alamat publik: firewall akan memblokir IP Anda.
 - Menaruh `api.env`, backup, atau file bukti di dalam `public/testboard`.
 - Membuka port 8787 di firewall (API hanya untuk Apache di server yang sama).
 - Mengubah file kode langsung di VPS (deploy akan berhenti; semua perubahan lewat GitHub).
