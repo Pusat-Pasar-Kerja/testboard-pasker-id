@@ -109,9 +109,13 @@ Urutannya (sekitar 3-6 menit):
    `YA`, lalu user dan password admin MySQL (tidak tampil di layar, tidak disimpan).
 4. API dinyalakan ulang dan dicek kesehatannya. Bila tidak sehat, otomatis kembali ke versi
    sebelumnya.
-5. **Uji alamat publik**: halaman tampil, deep link aman, API lewat Apache, dan 20+ path
-   rahasia (`.git`, `.env`, kode sumber, SQL, ...) harus tertutup. Bila ada yang
-   `TERBUKA`, **jangan go-live**; kirim hasilnya ke pengembang.
+5. **Uji alamat**: halaman tampil, deep link aman, API lewat Apache, dan 20+ path rahasia
+   (`.git`, `.env`, kode sumber, SQL, ...) harus tertutup. Uji path rahasia dijalankan
+   langsung ke Apache di server (melewati firewall), karena firewall di depan situs
+   menganggap rentetan permintaan `.git`/`.env` sebagai serangan dan bisa memblokir IP
+   penguji. Dari VPS, alamat publik biasanya tidak terjangkau; itu hanya peringatan
+   (`PERLU`), bukan kegagalan. Bila ada yang `TERBUKA`, **jangan go-live**; kirim hasilnya
+   ke pengembang.
 
 ## Langkah 5 - Buat Super Admin pertama
 
@@ -164,16 +168,17 @@ Backup ada di disk server yang sama. Sesekali unduh folder backup terbaru ke tem
 
 ## Bila ada masalah
 
-| Gejala                                                   | Kemungkinan penyebab / tindakan                                                                                                                                           |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `smoke` menunjukkan `TERBUKA` untuk `.git`, `.env`, dll. | `.htaccess` tidak dibaca (`AllowOverride None`) atau `mod_rewrite` mati. Jangan go-live; minta admin server mengaktifkannya.                                              |
-| Halaman tampil tetapi "API lewat Apache tidak menjawab"  | `mod_proxy`/`mod_proxy_http` tidak aktif, atau API mati (`bash ops/testboard.sh status`).                                                                                 |
-| `deploy` berhenti di migrasi                             | Akun admin MySQL salah atau ditolak. Ulangi `./update.sh`; backup `pre-deploy` sudah ada.                                                                                 |
-| API tidak sehat setelah start                            | Lihat `tail -n 50 /home/testboard/testboard-data/logs/api.log` (biasanya akun database di `api.env`).                                                                     |
-| Node.js gagal jalan ("GLIBC ... not found")              | Sistem operasi VPS terlalu lama untuk Node.js 24; kirim hasil `check` ke pengembang.                                                                                      |
-| Deploy lain "sedang berjalan" padahal tidak              | Hapus kunci: `rmdir /home/testboard/testboard-data/run/deploy.lock`                                                                                                       |
-| Halaman "Web Page Blocked!" saat menyimpan data          | Firewall (WAF) di depan situs menahan isi permintaan (mis. teks berisi contoh SQL/skrip). Minta tim jaringan mengecualikan `/testboard/api/`.                             |
-| `git` menolak dengan "dubious ownership"                 | `git` dijalankan langsung sebagai root di folder TestBoard. Pakai `./update.sh` atau `bash ops/testboard.sh deploy`; keduanya otomatis berjalan sebagai akun `testboard`. |
+| Gejala                                                        | Kemungkinan penyebab / tindakan                                                                                                                                           |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `smoke` menunjukkan `TERBUKA` untuk `.git`, `.env`, dll.      | `.htaccess` tidak dibaca (`AllowOverride None`) atau `mod_rewrite` mati. Jangan go-live; minta admin server mengaktifkannya.                                              |
+| Halaman tampil tetapi "API lewat Apache tidak menjawab"       | `mod_proxy`/`mod_proxy_http` tidak aktif, atau API mati (`bash ops/testboard.sh status`).                                                                                 |
+| `deploy` berhenti di migrasi                                  | Akun admin MySQL salah atau ditolak. Ulangi `./update.sh`; backup `pre-deploy` sudah ada.                                                                                 |
+| API tidak sehat setelah start                                 | Lihat `tail -n 50 /home/testboard/testboard-data/logs/api.log` (biasanya akun database di `api.env`).                                                                     |
+| Node.js gagal jalan ("GLIBC ... not found")                   | Sistem operasi VPS terlalu lama untuk Node.js 24; kirim hasil `check` ke pengembang.                                                                                      |
+| Deploy lain "sedang berjalan" padahal tidak                   | Hapus kunci: `rmdir /home/testboard/testboard-data/run/deploy.lock`                                                                                                       |
+| Situs paskerid tiba-tiba tidak bisa dibuka dari satu komputer | Firewall memblokir sementara IP komputer itu (mis. setelah banyak permintaan mencurigakan). Biasanya lepas sendiri; bila tidak, minta tim jaringan membuka blokirnya.     |
+| Halaman "Web Page Blocked!" saat menyimpan data               | Firewall (WAF) di depan situs menahan isi permintaan (mis. teks berisi contoh SQL/skrip). Minta tim jaringan mengecualikan `/testboard/api/`.                             |
+| `git` menolak dengan "dubious ownership"                      | `git` dijalankan langsung sebagai root di folder TestBoard. Pakai `./update.sh` atau `bash ops/testboard.sh deploy`; keduanya otomatis berjalan sebagai akun `testboard`. |
 
 ## Yang tidak boleh dilakukan
 

@@ -646,22 +646,32 @@ cmd_create_admin() {
 # ------------------------------------------------------------------------------ smoke
 
 cmd_smoke() {
-  local url="${1:-$PUBLIC_URL}" fails=0 code body path
+  local url="${1:-$PUBLIC_URL}" fails=0
   [ -n "$url" ] || die "Sebutkan alamat, mis.: bash ops/testboard.sh smoke https://domain-anda/testboard/"
   url="${url%/}/"
-  say "Uji alamat publik $url"
-  http_code() { curl -s --path-as-is -o /dev/null -w '%{http_code}' --max-time 15 "$1" || echo 000; }
+  say "Uji alamat $url"
 
-  body="$(curl -s --max-time 15 "$url" || true)"
-  if printf '%s' "$body" | grep -q 'id="root"'; then ok "Halaman utama tampil"; else bad "Halaman utama tidak tampil"; fails=$((fails + 1)); fi
-  code="$(http_code "${url}projects/CONTOH/runs/1")"
-  if [ "$code" = "200" ]; then ok "Deep link dimuat ulang tanpa 404 (TB-OPS-001)"; else bad "Deep link -> $code"; fails=$((fails + 1)); fi
-  body="$(curl -s --max-time 15 "${url}api/v1/health" || true)"
-  if printf '%s' "$body" | grep -q '"status":"ok"'; then ok "API sehat lewat Apache ($(printf '%s' "$body" | grep -o '"version":"[^"]*"'))"; else bad "API lewat Apache tidak menjawab"; fails=$((fails + 1)); fi
-  if curl -s --max-time 15 "${url}assets/" | grep -qi 'Index of'; then
-    bad "Daftar isi folder assets/ terbuka"
-    fails=$((fails + 1))
-  else ok "Daftar isi folder tidak bisa dilihat"; fi
+  # HTTP status as exactly three digits; 000 = no answer (curl prints 000 itself on failure).
+  status_of() {
+    local c
+    c="$(curl -s --path-as-is -o /dev/null -w '%{http_code}' --max-time 15 "$@" 2>/dev/null)" || true
+    c="${c:0:3}"
+    printf '%s' "${c:-000}"
+  }
+
+  # TB-OPS-001: page, deep link, API through Apache, no folder listing.
+  check_app() { # check_app LABEL BASE_URL [extra curl args...]
+    local label="$1" base="$2" body code
+    shift 2
+    body="$(curl -s --max-time 15 "$@" "$base" 2>/dev/null)" || true
+    if grep -q 'id="root"' <<<"$body"; then ok "Halaman utama tampil ($label)"; else bad "Halaman utama tidak tampil ($label)"; fails=$((fails + 1)); fi
+    code="$(status_of "$@" "${base}projects/CONTOH/runs/1")"
+    if [ "$code" = "200" ]; then ok "Deep link dimuat ulang tanpa 404 ($label)"; else bad "Deep link -> $code ($label)"; fails=$((fails + 1)); fi
+    body="$(curl -s --max-time 15 "$@" "${base}api/v1/health" 2>/dev/null)" || true
+    if grep -q '"status":"ok"' <<<"$body"; then ok "API sehat lewat Apache, $(grep -o '"version":"[^"]*"' <<<"$body") ($label)"; else bad "API lewat Apache tidak menjawab ($label)"; fails=$((fails + 1)); fi
+    body="$(curl -s --max-time 15 "$@" "${base}assets/" 2>/dev/null)" || true
+    if grep -qi 'Index of' <<<"$body"; then bad "Daftar isi folder assets/ terbuka ($label)"; fails=$((fails + 1)); else ok "Daftar isi folder tidak bisa dilihat ($label)"; fi
+  }
 
   # TB-OPS-002: none of these may ever be downloadable. Only a 2xx answer means "open":
   # a firewall in front of the site may answer blocked paths with its own 403/500 page.
@@ -675,7 +685,7 @@ cmd_smoke() {
     local label="$1" base="$2" code path
     shift 2
     for path in "${secrets[@]}"; do
-      code="$(curl -s --path-as-is -o /dev/null -w '%{http_code}' --max-time 15 "$@" "${base}${path}" || echo 000)"
+      code="$(status_of "$@" "${base}${path}")"
       case "$code" in
         2??) bad "TERBUKA ($code, $label): $path"; fails=$((fails + 1)) ;;
         000) bad "Tidak terjawab ($label): $path"; fails=$((fails + 1)) ;;
@@ -683,14 +693,14 @@ cmd_smoke() {
       esac
     done
   }
-  probe_secrets "publik" "$url"
 
-  # The same paths straight to this server's Apache, bypassing any firewall in front, so
-  # the result proves the .htaccess rules themselves (not only the firewall). Tries the
-  # site's own scheme/port first, then plain HTTP (a firewall may terminate HTTPS); a
-  # listener that only redirects proves nothing and is skipped.
+  # Find this server's own Apache first (bypassing any firewall in front): the full sweep
+  # of secret paths runs there. Through the public address only the app checks and one
+  # harmless probe run, because a firewall treats a burst of .git/.env requests as an
+  # attack and may block the testing computer's IP. Tries the site's own scheme/port, then
+  # plain HTTP (a firewall may terminate HTTPS); a redirect-only listener is skipped.
   local rest="${url#*://}" scheme="${url%%://*}" hostport host port path_part candidate
-  local s p base code answered=""
+  local s p base code local_base="" local_args=()
   hostport="${rest%%/*}"
   path_part="/${rest#*/}"
   host="${hostport%:*}"
@@ -700,15 +710,36 @@ cmd_smoke() {
     s="${candidate%%:*}"
     p="${candidate##*:}"
     base="$s://$host:$p$path_part"
-    code="$(curl -sk -o /dev/null -w '%{http_code}' --max-time 10 --resolve "$host:$p:127.0.0.1" "$base" || echo 000)"
+    code="$(status_of -k --resolve "$host:$p:127.0.0.1" "$base")"
     case "$code" in 000 | 3??) continue ;; esac
-    probe_secrets "Apache server ini" "$base" -k --resolve "$host:$p:127.0.0.1"
-    answered=1
+    local_base="$base"
+    local_args=(-k --resolve "$host:$p:127.0.0.1")
     break
   done
-  [ -n "$answered" ] || info "Apache di server ini tidak terjangkau langsung (127.0.0.1); uji langsung dilewati."
 
-  if [ "$fails" = "0" ]; then say "Semua uji alamat publik LULUS"; return 0; fi
+  local tested=0
+  if [ "$(status_of "$url")" = "000" ]; then
+    warn "Alamat publik tidak terjangkau dari server ini (biasa bila ada firewall di depan situs); diuji langsung ke Apache. Uji publik bisa dijalankan dari komputer lain."
+  else
+    check_app "publik" "$url"
+    local all=("${secrets[@]}")
+    secrets=(package.json)
+    probe_secrets "publik" "$url"
+    secrets=("${all[@]}")
+    [ -n "$local_base" ] || info "Uji lengkap path rahasia hanya langsung ke Apache: jalankan 'smoke' di server itu sendiri."
+    tested=1
+  fi
+  if [ -n "$local_base" ]; then
+    check_app "Apache server ini" "$local_base" "${local_args[@]}"
+    probe_secrets "Apache server ini" "$local_base" "${local_args[@]}"
+    tested=1
+  fi
+  if [ "$tested" = "0" ]; then
+    bad "Tidak ada yang bisa diuji: alamat publik dan Apache di server ini sama-sama tidak menjawab"
+    fails=$((fails + 1))
+  fi
+
+  if [ "$fails" = "0" ]; then say "Semua uji alamat LULUS"; return 0; fi
   printf '\n%s[testboard] %s uji gagal%s\n' "$C_R" "$fails" "$C_0"
   return 1
 }

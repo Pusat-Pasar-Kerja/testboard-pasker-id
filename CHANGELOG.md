@@ -2,6 +2,21 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.8.3] - 2026-11-20
+
+Perbaikan uji keamanan `smoke` dari deploy pertama di VPS.
+
+### Diperbaiki
+
+- Status "tidak terjawab" kini dikenali dengan benar. Sebelumnya `curl` yang gagal tersambung menghasilkan kode `000000`, sehingga path yang tidak bisa dihubungi tercatat "Tertutup" dan Apache lokal yang tidak ada dianggap terjangkau.
+- Dari VPS, alamat publik sering tidak terjangkau karena ada firewall di depan situs. Kini itu hanya peringatan: halaman, deep link, dan API diuji langsung ke Apache di server itu. Gagal hanya bila keduanya tidak menjawab.
+- Uji path rahasia lengkap (`.git`, `.env`, ...) hanya dikirim langsung ke Apache di server. Lewat alamat publik hanya ada uji halaman/API dan satu path biasa, karena firewall menganggap rentetan permintaan `.git`/`.env` sebagai serangan dan bisa memblokir IP komputer penguji (terjadi saat pengujian dari luar).
+- Diuji di Apache lokal untuk tiga kondisi (mirip VPS, tidak terjangkau sama sekali, keduanya terjangkau), plus uji negatif tanpa `.htaccess` yang harus gagal.
+
+### Dokumentasi
+
+- Panduan deploy: arti peringatan "alamat publik tidak terjangkau", dan gejala situs tidak bisa dibuka dari satu komputer karena IP-nya diblokir firewall.
+
 ## [0.8.2] - 2026-11-20
 
 Deploy bisa dijalankan sebagai root tanpa harus berpindah user.
