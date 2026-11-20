@@ -1,12 +1,13 @@
-import { existsSync } from 'node:fs'
 import { serve } from '@hono/node-server'
 import { createApp } from './app.js'
 import { loadConfig } from './config/env.js'
+import { loadEnvironment } from './config/load-env.js'
 import { createPool, pingDatabase } from './db/pool.js'
 import { createFileService } from './files/pipeline.js'
+import { DEFAULT_RETENTION, scheduleRetention } from './maintenance/retention.js'
 
-// Local development convenience: load apps/api/.env when present (never committed).
-if (existsSync('.env')) process.loadEnvFile('.env')
+// TESTBOARD_ENV_FILE on the server (outside the web root); apps/api/.env in development.
+loadEnvironment()
 
 const config = loadConfig(process.env)
 const pool = config.db ? createPool(config.db) : null
@@ -31,6 +32,15 @@ const app = createApp({
   checkDatabase: pool ? () => pingDatabase(pool) : undefined,
 })
 
+const stopRetention =
+  pool && config.retention.enabled
+    ? scheduleRetention(pool, config.storageDir, {
+        ...DEFAULT_RETENTION,
+        unusedFileDays: config.retention.unusedFileDays,
+        importDays: config.retention.importDays,
+      })
+    : () => {}
+
 const server = serve({ fetch: app.fetch, hostname: config.host, port: config.port }, (info) => {
   console.log(
     `[testboard-api] listening on http://${info.address}:${info.port} (${config.nodeEnv})`,
@@ -39,6 +49,7 @@ const server = serve({ fetch: app.fetch, hostname: config.host, port: config.por
 
 function shutdown(signal: string) {
   console.log(`[testboard-api] ${signal} received, shutting down`)
+  stopRetention()
   server.close(() => {
     // Let evidence already being processed finish before the pool closes.
     void (files ? files.idle() : Promise.resolve())

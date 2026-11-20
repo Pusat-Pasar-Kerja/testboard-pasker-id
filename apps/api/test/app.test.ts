@@ -16,6 +16,7 @@ const config: AppConfig = {
   sessionIdleMinutes: 120,
   storageDir: '.private-storage-unused',
   scan: { engine: 'basic', clamdHost: '127.0.0.1', clamdPort: 3310 },
+  retention: { enabled: false, unusedFileDays: 90, importDays: 90 },
 }
 
 function makeApp() {

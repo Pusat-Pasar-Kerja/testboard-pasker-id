@@ -1,7 +1,9 @@
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { loadConfig } from '../src/config/env.js'
+import { loadEnvironment } from '../src/config/load-env.js'
 
 const REPO = fileURLToPath(new URL('../../../', import.meta.url))
 
@@ -34,6 +36,7 @@ describe('loadConfig', () => {
       sessionIdleMinutes: 120,
       storageDir: expect.stringMatching(/\.private-storage$/),
       scan: { engine: 'basic', clamdHost: '127.0.0.1', clamdPort: 3310 },
+      retention: { enabled: true, unusedFileDays: 90, importDays: 90 },
     })
   })
 
@@ -94,5 +97,40 @@ describe('loadConfig', () => {
       clamdPort: 3311,
     })
     expect(() => loadConfig({ SCAN_ENGINE: 'virustotal' })).toThrow(/SCAN_ENGINE/)
+  })
+})
+
+describe('environment file location (ADR 0010)', () => {
+  it('refuses a production env file inside the application folder', () => {
+    const dir = join(REPO, '.private-storage', 'test')
+    mkdirSync(dir, { recursive: true })
+    const file = join(dir, 'inside-repo.env')
+    writeFileSync(file, 'NODE_ENV=production\n')
+    const before = process.env.NODE_ENV
+    // Variables already set win over the file (as on the server), so start without one.
+    delete process.env.NODE_ENV
+    try {
+      expect(() => loadEnvironment({ TESTBOARD_ENV_FILE: file })).toThrow(
+        /outside the application folder/,
+      )
+    } finally {
+      process.env.NODE_ENV = before
+      rmSync(file, { force: true })
+    }
+    expect(() => loadEnvironment({ TESTBOARD_ENV_FILE: join(dir, 'missing.env') })).toThrow(
+      /not found/,
+    )
+  })
+
+  it('keeps retention on by default outside tests, with the owner-approved 90 days', () => {
+    expect(loadConfig({ NODE_ENV: 'development' }).retention).toEqual({
+      enabled: true,
+      unusedFileDays: 90,
+      importDays: 90,
+    })
+    expect(loadConfig({ NODE_ENV: 'test' }).retention.enabled).toBe(false)
+    expect(() => loadConfig({ RETENTION_UNUSED_FILE_DAYS: '1' })).toThrow(
+      /RETENTION_UNUSED_FILE_DAYS/,
+    )
   })
 })

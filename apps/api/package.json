@@ -1,6 +1,6 @@
 {
   "name": "@testboard/api",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "private": true,
   "description": "TestBoard PASKER ID backend API (Hono + Node.js)",
   "type": "module",
@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "admin:create-super": "tsx --conditions=source scripts/create-super-admin.ts",
-    "db:seed": "tsx --conditions=source scripts/seed-dev.ts"
+    "db:seed": "tsx --conditions=source scripts/seed-dev.ts",
+    "maintenance": "node dist/maintenance/cli.js"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.9",

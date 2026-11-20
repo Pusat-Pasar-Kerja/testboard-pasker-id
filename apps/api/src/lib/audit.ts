@@ -1,6 +1,7 @@
 import type { Context } from 'hono'
-import type { AppEnv } from '../types.js'
+import { clientIp } from '../auth/sessions.js'
 import { execute, type Db } from '../db/tx.js'
+import type { AppEnv } from '../types.js'
 
 export type AuditAction =
   | 'CREATE'
@@ -48,7 +49,6 @@ export async function writeAudit(
   },
 ): Promise<void> {
   const auth = c.get('auth')
-  const forwarded = c.req.header('X-Forwarded-For')?.split(',')[0]?.trim()
   await execute(
     db,
     `INSERT INTO audit_logs
@@ -64,7 +64,32 @@ export async function writeAudit(
       entry.oldValues === undefined ? null : JSON.stringify(redact(entry.oldValues)),
       entry.newValues === undefined ? null : JSON.stringify(redact(entry.newValues)),
       c.get('requestId') ?? null,
-      (forwarded ?? '').slice(0, 45) || null,
+      clientIp(c),
+    ],
+  )
+}
+
+/** Audit record for automatic jobs (retention clean-up): no user, no request. */
+export async function writeSystemAudit(
+  db: Db,
+  entry: {
+    projectId: string | null
+    entityType: string
+    entityId: string
+    action: AuditAction
+    newValues?: unknown
+  },
+): Promise<void> {
+  await execute(
+    db,
+    `INSERT INTO audit_logs (project_id, actor_id, entity_type, entity_id, action_code, new_values_json)
+     VALUES (?, NULL, ?, ?, ?, ?)`,
+    [
+      entry.projectId,
+      entry.entityType,
+      entry.entityId,
+      entry.action,
+      entry.newValues === undefined ? null : JSON.stringify(redact(entry.newValues)),
     ],
   )
 }

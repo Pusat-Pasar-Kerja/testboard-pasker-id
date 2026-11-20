@@ -29,6 +29,10 @@ const EnvSchema = z.object({
   SCAN_ENGINE: z.enum(['basic', 'clamav']).default('basic'),
   CLAMD_HOST: z.string().min(1).default('127.0.0.1'),
   CLAMD_PORT: z.coerce.number().int().min(1).max(65535).default(3310),
+  /** Retention (ADR 0010): daily clean-up of unused uploads, import work files, old sessions. */
+  RETENTION_ENABLED: booleanFromString.optional(),
+  RETENTION_UNUSED_FILE_DAYS: z.coerce.number().int().min(7).max(3650).default(90),
+  RETENTION_IMPORT_DAYS: z.coerce.number().int().min(7).max(3650).default(90),
 })
 
 export interface AppConfig {
@@ -45,12 +49,16 @@ export interface AppConfig {
   sessionIdleMinutes: number
   storageDir: string
   scan: { engine: 'basic' | 'clamav'; clamdHost: string; clamdPort: number }
+  retention: { enabled: boolean; unusedFileDays: number; importDays: number }
 }
 
 /** Workspace root (apps/api/{src,dist}/config -> repo). Evidence must never live inside it. */
 const REPO_ROOT = fileURLToPath(new URL('../../../../', import.meta.url))
 
-const isInside = (child: string, parent: string) => {
+/** True when a path is inside the application (repository) folder. */
+export const isInsideApp = (path: string) => isInside(path, REPO_ROOT)
+
+function isInside(child: string, parent: string) {
   const rel = relative(resolve(parent), resolve(child))
   return rel === '' || (!rel.startsWith('..') && !isAbsolute(rel))
 }
@@ -134,6 +142,11 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
       engine: values.SCAN_ENGINE,
       clamdHost: values.CLAMD_HOST,
       clamdPort: values.CLAMD_PORT,
+    },
+    retention: {
+      enabled: values.RETENTION_ENABLED ?? values.NODE_ENV !== 'test',
+      unusedFileDays: values.RETENTION_UNUSED_FILE_DAYS,
+      importDays: values.RETENTION_IMPORT_DAYS,
     },
   }
 }

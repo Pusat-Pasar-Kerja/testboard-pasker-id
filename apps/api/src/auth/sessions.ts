@@ -1,3 +1,4 @@
+import { getConnInfo } from '@hono/node-server/conninfo'
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import type { Pool } from 'mysql2/promise'
@@ -62,10 +63,24 @@ export function clearSessionCookies(c: Context<AppEnv>, config: AppConfig): void
   deleteCookie(c, names.csrf, options)
 }
 
+/**
+ * Client address for login throttling and audit. The API only listens on loopback, so the
+ * one hop allowed to talk to it is the local Apache proxy, which APPENDS the real client
+ * address to X-Forwarded-For. Earlier entries are whatever the client sent and are never
+ * trusted (a spoofed header must not bypass the login lockout).
+ */
 export function clientIp(c: Context<AppEnv>): string | null {
-  // Behind Apache the API listens on loopback; the proxy sets X-Forwarded-For.
-  const forwarded = c.req.header('X-Forwarded-For')?.split(',')[0]?.trim()
-  return (forwarded ?? '').slice(0, 45) || null
+  const hops = (c.req.header('X-Forwarded-For') ?? '')
+    .split(',')
+    .map((hop) => hop.trim())
+    .filter(Boolean)
+  const last = hops.at(-1)
+  if (last) return last.slice(0, 45)
+  try {
+    return getConnInfo(c).remote.address?.slice(0, 45) ?? null
+  } catch {
+    return null // no socket (in-process tests)
+  }
 }
 
 interface SessionRow {

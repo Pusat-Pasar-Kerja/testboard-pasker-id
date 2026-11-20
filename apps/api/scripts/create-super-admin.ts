@@ -7,17 +7,17 @@
  *
  * The temporary password is printed ONCE and stored only as an Argon2id hash.
  */
-import { existsSync } from 'node:fs'
 import { parseArgs } from 'node:util'
 import { emailSchema } from '@testboard/shared'
 import { hashPassword } from '../src/auth/passwords.js'
 import { revokeUserSessions } from '../src/auth/sessions.js'
 import { loadConfig } from '../src/config/env.js'
+import { loadEnvironment } from '../src/config/load-env.js'
 import { createPool } from '../src/db/pool.js'
 import { execute, insertedId, selectOne, withTransaction } from '../src/db/tx.js'
 import { temporaryPassword } from '../src/lib/crypto.js'
 
-if (existsSync('.env')) process.loadEnvFile('.env')
+loadEnvironment()
 
 const { values } = parseArgs({
   options: {

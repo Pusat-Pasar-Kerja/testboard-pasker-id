@@ -2,6 +2,27 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.7.2] - 2026-11-20
+
+Milestone 7 bagian 2 (API): pengamanan untuk produksi dan retensi data.
+
+### Ditambahkan
+
+- Retensi otomatis harian di dalam API, sesuai keputusan pemilik proyek:
+  - File unggahan yang tidak pernah dipakai di hasil uji, bug, test case, atau impor dihapus setelah 90 hari. File yang dipakai tidak pernah dihapus otomatis.
+  - Isi file yang sudah dihapus (manual atau otomatis) baru dibuang dari disk setelah 7 hari. Catatan dan jejak auditnya tetap ada.
+  - Folder kerja impor dibersihkan setelah 90 hari; job dan hasil per barisnya tetap tersimpan di database.
+  - Sesi kedaluwarsa, catatan percobaan login lama, dan sisa unggahan yang terputus juga dibersihkan.
+  - Setiap penghapusan otomatis tercatat di audit.
+- Perintah `npm run maintenance -w @testboard/api [-- --dry-run]` untuk menjalankan atau melihat dulu pembersihan dari shell server.
+- Pengaturan `TESTBOARD_ENV_FILE` (lokasi file rahasia API), `RETENTION_UNUSED_FILE_DAYS`, `RETENTION_IMPORT_DAYS`, `RETENTION_ENABLED`.
+
+### Diubah (keamanan)
+
+- Alamat klien di balik Apache kini diambil dari hop terakhir `X-Forwarded-For` (ditambahkan oleh proxy), bukan entri pertama yang bisa dipalsukan. Kunci login per IP tidak bisa lagi diakali dengan header palsu. Audit memakai alamat yang sama.
+- Mode produksi menolak start bila file rahasia (`.env`) berada di dalam folder aplikasi, karena di VPS folder itu ada di bawah web root publik.
+- Tes integrasi hardening: IP palsu, retensi (file nganggur vs dipakai, masa tunggu 7 hari, audit), sesi lama, dan sisa karantina.
+
 ## [0.7.1] - 2026-11-20
 
 Milestone 7 bagian 1 (API): laporan, ekspor CSV/XLSX, dan log audit proyek.
