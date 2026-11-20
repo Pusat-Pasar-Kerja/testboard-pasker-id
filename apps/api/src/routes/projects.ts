@@ -24,6 +24,7 @@ import { parseBody } from '../lib/validation.js'
 import type { AppEnv } from '../types.js'
 import { cycleRoutes } from './cycles.js'
 import { defectRoutes } from './defects.js'
+import { defectWriteRoutes } from './defects-write.js'
 import { memberRoutes } from './members.js'
 import { moduleRoutes } from './modules.js'
 import { reportRoutes } from './reports.js'
@@ -183,6 +184,7 @@ export function projectRoutes(pool: Pool) {
   scoped.route('/runs', runWriteRoutes(pool))
   scoped.route('/run-cases', runCaseRoutes(pool))
   scoped.route('/defects', defectRoutes(pool))
+  scoped.route('/defects', defectWriteRoutes(pool))
   scoped.route('/reports', reportRoutes(pool))
 
   routes.route('/projects/:projectCode', scoped)

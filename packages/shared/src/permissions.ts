@@ -26,7 +26,11 @@ export const PERMISSIONS = {
   // TESTER additionally limited to run cases assigned to them (checked in the route).
   'execution.run': ['ADMIN', 'QA_LEAD', 'TESTER'],
   'defect.create': ['ADMIN', 'QA_LEAD', 'TESTER'],
+  // Field and status rules on top of this live in defect-workflow.ts (ADR 0007).
   'defect.update': ['ADMIN', 'QA_LEAD', 'TESTER', 'DEVELOPER'],
+  'defect.comment': ['ADMIN', 'QA_LEAD', 'TESTER', 'DEVELOPER'],
+  // Link/unlink a bug and a test attempt (TB-BUG-001).
+  'defect.link': ['ADMIN', 'QA_LEAD', 'TESTER'],
   'report.read': ALL,
   'report.export': LEADS,
   'audit.read': LEADS,

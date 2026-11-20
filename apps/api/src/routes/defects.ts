@@ -21,7 +21,7 @@ import { AppError } from '../lib/errors.js'
 import { idParam, pageParams } from '../lib/validation.js'
 import type { AppEnv } from '../types.js'
 
-interface DefectRow {
+export interface DefectRow {
   id: string
   bug_code: string
   title: string
@@ -48,7 +48,7 @@ interface DefectRow {
   fixed_in_version: string | null
 }
 
-const DEFECT_SELECT = `
+export const DEFECT_SELECT = `
   SELECT d.*, m.module_code, m.name AS module_name,
          rep.display_name AS reporter_name, asg.display_name AS assignee_name
     FROM defects d
@@ -92,7 +92,110 @@ export async function recentDefects(db: Db, projectId: string, limit: number) {
 
 const escapeLike = (value: string) => value.replace(/[\\%_]/g, '\\$&')
 
-/** Read-only bug endpoints (create, status workflow and comments arrive in Milestone 4). */
+/** Full bug view (links, status history, comments) or null when not in this project. */
+export async function loadDefectDetail(
+  db: Db,
+  projectId: string,
+  defectId: string,
+): Promise<DefectDetail | null> {
+  const row = await selectOne<DefectRow>(
+    db,
+    `${DEFECT_SELECT} WHERE d.id = ? AND d.project_id = ?`,
+    [defectId, projectId],
+  )
+  if (!row) return null
+
+  const [links, history, comments] = await Promise.all([
+    select<{
+      execution_id: string
+      run_id: string
+      run_code: string
+      run_case_id: string
+      case_code: string
+      attempt_number: number
+      result_status: ExecutionStatus
+      tested_at: Date | null
+    }>(
+      db,
+      `SELECT e.id AS execution_id, r.id AS run_id, r.run_code, trc.id AS run_case_id,
+                tc.case_code, e.attempt_number, e.result_status, e.tested_at
+           FROM defect_execution_links l
+           JOIN test_executions e ON e.id = l.execution_id
+           JOIN test_run_cases trc ON trc.id = e.run_case_id
+           JOIN test_runs r ON r.id = trc.test_run_id
+           JOIN test_cases tc ON tc.id = trc.test_case_id
+          WHERE l.defect_id = ? AND r.project_id = ?
+          ORDER BY e.tested_at, e.attempt_number`,
+      [defectId, projectId],
+    ),
+    select<{
+      from_status: DefectStatus | null
+      to_status: DefectStatus
+      changed_by: string | null
+      changed_by_name: string | null
+      change_comment: string | null
+      changed_at: Date
+    }>(
+      db,
+      `SELECT h.from_status, h.to_status, h.changed_by, u.display_name AS changed_by_name,
+                h.change_comment, h.changed_at
+           FROM defect_status_history h LEFT JOIN users u ON u.id = h.changed_by
+          WHERE h.defect_id = ? ORDER BY h.changed_at, h.id`,
+      [defectId],
+    ),
+    select<{
+      id: string
+      author_id: string | null
+      author_name: string | null
+      body: string
+      created_at: Date
+    }>(
+      db,
+      `SELECT cm.id, cm.author_id, u.display_name AS author_name, cm.body, cm.created_at
+           FROM defect_comments cm LEFT JOIN users u ON u.id = cm.author_id
+          WHERE cm.defect_id = ? ORDER BY cm.created_at, cm.id`,
+      [defectId],
+    ),
+  ])
+  const detail: DefectDetail = {
+    ...toDefectListItem(row),
+    description: row.description,
+    steps_to_reproduce: row.steps_to_reproduce,
+    expected_behavior: row.expected_behavior,
+    actual_behavior: row.actual_behavior,
+    source_kind: row.source_kind,
+    environment_name: row.environment_name,
+    build_version: row.build_version,
+    browser_name: row.browser_name,
+    fixed_in_version: row.fixed_in_version,
+    linked_executions: links.map((l) => ({
+      execution_id: String(l.execution_id),
+      run_id: String(l.run_id),
+      run_code: l.run_code,
+      run_case_id: String(l.run_case_id),
+      case_code: l.case_code,
+      attempt_number: Number(l.attempt_number),
+      result_status: l.result_status,
+      tested_at: iso(l.tested_at),
+    })),
+    history: history.map((h) => ({
+      from_status: h.from_status,
+      to_status: h.to_status,
+      changed_by: person(h.changed_by, h.changed_by_name),
+      change_comment: h.change_comment,
+      changed_at: iso(h.changed_at) as string,
+    })),
+    comments: comments.map((cm) => ({
+      id: String(cm.id),
+      author: person(cm.author_id, cm.author_name),
+      body: cm.body,
+      created_at: iso(cm.created_at) as string,
+    })),
+  }
+  return detail
+}
+
+/** Bug reads. Writes (create, edit, status workflow, comments, links) are in defects-write.ts. */
 export function defectRoutes(pool: Pool) {
   const routes = new Hono<AppEnv>()
 
@@ -145,103 +248,21 @@ export function defectRoutes(pool: Pool) {
   })
 
   routes.get('/:defectId', requirePermission('project.read'), async (c) => {
-    const project = c.get('project')
-    const defectId = idParam(c, 'defectId')
-    const row = await selectOne<DefectRow>(
-      pool,
-      `${DEFECT_SELECT} WHERE d.id = ? AND d.project_id = ?`,
-      [defectId, project.id],
-    )
-    if (!row) throw new AppError(404, 'NOT_FOUND', 'Not found.')
-
-    const [links, history, comments] = await Promise.all([
-      select<{
-        execution_id: string
-        run_id: string
-        run_code: string
-        run_case_id: string
-        case_code: string
-        attempt_number: number
-        result_status: ExecutionStatus
-        tested_at: Date | null
-      }>(
-        pool,
-        `SELECT e.id AS execution_id, r.id AS run_id, r.run_code, trc.id AS run_case_id,
-                tc.case_code, e.attempt_number, e.result_status, e.tested_at
-           FROM defect_execution_links l
-           JOIN test_executions e ON e.id = l.execution_id
-           JOIN test_run_cases trc ON trc.id = e.run_case_id
-           JOIN test_runs r ON r.id = trc.test_run_id
-           JOIN test_cases tc ON tc.id = trc.test_case_id
-          WHERE l.defect_id = ? AND r.project_id = ?
-          ORDER BY e.tested_at, e.attempt_number`,
-        [defectId, project.id],
-      ),
-      select<{
-        from_status: DefectStatus | null
-        to_status: DefectStatus
-        changed_by: string | null
-        changed_by_name: string | null
-        change_comment: string | null
-        changed_at: Date
-      }>(
-        pool,
-        `SELECT h.from_status, h.to_status, h.changed_by, u.display_name AS changed_by_name,
-                h.change_comment, h.changed_at
-           FROM defect_status_history h LEFT JOIN users u ON u.id = h.changed_by
-          WHERE h.defect_id = ? ORDER BY h.changed_at, h.id`,
-        [defectId],
-      ),
-      select<{
-        id: string
-        author_id: string | null
-        author_name: string | null
-        body: string
-        created_at: Date
-      }>(
-        pool,
-        `SELECT cm.id, cm.author_id, u.display_name AS author_name, cm.body, cm.created_at
-           FROM defect_comments cm LEFT JOIN users u ON u.id = cm.author_id
-          WHERE cm.defect_id = ? ORDER BY cm.created_at, cm.id`,
-        [defectId],
-      ),
-    ])
-    const detail: DefectDetail = {
-      ...toDefectListItem(row),
-      description: row.description,
-      steps_to_reproduce: row.steps_to_reproduce,
-      expected_behavior: row.expected_behavior,
-      actual_behavior: row.actual_behavior,
-      source_kind: row.source_kind,
-      environment_name: row.environment_name,
-      build_version: row.build_version,
-      browser_name: row.browser_name,
-      fixed_in_version: row.fixed_in_version,
-      linked_executions: links.map((l) => ({
-        execution_id: String(l.execution_id),
-        run_id: String(l.run_id),
-        run_code: l.run_code,
-        run_case_id: String(l.run_case_id),
-        case_code: l.case_code,
-        attempt_number: Number(l.attempt_number),
-        result_status: l.result_status,
-        tested_at: iso(l.tested_at),
-      })),
-      history: history.map((h) => ({
-        from_status: h.from_status,
-        to_status: h.to_status,
-        changed_by: person(h.changed_by, h.changed_by_name),
-        change_comment: h.change_comment,
-        changed_at: iso(h.changed_at) as string,
-      })),
-      comments: comments.map((cm) => ({
-        id: String(cm.id),
-        author: person(cm.author_id, cm.author_name),
-        body: cm.body,
-        created_at: iso(cm.created_at) as string,
-      })),
-    }
+    const detail = await loadDefectDetail(pool, c.get('project').id, idParam(c, 'defectId'))
+    if (!detail) throw new AppError(404, 'NOT_FOUND', 'Not found.')
     return c.json(detail)
+  })
+
+  routes.get('/:defectId/history', requirePermission('project.read'), async (c) => {
+    const detail = await loadDefectDetail(pool, c.get('project').id, idParam(c, 'defectId'))
+    if (!detail) throw new AppError(404, 'NOT_FOUND', 'Not found.')
+    return c.json(detail.history)
+  })
+
+  routes.get('/:defectId/comments', requirePermission('project.read'), async (c) => {
+    const detail = await loadDefectDetail(pool, c.get('project').id, idParam(c, 'defectId'))
+    if (!detail) throw new AppError(404, 'NOT_FOUND', 'Not found.')
+    return c.json(detail.comments)
   })
 
   return routes

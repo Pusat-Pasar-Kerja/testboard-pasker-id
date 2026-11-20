@@ -2,6 +2,16 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.4.1] - 2026-11-20
+
+Milestone 4 bagian API.
+
+### Ditambahkan
+
+- Bug: `POST /projects/:p/defects` (kode otomatis `BUG-XXX-0001` di bawah kunci proyek, bisa langsung tertaut ke percobaan uji, boleh tanpa tautan, `Idempotency-Key`), `PATCH /defects/:id` dengan pembatasan kolom per peran dan `expected_updated_at`, `POST /defects/:id/status` sesuai alur ADR 0007 (alasan wajib untuk REOPENED/WONT_FIX, riwayat + audit dalam satu transaksi), komentar (`GET/POST /defects/:id/comments`), riwayat (`GET /defects/:id/history`), tautkan/lepas percobaan uji (`POST /defects/:id/executions`, `DELETE /defects/:id/executions/:executionId`).
+- Aturan alur bug dan pembatasan kolom ada di `@testboard/shared` (dipakai API, demo, dan UI); izin baru `defect.comment` dan `defect.link`.
+- Tes integrasi TB-BUG-001..004, pembatasan kolom, komentar, tautan, idempotensi, isolasi proyek; ADR 0007.
+
 ## [0.4.0] - 2026-11-20
 
 **Milestone 3 selesai**: siklus uji, perencanaan run, dan workspace eksekusi dari UI (mode API dan demo).
