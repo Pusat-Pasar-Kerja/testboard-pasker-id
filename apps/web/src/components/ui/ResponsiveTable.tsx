@@ -1,6 +1,19 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 
+/** Optional row selection for bulk actions (a checkbox column / a checkbox beside each card). */
+export interface RowSelection<T> {
+  isSelected: (row: T) => boolean
+  onToggle: (row: T) => void
+  onToggleAll: () => void
+  allSelected: boolean
+  someSelected: boolean
+  rowLabel: (row: T) => string
+  allLabel: string
+}
+
+const CHECKBOX = 'size-4.5 rounded border-line-strong accent-brand-700'
+
 export interface Column<T> {
   key: string
   header: string
@@ -22,6 +35,7 @@ export function ResponsiveTable<T>({
   primary,
   cardFields,
   caption,
+  selection,
 }: {
   rows: T[]
   columns: Column<T>[]
@@ -30,6 +44,7 @@ export function ResponsiveTable<T>({
   primary: (row: T) => { code?: string; title: ReactNode }
   cardFields: (row: T) => ReactNode
   caption: string
+  selection?: RowSelection<T>
 }) {
   const hide = { lg: 'hidden lg:table-cell', xl: 'hidden xl:table-cell' }
   return (
@@ -39,6 +54,21 @@ export function ResponsiveTable<T>({
           <caption className="sr-only">{caption}</caption>
           <thead>
             <tr className="border-b border-line text-xs tracking-wide text-ink-muted uppercase">
+              {selection && (
+                <th scope="col" className="w-10 px-3 py-2">
+                  <input
+                    type="checkbox"
+                    className={CHECKBOX}
+                    aria-label={selection.allLabel}
+                    checked={selection.allSelected}
+                    ref={(element) => {
+                      if (element)
+                        element.indeterminate = selection.someSelected && !selection.allSelected
+                    }}
+                    onChange={selection.onToggleAll}
+                  />
+                </th>
+              )}
               {columns.map((column) => (
                 <th
                   key={column.key}
@@ -54,8 +84,21 @@ export function ResponsiveTable<T>({
             {rows.map((row) => (
               <tr
                 key={rowKey(row)}
-                className="border-b border-line last:border-0 hover:bg-brand-50/60"
+                className={`border-b border-line last:border-0 hover:bg-brand-50/60 ${
+                  selection?.isSelected(row) ? 'bg-brand-50/70' : ''
+                }`}
               >
+                {selection && (
+                  <td className="px-3 py-2.5 align-top">
+                    <input
+                      type="checkbox"
+                      className={CHECKBOX}
+                      aria-label={selection.rowLabel(row)}
+                      checked={selection.isSelected(row)}
+                      onChange={() => selection.onToggle(row)}
+                    />
+                  </td>
+                )}
                 {columns.map((column, index) => (
                   <td
                     key={column.key}
@@ -83,10 +126,21 @@ export function ResponsiveTable<T>({
         {rows.map((row) => {
           const head = primary(row)
           return (
-            <li key={rowKey(row)}>
+            <li key={rowKey(row)} className="flex items-start gap-2">
+              {selection && (
+                <label className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-line bg-surface">
+                  <input
+                    type="checkbox"
+                    className={CHECKBOX}
+                    aria-label={selection.rowLabel(row)}
+                    checked={selection.isSelected(row)}
+                    onChange={() => selection.onToggle(row)}
+                  />
+                </label>
+              )}
               <Link
                 to={rowLink(row)}
-                className="block rounded-lg border border-line bg-surface p-3 hover:border-brand-200 hover:shadow-sm"
+                className="block min-w-0 flex-1 rounded-lg border border-line bg-surface p-3 hover:border-brand-200 hover:shadow-sm"
               >
                 {head.code && (
                   <span className="text-xs font-semibold text-brand-700">{head.code}</span>

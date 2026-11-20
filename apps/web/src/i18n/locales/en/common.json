@@ -169,6 +169,11 @@
       "UAT": "UAT",
       "USER_REPORT": "User report",
       "OTHER": "Other"
+    },
+    "cycleStatus": {
+      "PLANNED": "Planned",
+      "ACTIVE": "Active",
+      "COMPLETED": "Completed"
     }
   },
   "fields": {
@@ -224,7 +229,19 @@
     "moduleCode": "Module code",
     "referenceDocument": "Reference document",
     "referenceVersion": "Document version",
-    "accountStatus": "Account status"
+    "accountStatus": "Account status",
+    "runCode": "Run code",
+    "cycleCode": "Cycle code",
+    "startsOn": "Start date",
+    "endsOn": "End date",
+    "device": "Device",
+    "os": "Operating system",
+    "notes": "Notes",
+    "reason": "Reason",
+    "actualResult": "Actual result",
+    "executionKind": "Attempt type",
+    "tester": "Tester",
+    "runCount": "Runs"
   },
   "pages": {
     "login": {
@@ -294,13 +311,61 @@
     "runs": {
       "title": "Test Runs",
       "subtitle": "A run is a set of test cases executed on a given environment and build.",
-      "empty": "No runs in this project yet."
+      "empty": "No runs in this project yet.",
+      "newRun": "New run"
     },
     "runDetail": {
       "casesHeading": "Test cases in this run",
       "snapshotNote": "Title and version come from the snapshot taken when the case joined the run, so later edits never change past results.",
       "emptyFiltered": "No test cases with this status.",
-      "unassigned": "Unassigned"
+      "unassigned": "Unassigned",
+      "empty": "This run has no test cases yet.",
+      "start": "Start run",
+      "complete": "Complete run",
+      "reopen": "Reopen",
+      "lock": "Lock run",
+      "confirm": {
+        "ACTIVE": "Start run {{code}}?",
+        "COMPLETED": "Complete run {{code}}?",
+        "REOPEN": "Reopen run {{code}}?",
+        "LOCKED": "Lock run {{code}}?"
+      },
+      "confirmBody": {
+        "ACTIVE": "Once started, testers can record results. Test cases can still be added.",
+        "COMPLETED": "Results can no longer be recorded until the run is reopened.",
+        "REOPEN": "The run becomes active again so testers can retest.",
+        "LOCKED": "A locked run is final: results, test cases and assignments can no longer change. This cannot be undone."
+      },
+      "statusChanged": "Run status is now: {{status}}.",
+      "notice": {
+        "PLANNED": "The run has not started. Add test cases and assign testers, then start the run.",
+        "COMPLETED": "The run is complete. Reopen it for retests, or lock it once the results are approved.",
+        "LOCKED": "The run is locked and final."
+      },
+      "addCases": "Add test cases",
+      "addHeading": "Add test cases to the run",
+      "addHint": "Only Ready test cases can be added. Their definition is frozen as a snapshot.",
+      "addSearch": "Search code or title",
+      "addAssignee": "Assign to",
+      "addSubmit": "Add ({{count}})",
+      "addEmpty": "No matching Ready test cases.",
+      "inRun": "Already in run",
+      "added": "{{added}} test cases added.",
+      "addedSkipped": "{{added}} added, {{skipped}} skipped (already in the run or not Ready).",
+      "selectAll": "Select all test cases",
+      "selectRow": "Select {{code}}",
+      "selected": "{{count}} selected",
+      "assignApply": "Apply",
+      "assigned": "{{count}} test cases assigned to {{name}}.",
+      "unassignedDone": "Unassigned {{count}} test cases.",
+      "removeSelected": "Remove from run",
+      "removeTitle": "Remove {{count}} test cases from the run?",
+      "removeBody": "They can be added again later. The test case history is kept.",
+      "removeBlocked": "Test cases that already have results cannot be removed.",
+      "removed": "{{count}} test cases removed from the run.",
+      "assigneeFilter": "Assignment",
+      "myTasks": "My tasks",
+      "continueTesting": "Continue testing"
     },
     "bugs": {
       "title": "Bug Tracker",
@@ -406,6 +471,73 @@
       "updated": "Account {{name}} updated.",
       "forbidden": "This page is for Super Admins only.",
       "empty": "No matching users."
+    },
+    "cycles": {
+      "title": "Test cycles",
+      "subtitle": "A cycle groups several runs within one UAT period.",
+      "empty": "No test cycles in this project yet.",
+      "newHeading": "New cycle",
+      "codeHint": "Upper-case letters, digits and hyphens. Example: CYCLE-2-2026",
+      "created": "Cycle {{code}} created.",
+      "updated": "Cycle {{code}} updated.",
+      "statusLabel": "Status of cycle {{code}}",
+      "runs": "{{count}} runs",
+      "dateOrder": "The end date must not be before the start date."
+    },
+    "runForm": {
+      "newTitle": "New run",
+      "editTitle": "Edit run {{code}}",
+      "codeHint": "Leave empty to generate one (RUN-YYYYMMDD-N).",
+      "noCycle": "No cycle",
+      "urlHint": "Address of the site under test, starting with https://",
+      "invalidUrl": "The URL must start with http:// or https://",
+      "created": "Run {{code}} created. Add test cases, then start the run.",
+      "saved": "Run changes saved."
+    },
+    "execution": {
+      "scenarioTab": "Scenario",
+      "resultTab": "Record result",
+      "historyTab": "History",
+      "snapshotVersion": "Snapshot version {{version}}",
+      "newerVersion": "The test case was updated to version {{current}} after it joined the run. This page keeps using snapshot version {{version}} so results stay consistent.",
+      "noSteps": "Steps are not numbered. Follow the step text above.",
+      "stepLabel": "Step {{n}}",
+      "stepResult": "Result of step {{n}}",
+      "stepActual": "Actual result of step {{n}}",
+      "stepExpected": "Expected:",
+      "markAllPassed": "Mark all passed",
+      "stepsMarked": "{{done}}/{{total}} steps marked",
+      "resultHeading": "Record result",
+      "resultLabel": "Test result",
+      "actualHint": "Required when failed. Describe what happened, not what was expected.",
+      "reasonHint": "Required when blocked or skipped.",
+      "envHeading": "Test environment",
+      "attemptNext": "Will be saved as attempt #{{n}}.",
+      "previous": "Previous attempt",
+      "save": "Save result",
+      "saveNext": "Save & next",
+      "saved": "Attempt #{{n}} saved: {{status}}.",
+      "chooseResult": "Choose a test result first.",
+      "prev": "Previous test case",
+      "next": "Next test case",
+      "locked": {
+        "PLANNED": "The run has not started. Results can be recorded once a QA lead starts the run.",
+        "COMPLETED": "The run is complete. Ask a QA lead to reopen it for retests.",
+        "LOCKED": "The run is locked. Results cannot change."
+      },
+      "notAssigned": "This test case is assigned to {{name}}. You can only record results for test cases assigned to you.",
+      "notAssignedNobody": "This test case is not assigned yet. Ask a QA lead to assign it to you.",
+      "readOnly": "Your role can only view test results.",
+      "historyHeading": "Attempt history",
+      "historyEmpty": "No attempts yet.",
+      "stepResults": "Step results",
+      "evidenceSoon": "Evidence upload (screenshots/video) arrives in Milestone 5.",
+      "bugsHeading": "Linked bugs",
+      "bugsEmpty": "No linked bugs yet.",
+      "bugsSoon": "Creating a bug straight from a failed result arrives in Milestone 4.",
+      "openEnvironment": "Open the test environment",
+      "conflict": "Result not saved: {{message}}",
+      "stepsPassed": "{{passed}}/{{total}} steps passed"
     }
   },
   "errors": {

@@ -1,4 +1,5 @@
 import type {
+  CycleStatus,
   DefectPriority,
   DefectSeverity,
   DefectStatus,
@@ -83,6 +84,17 @@ const RUN_STATUS: Record<RunStatus, Style> = {
   ACTIVE: { tone: 'info', icon: Play },
   COMPLETED: { tone: 'success', icon: CheckCheck },
   LOCKED: { tone: 'muted', icon: Lock },
+}
+
+const CYCLE_STATUS: Record<CycleStatus, Style> = {
+  PLANNED: { tone: 'neutral', icon: CalendarClock },
+  ACTIVE: { tone: 'info', icon: Play },
+  COMPLETED: { tone: 'success', icon: CheckCheck },
+}
+
+export function CycleStatusBadge({ status }: { status: CycleStatus }) {
+  const { t } = useTranslation()
+  return <Badge {...CYCLE_STATUS[status]} label={t(`codes.cycleStatus.${status}`)} />
 }
 
 export function ExecutionStatusBadge({ status }: { status: ExecutionStatus }) {

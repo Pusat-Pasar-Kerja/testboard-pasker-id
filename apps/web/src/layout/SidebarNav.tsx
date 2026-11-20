@@ -31,7 +31,7 @@ type NavKey =
 const ITEMS: { key: NavKey; path: string; icon: LucideIcon; soon?: boolean }[] = [
   { key: 'dashboard', path: 'dashboard', icon: LayoutDashboard },
   { key: 'testCases', path: 'test-cases', icon: ListChecks },
-  { key: 'cycles', path: 'cycles', icon: CalendarRange, soon: true },
+  { key: 'cycles', path: 'cycles', icon: CalendarRange },
   { key: 'runs', path: 'runs', icon: PlayCircle },
   { key: 'bugs', path: 'bugs', icon: Bug },
   { key: 'evidence', path: 'evidence', icon: Images, soon: true },

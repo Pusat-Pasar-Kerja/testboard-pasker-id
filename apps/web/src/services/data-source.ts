@@ -1,6 +1,12 @@
 import type {
   AdminUserDto,
   CurrentUser,
+  CycleDto,
+  CycleStatus,
+  ExecutionDto,
+  RecordableResult,
+  RunCaseDetail,
+  RunStatus,
   DashboardSummary,
   DefectDetail,
   DefectListItem,
@@ -73,6 +79,40 @@ export interface SuiteInput {
   reference_version?: string | null
 }
 
+export interface CycleInput {
+  cycle_code?: string
+  title?: string
+  description?: string | null
+  starts_on?: string | null
+  ends_on?: string | null
+  status_code?: CycleStatus
+}
+
+export interface RunInput {
+  run_code?: string
+  name?: string
+  cycle_id?: string | null
+  environment_name?: string | null
+  build_version?: string | null
+  environment_url?: string | null
+}
+
+export interface ExecutionInput {
+  result_status: RecordableResult
+  actual_result?: string | null
+  notes?: string | null
+  execution_kind?: 'RETEST' | 'RERUN'
+  browser_name?: string | null
+  device_name?: string | null
+  operating_system?: string | null
+  step_results?: { step_number: number; result_status: string; actual_result?: string | null }[]
+}
+
+export interface AddRunCasesResult {
+  added: number
+  skipped: { test_case_id: string; reason: 'NOT_FOUND' | 'NOT_READY' | 'ALREADY_IN_RUN' }[]
+}
+
 export interface AdminUserInput {
   email: string
   display_name: string
@@ -126,10 +166,37 @@ export interface DataSource {
   archiveTestCase(projectCode: string, caseId: string): Promise<TestCaseListItem>
   cloneTestCase(projectCode: string, caseId: string): Promise<TestCaseListItem>
 
-  // Runs, bugs, dashboard (read-only until Milestones 3-4)
+  // Cycles, runs and executions (Milestone 3)
   getDashboard(projectCode: string, filter?: { run_id?: string }): Promise<DashboardSummary>
+  listCycles(projectCode: string): Promise<CycleDto[]>
+  createCycle(projectCode: string, input: CycleInput): Promise<CycleDto>
+  updateCycle(projectCode: string, cycleId: string, input: CycleInput): Promise<CycleDto>
   listRuns(projectCode: string): Promise<TestRunSummary[]>
   getRun(projectCode: string, runId: string): Promise<TestRunDetail>
+  createRun(projectCode: string, input: RunInput): Promise<TestRunSummary>
+  updateRun(projectCode: string, runId: string, input: RunInput): Promise<TestRunSummary>
+  changeRunStatus(projectCode: string, runId: string, status: RunStatus): Promise<TestRunSummary>
+  addRunCases(
+    projectCode: string,
+    runId: string,
+    input: { test_case_ids: string[]; assigned_to?: string | null },
+  ): Promise<AddRunCasesResult>
+  removeRunCase(projectCode: string, runId: string, runCaseId: string): Promise<void>
+  assignRunCases(
+    projectCode: string,
+    runId: string,
+    input: { run_case_ids: string[]; assigned_to: string | null },
+  ): Promise<{ updated: number }>
+  getRunCase(projectCode: string, runCaseId: string): Promise<RunCaseDetail>
+  /** `idempotencyKey` makes a double submit create only one attempt. */
+  createExecution(
+    projectCode: string,
+    runCaseId: string,
+    input: ExecutionInput,
+    idempotencyKey: string,
+  ): Promise<ExecutionDto>
+
+  // Bugs (read-only until Milestone 4)
   listDefects(projectCode: string, query?: DefectQuery): Promise<Paginated<DefectListItem>>
   getDefect(projectCode: string, defectId: string): Promise<DefectDetail>
 
@@ -197,8 +264,25 @@ export function createHttpDataSource(client: ApiClient): DataSource {
 
     getDashboard: (code, filter) =>
       client.get(`${p(code)}/reports/summary${toQueryString(filter)}`),
+    listCycles: (code) => client.get(`${p(code)}/cycles`),
+    createCycle: (code, input) => client.post(`${p(code)}/cycles`, input),
+    updateCycle: (code, id, input) => client.patch(`${p(code)}/cycles/${seg(id)}`, input),
     listRuns: (code) => client.get(`${p(code)}/runs`),
     getRun: (code, id) => client.get(`${p(code)}/runs/${seg(id)}`),
+    createRun: (code, input) => client.post(`${p(code)}/runs`, input),
+    updateRun: (code, id, input) => client.patch(`${p(code)}/runs/${seg(id)}`, input),
+    changeRunStatus: (code, id, status) =>
+      client.post(`${p(code)}/runs/${seg(id)}/status`, { status_code: status }),
+    addRunCases: (code, id, input) => client.post(`${p(code)}/runs/${seg(id)}/cases`, input),
+    removeRunCase: (code, id, runCaseId) =>
+      client.delete(`${p(code)}/runs/${seg(id)}/cases/${seg(runCaseId)}`),
+    assignRunCases: (code, id, input) =>
+      client.patch(`${p(code)}/runs/${seg(id)}/cases/assign`, input),
+    getRunCase: (code, runCaseId) => client.get(`${p(code)}/run-cases/${seg(runCaseId)}`),
+    createExecution: (code, runCaseId, input, idempotencyKey) =>
+      client.post(`${p(code)}/run-cases/${seg(runCaseId)}/executions`, input, {
+        'Idempotency-Key': idempotencyKey,
+      }),
     listDefects: (code, query) => client.get(`${p(code)}/defects${toQueryString(query)}`),
     getDefect: (code, id) => client.get(`${p(code)}/defects/${seg(id)}`),
 

@@ -74,7 +74,7 @@ Repo ini **publik**. Jangan commit `.env`, kredensial, workbook UAT asli, screen
 | M0        | Repo, tooling, healthcheck API, adaptor mock, format error                | Selesai (`v0.1.0`) |
 | M1        | Design system, AppShell, layar prototype dengan data mock, bilingual      | Selesai (`v0.2.0`) |
 | M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi | Selesai (`v0.3.0`) |
-| M3        | Cycle, run, execution append-only, dashboard latest status                |                    |
+| M3        | Cycle, run, execution append-only, dashboard latest status                | Selesai (`v0.4.0`) |
 | M4        | Bug tracking + workflow status + riwayat                                  |                    |
 | M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             |                    |
 | M6        | Import XLSX/CSV/JSON (legacy & AI)                                        |                    |

@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, type QueryClient } from '@tanstack/react-query'
 import type { DefectQuery, TestCaseQuery } from '../services/data-source'
 import { useDataSource } from '../services/use-data-source'
 
@@ -68,9 +68,22 @@ export function useRuns(code: string) {
   return useQuery({ queryKey: ['runs', code], queryFn: () => ds.listRuns(code) })
 }
 
-export function useRun(code: string, id: string) {
+export function useRun(code: string, id: string, enabled = true) {
   const ds = useDataSource()
-  return useQuery({ queryKey: ['run', code, id], queryFn: () => ds.getRun(code, id) })
+  return useQuery({ queryKey: ['run', code, id], queryFn: () => ds.getRun(code, id), enabled })
+}
+
+export function useCycles(code: string) {
+  const ds = useDataSource()
+  return useQuery({ queryKey: ['cycles', code], queryFn: () => ds.listCycles(code) })
+}
+
+export function useRunCase(code: string, runCaseId: string) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['run-case', code, runCaseId],
+    queryFn: () => ds.getRunCase(code, runCaseId),
+  })
 }
 
 export function useDefects(code: string, query: DefectQuery) {
@@ -95,4 +108,19 @@ export function useAdminUsers(q: string, enabled = true) {
     enabled,
     placeholderData: keepPreviousData,
   })
+}
+
+/**
+ * After any run/execution change: the run, its list, run-case workspaces, dashboard
+ * figures and cycle run counts can all be stale.
+ */
+export async function invalidateRunData(queryClient: QueryClient, code: string, runId: string) {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['run', code, runId] }),
+    queryClient.invalidateQueries({ queryKey: ['runs', code] }),
+    queryClient.invalidateQueries({ queryKey: ['run-case', code] }),
+    queryClient.invalidateQueries({ queryKey: ['dashboard', code] }),
+    queryClient.invalidateQueries({ queryKey: ['cycles', code] }),
+    queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  ])
 }

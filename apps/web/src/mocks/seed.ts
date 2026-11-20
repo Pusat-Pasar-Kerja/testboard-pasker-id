@@ -5,12 +5,15 @@
  * prototype and tests always show the same numbers.
  */
 import type {
+  CaseSnapshot,
+  CycleStatus,
   DefectPriority,
   DefectSeverity,
   DefectSourceKind,
   DefectStatus,
   ExecutionKind,
   ExecutionStatus,
+  ExecutionStepResultDto,
   MemberRole,
   RunStatus,
   TestCasePriority,
@@ -79,7 +82,7 @@ export interface MockRun {
   build_version: string
   environment_url: string
   status_code: RunStatus
-  starts_at: string
+  starts_at: string | null
   ends_at: string | null
 }
 
@@ -88,6 +91,10 @@ export interface MockCycle {
   projectId: string
   cycle_code: string
   title: string
+  description?: string | null
+  status_code?: CycleStatus
+  starts_on?: string | null
+  ends_on?: string | null
 }
 
 export interface MockRunCase {
@@ -97,6 +104,8 @@ export interface MockRunCase {
   assignedTo: string | null
   case_version: number
   sort_order: number
+  /** Frozen definition (set when added through the UI; seeded rows use the live case). */
+  snapshot?: CaseSnapshot
 }
 
 export interface MockExecution {
@@ -108,6 +117,11 @@ export interface MockExecution {
   actual_result: string | null
   testerId: string
   tested_at: string
+  notes?: string | null
+  browser_name?: string | null
+  device_name?: string | null
+  operating_system?: string | null
+  step_results?: ExecutionStepResultDto[]
 }
 
 export interface MockDefect {

@@ -2,6 +2,25 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.4.0] - 2026-11-20
+
+**Milestone 3 selesai**: siklus uji, perencanaan run, dan workspace eksekusi dari UI (mode API dan demo).
+
+### Ditambahkan
+
+- Halaman Siklus Uji: daftar siklus (periode, jumlah run yang bisa diklik), buat siklus dengan validasi kode dan urutan tanggal, ubah status siklus.
+- Buat/ubah run (nama, kode otomatis atau manual, siklus, lingkungan, build, URL lingkungan) dan filter run per siklus.
+- Detail run: tombol status sesuai alur `PLANNED -> ACTIVE -> COMPLETED -> (ACTIVE | LOCKED)` dengan konfirmasi (penguncian diberi peringatan final), tambah test case Siap Uji (cari, pilih semua, tugaskan langsung), pilih banyak baris untuk tugaskan/lepas penugasan atau keluarkan dari run, filter "Tugas saya"/belum ditugaskan/per penguji, tombol "Lanjutkan pengujian" ke case berikutnya yang belum diuji.
+- Workspace eksekusi (`runs/:run/cases/:case`): skenario dari snapshot run (peringatan bila test case sudah punya versi lebih baru), hasil per langkah dengan "Tandai semua lulus", empat pilihan hasil besar, hasil aktual wajib saat gagal dan alasan wajib saat terhambat/dilewati, lingkungan uji (terisi dari percobaan terakhir), perbandingan dengan percobaan sebelumnya, riwayat percobaan append-only, bug terkait, navigasi sebelum/berikutnya, "Simpan & lanjut", kunci idempotensi anti klik ganda, peringatan perubahan belum disimpan. Di layar ponsel tampil sebagai tab Skenario / Catat hasil / Riwayat.
+- Penjelasan yang jelas saat hasil tidak bisa dicatat (run belum dimulai/selesai/dikunci, case milik penguji lain, peran hanya melihat).
+- Mode demo menerapkan aturan yang sama dengan API (transisi status, hanya READY, snapshot, attempt append-only, idempotensi, TESTER hanya case miliknya).
+- Tes: aturan run/eksekusi di data demo dan alur UI siklus, perencanaan run, penguncian, eksekusi gagal/lulus/terhambat, hak penguji.
+
+### Diubah
+
+- Tabel responsif mendukung pilihan baris (kotak centang di tabel dan di kartu ponsel).
+- Kolom bug terkait di detail run hanya tampil di layar lebar agar judul test case tetap terbaca.
+
 ## [0.3.1] - 2026-11-20
 
 Milestone 3 bagian API.

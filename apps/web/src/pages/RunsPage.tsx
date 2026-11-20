@@ -1,11 +1,15 @@
+import { Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { StatusBar } from '../components/charts/StatusBar'
 import { RunStatusBadge } from '../components/status/StatusBadges'
+import { ButtonLink } from '../components/ui/Button'
+import { FilterBar, SelectFilter } from '../components/ui/Filters'
 import { PageHeader } from '../components/ui/PageHeader'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
-import { useRuns } from '../hooks/queries'
-import { projectPath, useProjectCode } from '../hooks/route-state'
+import { useCan } from '../hooks/permissions'
+import { useCycles, useRuns } from '../hooks/queries'
+import { projectPath, useProjectCode, useUrlFilters } from '../hooks/route-state'
 import { formatDate, toLocale } from '../lib/format'
 
 export function RunsPage() {
@@ -13,6 +17,12 @@ export function RunsPage() {
   const locale = toLocale(i18n.resolvedLanguage)
   const code = useProjectCode()
   const runs = useRuns(code)
+  const cycles = useCycles(code)
+  const can = useCan(code)
+  const filters = useUrlFilters(['cycle'] as const)
+  const visible = (runs.data ?? []).filter(
+    (run) => !filters.values.cycle || run.cycle?.id === filters.values.cycle,
+  )
 
   return (
     <>
@@ -20,15 +30,35 @@ export function RunsPage() {
         title={t('pages.runs.title')}
         subtitle={t('pages.runs.subtitle')}
         crumbs={[{ label: code, to: projectPath(code) }, { label: t('pages.runs.title') }]}
+        actions={
+          can('run.write') && (
+            <ButtonLink to={projectPath(code, 'runs/new')} icon={Plus}>
+              {t('pages.runs.newRun')}
+            </ButtonLink>
+          )
+        }
       />
+      {(cycles.data?.length ?? 0) > 0 && (
+        <FilterBar onReset={filters.active ? filters.reset : undefined}>
+          <SelectFilter
+            label={t('fields.cycle')}
+            value={filters.values.cycle}
+            onChange={(value) => filters.setFilter('cycle', value)}
+            options={(cycles.data ?? []).map((cycle) => ({
+              value: cycle.id,
+              label: `${cycle.cycle_code} - ${cycle.title}`,
+            }))}
+          />
+        </FilterBar>
+      )}
       {runs.isPending && <LoadingState rows={3} />}
       {runs.isError && <ErrorState error={runs.error} onRetry={() => void runs.refetch()} />}
-      {runs.isSuccess && runs.data.length === 0 && (
-        <EmptyState description={t('pages.runs.empty')} />
+      {runs.isSuccess && visible.length === 0 && (
+        <EmptyState filtered={filters.active} description={t('pages.runs.empty')} />
       )}
-      {runs.isSuccess && runs.data.length > 0 && (
+      {runs.isSuccess && visible.length > 0 && (
         <ul className="space-y-4">
-          {runs.data.map((run) => (
+          {visible.map((run) => (
             <li key={run.id}>
               <Link
                 to={projectPath(code, `runs/${run.id}`)}
@@ -41,8 +71,13 @@ export function RunsPage() {
                     </span>
                     <span className="block text-lg font-semibold">{run.name}</span>
                     <span className="mt-1 block text-sm text-ink-muted">
-                      {run.cycle?.title ?? t('fields.none')} · {run.environment_name} ·{' '}
-                      {t('fields.build')} {run.build_version}
+                      {[
+                        run.cycle?.title,
+                        run.environment_name,
+                        run.build_version && `${t('fields.build')} ${run.build_version}`,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ') || t('fields.none')}
                       {run.starts_at && <> · {formatDate(run.starts_at, locale)}</>}
                     </span>
                   </span>

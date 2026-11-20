@@ -169,6 +169,11 @@
       "UAT": "UAT",
       "USER_REPORT": "Laporan pengguna",
       "OTHER": "Lainnya"
+    },
+    "cycleStatus": {
+      "PLANNED": "Direncanakan",
+      "ACTIVE": "Berjalan",
+      "COMPLETED": "Selesai"
     }
   },
   "fields": {
@@ -224,7 +229,19 @@
     "moduleCode": "Kode modul",
     "referenceDocument": "Dokumen acuan",
     "referenceVersion": "Versi dokumen",
-    "accountStatus": "Status akun"
+    "accountStatus": "Status akun",
+    "runCode": "Kode run",
+    "cycleCode": "Kode siklus",
+    "startsOn": "Tanggal mulai",
+    "endsOn": "Tanggal selesai",
+    "device": "Perangkat",
+    "os": "Sistem operasi",
+    "notes": "Catatan",
+    "reason": "Alasan",
+    "actualResult": "Hasil aktual",
+    "executionKind": "Jenis percobaan",
+    "tester": "Penguji",
+    "runCount": "Jumlah run"
   },
   "pages": {
     "login": {
@@ -294,13 +311,61 @@
     "runs": {
       "title": "Pelaksanaan UAT",
       "subtitle": "Run = kumpulan test case yang diuji pada lingkungan dan build tertentu.",
-      "empty": "Belum ada run di proyek ini."
+      "empty": "Belum ada run di proyek ini.",
+      "newRun": "Buat run"
     },
     "runDetail": {
       "casesHeading": "Test case dalam run",
       "snapshotNote": "Judul dan versi diambil dari snapshot saat test case masuk run, sehingga perubahan test case tidak mengubah hasil lama.",
       "emptyFiltered": "Tidak ada test case dengan status ini.",
-      "unassigned": "Belum ditugaskan"
+      "unassigned": "Belum ditugaskan",
+      "empty": "Run ini belum berisi test case.",
+      "start": "Mulai run",
+      "complete": "Selesaikan run",
+      "reopen": "Buka lagi",
+      "lock": "Kunci run",
+      "confirm": {
+        "ACTIVE": "Mulai run {{code}}?",
+        "COMPLETED": "Selesaikan run {{code}}?",
+        "REOPEN": "Buka lagi run {{code}}?",
+        "LOCKED": "Kunci run {{code}}?"
+      },
+      "confirmBody": {
+        "ACTIVE": "Setelah dimulai, penguji dapat mencatat hasil uji. Test case masih bisa ditambahkan.",
+        "COMPLETED": "Hasil uji tidak bisa dicatat lagi sampai run dibuka kembali.",
+        "REOPEN": "Run kembali berjalan sehingga penguji dapat melakukan uji ulang.",
+        "LOCKED": "Run yang dikunci bersifat final: hasil, daftar test case, dan penugasan tidak dapat diubah lagi. Tindakan ini tidak bisa dibatalkan."
+      },
+      "statusChanged": "Status run sekarang: {{status}}.",
+      "notice": {
+        "PLANNED": "Run belum dimulai. Tambahkan test case dan tugaskan penguji, lalu mulai run.",
+        "COMPLETED": "Run sudah selesai. Buka lagi bila perlu uji ulang, atau kunci bila hasil sudah disetujui.",
+        "LOCKED": "Run dikunci dan bersifat final."
+      },
+      "addCases": "Tambah test case",
+      "addHeading": "Tambah test case ke run",
+      "addHint": "Hanya test case berstatus Siap Uji yang bisa dimasukkan. Definisinya dibekukan sebagai snapshot.",
+      "addSearch": "Cari kode atau judul",
+      "addAssignee": "Tugaskan ke",
+      "addSubmit": "Tambahkan ({{count}})",
+      "addEmpty": "Tidak ada test case Siap Uji yang cocok.",
+      "inRun": "Sudah di run",
+      "added": "{{added}} test case ditambahkan.",
+      "addedSkipped": "{{added}} ditambahkan, {{skipped}} dilewati (sudah ada atau belum Siap Uji).",
+      "selectAll": "Pilih semua test case",
+      "selectRow": "Pilih {{code}}",
+      "selected": "{{count}} dipilih",
+      "assignApply": "Terapkan",
+      "assigned": "{{count}} test case ditugaskan ke {{name}}.",
+      "unassignedDone": "Penugasan {{count}} test case dilepas.",
+      "removeSelected": "Keluarkan dari run",
+      "removeTitle": "Keluarkan {{count}} test case dari run?",
+      "removeBody": "Test case kembali bisa dimasukkan nanti. Riwayat test case tidak terhapus.",
+      "removeBlocked": "Test case yang sudah punya hasil uji tidak bisa dikeluarkan.",
+      "removed": "{{count}} test case dikeluarkan dari run.",
+      "assigneeFilter": "Penugasan",
+      "myTasks": "Tugas saya",
+      "continueTesting": "Lanjutkan pengujian"
     },
     "bugs": {
       "title": "Daftar Bug",
@@ -406,6 +471,73 @@
       "updated": "Akun {{name}} diperbarui.",
       "forbidden": "Halaman ini hanya untuk Super Admin.",
       "empty": "Tidak ada pengguna yang cocok."
+    },
+    "cycles": {
+      "title": "Siklus Uji",
+      "subtitle": "Siklus mengelompokkan beberapa run dalam satu periode UAT.",
+      "empty": "Belum ada siklus uji di proyek ini.",
+      "newHeading": "Siklus baru",
+      "codeHint": "Huruf besar, angka, dan tanda hubung. Contoh: SIKLUS-2-2026",
+      "created": "Siklus {{code}} dibuat.",
+      "updated": "Siklus {{code}} diperbarui.",
+      "statusLabel": "Status siklus {{code}}",
+      "runs": "{{count}} run",
+      "dateOrder": "Tanggal selesai tidak boleh sebelum tanggal mulai."
+    },
+    "runForm": {
+      "newTitle": "Buat run",
+      "editTitle": "Ubah run {{code}}",
+      "codeHint": "Kosongkan agar dibuat otomatis (RUN-YYYYMMDD-N).",
+      "noCycle": "Tanpa siklus",
+      "urlHint": "Alamat situs yang diuji, diawali https://",
+      "invalidUrl": "URL harus diawali http:// atau https://",
+      "created": "Run {{code}} dibuat. Tambahkan test case lalu mulai run.",
+      "saved": "Perubahan run disimpan."
+    },
+    "execution": {
+      "scenarioTab": "Skenario",
+      "resultTab": "Catat hasil",
+      "historyTab": "Riwayat",
+      "snapshotVersion": "Snapshot versi {{version}}",
+      "newerVersion": "Test case sudah diperbarui ke versi {{current}} setelah masuk run. Halaman ini tetap memakai snapshot versi {{version}} agar hasil konsisten.",
+      "noSteps": "Langkah tidak dipecah per nomor. Ikuti teks langkah di atas.",
+      "stepLabel": "Langkah {{n}}",
+      "stepResult": "Hasil langkah {{n}}",
+      "stepActual": "Hasil aktual langkah {{n}}",
+      "stepExpected": "Diharapkan:",
+      "markAllPassed": "Tandai semua lulus",
+      "stepsMarked": "{{done}}/{{total}} langkah ditandai",
+      "resultHeading": "Catat hasil",
+      "resultLabel": "Hasil uji",
+      "actualHint": "Wajib bila gagal. Tulis apa yang terjadi, bukan yang diharapkan.",
+      "reasonHint": "Wajib bila terblokir atau dilewati.",
+      "envHeading": "Lingkungan uji",
+      "attemptNext": "Akan disimpan sebagai percobaan #{{n}}.",
+      "previous": "Percobaan sebelumnya",
+      "save": "Simpan hasil",
+      "saveNext": "Simpan & lanjut",
+      "saved": "Percobaan #{{n}} tersimpan: {{status}}.",
+      "chooseResult": "Pilih hasil uji terlebih dahulu.",
+      "prev": "Test case sebelumnya",
+      "next": "Test case berikutnya",
+      "locked": {
+        "PLANNED": "Run belum dimulai. Hasil uji bisa dicatat setelah QA Lead memulai run.",
+        "COMPLETED": "Run sudah selesai. Minta QA Lead membuka lagi run untuk uji ulang.",
+        "LOCKED": "Run dikunci. Hasil uji tidak dapat diubah."
+      },
+      "notAssigned": "Test case ini ditugaskan ke {{name}}. Anda hanya dapat mencatat hasil untuk test case yang ditugaskan kepada Anda.",
+      "notAssignedNobody": "Test case ini belum ditugaskan. Minta QA Lead menugaskannya kepada Anda.",
+      "readOnly": "Peran Anda hanya dapat melihat hasil uji.",
+      "historyHeading": "Riwayat percobaan",
+      "historyEmpty": "Belum ada percobaan.",
+      "stepResults": "Hasil per langkah",
+      "evidenceSoon": "Unggah bukti (tangkapan layar/video) tersedia di Milestone 5.",
+      "bugsHeading": "Bug terkait",
+      "bugsEmpty": "Belum ada bug terkait.",
+      "bugsSoon": "Membuat bug langsung dari hasil gagal tersedia di Milestone 4.",
+      "openEnvironment": "Buka lingkungan uji",
+      "conflict": "Hasil tidak disimpan: {{message}}",
+      "stepsPassed": "{{passed}}/{{total}} langkah lulus"
     }
   },
   "errors": {

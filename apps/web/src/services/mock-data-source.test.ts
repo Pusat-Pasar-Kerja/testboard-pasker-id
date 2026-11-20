@@ -144,3 +144,119 @@ describe('defects', () => {
     expect(details.every((d) => d.history[0]?.from_status === null)).toBe(true)
   })
 })
+
+describe('runs and executions (Milestone 3, same rules as the API)', () => {
+  const setup = () => {
+    const db = createMockDb()
+    const source = createMockDataSource({ latencyMs: 0, db })
+    const runOf = (runCode: string) => {
+      const run = db.runs.find((r) => r.run_code === runCode)
+      if (!run) throw new Error(runCode)
+      return run
+    }
+    const freshCase = (runCode: string, assignedTo?: string) => {
+      const run = runOf(runCode)
+      const rc = db.runCases.find(
+        (x) =>
+          x.runId === run.id &&
+          !db.executions.some((e) => e.runCaseId === x.id) &&
+          (assignedTo === undefined || x.assignedTo === assignedTo),
+      )
+      if (!rc) throw new Error('no fresh run case')
+      return rc
+    }
+    return { db, source, runOf, freshCase }
+  }
+
+  it('creates a PLANNED run with a generated code and enforces the lifecycle', async () => {
+    const { source } = setup()
+    const run = await source.createRun(MAIN, { name: 'Regresi M3' })
+    expect(run.status_code).toBe('PLANNED')
+    expect(run.run_code).toMatch(/^RUN-\d{8}-1$/)
+    await expect(source.changeRunStatus(MAIN, run.id, 'COMPLETED')).rejects.toMatchObject({
+      status: 409,
+    })
+    const active = await source.changeRunStatus(MAIN, run.id, 'ACTIVE')
+    expect(active.starts_at).not.toBeNull()
+  })
+
+  it('adds only READY cases and freezes a snapshot', async () => {
+    const { db, source } = setup()
+    const run = await source.createRun(MAIN, { name: 'Snapshot' })
+    const draft = db.cases.find((c) => c.case_status === 'DRAFT')
+    const ready = db.cases.find(
+      (c) => c.case_status === 'READY' && c.projectId === draft?.projectId,
+    )
+    const result = await source.addRunCases(MAIN, run.id, {
+      test_case_ids: [ready?.id ?? '', draft?.id ?? '', ready?.id ?? ''],
+    })
+    expect(result.added).toBe(1)
+    expect(result.skipped).toEqual([{ test_case_id: draft?.id, reason: 'NOT_READY' }])
+    const again = await source.addRunCases(MAIN, run.id, { test_case_ids: [ready?.id ?? ''] })
+    expect(again.skipped[0]?.reason).toBe('ALREADY_IN_RUN')
+
+    const rc = db.runCases.find((x) => x.runId === run.id)
+    if (ready) ready.title = 'Diubah setelah masuk run'
+    const detail = await source.getRunCase(MAIN, rc?.id ?? '')
+    expect(detail.snapshot.title).not.toBe('Diubah setelah masuk run')
+  })
+
+  it('records append-only attempts, requires an actual result for FAILED and replays a repeated key', async () => {
+    const { source, freshCase } = setup()
+    const rc = freshCase('RUN-S2-20261109')
+    await expect(
+      source.createExecution(MAIN, rc.id, { result_status: 'FAILED' }, 'k-0'),
+    ).rejects.toMatchObject({ status: 422 })
+
+    const first = await source.createExecution(
+      MAIN,
+      rc.id,
+      { result_status: 'FAILED', actual_result: 'Tombol tidak merespons' },
+      'k-1',
+    )
+    const replay = await source.createExecution(
+      MAIN,
+      rc.id,
+      { result_status: 'FAILED', actual_result: 'Tombol tidak merespons' },
+      'k-1',
+    )
+    expect(replay.id).toBe(first.id)
+    const retest = await source.createExecution(MAIN, rc.id, { result_status: 'PASSED' }, 'k-2')
+    expect([first.attempt_number, retest.attempt_number]).toEqual([1, 2])
+    expect([first.execution_kind, retest.execution_kind]).toEqual(['INITIAL', 'RETEST'])
+
+    const detail = await source.getRunCase(MAIN, rc.id)
+    expect(detail.latest_status).toBe('PASSED')
+    expect(detail.attempts.map((a) => a.result_status)).toEqual(['PASSED', 'FAILED'])
+  })
+
+  it('only records while ACTIVE and only for the assigned tester', async () => {
+    const { db, source, freshCase } = setup()
+    const completed = db.runCases.find(
+      (x) => x.runId === db.runs.find((r) => r.status_code === 'COMPLETED')?.id,
+    )
+    await expect(
+      source.createExecution(MAIN, completed?.id ?? '', { result_status: 'PASSED' }, 'k-3'),
+    ).rejects.toMatchObject({ status: 409 })
+
+    db.currentUserId = '3'
+    const others = freshCase('RUN-S2-20261109', '4')
+    await expect(
+      source.createExecution(MAIN, others.id, { result_status: 'PASSED' }, 'k-4'),
+    ).rejects.toMatchObject({ status: 403 })
+    const mine = freshCase('RUN-S2-20261109', '3')
+    const saved = await source.createExecution(MAIN, mine.id, { result_status: 'PASSED' }, 'k-5')
+    expect(saved.tester?.id).toBe('3')
+  })
+
+  it('refuses to remove a run case that already has results', async () => {
+    const { db, source, runOf } = setup()
+    const run = runOf('RUN-S2-20261109')
+    const tested = db.runCases.find(
+      (x) => x.runId === run.id && db.executions.some((e) => e.runCaseId === x.id),
+    )
+    const error = await source.removeRunCase(MAIN, run.id, tested?.id ?? '').catch((e) => e)
+    expect(error).toBeInstanceOf(ApiClientError)
+    expect((error as ApiClientError).status).toBe(409)
+  })
+})

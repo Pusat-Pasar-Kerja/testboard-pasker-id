@@ -192,7 +192,7 @@ try {
           r.build_version,
           r.environment_url,
           r.status_code,
-          new Date(r.starts_at),
+          r.starts_at ? new Date(r.starts_at) : null,
           r.ends_at ? new Date(r.ends_at) : null,
           u('2'),
         ],

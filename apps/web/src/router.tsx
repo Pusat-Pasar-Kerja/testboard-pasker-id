@@ -5,7 +5,9 @@ import { AdminUsersPage } from './pages/AdminUsersPage'
 import { BugDetailPage } from './pages/BugDetailPage'
 import { BugsPage } from './pages/BugsPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
+import { CyclesPage } from './pages/CyclesPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { ExecutionPage } from './pages/ExecutionPage'
 import { LoginPage } from './pages/LoginPage'
 import { MembersPage } from './pages/MembersPage'
 import { NotFoundPage } from './pages/NotFoundPage'
@@ -14,6 +16,7 @@ import { ProjectGate } from './pages/ProjectGate'
 import { ProjectSettingsPage } from './pages/ProjectSettingsPage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { RunDetailPage } from './pages/RunDetailPage'
+import { RunFormPage } from './pages/RunFormPage'
 import { RunsPage } from './pages/RunsPage'
 import { TestCaseDetailPage } from './pages/TestCaseDetailPage'
 import { TestCaseFormPage } from './pages/TestCaseFormPage'
@@ -44,10 +47,13 @@ export const routes: RouteObject[] = [
           { path: 'test-cases/:caseId', element: <TestCaseDetailPage /> },
           { path: 'test-cases/:caseId/edit', element: <TestCaseFormPage mode="edit" /> },
           { path: 'runs', element: <RunsPage /> },
+          { path: 'runs/new', element: <RunFormPage mode="create" /> },
           { path: 'runs/:runId', element: <RunDetailPage /> },
+          { path: 'runs/:runId/edit', element: <RunFormPage mode="edit" /> },
+          { path: 'runs/:runId/cases/:runCaseId', element: <ExecutionPage /> },
           { path: 'bugs', element: <BugsPage /> },
           { path: 'bugs/:bugId', element: <BugDetailPage /> },
-          { path: 'cycles', element: <ComingSoonPage feature="cycles" /> },
+          { path: 'cycles', element: <CyclesPage /> },
           { path: 'evidence', element: <ComingSoonPage feature="evidence" /> },
           { path: 'imports', element: <ComingSoonPage feature="imports" /> },
           { path: 'reports', element: <ComingSoonPage feature="reports" /> },

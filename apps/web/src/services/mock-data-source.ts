@@ -5,6 +5,16 @@ import {
   latestStatus,
   PAGINATION,
   stepsFromText,
+  canTransitionRun,
+  cycleCreateSchema,
+  cycleUpdateSchema,
+  executionCreateSchema,
+  runCreateSchema,
+  runUpdateSchema,
+  type CaseSnapshot,
+  type CycleDto,
+  type ExecutionDto,
+  type RunCaseDetail,
   testCaseCreateSchema,
   testCaseUpdateSchema,
   type AdminUserDto,
@@ -35,6 +45,7 @@ import {
 } from '../mocks/seed'
 import { ApiClientError } from './api-client'
 import type {
+  AddRunCasesResult,
   DataSource,
   DefectQuery,
   PageQuery,
@@ -133,7 +144,7 @@ export function createMockDataSource(
           run_case_id: rc.id,
           test_case_id: testCase.id,
           case_code: testCase.case_code,
-          title: testCase.title,
+          title: rc.snapshot?.title ?? testCase.title,
           module_code: moduleDto(testCase.moduleId)?.module_code ?? null,
           case_version: rc.case_version,
           assigned_to: userRef(rc.assignedTo),
@@ -341,6 +352,76 @@ export function createMockDataSource(
       fail(409, 'CONFLICT', 'role_code', 'A project must keep at least one ADMIN.')
     }
   }
+
+  // ---- Milestone 3: cycles, runs and executions (demo, in memory) -------------------
+  const conflict = (message: string): never => {
+    throw new ApiClientError(409, 'CONFLICT', message, 'mock-request')
+  }
+  const snapshotOfCase = (c: MockCase): CaseSnapshot => ({
+    case_code: c.case_code,
+    title: c.title,
+    version: c.current_version,
+    module_code: moduleDto(c.moduleId)?.module_code ?? null,
+    category: c.category || null,
+    priority_code: c.priority_code,
+    test_type_code: c.test_type_code,
+    actor_label: c.actor_label || null,
+    preconditions: c.preconditions || null,
+    test_steps_text: c.steps.map((step, i) => `${i + 1}. ${step}`).join('\n') || null,
+    steps: c.steps.map((instruction, i) => ({
+      step_number: i + 1,
+      instruction,
+      expected_result: null,
+    })),
+    expected_result: c.expected_result,
+  })
+  const runIn = (projectId: string, runId: string) =>
+    db.runs.find((r) => r.id === runId && r.projectId === projectId) ?? notFound()
+  const cycleDto = (cy: MockDb['cycles'][number]): CycleDto => ({
+    id: cy.id,
+    cycle_code: cy.cycle_code,
+    title: cy.title,
+    description: cy.description ?? null,
+    status_code: cy.status_code ?? 'ACTIVE',
+    starts_on: cy.starts_on ?? null,
+    ends_on: cy.ends_on ?? null,
+    run_count: db.runs.filter((r) => r.cycleId === cy.id).length,
+  })
+  const executionDto = (e: MockDb['executions'][number]): ExecutionDto => ({
+    id: e.id,
+    attempt_number: e.attempt_number,
+    execution_kind: e.execution_kind,
+    result_status: e.result_status,
+    actual_result: e.actual_result,
+    notes: e.notes ?? null,
+    tester: userRef(e.testerId),
+    legacy_tester_name: null,
+    tested_at: e.tested_at,
+    browser_name: e.browser_name ?? null,
+    device_name: e.device_name ?? null,
+    operating_system: e.operating_system ?? null,
+    step_results: e.step_results ?? [],
+  })
+  const assertRunEditable = (run: MockRun, allowCompleted = false) => {
+    if (run.status_code === 'LOCKED' || (run.status_code === 'COMPLETED' && !allowCompleted)) {
+      conflict(`The run is ${run.status_code.toLowerCase()} and cannot be changed.`)
+    }
+  }
+  const assertAssignee = (projectId: string, userId: string | null | undefined) => {
+    if (!userId) return
+    const member = db.projects
+      .find((p) => p.id === projectId)
+      ?.members.find((m) => m.userId === userId)
+    if (!member || !['ADMIN', 'QA_LEAD', 'TESTER'].includes(member.role) || inactive.has(userId)) {
+      fail(
+        422,
+        'VALIDATION_ERROR',
+        'assigned_to',
+        'Assignee must be an active ADMIN, QA_LEAD or TESTER member',
+      )
+    }
+  }
+  const replays = new Map<string, ExecutionDto>()
 
   return {
     kind: 'mock',
@@ -727,6 +808,263 @@ export function createMockDataSource(
           environment_url: run.environment_url,
           run_cases: runCaseRows(run),
         }
+      }),
+
+    listCycles: (code) =>
+      delay(() => {
+        const p = project(code)
+        return db.cycles.filter((cy) => cy.projectId === p.id).map(cycleDto)
+      }),
+    createCycle: (code, input) =>
+      delay(() => {
+        const p = project(code)
+        const parsed = cycleCreateSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const data = parsed.data
+        if (db.cycles.some((cy) => cy.projectId === p.id && cy.cycle_code === data.cycle_code)) {
+          fail(409, 'CONFLICT', 'cycle_code', 'Already used')
+        }
+        const cycle = {
+          id: newId(),
+          projectId: p.id,
+          cycle_code: data.cycle_code,
+          title: data.title,
+          description: data.description ?? null,
+          status_code: data.status_code,
+          starts_on: data.starts_on ?? null,
+          ends_on: data.ends_on ?? null,
+        }
+        db.cycles.push(cycle)
+        return cycleDto(cycle)
+      }),
+    updateCycle: (code, cycleId, input) =>
+      delay(() => {
+        const p = project(code)
+        const cycle =
+          db.cycles.find((cy) => cy.id === cycleId && cy.projectId === p.id) ?? notFound()
+        const parsed = cycleUpdateSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        Object.assign(
+          cycle,
+          Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => v !== undefined)),
+        )
+        return cycleDto(cycle)
+      }),
+
+    createRun: (code, input) =>
+      delay(() => {
+        const p = project(code)
+        const parsed = runCreateSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const data = parsed.data
+        const prefix = `RUN-${now().slice(0, 10).replace(/-/g, '')}-`
+        const n =
+          db.runs.filter((r) => r.projectId === p.id && r.run_code.startsWith(prefix)).length + 1
+        const runCode = data.run_code ?? `${prefix}${n}`
+        if (db.runs.some((r) => r.projectId === p.id && r.run_code === runCode)) {
+          fail(409, 'CONFLICT', 'run_code', 'Already used')
+        }
+        const run: MockRun = {
+          id: newId(),
+          projectId: p.id,
+          cycleId: data.cycle_id ?? '',
+          run_code: runCode,
+          name: data.name,
+          environment_name: data.environment_name ?? '',
+          build_version: data.build_version ?? '',
+          environment_url: data.environment_url ?? '',
+          status_code: 'PLANNED',
+          starts_at: null,
+          ends_at: null,
+        }
+        db.runs.push(run)
+        return runSummary(run)
+      }),
+    updateRun: (code, runId, input) =>
+      delay(() => {
+        const run = runIn(project(code).id, runId)
+        assertRunEditable(run, true)
+        const parsed = runUpdateSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const data = parsed.data
+        if (data.name) run.name = data.name
+        if (data.cycle_id !== undefined) run.cycleId = data.cycle_id ?? ''
+        if (data.environment_name !== undefined) run.environment_name = data.environment_name ?? ''
+        if (data.build_version !== undefined) run.build_version = data.build_version ?? ''
+        if (data.environment_url !== undefined) run.environment_url = data.environment_url ?? ''
+        return runSummary(run)
+      }),
+    changeRunStatus: (code, runId, status) =>
+      delay(() => {
+        const run = runIn(project(code).id, runId)
+        if (!canTransitionRun(run.status_code, status)) {
+          fail(409, 'CONFLICT', 'status_code', `Invalid transition ${run.status_code} -> ${status}`)
+        }
+        run.status_code = status
+        if (status === 'ACTIVE') {
+          run.starts_at ??= now()
+          run.ends_at = null
+        }
+        if (status === 'COMPLETED') run.ends_at = now()
+        return runSummary(run)
+      }),
+    addRunCases: (code, runId, input) =>
+      delay(() => {
+        const p = project(code)
+        const run = runIn(p.id, runId)
+        assertRunEditable(run)
+        assertAssignee(p.id, input.assigned_to)
+        const result: AddRunCasesResult = { added: 0, skipped: [] }
+        let order = Math.max(
+          0,
+          ...db.runCases.filter((rc) => rc.runId === runId).map((rc) => rc.sort_order),
+        )
+        for (const caseId of [...new Set(input.test_case_ids)]) {
+          const testCase = db.cases.find((c) => c.id === caseId && c.projectId === p.id)
+          if (!testCase) result.skipped.push({ test_case_id: caseId, reason: 'NOT_FOUND' })
+          else if (testCase.case_status !== 'READY')
+            result.skipped.push({ test_case_id: caseId, reason: 'NOT_READY' })
+          else if (db.runCases.some((rc) => rc.runId === runId && rc.caseId === caseId)) {
+            result.skipped.push({ test_case_id: caseId, reason: 'ALREADY_IN_RUN' })
+          } else {
+            order += 1
+            db.runCases.push({
+              id: newId(),
+              runId,
+              caseId,
+              assignedTo: input.assigned_to ?? null,
+              case_version: testCase.current_version,
+              sort_order: order,
+              snapshot: snapshotOfCase(testCase),
+            })
+            result.added += 1
+          }
+        }
+        return result
+      }),
+    removeRunCase: (code, runId, runCaseId) =>
+      delay(() => {
+        const run = runIn(project(code).id, runId)
+        assertRunEditable(run)
+        const index = db.runCases.findIndex((rc) => rc.id === runCaseId && rc.runId === runId)
+        if (index < 0) notFound()
+        if (attemptsOf(runCaseId).length > 0) {
+          conflict('This case already has test results and cannot be removed from the run.')
+        }
+        db.runCases.splice(index, 1)
+      }),
+    assignRunCases: (code, runId, input) =>
+      delay(() => {
+        const p = project(code)
+        const run = runIn(p.id, runId)
+        assertRunEditable(run, true)
+        assertAssignee(p.id, input.assigned_to)
+        let updated = 0
+        for (const rc of db.runCases) {
+          if (rc.runId === runId && input.run_case_ids.includes(rc.id)) {
+            rc.assignedTo = input.assigned_to
+            updated += 1
+          }
+        }
+        return { updated }
+      }),
+    getRunCase: (code, runCaseId) =>
+      delay((): RunCaseDetail => {
+        const p = project(code)
+        const rc = db.runCases.find((x) => x.id === runCaseId) ?? notFound()
+        const run = runIn(p.id, rc.runId)
+        const testCase = db.cases.find((c) => c.id === rc.caseId) ?? notFound()
+        const attempts = attemptsOf(rc.id).sort((a, b) => b.attempt_number - a.attempt_number)
+        const executionIds = new Set(attempts.map((e) => e.id))
+        const siblings = db.runCases
+          .filter((x) => x.runId === run.id)
+          .sort((a, b) => a.sort_order - b.sort_order)
+        const index = siblings.findIndex((x) => x.id === rc.id)
+        return {
+          run_case_id: rc.id,
+          test_case_id: testCase.id,
+          run: {
+            id: run.id,
+            run_code: run.run_code,
+            name: run.name,
+            status_code: run.status_code,
+            environment_name: run.environment_name || null,
+            build_version: run.build_version || null,
+            environment_url: run.environment_url || null,
+          },
+          case_version: rc.case_version,
+          current_case_version: testCase.current_version,
+          snapshot: rc.snapshot ?? snapshotOfCase(testCase),
+          assigned_to: userRef(rc.assignedTo),
+          latest_status: latestStatus(attempts),
+          attempts: attempts.map(executionDto),
+          linked_defects: db.defects
+            .filter((d) => d.executionIds.some((id) => executionIds.has(id)))
+            .map((d) => ({
+              id: d.id,
+              bug_code: d.bug_code,
+              title: d.title,
+              status_code: d.status_code,
+              severity_code: d.severity_code,
+            })),
+          previous_run_case_id: siblings[index - 1]?.id ?? null,
+          next_run_case_id: siblings[index + 1]?.id ?? null,
+        }
+      }),
+    createExecution: (code, runCaseId, input, idempotencyKey) =>
+      delay(() => {
+        const replayKey = `${runCaseId}:${idempotencyKey}`
+        const replay = replays.get(replayKey)
+        if (replay) return replay
+        const p = project(code)
+        const rc = db.runCases.find((x) => x.id === runCaseId) ?? notFound()
+        const run = runIn(p.id, rc.runId)
+        if (run.status_code !== 'ACTIVE')
+          conflict('Tests can only be recorded while the run is ACTIVE.')
+        const role = roleIn(p.id)
+        if (
+          !superAdmins.has(db.currentUserId) &&
+          role === 'TESTER' &&
+          rc.assignedTo !== db.currentUserId
+        ) {
+          throw new ApiClientError(
+            403,
+            'FORBIDDEN',
+            'This test case is assigned to someone else.',
+            'mock-request',
+          )
+        }
+        if (!['ADMIN', 'QA_LEAD', 'TESTER'].includes(role) && !superAdmins.has(db.currentUserId)) {
+          throw new ApiClientError(403, 'FORBIDDEN', 'Not allowed.', 'mock-request')
+        }
+        const parsed = executionCreateSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const data = parsed.data
+        const attempt = attemptsOf(runCaseId).reduce((m, e) => Math.max(m, e.attempt_number), 0) + 1
+        const execution = {
+          id: newId(),
+          runCaseId,
+          attempt_number: attempt,
+          execution_kind:
+            attempt === 1 ? ('INITIAL' as const) : (data.execution_kind ?? ('RETEST' as const)),
+          result_status: data.result_status,
+          actual_result: data.actual_result ?? null,
+          notes: data.notes ?? null,
+          testerId: db.currentUserId,
+          tested_at: now(),
+          browser_name: data.browser_name ?? null,
+          device_name: data.device_name ?? null,
+          operating_system: data.operating_system ?? null,
+          step_results: (data.step_results ?? []).map((s) => ({
+            step_number: s.step_number,
+            result_status: s.result_status,
+            actual_result: s.actual_result ?? null,
+          })),
+        }
+        db.executions.push(execution)
+        const dto = executionDto(execution)
+        replays.set(replayKey, dto)
+        return dto
       }),
 
     listDefects: (code, query: DefectQuery = {}) =>

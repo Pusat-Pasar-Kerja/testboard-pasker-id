@@ -1,7 +1,7 @@
 # ADR 0006 - Run, eksekusi, dan retest (Milestone 3)
 
 - **Status:** Diterima (20 November 2026)
-- **Dasar:** blueprint doc 02 bagian 3, doc 13 (TB-RUN-_, TB-EXEC-_, TB-DASH-001)
+- **Dasar:** blueprint doc 02 bagian 3, doc 13 (`TB-RUN-*`, `TB-EXEC-*`, `TB-DASH-001`)
 
 ## Siklus hidup run
 
