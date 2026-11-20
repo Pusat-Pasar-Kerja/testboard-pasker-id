@@ -2,6 +2,12 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.8.5] - 2026-11-20
+
+### Diperbaiki
+
+- Uji di akhir `deploy` kini dijalankan dari versi skrip yang baru saja ditarik (proses terpisah). Sebelumnya deploy yang memperbarui `ops/testboard.sh` masih memakai kode uji versi lama yang sudah dimuat ke memori. Akibatnya deploy pertama ke v0.8.3 menampilkan bug `000000` dan 3 "GAGAL" palsu, padahal semua cek langsung ke Apache lulus.
+
 ## [0.8.4] - 2026-11-20
 
 ### Dokumentasi

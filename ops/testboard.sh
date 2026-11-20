@@ -613,7 +613,9 @@ cmd_deploy() {
   release_log "$prev" "$new" "deploy"
   ok "Versi $(app_version) aktif"
 
-  if [ -n "$PUBLIC_URL" ]; then cmd_smoke "$PUBLIC_URL" || warn "Uji alamat publik gagal. JANGAN go-live sebelum diperbaiki."; fi
+  # A new process, so the checks come from the version just pulled: this running shell
+  # still holds the script as it was when the deploy started.
+  if [ -n "$PUBLIC_URL" ]; then step smoke "$PUBLIC_URL" || warn "Uji alamat gagal. JANGAN go-live sebelum diperbaiki."; fi
 }
 
 cmd_rollback() {
