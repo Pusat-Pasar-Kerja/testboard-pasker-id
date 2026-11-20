@@ -1,6 +1,7 @@
 import { FlaskConical, PlugZap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ApiHealthCard } from './components/ApiHealthCard'
+import { TestBoardLogo } from './components/brand/TestBoardLogo'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { useDataSource } from './services/use-data-source'
 
@@ -13,13 +14,7 @@ export function App() {
     <div className="min-h-dvh">
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-9" />
-            <div>
-              <p className="text-lg leading-tight font-bold">{t('app.shortTitle')}</p>
-              <p className="text-xs font-medium tracking-wide text-ink-muted">PASKER ID</p>
-            </div>
-          </div>
+          <TestBoardLogo size="md" />
           <LanguageSwitcher />
         </div>
       </header>

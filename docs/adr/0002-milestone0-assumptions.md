@@ -19,7 +19,7 @@
 
 | ID             | Pertanyaan                                                                                                                                                               | Dibutuhkan pada |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
-| DB lokal       | Docker + MySQL 8.4 / MySQL 8.4 native / MariaDB XAMPP; engine VPS (MySQL 8 atau MariaDB bawaan LAMPP?)                                                                   | Milestone 3     |
+| ~~DB lokal~~   | **Diputus:** Docker + MariaDB 10.4.32 (sama dengan VPS) - lihat ADR 0003                                                                                                 | Milestone 3     |
 | DEC-01         | Perlu Super Admin global lintas project?                                                                                                                                 | Milestone 2     |
 | DEC-02         | Cara membuat akun admin pertama (seed CLI) & tabel session                                                                                                               | Milestone 2     |
 | Import P2      | Sheet baseline Phase 2 (sheet utama vs versi "3" yang di-hide, kode case bentrok)                                                                                        | Milestone 6     |

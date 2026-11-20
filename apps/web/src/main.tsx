@@ -8,6 +8,7 @@ import { webEnv } from './lib/env'
 import { createApiClient } from './services/api-client'
 import { createHttpDataSource, createMockDataSource } from './services/data-source'
 import { DataSourceProvider } from './services/data-source-context'
+import '@fontsource-variable/inter/wght.css'
 import './styles.css'
 
 const i18n = createI18n(readStoredLocale() ?? webEnv.defaultLocale)

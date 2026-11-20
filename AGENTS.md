@@ -10,7 +10,7 @@ Baca dulu `docs/blueprint/AGENTS.md`, `docs/blueprint/README.md`, `docs/blueprin
 4. **Jangan menyambung ke database VPS produksi**, Cloudflare, atau melakukan deploy tanpa perintah eksplisit. `database/baseline/` read-only; perubahan schema hanya lewat `database/migrations/`.
 5. Satu milestone dalam satu waktu (`docs/blueprint/docs/14_ROADMAP_BACKLOG.md`). Sebelum mulai: sebutkan file yang diubah dan tes yang ditambah. Setelah selesai: `npm run check` harus lulus.
 6. Semua teks UI lewat i18n (`apps/web/src/i18n/locales/{id,en}`), tidak di-hardcode di JSX.
-7. ID BIGINT dikirim sebagai string di JSON; query MySQL wajib prepared statement dan scoped per project.
+7. ID BIGINT dikirim sebagai string di JSON; query database (MariaDB 10.4, lihat ADR 0003) wajib prepared statement dan scoped per project.
 
 ## Perintah
 

@@ -1,22 +1,34 @@
-# LOCAL development database only (never the VPS). Optional: requires Docker Desktop.
+# LOCAL development database only (never the VPS). Requires Docker Desktop.
+# Engine/version pinned to match production (VPS: 10.4.32-MariaDB). See docs/adr/0003-database-engine.md.
+#
 # Usage (from repo root):
-#   copy infra/docker/docker.env.example to infra/docker/docker.env and set local passwords, then
-#   docker compose --env-file infra/docker/docker.env -f infra/docker/docker-compose.dev.yml up -d
-# The baseline schema is imported only when the volume is first created.
+#   1. copy infra/docker/docker.env.example to infra/docker/docker.env and set local passwords
+#   2. docker compose --env-file infra/docker/docker.env -f infra/docker/docker-compose.dev.yml up -d
+# The baseline schema is imported ONLY when the data volume is first created.
 name: testboard-local
 services:
-  mysql:
-    image: mysql:8.4
+  mariadb:
+    image: mariadb:10.4.32
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Please_set_in_docker_env}
-      MYSQL_DATABASE: testboard
-      MYSQL_USER: ${MYSQL_USER:-testboard_dev}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Please_set_in_docker_env}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Please_set_in_docker_env}
+      MARIADB_DATABASE: testboard
+      MARIADB_USER: ${MARIADB_USER:-testboard_dev}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?Please_set_in_docker_env}
+      TZ: UTC
+    command:
+      - --character-set-server=utf8mb4
+      - --default-time-zone=+00:00
     ports:
       - '127.0.0.1:3307:3306'
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mariadb-data:/var/lib/mysql
       - ../../database/baseline/schema_baseline_reference.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uroot -p"$$MARIADB_ROOT_PASSWORD" --silent']
+      interval: 10s
+      timeout: 5s
+      retries: 10
 volumes:
-  mysql-data:
+  mariadb-data:

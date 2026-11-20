@@ -15,7 +15,7 @@ docs/             Blueprint + ADR keputusan
 infra/, ops/      Docker DB lokal (opsional), contoh script deploy
 ```
 
-- Produksi: Apache menyajikan hasil build `apps/web/dist`, API Node berjalan di `127.0.0.1` di balik reverse proxy, MySQL `testboard` di VPS, file bukti di storage privat di luar webroot.
+- Produksi: Apache menyajikan hasil build `apps/web/dist`, API Node berjalan di `127.0.0.1` di balik reverse proxy, database `testboard` (MariaDB 10.4.32) di VPS, file bukti di storage privat di luar webroot.
 - Prototype/demo: hanya frontend dengan data mock (`VITE_DEMO_MODE=true`), tanpa koneksi ke database produksi.
 
 ## Mulai development (Windows / macOS / Linux)
@@ -39,7 +39,7 @@ npm run dev
 | `npm run build`                                   | Build shared, API (`apps/api/dist`), web (`apps/web/dist`) |
 | `npm run check`                                   | Semua pemeriksaan di atas + format (dipakai CI)            |
 
-Database lokal baru dibutuhkan mulai Milestone 3; lihat [`database/README.md`](database/README.md). **Jangan** memakai database VPS untuk development.
+Database lokal (Docker + MariaDB 10.4.32, sama dengan VPS) baru dibutuhkan mulai Milestone 3; lihat [`database/README.md`](database/README.md) dan [ADR 0003](docs/adr/0003-database-engine.md). **Jangan** memakai database VPS untuk development.
 
 ## Versioning & branch
 

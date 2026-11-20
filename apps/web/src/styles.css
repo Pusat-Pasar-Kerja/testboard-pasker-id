@@ -1,26 +1,47 @@
 @import 'tailwindcss';
 
 /*
- * Design tokens from docs/blueprint/docs/03_UI_UX_DESIGN_SYSTEM.md.
- * These are proposed design colours, not an official institutional palette.
+ * Design tokens. Brand is aligned with the Kemnaker hub logo family (Karirhub #339AF0,
+ * Maganghub #0B60EA, Skillhub #1E40AF): one shade of blue per product, Inter typeface,
+ * #1A1A1A ink. TestBoard's own shade is indigo-blue #3347E0 (see docs/brand/README.md).
+ * Status colours stay semantic (green/red/amber) and never rely on colour alone.
  */
 @theme {
-  --color-brand-700: #0d5b4b;
-  --color-brand-600: #157563;
-  --color-brand-100: #dff2ea;
-  --color-ink: #17252b;
-  --color-ink-muted: #4f5f66;
-  --color-canvas: #f7f9f8;
+  --color-brand-50: #eef1fe;
+  --color-brand-100: #dfe4fd;
+  --color-brand-200: #c3ccfb;
+  --color-brand-300: #9dabf7;
+  --color-brand-500: #4f63ee;
+  --color-brand-600: #3347e0;
+  --color-brand-700: #2937c4;
+  --color-brand-800: #232e9c;
+  --color-brand-900: #1f2a7c;
+  --color-brand-mark: #3347e0;
+
+  --color-logo-ink: #1a1a1a;
+  --color-logo-muted: #808080;
+
+  --color-ink: #1a1a1a;
+  --color-ink-muted: #5b6170;
+  --color-canvas: #f6f7f9;
   --color-surface: #ffffff;
-  --color-line: #dae3df;
+  --color-line: #e2e5eb;
+  --color-line-strong: #c9ced8;
+
   --color-danger: #b42318;
-  --color-warning: #a46100;
-  --color-success: #207651;
-  --color-info: #2162a5;
+  --color-danger-soft: #fef0ee;
+  --color-warning: #9a5b00;
+  --color-warning-soft: #fff6e5;
+  --color-success: #1f7a4d;
+  --color-success-soft: #eaf7f0;
+  --color-info: #0369a1;
+  --color-info-soft: #e8f4fb;
+  --color-neutral: #5b6170;
+  --color-neutral-soft: #f0f2f5;
 
   --font-sans:
-    Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-    sans-serif;
+    'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
 }
 
 @layer base {
@@ -29,7 +50,7 @@
   }
 
   body {
-    @apply bg-canvas text-ink font-sans antialiased;
+    @apply bg-canvas font-sans text-ink antialiased;
   }
 
   :focus-visible {
