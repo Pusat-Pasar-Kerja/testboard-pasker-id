@@ -213,6 +213,31 @@
       "CREATE": "Dibuat",
       "UPDATE": "Diperbarui",
       "UNCHANGED": "Tidak berubah"
+    },
+    "auditEntity": {
+      "test_case": "Test case",
+      "test_run": "Run",
+      "test_execution": "Hasil uji",
+      "test_cycle": "Siklus",
+      "test_suite": "Suite",
+      "module": "Modul",
+      "defect": "Bug",
+      "defect_comment": "Komentar bug",
+      "file": "File bukti",
+      "import_job": "Impor",
+      "report": "Laporan",
+      "project": "Proyek",
+      "project_member": "Anggota"
+    },
+    "auditAction": {
+      "CREATE": "Dibuat",
+      "UPDATE": "Diubah",
+      "STATUS_CHANGE": "Status berubah",
+      "ARCHIVE": "Diarsipkan",
+      "DELETE": "Dihapus",
+      "IMPORT": "Diimpor",
+      "EXPORT": "Diekspor",
+      "DOWNLOAD": "Diunduh"
     }
   },
   "fields": {
@@ -774,6 +799,106 @@
       "noDataRows": "Tidak ada baris data di bawah header. Pastikan nomor baris header dan sheet yang dipilih sudah benar.",
       "applyRun": "Hasil uji lama masuk ke run baru \"{{name}}\" berstatus Selesai.",
       "summaryInvalid": "{{count}} tidak valid"
+    },
+    "reports": {
+      "title": "Laporan",
+      "subtitle": "Ringkasan hasil UAT dan bug, ekspor data, dan log aktivitas proyek.",
+      "tabs": {
+        "overview": "Ringkasan",
+        "activity": "Log aktivitas"
+      },
+      "filters": {
+        "cycle": "Siklus",
+        "allCycles": "Semua siklus",
+        "module": "Modul",
+        "allModules": "Semua modul",
+        "from": "Dari tanggal",
+        "to": "Sampai tanggal",
+        "rangeInvalid": "Tanggal akhir lebih awal dari tanggal awal; filter tanggal akhir diabaikan."
+      },
+      "howTitle": "Cara menghitung",
+      "how1": "Satu test case dalam run dihitung sekali, memakai percobaan terakhirnya. Uji ulang tidak dihitung dua kali.",
+      "how2": "Tingkat lulus = Berhasil Diuji dibagi semua test case dalam run. Belum Diuji, Terhambat, dan Dilewati tidak dihitung lulus.",
+      "how3": "Periode memakai hari kalender WIB: run yang masa berjalannya beririsan dengan periode, percobaan yang diuji, dan bug yang dilaporkan pada periode itu.",
+      "kpi": {
+        "runCases": "Test case dalam run",
+        "executed": "Sudah dieksekusi",
+        "passRate": "Tingkat lulus",
+        "attempts": "Percobaan",
+        "retests": "{{count}} uji ulang",
+        "openBugs": "Bug terbuka",
+        "ofBugs": "dari {{count}} bug"
+      },
+      "statusHeading": "Status terbaru",
+      "byModule": "Per modul",
+      "byRun": "Per run",
+      "byTester": "Per penguji",
+      "byTesterNote": "Semua percobaan yang dicatat penguji, termasuk uji ulang.",
+      "defectsHeading": "Bug terbuka per tingkat keparahan",
+      "defectsSummary": "{{open}} terbuka dari {{total}} bug pada filter ini.",
+      "col": {
+        "module": "Modul",
+        "runCases": "Test case",
+        "status": "Status",
+        "passRate": "Lulus",
+        "run": "Run",
+        "period": "Periode",
+        "tester": "Penguji",
+        "attempts": "Percobaan",
+        "retests": "Uji ulang",
+        "lastTested": "Terakhir diuji"
+      },
+      "noModule": "Tanpa modul",
+      "legacyTester": "dari impor",
+      "empty": "Belum ada data untuk filter ini.",
+      "export": {
+        "heading": "Ekspor data",
+        "description": "Filter di atas ikut dipakai. Waktu ditulis dalam WIB.",
+        "dataset": "Data",
+        "datasets": {
+          "results": {
+            "title": "Hasil terbaru per test case",
+            "hint": "Satu baris per test case dalam run: status terakhir, penguji, dan bug terkait."
+          },
+          "attempts": {
+            "title": "Semua percobaan",
+            "hint": "Setiap percobaan termasuk uji ulang, dengan hasil, penguji, dan waktu uji."
+          },
+          "defects": {
+            "title": "Daftar bug",
+            "hint": "Bug yang dilaporkan pada filter ini, dengan test case dan run terkait."
+          },
+          "cases": {
+            "title": "Pustaka test case",
+            "hint": "Format sama dengan template impor. Hanya filter modul yang berlaku."
+          }
+        },
+        "format": "Format",
+        "formats": {
+          "csv": "CSV",
+          "xlsx": "Excel (.xlsx)"
+        },
+        "language": "Bahasa label",
+        "languages": {
+          "id": "Indonesia",
+          "en": "English"
+        },
+        "download": "Unduh",
+        "downloaded": "Berkas {{name}} diunduh.",
+        "tooLarge": "Data terlalu banyak (lebih dari 50.000 baris). Persempit filternya.",
+        "leadsOnly": "Ekspor data hanya bisa dilakukan oleh QA Lead atau Admin proyek."
+      },
+      "activity": {
+        "heading": "Log aktivitas",
+        "description": "Perubahan di proyek ini tercatat otomatis dan tidak bisa diubah. Hanya terlihat oleh QA Lead dan Admin.",
+        "entity": "Jenis data",
+        "action": "Aksi",
+        "actor": "Pengguna",
+        "system": "Sistem (otomatis)",
+        "changes": "{{count}} field",
+        "noChanges": "Tanpa detail field.",
+        "empty": "Belum ada aktivitas untuk filter ini."
+      }
     }
   },
   "errors": {

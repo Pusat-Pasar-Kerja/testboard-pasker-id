@@ -51,13 +51,6 @@ describe('routing & shell', () => {
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
-
-  it('shows a coming-soon page for features of later milestones', async () => {
-    renderRoute(`${P}/reports`)
-    expect(
-      await screen.findByText('Fitur Laporan dibangun pada Milestone 7. Lihat roadmap di README.'),
-    ).toBeInTheDocument()
-  })
 })
 
 describe('dashboard', () => {

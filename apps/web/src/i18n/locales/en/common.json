@@ -213,6 +213,31 @@
       "CREATE": "Created",
       "UPDATE": "Updated",
       "UNCHANGED": "Unchanged"
+    },
+    "auditEntity": {
+      "test_case": "Test case",
+      "test_run": "Run",
+      "test_execution": "Test result",
+      "test_cycle": "Cycle",
+      "test_suite": "Suite",
+      "module": "Module",
+      "defect": "Bug",
+      "defect_comment": "Bug comment",
+      "file": "Evidence file",
+      "import_job": "Import",
+      "report": "Report",
+      "project": "Project",
+      "project_member": "Member"
+    },
+    "auditAction": {
+      "CREATE": "Created",
+      "UPDATE": "Updated",
+      "STATUS_CHANGE": "Status changed",
+      "ARCHIVE": "Archived",
+      "DELETE": "Deleted",
+      "IMPORT": "Imported",
+      "EXPORT": "Exported",
+      "DOWNLOAD": "Downloaded"
     }
   },
   "fields": {
@@ -774,6 +799,106 @@
       "noDataRows": "No data rows below the header. Check the header row number and the selected sheets.",
       "applyRun": "Old results go into a new completed run \"{{name}}\".",
       "summaryInvalid": "{{count}} invalid"
+    },
+    "reports": {
+      "title": "Reports",
+      "subtitle": "UAT results and bugs at a glance, data exports and the project activity log.",
+      "tabs": {
+        "overview": "Overview",
+        "activity": "Activity log"
+      },
+      "filters": {
+        "cycle": "Cycle",
+        "allCycles": "All cycles",
+        "module": "Module",
+        "allModules": "All modules",
+        "from": "From date",
+        "to": "To date",
+        "rangeInvalid": "The end date is before the start date; the end date is ignored."
+      },
+      "howTitle": "How numbers are counted",
+      "how1": "Each test case in a run counts once, by its latest attempt. Retests are not counted twice.",
+      "how2": "Pass rate = Passed divided by all test cases in the runs. Not Tested, Blocked and Skipped never count as passed.",
+      "how3": "Periods are calendar days in WIB (UTC+7): runs whose period overlaps, attempts tested and bugs reported within the range.",
+      "kpi": {
+        "runCases": "Test cases in runs",
+        "executed": "Executed",
+        "passRate": "Pass rate",
+        "attempts": "Attempts",
+        "retests": "{{count}} retests",
+        "openBugs": "Open bugs",
+        "ofBugs": "of {{count}} bugs"
+      },
+      "statusHeading": "Latest status",
+      "byModule": "By module",
+      "byRun": "By run",
+      "byTester": "By tester",
+      "byTesterNote": "Every attempt a tester recorded, retests included.",
+      "defectsHeading": "Open bugs by severity",
+      "defectsSummary": "{{open}} open of {{total}} bugs for these filters.",
+      "col": {
+        "module": "Module",
+        "runCases": "Test cases",
+        "status": "Status",
+        "passRate": "Passed",
+        "run": "Run",
+        "period": "Period",
+        "tester": "Tester",
+        "attempts": "Attempts",
+        "retests": "Retests",
+        "lastTested": "Last tested"
+      },
+      "noModule": "No module",
+      "legacyTester": "imported",
+      "empty": "No data for these filters yet.",
+      "export": {
+        "heading": "Export data",
+        "description": "The filters above apply. Times are in WIB.",
+        "dataset": "Data",
+        "datasets": {
+          "results": {
+            "title": "Latest result per test case",
+            "hint": "One row per test case in a run: latest status, tester and linked bugs."
+          },
+          "attempts": {
+            "title": "All attempts",
+            "hint": "Every attempt including retests, with result, tester and test time."
+          },
+          "defects": {
+            "title": "Bug list",
+            "hint": "Bugs reported for these filters, with linked test cases and runs."
+          },
+          "cases": {
+            "title": "Test case library",
+            "hint": "Same format as the import template. Only the module filter applies."
+          }
+        },
+        "format": "Format",
+        "formats": {
+          "csv": "CSV",
+          "xlsx": "Excel (.xlsx)"
+        },
+        "language": "Label language",
+        "languages": {
+          "id": "Indonesia",
+          "en": "English"
+        },
+        "download": "Download",
+        "downloaded": "{{name}} downloaded.",
+        "tooLarge": "Too much data (more than 50,000 rows). Narrow the filters.",
+        "leadsOnly": "Only QA Leads or project Admins can export data."
+      },
+      "activity": {
+        "heading": "Activity log",
+        "description": "Changes in this project are recorded automatically and cannot be edited. Visible to QA Leads and Admins only.",
+        "entity": "Data type",
+        "action": "Action",
+        "actor": "User",
+        "system": "System (automatic)",
+        "changes": "{{count}} fields",
+        "noChanges": "No field details.",
+        "empty": "No activity for these filters yet."
+      }
     }
   },
   "errors": {

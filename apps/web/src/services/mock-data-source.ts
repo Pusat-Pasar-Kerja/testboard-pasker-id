@@ -1,4 +1,16 @@
 import {
+  auditFilterSchema,
+  buildXlsx,
+  CSV_MIME,
+  REPORT_SHEET_NAMES,
+  reportExportSchema,
+  reportFileName,
+  reportFilterSchema,
+  reportTable,
+  toCsv,
+  wibDayEnd,
+  wibDayStart,
+  XLSX_MIME,
   aiImportSchema,
   CASE_IMPORT_FIELDS,
   finishPlan,
@@ -92,6 +104,12 @@ import {
   type MockRunCase,
 } from '../mocks/seed'
 import { ApiClientError } from './api-client'
+import {
+  mockAuditLog,
+  mockReportOverview,
+  mockReportRecords,
+  type MockAuditEntry,
+} from './mock-reports'
 import type {
   AddRunCasesResult,
   DataSource,
@@ -147,6 +165,8 @@ export function createMockDataSource(
 ): DataSource {
   const latencyMs = options.latencyMs ?? 200
   const db = options.db ?? createMockDb()
+  /** Demo-session audit entries (exports); the rest of the log is derived from the data. */
+  const sessionAudit: MockAuditEntry[] = []
   const delay = <T>(value: () => T): Promise<T> =>
     new Promise((resolve, reject) =>
       setTimeout(() => {
@@ -2174,5 +2194,72 @@ export function createMockDataSource(
       }),
 
     importUrl: () => '',
+
+    // ---- Milestone 7: reports (same scope rules as the API) -------------------------
+    getReportOverview: (code, filter) =>
+      delay(() => {
+        const p = project(code)
+        const parsed = reportFilterSchema.safeParse(filter)
+        if (!parsed.success) validationError(parsed.error.issues)
+        return mockReportOverview(db, p, parsed.data)
+      }),
+
+    exportReport: (code, query) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'report.export')
+        const parsed = reportExportSchema.safeParse(query)
+        if (!parsed.success) validationError(parsed.error.issues)
+        const { dataset, format, locale, ...filter } = parsed.data
+        const records = mockReportRecords(db, p.id, dataset, filter)
+        const table = reportTable(dataset, records, locale)
+        sessionAudit.push({
+          id: `export-${sessionAudit.length + 1}`,
+          projectId: p.id,
+          actorId: db.currentUserId,
+          entity_type: 'report',
+          entity_id: p.id,
+          action_code: 'EXPORT',
+          newValues: { dataset, format, filters: filter, rows: records.length },
+          at: now(),
+        })
+        const blob =
+          format === 'csv'
+            ? new Blob([toCsv(table.header, table.rows)], { type: CSV_MIME })
+            : new Blob(
+                [
+                  buildXlsx([
+                    {
+                      name: REPORT_SHEET_NAMES[dataset][locale],
+                      header: table.header,
+                      rows: table.rows,
+                    },
+                  ]),
+                ],
+                { type: XLSX_MIME },
+              )
+        return { blob, filename: reportFileName(p.project_code, dataset, format) }
+      }),
+
+    listAuditLogs: (code, query = {}) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'audit.read')
+        const { page, page_size, ...rest } = query
+        const parsed = auditFilterSchema.safeParse(rest)
+        if (!parsed.success) validationError(parsed.error.issues)
+        const f = parsed.data
+        const start = f.from ? wibDayStart(f.from).toISOString() : null
+        const end = f.to ? wibDayEnd(f.to).toISOString() : null
+        const entries = mockAuditLog(db, p.id, sessionAudit).filter(
+          (e) =>
+            (!f.entity_type || e.entity_type === f.entity_type) &&
+            (!f.action || e.action_code === f.action) &&
+            (!f.actor_id || e.actor?.id === f.actor_id) &&
+            (!start || e.created_at >= start) &&
+            (!end || e.created_at < end),
+        )
+        return paginate(entries, { page, page_size })
+      }),
   }
 }

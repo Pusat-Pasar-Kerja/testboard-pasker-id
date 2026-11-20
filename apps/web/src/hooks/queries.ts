@@ -1,5 +1,7 @@
+import type { ReportFilter } from '@testboard/shared'
 import { keepPreviousData, useQuery, type QueryClient } from '@tanstack/react-query'
 import type {
+  AuditQuery,
   DefectQuery,
   FileQuery,
   ImportRowQuery,
@@ -158,6 +160,25 @@ export function useFiles(code: string, query: FileQuery) {
     queryKey: ['files', code, query],
     queryFn: () => ds.listFiles(code, query),
     placeholderData: keepPreviousData,
+  })
+}
+
+export function useReportOverview(code: string, filter: ReportFilter) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['report-overview', code, filter],
+    queryFn: () => ds.getReportOverview(code, filter),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useAuditLogs(code: string, query: AuditQuery, enabled = true) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['audit-logs', code, query],
+    queryFn: () => ds.listAuditLogs(code, query),
+    placeholderData: keepPreviousData,
+    enabled,
   })
 }
 

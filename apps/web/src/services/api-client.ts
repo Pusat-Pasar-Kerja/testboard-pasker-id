@@ -100,18 +100,36 @@ export function createApiClient(
       throw new ApiClientError(0, 'INTERNAL_ERROR', 'Network error', null)
     }
 
-    if (!response.ok) {
-      const parsed = parseErrorBody(await response.json().catch(() => null))
-      throw new ApiClientError(
-        response.status,
-        parsed?.code ?? 'INTERNAL_ERROR',
-        parsed?.message ?? response.statusText,
-        parsed?.request_id ?? response.headers.get('X-Request-Id'),
-        parsed?.details ?? [],
-      )
-    }
+    if (!response.ok) throw await errorOf(response)
     if (response.status === 204) return undefined as T
     return (await response.json()) as T
+  }
+
+  async function errorOf(response: Response): Promise<ApiClientError> {
+    const parsed = parseErrorBody(await response.json().catch(() => null))
+    return new ApiClientError(
+      response.status,
+      parsed?.code ?? 'INTERNAL_ERROR',
+      parsed?.message ?? response.statusText,
+      parsed?.request_id ?? response.headers.get('X-Request-Id'),
+      parsed?.details ?? [],
+    )
+  }
+
+  /** GET a file (exports): the bytes plus the server's suggested file name. */
+  async function download(path: string): Promise<{ blob: Blob; filename: string | null }> {
+    let response: Response
+    try {
+      response = await fetchImpl(`${baseUrl}${path}`, { credentials: 'same-origin' })
+    } catch {
+      throw new ApiClientError(0, 'INTERNAL_ERROR', 'Network error', null)
+    }
+    if (!response.ok) throw await errorOf(response)
+    const disposition = response.headers.get('Content-Disposition') ?? ''
+    return {
+      blob: await response.blob(),
+      filename: /filename="([^"]+)"/.exec(disposition)?.[1] ?? null,
+    }
   }
 
   /**
@@ -166,6 +184,7 @@ export function createApiClient(
     /** Absolute path for authorized file streams (img src, download links). */
     url: (path: string) => `${baseUrl}${path}`,
     upload,
+    download,
     get: <T>(path: string) => request<T>('GET', path),
     post: <T>(path: string, body: unknown = {}, headers?: Record<string, string>) =>
       request<T>('POST', path, body, headers),

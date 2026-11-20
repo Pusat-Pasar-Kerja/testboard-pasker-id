@@ -1,4 +1,9 @@
 import type {
+  AuditFilter,
+  AuditLogEntry,
+  ReportExportQuery,
+  ReportFilter,
+  ReportOverview,
   ImportConfigInput,
   ImportJobDto,
   ImportRowDto,
@@ -340,6 +345,15 @@ export interface DataSource {
   /** Authorized URLs: the formula-safe error CSV, or an embedded workbook image. */
   importUrl(projectCode: string, jobId: string, what: 'errors' | { image: string }): string
 
+  // Milestone 7: reports and activity log
+  getReportOverview(projectCode: string, filter: ReportFilter): Promise<ReportOverview>
+  /** The finished CSV/XLSX file (fetched, so errors such as "too many rows" can be shown). */
+  exportReport(
+    projectCode: string,
+    query: ReportExportQuery,
+  ): Promise<{ blob: Blob; filename: string }>
+  listAuditLogs(projectCode: string, query?: AuditQuery): Promise<Paginated<AuditLogEntry>>
+
   // Super Admin (ADR 0004)
   listUsers(q?: string): Promise<AdminUserDto[]>
   createUser(
@@ -350,6 +364,8 @@ export interface DataSource {
     input: { display_name?: string; is_active?: boolean; is_super_admin?: boolean },
   ): Promise<AdminUserDto>
 }
+
+export type AuditQuery = AuditFilter & PageQuery
 
 function toQueryString(query: object = {}): string {
   const params = new URLSearchParams()
@@ -481,6 +497,17 @@ export function createHttpDataSource(client: ApiClient): DataSource {
           ? `${p(code)}/imports/${seg(id)}/errors.csv`
           : `${p(code)}/imports/${seg(id)}/images/${seg(what.image)}`,
       ),
+
+    getReportOverview: (code, filter) =>
+      client.get(`${p(code)}/reports/overview${toQueryString(filter)}`),
+    exportReport: async (code, query) => {
+      const file = await client.download(`${p(code)}/reports/export${toQueryString(query)}`)
+      return {
+        blob: file.blob,
+        filename: file.filename ?? `testboard-${code}-${query.dataset}.${query.format}`,
+      }
+    },
+    listAuditLogs: (code, query = {}) => client.get(`${p(code)}/audit-logs${toQueryString(query)}`),
 
     listUsers: (q) => client.get(`/admin/users${toQueryString({ q })}`),
     createUser: (input) => client.post('/admin/users', input),

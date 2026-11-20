@@ -81,13 +81,13 @@ Repo ini **publik**. Jangan commit `.env`, kredensial, workbook UAT asli, screen
 
 ## Roadmap
 
-| Milestone | Isi                                                                       | Status             |
-| --------- | ------------------------------------------------------------------------- | ------------------ |
-| M0        | Repo, tooling, healthcheck API, adaptor mock, format error                | Selesai (`v0.1.0`) |
-| M1        | Design system, AppShell, layar prototype dengan data mock, bilingual      | Selesai (`v0.2.0`) |
-| M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi | Selesai (`v0.3.0`) |
-| M3        | Cycle, run, execution append-only, dashboard latest status                | Selesai (`v0.4.0`) |
-| M4        | Bug tracking + workflow status + riwayat                                  | Selesai (`v0.5.0`) |
-| M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             | Selesai (`v0.6.0`) |
-| M6        | Import XLSX/CSV/JSON (legacy & AI)                                        | Selesai (`v0.7.0`) |
-| M7        | Laporan, hardening, deployment VPS                                        |                    |
+| Milestone | Isi                                                                       | Status                                           |
+| --------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
+| M0        | Repo, tooling, healthcheck API, adaptor mock, format error                | Selesai (`v0.1.0`)                               |
+| M1        | Design system, AppShell, layar prototype dengan data mock, bilingual      | Selesai (`v0.2.0`)                               |
+| M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi | Selesai (`v0.3.0`)                               |
+| M3        | Cycle, run, execution append-only, dashboard latest status                | Selesai (`v0.4.0`)                               |
+| M4        | Bug tracking + workflow status + riwayat                                  | Selesai (`v0.5.0`)                               |
+| M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             | Selesai (`v0.6.0`)                               |
+| M6        | Import XLSX/CSV/JSON (legacy & AI)                                        | Selesai (`v0.7.0`)                               |
+| M7        | Laporan, hardening, deployment VPS                                        | Selesai di repo (`v0.8.0`); go-live VPS menunggu |

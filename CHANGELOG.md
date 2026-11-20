@@ -2,6 +2,27 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.8.0] - 2026-11-20
+
+**Milestone 7 selesai di repo**: halaman Laporan (ringkasan, ekspor, log aktivitas), pengamanan produksi, retensi data, serta paket deploy VPS tanpa sudo. Go-live di VPS menunggu langkah di `docs/deploy/vps-deploy.md` dan persetujuan rilis ke `main`.
+
+### Ditambahkan
+
+- Halaman **Laporan**, tab Ringkasan:
+  - Filter siklus, run, modul, dan periode (WIB), disimpan di URL.
+  - Penjelasan "Cara menghitung", lalu angka utama: test case dalam run, sudah dieksekusi, tingkat lulus, percobaan dan uji ulang, bug terbuka.
+  - Bilah status terbaru dan tabel per modul, per run, dan per penguji. Penguji dari impor lama diberi tanda "dari impor".
+  - Bug terbuka per tingkat keparahan.
+- **Ekspor data** (QA Lead/Admin): hasil terbaru, semua percobaan, daftar bug, atau pustaka test case dalam CSV atau Excel (.xlsx), dengan label bahasa Indonesia atau Inggris. Pesan yang jelas bila datanya terlalu banyak.
+- Tab **Log aktivitas** (QA Lead/Admin): siapa mengubah apa dan kapan, dengan filter jenis data, aksi, pengguna, dan tanggal, serta rincian field yang berubah. Penghapusan otomatis tercatat sebagai "Sistem".
+- Mode demo menghitung laporan dengan aturan yang sama seperti API dan bisa mengekspor CSV/XLSX langsung di browser.
+- Tes: alur UI laporan (filter, ekspor CSV/XLSX, log aktivitas, akses tester), serta label ekspor yang wajib sama dengan label di aplikasi.
+
+### Diubah
+
+- Menu Laporan tidak lagi bertanda "Segera"; halaman "segera hadir" dihapus karena semua fitur roadmap sudah dibangun.
+- Garis bawah tab digambar tanpa margin negatif, sehingga scrollbar vertikal kecil di samping tab hilang di semua halaman bertab.
+
 ## [0.7.3] - 2026-11-20
 
 Milestone 7 bagian 3: paket deploy VPS tanpa sudo, sesuai keputusan pemilik proyek (ADR 0010).

@@ -1,6 +1,6 @@
 {
   "name": "@testboard/api",
-  "version": "0.7.3",
+  "version": "0.8.0",
   "private": true,
   "description": "TestBoard PASKER ID backend API (Hono + Node.js)",
   "type": "module",

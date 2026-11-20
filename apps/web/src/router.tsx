@@ -5,7 +5,7 @@ import { AdminUsersPage } from './pages/AdminUsersPage'
 import { BugDetailPage } from './pages/BugDetailPage'
 import { BugFormPage } from './pages/BugFormPage'
 import { BugsPage } from './pages/BugsPage'
-import { ComingSoonPage } from './pages/ComingSoonPage'
+import { ReportsPage } from './pages/ReportsPage'
 import { CyclesPage } from './pages/CyclesPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { EvidencePage } from './pages/EvidencePage'
@@ -63,7 +63,7 @@ export const routes: RouteObject[] = [
           { path: 'evidence', element: <EvidencePage /> },
           { path: 'imports', element: <ImportsPage /> },
           { path: 'imports/:jobId', element: <ImportJobPage /> },
-          { path: 'reports', element: <ComingSoonPage feature="reports" /> },
+          { path: 'reports', element: <ReportsPage /> },
           { path: 'members', element: <MembersPage /> },
           { path: 'settings', element: <ProjectSettingsPage /> },
           { path: '*', element: <NotFoundPage /> },

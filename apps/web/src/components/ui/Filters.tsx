@@ -116,3 +116,36 @@ export function SelectFilter({
     </div>
   )
 }
+
+/** Calendar day filter (YYYY-MM-DD, interpreted as WIB by the API). */
+export function DateFilter({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  min?: string
+  max?: string
+}) {
+  const id = useId()
+  return (
+    <div className="w-[calc(50%-0.375rem)] min-w-36 sm:w-44">
+      <label htmlFor={id} className="mb-1 block text-xs font-medium text-ink-muted">
+        {label}
+      </label>
+      <input
+        id={id}
+        type="date"
+        value={value}
+        min={min || undefined}
+        max={max || undefined}
+        onChange={(event) => onChange(event.target.value)}
+        className={control}
+      />
+    </div>
+  )
+}

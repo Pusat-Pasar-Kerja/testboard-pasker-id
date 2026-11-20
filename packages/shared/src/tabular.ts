@@ -167,7 +167,7 @@ export interface ZipOptions {
 export function buildZip(
   entries: { name: string; data: Uint8Array }[],
   options: ZipOptions = {},
-): Uint8Array {
+): Uint8Array<ArrayBuffer> {
   const date = options.date ?? new Date()
   const dosTime = (date.getHours() << 11) | (date.getMinutes() << 5) | (date.getSeconds() >> 1)
   const dosDate =
@@ -239,7 +239,10 @@ export function buildZip(
 }
 
 /** XLSX workbook with one worksheet per sheet: bold frozen header row and auto filter. */
-export function buildXlsx(sheets: TabularSheet[], options: ZipOptions = {}): Uint8Array {
+export function buildXlsx(
+  sheets: TabularSheet[],
+  options: ZipOptions = {},
+): Uint8Array<ArrayBuffer> {
   const taken = new Set<string>()
   const named = sheets.map((sheet) => ({ ...sheet, name: safeSheetName(sheet.name, taken) }))
   const text = (s: string) => encoder.encode(s)
