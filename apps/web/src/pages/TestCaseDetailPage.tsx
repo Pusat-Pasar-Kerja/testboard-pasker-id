@@ -12,6 +12,7 @@ import { projectPath, useProjectCode } from '../hooks/route-state'
 import { formatDateTime, toLocale } from '../lib/format'
 import { ApiClientError } from '../services/api-client'
 import { NotFoundPage } from './NotFoundPage'
+import { TestCaseActions } from './TestCaseActions'
 
 export function TestCaseDetailPage() {
   const { t, i18n } = useTranslation()
@@ -48,7 +49,14 @@ export function TestCaseDetailPage() {
             <Badge tone="muted" label={`${t('fields.version')} ${c.current_version}`} />
           </>
         }
+        actions={<TestCaseActions code={code} testCase={c} />}
       />
+
+      {c.case_status === 'ARCHIVED' && (
+        <p className="mb-4 rounded-lg bg-neutral-soft p-3 text-sm text-ink-muted">
+          {t('pages.caseDetail.archivedNotice')}
+        </p>
+      )}
 
       <Tabs
         label={c.case_code}

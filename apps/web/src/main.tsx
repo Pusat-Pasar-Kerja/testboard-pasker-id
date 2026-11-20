@@ -5,6 +5,7 @@ import { I18nextProvider } from 'react-i18next'
 import { RouterProvider } from 'react-router'
 import { createI18n, readStoredLocale } from './i18n'
 import { webEnv } from './lib/env'
+import { ToastProvider } from './components/ui/Toast'
 import { createAppRouter } from './router'
 import { createApiClient } from './services/api-client'
 import { createHttpDataSource } from './services/data-source'
@@ -30,7 +31,9 @@ createRoot(rootElement).render(
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
         <DataSourceProvider value={dataSource}>
-          <RouterProvider router={router} />
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
         </DataSourceProvider>
       </QueryClientProvider>
     </I18nextProvider>

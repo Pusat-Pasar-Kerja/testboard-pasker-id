@@ -4,9 +4,10 @@ import { useDataSource } from '../services/use-data-source'
 
 /** React Query hooks over the DataSource seam (mock or http). */
 
+/** null = not signed in (http mode). The mock always has a demo user. */
 export function useCurrentUser() {
   const ds = useDataSource()
-  return useQuery({ queryKey: ['me'], queryFn: () => ds.getCurrentUser() })
+  return useQuery({ queryKey: ['me'], queryFn: () => ds.getCurrentUser(), staleTime: 60_000 })
 }
 
 export function useProjects() {
@@ -22,6 +23,16 @@ export function useProject(code: string) {
 export function useModules(code: string) {
   const ds = useDataSource()
   return useQuery({ queryKey: ['modules', code], queryFn: () => ds.listModules(code) })
+}
+
+export function useSuites(code: string) {
+  const ds = useDataSource()
+  return useQuery({ queryKey: ['suites', code], queryFn: () => ds.listSuites(code) })
+}
+
+export function useMembers(code: string) {
+  const ds = useDataSource()
+  return useQuery({ queryKey: ['members', code], queryFn: () => ds.listMembers(code) })
 }
 
 export function useDashboard(code: string, runId?: string) {
@@ -43,9 +54,13 @@ export function useTestCases(code: string, query: TestCaseQuery) {
   })
 }
 
-export function useTestCase(code: string, id: string) {
+export function useTestCase(code: string, id: string, enabled = true) {
   const ds = useDataSource()
-  return useQuery({ queryKey: ['test-case', code, id], queryFn: () => ds.getTestCase(code, id) })
+  return useQuery({
+    queryKey: ['test-case', code, id],
+    queryFn: () => ds.getTestCase(code, id),
+    enabled,
+  })
 }
 
 export function useRuns(code: string) {
@@ -70,4 +85,14 @@ export function useDefects(code: string, query: DefectQuery) {
 export function useDefect(code: string, id: string) {
   const ds = useDataSource()
   return useQuery({ queryKey: ['defect', code, id], queryFn: () => ds.getDefect(code, id) })
+}
+
+export function useAdminUsers(q: string, enabled = true) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['admin-users', q],
+    queryFn: () => ds.listUsers(q || undefined),
+    enabled,
+    placeholderData: keepPreviousData,
+  })
 }

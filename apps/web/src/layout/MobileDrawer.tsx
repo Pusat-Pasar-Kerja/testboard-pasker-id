@@ -1,8 +1,7 @@
 import { X } from 'lucide-react'
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-
-const FOCUSABLE = 'a[href], button:not([disabled]), select, input, [tabindex]:not([tabindex="-1"])'
+import { useFocusTrap } from '../hooks/use-focus-trap'
 
 /** Modal navigation drawer for < lg screens: focus trap, Esc to close, focus restore. */
 export function MobileDrawer({
@@ -16,41 +15,7 @@ export function MobileDrawer({
 }) {
   const { t } = useTranslation()
   const panelRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const previouslyFocused = document.activeElement as HTMLElement | null
-    const panel = panelRef.current
-    panel?.querySelector<HTMLElement>(FOCUSABLE)?.focus()
-    const overflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        onClose()
-        return
-      }
-      if (event.key !== 'Tab' || !panel) return
-      const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE))
-      const first = items[0]
-      const last = items.at(-1)
-      if (!first || !last) return
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first.focus()
-      }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = overflow
-      previouslyFocused?.focus()
-    }
-  }, [open, onClose])
+  useFocusTrap(open, panelRef, onClose)
 
   if (!open) return null
   return (

@@ -728,7 +728,7 @@ export function createMockDb(seed = 20261120): MockDb {
       name: blueprint.name,
       description: blueprint.description,
       bugPrefix: blueprint.bugPrefix,
-      members: MEMBERS,
+      members: MEMBERS.map((m) => ({ ...m })),
     }
     db.projects.push(project)
     const isMain = projectIndex === 0

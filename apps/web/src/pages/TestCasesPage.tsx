@@ -4,7 +4,10 @@ import {
   TEST_TYPES,
   type TestCaseListItem,
 } from '@testboard/shared'
+import { Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { ButtonLink } from '../components/ui/Button'
+import { useCan } from '../hooks/permissions'
 import { CaseStatusBadge } from '../components/status/StatusBadges'
 import { FilterBar, SearchField, SelectFilter } from '../components/ui/Filters'
 import { PageHeader } from '../components/ui/PageHeader'
@@ -23,6 +26,7 @@ export function TestCasesPage() {
   const locale = toLocale(i18n.resolvedLanguage)
   const code = useProjectCode()
   const modules = useModules(code)
+  const can = useCan(code)
   const { values, page, setFilter, setPage, reset, active } = useUrlFilters(FILTER_KEYS)
   const cases = useTestCases(code, {
     q: values.q || undefined,
@@ -39,6 +43,13 @@ export function TestCasesPage() {
         title={t('pages.cases.title')}
         subtitle={t('pages.cases.subtitle')}
         crumbs={[{ label: code, to: projectPath(code) }, { label: t('pages.cases.title') }]}
+        actions={
+          can('case.write') && (
+            <ButtonLink to={projectPath(code, 'test-cases/new')} icon={Plus}>
+              {t('pages.cases.create')}
+            </ButtonLink>
+          )
+        }
       />
 
       <FilterBar onReset={active ? reset : undefined}>

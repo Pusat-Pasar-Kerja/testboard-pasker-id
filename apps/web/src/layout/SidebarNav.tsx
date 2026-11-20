@@ -37,7 +37,7 @@ const ITEMS: { key: NavKey; path: string; icon: LucideIcon; soon?: boolean }[] =
   { key: 'evidence', path: 'evidence', icon: Images, soon: true },
   { key: 'imports', path: 'imports', icon: FileUp, soon: true },
   { key: 'reports', path: 'reports', icon: ChartColumn, soon: true },
-  { key: 'team', path: 'members', icon: Users, soon: true },
+  { key: 'team', path: 'members', icon: Users },
 ]
 
 export function SidebarNav({

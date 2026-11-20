@@ -28,7 +28,11 @@
     "team": "Tim & Pengaturan",
     "soon": "Segera",
     "openMenu": "Buka menu navigasi",
-    "closeMenu": "Tutup menu navigasi"
+    "closeMenu": "Tutup menu navigasi",
+    "profile": "Profil saya",
+    "adminUsers": "Kelola pengguna",
+    "settings": "Modul & Suite",
+    "members": "Anggota"
   },
   "shell": {
     "skipToContent": "Lewati ke konten utama",
@@ -37,7 +41,9 @@
     "searchLabel": "Cari test case di proyek ini",
     "signedInAs": "Masuk sebagai {{name}}",
     "signOutDemo": "Keluar dari demo",
-    "breadcrumb": "Lokasi halaman"
+    "breadcrumb": "Lokasi halaman",
+    "signOut": "Keluar",
+    "superAdmin": "Super Admin"
   },
   "actions": {
     "retry": "Coba lagi",
@@ -45,7 +51,19 @@
     "viewAll": "Lihat semua",
     "resetFilters": "Hapus filter",
     "search": "Cari",
-    "signInDemo": "Masuk sebagai pengguna demo"
+    "signInDemo": "Masuk sebagai pengguna demo",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "edit": "Ubah",
+    "create": "Buat",
+    "add": "Tambah",
+    "remove": "Keluarkan",
+    "archive": "Arsipkan",
+    "restore": "Pulihkan",
+    "clone": "Duplikat",
+    "close": "Tutup",
+    "copy": "Salin",
+    "copied": "Tersalin"
   },
   "states": {
     "loading": "Memuat data…",
@@ -197,13 +215,26 @@
     "result": "Hasil",
     "testedAt": "Waktu uji",
     "role": "Peran",
-    "none": "-"
+    "none": "-",
+    "email": "Email",
+    "password": "Kata sandi",
+    "displayName": "Nama tampilan",
+    "language": "Bahasa antarmuka",
+    "testSteps": "Langkah pengujian",
+    "moduleCode": "Kode modul",
+    "referenceDocument": "Dokumen acuan",
+    "referenceVersion": "Versi dokumen",
+    "accountStatus": "Status akun"
   },
   "pages": {
     "login": {
       "title": "Masuk ke TestBoard",
       "demoNotice": "Mode DEMO: belum ada autentikasi dan tidak ada data asli. Login dengan akun dan kata sandi dibangun pada Milestone 2.",
-      "demoUser": "Anda akan masuk sebagai {{name}} ({{role}}) di proyek contoh."
+      "demoUser": "Anda akan masuk sebagai {{name}} ({{role}}) di proyek contoh.",
+      "submit": "Masuk",
+      "invalid": "Email atau kata sandi salah.",
+      "locked": "Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.",
+      "noAccount": "Akun dibuat oleh Super Admin. Hubungi admin bila Anda belum punya akun."
     },
     "projects": {
       "title": "Proyek",
@@ -240,7 +271,8 @@
       "subtitle": "Pustaka definisi test case. Hasil uji dicatat terpisah di setiap run.",
       "searchPlaceholder": "Cari kode atau judul…",
       "empty": "Belum ada test case di proyek ini.",
-      "emptyFiltered": "Tidak ada test case yang cocok dengan filter."
+      "emptyFiltered": "Tidak ada test case yang cocok dengan filter.",
+      "create": "Buat test case"
     },
     "caseDetail": {
       "tabOverview": "Ringkasan",
@@ -251,7 +283,13 @@
       "noRevisions": "Belum ada revisi.",
       "notUsed": "Test case ini belum dipakai di run mana pun.",
       "stepsPreserved": "Teks langkah ditampilkan apa adanya dari sumber.",
-      "evidenceLater": "Lampiran bukti (screenshot, video, dokumen) tersedia pada Milestone 5."
+      "evidenceLater": "Lampiran bukti (screenshot, video, dokumen) tersedia pada Milestone 5.",
+      "archiveTitle": "Arsipkan {{code}}?",
+      "archiveBody": "Test case disembunyikan dari daftar aktif. Riwayat run dan revisinya tetap tersimpan, dan bisa dipulihkan.",
+      "archived": "{{code}} diarsipkan.",
+      "restored": "{{code}} dipulihkan sebagai Draf.",
+      "cloned": "Duplikat {{code}} dibuat sebagai Draf.",
+      "archivedNotice": "Test case ini diarsipkan. Pulihkan dulu sebelum mengubahnya."
     },
     "runs": {
       "title": "Pelaksanaan UAT",
@@ -291,6 +329,83 @@
       "project": "Proyek tidak ditemukan, atau Anda bukan anggota proyek ini.",
       "item": "Data tidak ditemukan di proyek ini.",
       "home": "Ke daftar proyek"
+    },
+    "caseForm": {
+      "newTitle": "Buat test case",
+      "editTitle": "Ubah {{code}}",
+      "codeHint": "Kosongkan agar dibuat otomatis, mis. UAT-AUTH-001.",
+      "statusHint": "Draf belum dipakai di run; Siap boleh dimasukkan ke run.",
+      "stepsHint": "Satu langkah per baris, diawali nomor (1., 2., ...). Teks disimpan apa adanya.",
+      "changeReason": "Alasan perubahan",
+      "changeReasonHint": "Tercatat di riwayat revisi.",
+      "versionNote": "Menyimpan membuat versi {{next}}. Run yang sudah berjalan tetap memakai versi lamanya.",
+      "noModule": "Tanpa modul",
+      "noSuite": "Tanpa suite",
+      "created": "Test case {{code}} dibuat.",
+      "saved": "Perubahan disimpan (versi {{version}})."
+    },
+    "members": {
+      "title": "Tim & Pengaturan",
+      "subtitle": "Siapa saja yang bisa mengakses proyek ini dan apa perannya.",
+      "addTitle": "Tambah anggota",
+      "emailHint": "Akun harus sudah dibuat oleh Super Admin.",
+      "added": "{{name}} ditambahkan sebagai {{role}}.",
+      "roleChanged": "Peran {{name}} sekarang {{role}}.",
+      "removeTitle": "Keluarkan {{name}} dari proyek?",
+      "removeBody": "Akses ke proyek ini langsung dicabut. Riwayat pekerjaannya tetap tersimpan.",
+      "removed": "{{name}} dikeluarkan dari proyek.",
+      "you": "Anda",
+      "inactive": "Nonaktif",
+      "readOnly": "Hanya ADMIN proyek yang dapat mengubah anggota.",
+      "roleLabel": "Peran {{name}}"
+    },
+    "projectSettings": {
+      "modules": "Modul",
+      "suites": "Suite",
+      "addModule": "Tambah modul",
+      "addSuite": "Tambah suite",
+      "moduleCodeHint": "Huruf besar tanpa spasi, mis. AUTH.",
+      "caseCount_one": "{{count}} test case",
+      "caseCount_other": "{{count}} test case",
+      "moduleCreated": "Modul {{code}} ditambahkan.",
+      "suiteCreated": "Suite {{name}} ditambahkan.",
+      "noModules": "Belum ada modul.",
+      "noSuites": "Belum ada suite.",
+      "readOnly": "Hanya ADMIN dan QA Lead yang dapat menambah modul dan suite."
+    },
+    "profile": {
+      "title": "Profil saya",
+      "account": "Akun",
+      "saved": "Profil disimpan.",
+      "passwordTitle": "Ganti kata sandi",
+      "currentPassword": "Kata sandi saat ini",
+      "newPassword": "Kata sandi baru",
+      "confirmPassword": "Ulangi kata sandi baru",
+      "passwordHint": "Minimal 12 karakter. Kalimat panjang lebih aman daripada kata pendek yang rumit.",
+      "mismatch": "Konfirmasi tidak sama dengan kata sandi baru.",
+      "passwordChanged": "Kata sandi diganti. Perangkat lain sudah dikeluarkan.",
+      "demoNote": "Mode DEMO: perubahan kata sandi tidak benar-benar disimpan."
+    },
+    "adminUsers": {
+      "title": "Kelola pengguna",
+      "subtitle": "Khusus Super Admin. Akun baru mendapat kata sandi sementara yang tampil sekali.",
+      "search": "Cari nama atau email…",
+      "create": "Buat akun",
+      "superAdminLabel": "Jadikan Super Admin (akses dan pengaturan penuh)",
+      "created": "Akun {{email}} dibuat.",
+      "tempPasswordTitle": "Kata sandi sementara untuk {{email}}",
+      "tempPasswordBody": "Tampil sekali ini saja. Berikan secara aman kepada pemilik akun dan minta segera menggantinya di Profil.",
+      "active": "Aktif",
+      "inactive": "Nonaktif",
+      "deactivate": "Nonaktifkan",
+      "activate": "Aktifkan",
+      "grantSuperAdmin": "Jadikan Super Admin",
+      "revokeSuperAdmin": "Cabut Super Admin",
+      "deactivateTitle": "Nonaktifkan {{name}}?",
+      "deactivateBody": "Pengguna langsung keluar dari semua perangkat dan tidak bisa masuk sampai diaktifkan lagi.",
+      "updated": "Akun {{name}} diperbarui.",
+      "forbidden": "Halaman ini hanya untuk Super Admin.",
+      "empty": "Tidak ada pengguna yang cocok."
     }
   },
   "errors": {
@@ -305,5 +420,16 @@
     "SERVICE_UNAVAILABLE": "Layanan sedang tidak tersedia. Coba lagi sebentar lagi.",
     "INTERNAL_ERROR": "Terjadi kesalahan. Silakan coba lagi.",
     "reference": "Kode referensi: {{id}}"
+  },
+  "form": {
+    "optional": "opsional",
+    "required": "Wajib diisi",
+    "invalid": "Periksa kembali isian yang ditandai.",
+    "tooShort": "Terlalu pendek (minimal {{min}} karakter)",
+    "unsavedTitle": "Tinggalkan halaman ini?",
+    "unsavedBody": "Perubahan yang belum disimpan akan hilang.",
+    "leave": "Tinggalkan",
+    "conflict": "Data ini sudah diubah orang lain. Muat ulang untuk melihat versi terbaru.",
+    "alreadyUsed": "Sudah dipakai"
   }
 }

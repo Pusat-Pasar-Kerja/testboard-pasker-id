@@ -28,7 +28,11 @@
     "team": "Team & Settings",
     "soon": "Soon",
     "openMenu": "Open navigation menu",
-    "closeMenu": "Close navigation menu"
+    "closeMenu": "Close navigation menu",
+    "profile": "My profile",
+    "adminUsers": "Manage users",
+    "settings": "Modules & Suites",
+    "members": "Members"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -37,7 +41,9 @@
     "searchLabel": "Search test cases in this project",
     "signedInAs": "Signed in as {{name}}",
     "signOutDemo": "Leave demo",
-    "breadcrumb": "Breadcrumb"
+    "breadcrumb": "Breadcrumb",
+    "signOut": "Sign out",
+    "superAdmin": "Super Admin"
   },
   "actions": {
     "retry": "Retry",
@@ -45,7 +51,19 @@
     "viewAll": "View all",
     "resetFilters": "Clear filters",
     "search": "Search",
-    "signInDemo": "Sign in as demo user"
+    "signInDemo": "Sign in as demo user",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "create": "Create",
+    "add": "Add",
+    "remove": "Remove",
+    "archive": "Archive",
+    "restore": "Restore",
+    "clone": "Duplicate",
+    "close": "Close",
+    "copy": "Copy",
+    "copied": "Copied"
   },
   "states": {
     "loading": "Loading data…",
@@ -197,13 +215,26 @@
     "result": "Result",
     "testedAt": "Tested at",
     "role": "Role",
-    "none": "-"
+    "none": "-",
+    "email": "Email",
+    "password": "Password",
+    "displayName": "Display name",
+    "language": "Interface language",
+    "testSteps": "Test steps",
+    "moduleCode": "Module code",
+    "referenceDocument": "Reference document",
+    "referenceVersion": "Document version",
+    "accountStatus": "Account status"
   },
   "pages": {
     "login": {
       "title": "Sign in to TestBoard",
       "demoNotice": "DEMO mode: there is no authentication and no real data yet. Sign-in with an account and password is built in Milestone 2.",
-      "demoUser": "You will enter as {{name}} ({{role}}) in the sample projects."
+      "demoUser": "You will enter as {{name}} ({{role}}) in the sample projects.",
+      "submit": "Sign in",
+      "invalid": "Incorrect email or password.",
+      "locked": "Too many failed attempts. Try again in 15 minutes.",
+      "noAccount": "Accounts are created by a Super Admin. Contact an admin if you do not have one."
     },
     "projects": {
       "title": "Projects",
@@ -240,7 +271,8 @@
       "subtitle": "Library of test case definitions. Test results are recorded separately in each run.",
       "searchPlaceholder": "Search code or title…",
       "empty": "No test cases in this project yet.",
-      "emptyFiltered": "No test cases match the filters."
+      "emptyFiltered": "No test cases match the filters.",
+      "create": "Create test case"
     },
     "caseDetail": {
       "tabOverview": "Overview",
@@ -251,7 +283,13 @@
       "noRevisions": "No revisions yet.",
       "notUsed": "This test case has not been used in any run yet.",
       "stepsPreserved": "Step text is shown exactly as in the source.",
-      "evidenceLater": "Evidence attachments (screenshots, videos, documents) arrive in Milestone 5."
+      "evidenceLater": "Evidence attachments (screenshots, videos, documents) arrive in Milestone 5.",
+      "archiveTitle": "Archive {{code}}?",
+      "archiveBody": "The case is hidden from the active list. Its run history and revisions are kept, and it can be restored.",
+      "archived": "{{code}} archived.",
+      "restored": "{{code}} restored as Draft.",
+      "cloned": "Duplicate {{code}} created as Draft.",
+      "archivedNotice": "This test case is archived. Restore it before editing."
     },
     "runs": {
       "title": "Test Runs",
@@ -291,6 +329,83 @@
       "project": "Project not found, or you are not a member of it.",
       "item": "This item was not found in the project.",
       "home": "Go to projects"
+    },
+    "caseForm": {
+      "newTitle": "Create test case",
+      "editTitle": "Edit {{code}}",
+      "codeHint": "Leave empty to generate one, e.g. UAT-AUTH-001.",
+      "statusHint": "Draft cases are not used in runs yet; Ready cases can be added to a run.",
+      "stepsHint": "One step per line, starting with a number (1., 2., ...). Text is stored as written.",
+      "changeReason": "Reason for change",
+      "changeReasonHint": "Recorded in the revision history.",
+      "versionNote": "Saving creates version {{next}}. Runs already in progress keep their own version.",
+      "noModule": "No module",
+      "noSuite": "No suite",
+      "created": "Test case {{code}} created.",
+      "saved": "Changes saved (version {{version}})."
+    },
+    "members": {
+      "title": "Team & Settings",
+      "subtitle": "Who can access this project and with which role.",
+      "addTitle": "Add member",
+      "emailHint": "The account must already exist (created by a Super Admin).",
+      "added": "{{name}} added as {{role}}.",
+      "roleChanged": "{{name}} is now {{role}}.",
+      "removeTitle": "Remove {{name}} from the project?",
+      "removeBody": "Access to this project is revoked immediately. Their work history is kept.",
+      "removed": "{{name}} removed from the project.",
+      "you": "You",
+      "inactive": "Inactive",
+      "readOnly": "Only project ADMINs can change members.",
+      "roleLabel": "Role of {{name}}"
+    },
+    "projectSettings": {
+      "modules": "Modules",
+      "suites": "Suites",
+      "addModule": "Add module",
+      "addSuite": "Add suite",
+      "moduleCodeHint": "Upper case, no spaces, e.g. AUTH.",
+      "caseCount_one": "{{count}} test case",
+      "caseCount_other": "{{count}} test cases",
+      "moduleCreated": "Module {{code}} added.",
+      "suiteCreated": "Suite {{name}} added.",
+      "noModules": "No modules yet.",
+      "noSuites": "No suites yet.",
+      "readOnly": "Only ADMINs and QA Leads can add modules and suites."
+    },
+    "profile": {
+      "title": "My profile",
+      "account": "Account",
+      "saved": "Profile saved.",
+      "passwordTitle": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Repeat new password",
+      "passwordHint": "At least 12 characters. A long sentence is safer than a short complex word.",
+      "mismatch": "The confirmation does not match the new password.",
+      "passwordChanged": "Password changed. Other devices have been signed out.",
+      "demoNote": "DEMO mode: password changes are not really stored."
+    },
+    "adminUsers": {
+      "title": "Manage users",
+      "subtitle": "Super Admin only. New accounts get a temporary password shown once.",
+      "search": "Search name or email…",
+      "create": "Create account",
+      "superAdminLabel": "Make Super Admin (full access and settings)",
+      "created": "Account {{email}} created.",
+      "tempPasswordTitle": "Temporary password for {{email}}",
+      "tempPasswordBody": "Shown only this once. Hand it over securely and ask the owner to change it in Profile right away.",
+      "active": "Active",
+      "inactive": "Inactive",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "grantSuperAdmin": "Make Super Admin",
+      "revokeSuperAdmin": "Revoke Super Admin",
+      "deactivateTitle": "Deactivate {{name}}?",
+      "deactivateBody": "They are signed out of every device immediately and cannot sign in until reactivated.",
+      "updated": "Account {{name}} updated.",
+      "forbidden": "This page is for Super Admins only.",
+      "empty": "No matching users."
     }
   },
   "errors": {
@@ -305,5 +420,16 @@
     "SERVICE_UNAVAILABLE": "The service is temporarily unavailable. Please try again shortly.",
     "INTERNAL_ERROR": "Something went wrong. Please try again.",
     "reference": "Reference code: {{id}}"
+  },
+  "form": {
+    "optional": "optional",
+    "required": "Required",
+    "invalid": "Please check the highlighted fields.",
+    "tooShort": "Too short (at least {{min}} characters)",
+    "unsavedTitle": "Leave this page?",
+    "unsavedBody": "Unsaved changes will be lost.",
+    "leave": "Leave",
+    "conflict": "Someone else changed this item. Reload to see the latest version.",
+    "alreadyUsed": "Already used"
   }
 }

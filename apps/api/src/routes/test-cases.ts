@@ -1,5 +1,6 @@
 import {
   isOneOf,
+  stepsFromText,
   TEST_CASE_PRIORITIES,
   TEST_CASE_STATUSES,
   TEST_TYPES,
@@ -14,7 +15,6 @@ import {
   type TestCasePriority,
   type TestCaseSourceKind,
   type TestCaseStatus,
-  type TestCaseStepDto,
   type TestType,
 } from '@testboard/shared'
 import type { Context } from 'hono'
@@ -122,22 +122,6 @@ function snapshot(row: CaseRow) {
     source_locale: row.source_locale,
     case_status: row.case_status,
   }
-}
-
-/**
- * Display steps: structured test_case_steps when present, otherwise parsed from the original
- * numbered text (which is always preserved verbatim, doc 02).
- */
-export function stepsFromText(text: string | null): TestCaseStepDto[] {
-  if (!text?.trim()) return []
-  const lines = text.split(/\r?\n/).filter((line) => line.trim() !== '')
-  const numbered = lines.every((line) => /^\s*\d+[.)]\s+/.test(line))
-  if (!numbered) return [{ step_number: 1, instruction: text.trim(), expected_result: null }]
-  return lines.map((line, index) => ({
-    step_number: index + 1,
-    instruction: line.replace(/^\s*\d+[.)]\s+/, '').trim(),
-    expected_result: null,
-  }))
 }
 
 async function loadCase(db: Db, projectId: string, caseId: string, lock = false) {

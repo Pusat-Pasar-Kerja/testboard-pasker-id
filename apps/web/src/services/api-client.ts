@@ -1,17 +1,38 @@
-import { API_ERROR_CODES, isOneOf, type ApiErrorBody, type ApiErrorCode } from '@testboard/shared'
+import {
+  API_ERROR_CODES,
+  isOneOf,
+  type ApiErrorBody,
+  type ApiErrorCode,
+  type ApiErrorDetail,
+} from '@testboard/shared'
 
 /** Error raised for any non-2xx API response, carrying the stable error code for i18n. */
 export class ApiClientError extends Error {
   readonly status: number
   readonly code: ApiErrorCode
   readonly requestId: string | null
+  readonly details: ApiErrorDetail[]
 
-  constructor(status: number, code: ApiErrorCode, message: string, requestId: string | null) {
+  constructor(
+    status: number,
+    code: ApiErrorCode,
+    message: string,
+    requestId: string | null,
+    details: ApiErrorDetail[] = [],
+  ) {
     super(message)
     this.name = 'ApiClientError'
     this.status = status
     this.code = code
     this.requestId = requestId
+    this.details = details
+  }
+
+  /** Per-field messages from a 422/409 response, keyed by field name. */
+  fieldErrors(): Record<string, string> {
+    return Object.fromEntries(
+      this.details.filter((d) => d.field).map((d) => [d.field as string, d.message]),
+    )
   }
 }
 
@@ -21,27 +42,54 @@ function parseErrorBody(value: unknown): ApiErrorBody['error'] | null {
   if (typeof value !== 'object' || value === null || !('error' in value)) return null
   const error = (value as { error: unknown }).error
   if (typeof error !== 'object' || error === null) return null
-  const { code, message, request_id } = error as Record<string, unknown>
+  const { code, message, request_id, details } = error as Record<string, unknown>
   if (!isApiErrorCode(code)) return null
   return {
     code,
     message: typeof message === 'string' ? message : '',
-    details: [],
+    details: Array.isArray(details)
+      ? details.filter(
+          (d): d is ApiErrorDetail =>
+            typeof d === 'object' &&
+            d !== null &&
+            typeof (d as ApiErrorDetail).message === 'string',
+        )
+      : [],
     request_id: typeof request_id === 'string' ? request_id : null,
   }
 }
 
+/** The CSRF token lives in a JS-readable cookie bound to the session (ADR 0005). */
+export function readCsrfToken(cookieString: string = document.cookie): string | null {
+  for (const part of cookieString.split(';')) {
+    const [name, ...rest] = part.trim().split('=')
+    if (name === 'tb_csrf' || name === '__Host-tb_csrf') return decodeURIComponent(rest.join('='))
+  }
+  return null
+}
+
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>
 
-export function createApiClient(baseUrl: string, fetchImpl: FetchLike = fetch) {
-  async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+export function createApiClient(
+  baseUrl: string,
+  fetchImpl: FetchLike = (input, init) => fetch(input, init),
+  csrf: () => string | null = () => readCsrfToken(),
+) {
+  async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const headers: Record<string, string> = { Accept: 'application/json' }
+    if (body !== undefined) headers['Content-Type'] = 'application/json'
+    if (method !== 'GET') {
+      const token = csrf()
+      if (token) headers['X-CSRF-Token'] = token
+    }
     let response: Response
     try {
       response = await fetchImpl(`${baseUrl}${path}`, {
-        // Session cookie (Milestone 2) is HttpOnly and same-origin; never a token in storage.
+        method,
+        // Session cookie is HttpOnly and same-origin; never a token in storage.
         credentials: 'same-origin',
-        ...init,
-        headers: { Accept: 'application/json', ...init.headers },
+        headers,
+        body: body === undefined ? undefined : JSON.stringify(body),
       })
     } catch {
       throw new ApiClientError(0, 'INTERNAL_ERROR', 'Network error', null)
@@ -54,12 +102,20 @@ export function createApiClient(baseUrl: string, fetchImpl: FetchLike = fetch) {
         parsed?.code ?? 'INTERNAL_ERROR',
         parsed?.message ?? response.statusText,
         parsed?.request_id ?? response.headers.get('X-Request-Id'),
+        parsed?.details ?? [],
       )
     }
+    if (response.status === 204) return undefined as T
     return (await response.json()) as T
   }
 
-  return { get: <T>(path: string) => request<T>(path) }
+  return {
+    get: <T>(path: string) => request<T>('GET', path),
+    post: <T>(path: string, body: unknown = {}) => request<T>('POST', path, body),
+    patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, body),
+    put: <T>(path: string, body: unknown) => request<T>('PUT', path, body),
+    delete: <T>(path: string) => request<T>('DELETE', path),
+  }
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>

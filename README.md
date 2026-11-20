@@ -2,7 +2,7 @@
 
 Platform web multi-project untuk mendokumentasikan test case, merencanakan siklus UAT, menjalankan pengujian, menyimpan bukti uji, melacak bug, dan menyusun laporan. UI dua bahasa: **Indonesia** dan **English**.
 
-> Status: **Milestone 1 - design system & prototype demo** (`v0.2.0`). Data masih contoh fiktif (mock); belum siap produksi. Spesifikasi lengkap ada di [`docs/blueprint/`](docs/blueprint/README.md).
+> Status: **Milestone 2 selesai** (`v0.3.0`): login asli, Super Admin, hak akses per proyek, kelola test case/anggota/modul/suite. Belum siap produksi (lihat roadmap). Spesifikasi lengkap ada di [`docs/blueprint/`](docs/blueprint/README.md).
 
 ## Arsitektur
 
@@ -44,6 +44,13 @@ npm run dev
 
 Database lokal: MariaDB 10.4.32 (sama dengan VPS) tanpa Docker, cukup `npm run db:init` sekali lalu `npm run db:start`; lihat [`database/README.md`](database/README.md) dan [ADR 0003](docs/adr/0003-database-engine.md). **Jangan** memakai database VPS untuk development.
 
+## Mode demo vs mode API
+
+| Mode                                      | Cara                                                                                    | Data                                                                      |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Demo** (default, juga untuk Cloudflare) | `VITE_DEMO_MODE=true`                                                                   | Fiktif di memori browser; tanpa login asli                                |
+| **API** (lokal)                           | Buat `apps/web/.env.local` berisi `VITE_DEMO_MODE=false`, lalu `npm run db:seed` sekali | Database lokal MariaDB; login dengan akun di `.local-db/dev-accounts.txt` |
+
 ## Versioning & branch
 
 - Semua pekerjaan di branch `develop`; `main` hanya untuk rilis yang disetujui.
@@ -62,13 +69,13 @@ Repo ini **publik**. Jangan commit `.env`, kredensial, workbook UAT asli, screen
 
 ## Roadmap
 
-| Milestone | Isi                                                                       | Status                              |
-| --------- | ------------------------------------------------------------------------- | ----------------------------------- |
-| M0        | Repo, tooling, healthcheck API, adaptor mock, format error                | Selesai (`v0.1.0`)                  |
-| M1        | Design system, AppShell, layar prototype dengan data mock, bilingual      | Selesai (`v0.2.0`)                  |
-| M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi | API selesai (`v0.2.2`), UI menyusul |
-| M3        | Cycle, run, execution append-only, dashboard latest status                |                                     |
-| M4        | Bug tracking + workflow status + riwayat                                  |                                     |
-| M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             |                                     |
-| M6        | Import XLSX/CSV/JSON (legacy & AI)                                        |                                     |
-| M7        | Laporan, hardening, deployment VPS                                        |                                     |
+| Milestone | Isi                                                                       | Status             |
+| --------- | ------------------------------------------------------------------------- | ------------------ |
+| M0        | Repo, tooling, healthcheck API, adaptor mock, format error                | Selesai (`v0.1.0`) |
+| M1        | Design system, AppShell, layar prototype dengan data mock, bilingual      | Selesai (`v0.2.0`) |
+| M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi | Selesai (`v0.3.0`) |
+| M3        | Cycle, run, execution append-only, dashboard latest status                |                    |
+| M4        | Bug tracking + workflow status + riwayat                                  |                    |
+| M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             |                    |
+| M6        | Import XLSX/CSV/JSON (legacy & AI)                                        |                    |
+| M7        | Laporan, hardening, deployment VPS                                        |                    |

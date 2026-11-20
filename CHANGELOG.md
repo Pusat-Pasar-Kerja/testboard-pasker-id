@@ -2,6 +2,24 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.3.0] - 2026-11-20
+
+**Milestone 2 selesai**: login asli, sesi, Super Admin, hak akses per proyek, serta pengelolaan test case, anggota, modul, dan suite dari UI.
+
+### Ditambahkan
+
+- Web memakai API sungguhan saat `VITE_DEMO_MODE=false`: halaman login (email + kata sandi, pesan galat umum, info lockout), penjaga sesi (diarahkan ke login lalu kembali ke halaman tujuan), logout, bahasa mengikuti profil dan tersimpan ke profil saat diganti.
+- Form buat/ubah test case: validasi di browser dengan skema yang sama dengan API, galat per kolom dari server, peringatan perubahan belum disimpan, `expected_version` mencegah saling timpa; aksi Duplikat, Arsipkan (dengan konfirmasi) dan Pulihkan.
+- Halaman Tim & Pengaturan: anggota (tambah lewat email, ubah peran, keluarkan dengan konfirmasi), Modul & Suite (lihat dan tambah).
+- Halaman Profil (nama, bahasa, ganti kata sandi) dan Kelola Pengguna khusus Super Admin (buat akun dengan kata sandi sementara yang tampil sekali, aktif/nonaktif, beri/cabut Super Admin).
+- Tombol hanya tampil untuk peran yang berhak (matriks izin yang sama dengan API); akses langsung lewat URL tetap ditolak API.
+- Komponen baru: Button, field form aksesibel (label, petunjuk, galat), dialog konfirmasi (fokus terkunci, Esc), toast; mode demo juga mendukung semua aksi ini secara fiktif.
+- Tes web: alur login, buat/ubah/arsip test case, pembatasan VIEWER, peran anggota, akun baru, validasi kata sandi.
+
+### Diubah
+
+- Logika langkah uji bernomor dipindah ke `@testboard/shared` (dipakai API dan demo).
+
 ## [0.2.3] - 2026-11-20
 
 ### Ditambahkan

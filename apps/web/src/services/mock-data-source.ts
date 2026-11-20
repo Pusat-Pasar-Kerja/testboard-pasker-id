@@ -4,7 +4,15 @@ import {
   isOpenDefect,
   latestStatus,
   PAGINATION,
+  stepsFromText,
+  testCaseCreateSchema,
+  testCaseUpdateSchema,
+  type AdminUserDto,
   type CurrentUser,
+  type Locale,
+  type MemberDto,
+  type MemberRole,
+  type SuiteDto,
   type DashboardSummary,
   type DefectDetail,
   type DefectListItem,
@@ -26,10 +34,35 @@ import {
   type MockRun,
 } from '../mocks/seed'
 import { ApiClientError } from './api-client'
-import type { DataSource, DefectQuery, PageQuery, TestCaseQuery } from './data-source'
+import type {
+  DataSource,
+  DefectQuery,
+  PageQuery,
+  TestCaseInput,
+  TestCaseQuery,
+} from './data-source'
 
 function notFound(): never {
   throw new ApiClientError(404, 'NOT_FOUND', 'Not found', 'mock-request')
+}
+
+function fail(
+  status: number,
+  code: 'CONFLICT' | 'VALIDATION_ERROR',
+  field: string,
+  message: string,
+): never {
+  throw new ApiClientError(status, code, message, 'mock-request', [{ field, message }])
+}
+
+function validationError(issues: { path: PropertyKey[]; message: string }[]): never {
+  throw new ApiClientError(
+    422,
+    'VALIDATION_ERROR',
+    'The submitted data is invalid.',
+    'mock-request',
+    issues.map((issue) => ({ field: issue.path.map(String).join('.'), message: issue.message })),
+  )
 }
 
 export function paginate<T>(items: T[], query: PageQuery = {}): Paginated<T> {
@@ -49,7 +82,7 @@ export function paginate<T>(items: T[], query: PageQuery = {}): Paginated<T> {
 
 /** In-memory implementation of the API contract over fictitious data. */
 export function createMockDataSource(
-  options: { latencyMs?: number; db?: MockDb } = {},
+  options: { latencyMs?: number; db?: MockDb; superAdmin?: boolean } = {},
 ): DataSource {
   const latencyMs = options.latencyMs ?? 200
   const db = options.db ?? createMockDb()
@@ -180,6 +213,135 @@ export function createMockDataSource(
     },
   })
 
+  // ---- Demo-only mutable state (in memory; resets on reload) ----------------------
+  const profile: { locale: Locale } = { locale: 'id' }
+  // The demo user is shown as Super Admin so every screen of the prototype can be explored.
+  const superAdmins = new Set<string>(options.superAdmin === false ? [] : [db.currentUserId])
+  const inactive = new Set<string>()
+  let sequence = 900_000
+  const newId = () => String(++sequence)
+  const now = () => new Date().toISOString()
+
+  interface MockSuite {
+    id: string
+    projectId: string
+    moduleId: string | null
+    name: string
+    reference_document: string | null
+    reference_version: string | null
+    created_at: string
+  }
+  const suites: MockSuite[] = []
+  for (const c of db.cases) {
+    if (!suites.some((s) => s.projectId === c.projectId && s.name === c.suiteName)) {
+      suites.push({
+        id: newId(),
+        projectId: c.projectId,
+        moduleId: c.moduleId,
+        name: c.suiteName,
+        reference_document: null,
+        reference_version: null,
+        created_at: c.created_at,
+      })
+    }
+  }
+  const suiteNameOf = (projectId: string, suiteId: string | null | undefined): string | null => {
+    if (!suiteId) return null
+    const suite = suites.find((s) => s.id === suiteId && s.projectId === projectId)
+    return suite ? suite.name : fail(422, 'VALIDATION_ERROR', 'suite_id', 'Suite not found')
+  }
+  const suiteDto = (s: MockSuite): SuiteDto => ({
+    id: s.id,
+    name: s.name,
+    module: moduleDto(s.moduleId),
+    description: null,
+    reference_document: s.reference_document,
+    reference_url: null,
+    reference_version: s.reference_version,
+    owner_unit: null,
+    scope_description: null,
+    preparation_date: null,
+    source_notes: null,
+    case_count: db.cases.filter(
+      (c) => c.projectId === s.projectId && c.suiteName === s.name && c.case_status !== 'ARCHIVED',
+    ).length,
+    created_at: s.created_at,
+  })
+
+  const currentUser = (): CurrentUser => {
+    const user = db.users.find((u) => u.id === db.currentUserId) ?? notFound()
+    return {
+      id: user.id,
+      display_name: user.display_name,
+      email: user.email,
+      preferred_locale: profile.locale,
+      is_super_admin: superAdmins.has(user.id),
+      projects: db.projects
+        .filter((p) => p.members.some((m) => m.userId === user.id))
+        .map((p) => ({ project_code: p.project_code, role_code: roleIn(p.id) })),
+    }
+  }
+
+  const memberDto = (userId: string, role: MemberRole): MemberDto => {
+    const user = db.users.find((u) => u.id === userId) ?? notFound()
+    return {
+      user: {
+        id: user.id,
+        display_name: user.display_name,
+        email: user.email,
+        is_active: !inactive.has(user.id),
+      },
+      role_code: role,
+      joined_at: '2026-10-01T02:00:00.000Z',
+    }
+  }
+
+  const adminUser = (userId: string): AdminUserDto => {
+    const user = db.users.find((u) => u.id === userId) ?? notFound()
+    return {
+      id: user.id,
+      display_name: user.display_name,
+      email: user.email,
+      preferred_locale: 'id',
+      is_active: !inactive.has(user.id),
+      is_super_admin: superAdmins.has(user.id),
+      created_at: '2026-10-01T02:00:00.000Z',
+    }
+  }
+
+  const caseIn = (projectId: string, caseId: string) =>
+    db.cases.find((c) => c.id === caseId && c.projectId === projectId) ?? notFound()
+
+  const nextCode = (projectId: string, moduleCode: string | null) => {
+    const prefix = `UAT-${moduleCode ?? 'CASE'}-`
+    const max = db.cases
+      .filter((c) => c.projectId === projectId && c.case_code.startsWith(prefix))
+      .reduce((m, c) => Math.max(m, Number.parseInt(c.case_code.slice(prefix.length), 10) || 0), 0)
+    return `${prefix}${String(max + 1).padStart(3, '0')}`
+  }
+
+  const moduleIdByCode = (projectId: string, code: string | null | undefined) => {
+    if (code === undefined) return undefined
+    if (code === null) return null
+    const found = db.modules.find((m) => m.projectId === projectId && m.module_code === code)
+    return found ? found.id : fail(422, 'VALIDATION_ERROR', 'module_code', 'Module not found')
+  }
+
+  const addRevision = (c: MockCase, reason: string) => {
+    c.revisions.push({
+      revision_number: c.current_version,
+      changedBy: db.currentUserId,
+      change_reason: reason,
+      changed_at: now(),
+    })
+  }
+
+  const assertKeepsAdmin = (members: { role: MemberRole }[], member: { role: MemberRole }) => {
+    if (member.role === 'ADMIN' && members.filter((m) => m.role === 'ADMIN').length === 1) {
+      fail(409, 'CONFLICT', 'role_code', 'A project must keep at least one ADMIN.')
+    }
+  }
+
   return {
     kind: 'mock',
 
@@ -192,19 +354,248 @@ export function createMockDataSource(
         database: 'not_configured' as const,
       })),
 
-    getCurrentUser: () =>
-      delay((): CurrentUser => {
+    getCurrentUser: () => delay(currentUser),
+    login: () => delay(currentUser),
+    logout: () => delay(() => undefined),
+    updateProfile: (input) =>
+      delay(() => {
         const user = db.users.find((u) => u.id === db.currentUserId) ?? notFound()
-        return {
-          id: user.id,
-          display_name: user.display_name,
-          email: user.email,
-          preferred_locale: 'id',
-          is_super_admin: false,
-          projects: db.projects
-            .filter((p) => p.members.some((m) => m.userId === user.id))
-            .map((p) => ({ project_code: p.project_code, role_code: roleIn(p.id) })),
+        if (input.display_name) user.display_name = input.display_name
+        if (input.preferred_locale) profile.locale = input.preferred_locale
+        return currentUser()
+      }),
+    changePassword: () => delay(() => undefined),
+
+    listMembers: (code) =>
+      delay(() =>
+        project(code)
+          .members.map((m) => memberDto(m.userId, m.role))
+          .sort((a, b) => a.user.display_name.localeCompare(b.user.display_name)),
+      ),
+    addMember: (code, input) =>
+      delay(() => {
+        const p = project(code)
+        const user = db.users.find((u) => u.email === input.email.trim().toLowerCase())
+        if (!user) return fail(422, 'VALIDATION_ERROR', 'email', 'No account with this e-mail')
+        if (p.members.some((m) => m.userId === user.id)) {
+          fail(409, 'CONFLICT', 'email', 'Already a member')
         }
+        p.members.push({ userId: user.id, role: input.role_code })
+        return memberDto(user.id, input.role_code)
+      }),
+    updateMember: (code, userId, role) =>
+      delay(() => {
+        const p = project(code)
+        const member = p.members.find((m) => m.userId === userId) ?? notFound()
+        if (role !== 'ADMIN') assertKeepsAdmin(p.members, member)
+        member.role = role
+        return memberDto(userId, role)
+      }),
+    removeMember: (code, userId) =>
+      delay(() => {
+        const p = project(code)
+        const member = p.members.find((m) => m.userId === userId) ?? notFound()
+        assertKeepsAdmin(p.members, member)
+        p.members.splice(p.members.indexOf(member), 1)
+      }),
+    createModule: (code, input) =>
+      delay(() => {
+        const p = project(code)
+        const moduleCode = input.module_code.trim().toUpperCase()
+        if (db.modules.some((m) => m.projectId === p.id && m.module_code === moduleCode)) {
+          fail(409, 'CONFLICT', 'module_code', 'Already used')
+        }
+        const created = {
+          id: newId(),
+          projectId: p.id,
+          module_code: moduleCode,
+          name: input.name.trim(),
+        }
+        db.modules.push(created)
+        return {
+          id: created.id,
+          module_code: created.module_code,
+          name: created.name,
+          description: input.description ?? null,
+        }
+      }),
+    listSuites: (code) =>
+      delay(() => {
+        const p = project(code)
+        return suites
+          .filter((s) => s.projectId === p.id)
+          .map(suiteDto)
+          .sort((a, b) => a.name.localeCompare(b.name))
+      }),
+    createSuite: (code, input) =>
+      delay(() => {
+        const p = project(code)
+        const suite: MockSuite = {
+          id: newId(),
+          projectId: p.id,
+          moduleId: input.module_id ?? null,
+          name: input.name.trim(),
+          reference_document: input.reference_document ?? null,
+          reference_version: input.reference_version ?? null,
+          created_at: now(),
+        }
+        suites.push(suite)
+        return suiteDto(suite)
+      }),
+
+    createTestCase: (code, input: TestCaseInput) =>
+      delay(() => {
+        const p = project(code)
+        const parsed = testCaseCreateSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const data = parsed.data
+        const moduleId = moduleIdByCode(p.id, data.module_code) ?? null
+        const caseCode = data.case_code ?? nextCode(p.id, data.module_code ?? null)
+        if (db.cases.some((c) => c.projectId === p.id && c.case_code === caseCode)) {
+          fail(409, 'CONFLICT', 'case_code', 'Already used')
+        }
+        const created: MockCase = {
+          id: newId(),
+          projectId: p.id,
+          moduleId: moduleId ?? '',
+          suiteName: suiteNameOf(p.id, data.suite_id) ?? '',
+          case_code: caseCode,
+          category: data.category ?? '',
+          title: data.title,
+          requirement_refs: data.requirement_refs ?? null,
+          priority_code: data.priority_code,
+          test_type_code: data.test_type_code,
+          actor_label: data.actor_label ?? '',
+          preconditions: data.preconditions ?? '',
+          steps: stepsFromText(data.test_steps_text).map((step) => step.instruction),
+          expected_result: data.expected_result,
+          case_status: data.case_status,
+          current_version: 1,
+          createdBy: db.currentUserId,
+          updatedBy: db.currentUserId,
+          created_at: now(),
+          updated_at: now(),
+          revisions: [],
+        }
+        addRevision(created, 'Created')
+        db.cases.push(created)
+        return caseListItem(created)
+      }),
+    updateTestCase: (code, caseId, input) =>
+      delay(() => {
+        const p = project(code)
+        const c = caseIn(p.id, caseId)
+        const parsed = testCaseUpdateSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const data = parsed.data
+        if (data.expected_version !== undefined && data.expected_version !== c.current_version) {
+          fail(409, 'CONFLICT', 'expected_version', `Current version is ${c.current_version}`)
+        }
+        const contentKeys = Object.keys(data).filter(
+          (k) => !['case_status', 'change_reason', 'expected_version'].includes(k),
+        )
+        if (c.case_status === 'ARCHIVED' && contentKeys.length > 0) {
+          throw new ApiClientError(
+            409,
+            'CONFLICT',
+            'Restore the archived test case before editing it.',
+            'mock-request',
+          )
+        }
+        const moduleId = moduleIdByCode(p.id, data.module_code)
+        if (moduleId !== undefined) c.moduleId = moduleId ?? ''
+        if (data.suite_id !== undefined) c.suiteName = suiteNameOf(p.id, data.suite_id) ?? ''
+        if (data.title !== undefined) c.title = data.title
+        if (data.category !== undefined) c.category = data.category ?? ''
+        if (data.requirement_refs !== undefined) c.requirement_refs = data.requirement_refs
+        if (data.priority_code) c.priority_code = data.priority_code
+        if (data.test_type_code) c.test_type_code = data.test_type_code
+        if (data.actor_label !== undefined) c.actor_label = data.actor_label ?? ''
+        if (data.preconditions !== undefined) c.preconditions = data.preconditions ?? ''
+        if (data.test_steps_text !== undefined) {
+          c.steps = stepsFromText(data.test_steps_text).map((step) => step.instruction)
+        }
+        if (data.expected_result !== undefined) c.expected_result = data.expected_result
+        if (data.case_status) c.case_status = data.case_status
+        c.current_version += 1
+        c.updated_at = now()
+        c.updatedBy = db.currentUserId
+        addRevision(c, data.change_reason ?? 'Updated')
+        return caseListItem(c)
+      }),
+    archiveTestCase: (code, caseId) =>
+      delay(() => {
+        const c = caseIn(project(code).id, caseId)
+        if (c.case_status !== 'ARCHIVED') {
+          c.case_status = 'ARCHIVED'
+          c.current_version += 1
+          c.updated_at = now()
+          addRevision(c, 'Archived')
+        }
+        return caseListItem(c)
+      }),
+    cloneTestCase: (code, caseId) =>
+      delay(() => {
+        const p = project(code)
+        const source = caseIn(p.id, caseId)
+        const clone: MockCase = {
+          ...source,
+          id: newId(),
+          case_code: nextCode(p.id, moduleDto(source.moduleId)?.module_code ?? null),
+          case_status: 'DRAFT',
+          current_version: 1,
+          steps: [...source.steps],
+          created_at: now(),
+          updated_at: now(),
+          createdBy: db.currentUserId,
+          updatedBy: db.currentUserId,
+          revisions: [],
+        }
+        addRevision(clone, `Cloned from ${source.case_code}`)
+        db.cases.push(clone)
+        return caseListItem(clone)
+      }),
+
+    listUsers: (q) =>
+      delay(() => {
+        const needle = q?.trim().toLowerCase()
+        return db.users
+          .filter(
+            (u) =>
+              !needle || u.email.includes(needle) || u.display_name.toLowerCase().includes(needle),
+          )
+          .map((u) => adminUser(u.id))
+      }),
+    createUser: (input) =>
+      delay(() => {
+        const email = input.email.trim().toLowerCase()
+        if (db.users.some((u) => u.email === email)) fail(409, 'CONFLICT', 'email', 'Already used')
+        const user = { id: newId(), display_name: input.display_name.trim(), email }
+        db.users.push(user)
+        if (input.is_super_admin) superAdmins.add(user.id)
+        // Demo only: a visibly fake value; the real API returns a random password once.
+        return { user: adminUser(user.id), temporary_password: 'Demo-Bukan-Kata-Sandi-Asli' }
+      }),
+    updateUser: (userId, input) =>
+      delay(() => {
+        const user = db.users.find((u) => u.id === userId) ?? notFound()
+        const losesSuperAdmin =
+          superAdmins.has(userId) && (input.is_super_admin === false || input.is_active === false)
+        const activeAdmins = [...superAdmins].filter((id) => !inactive.has(id))
+        if (losesSuperAdmin && activeAdmins.length <= 1) {
+          throw new ApiClientError(
+            409,
+            'CONFLICT',
+            'At least one active Super Admin must remain.',
+            'mock-request',
+          )
+        }
+        if (input.display_name) user.display_name = input.display_name
+        if (input.is_active === false) inactive.add(userId)
+        if (input.is_active === true) inactive.delete(userId)
+        if (input.is_super_admin === true) superAdmins.add(userId)
+        if (input.is_super_admin === false) superAdmins.delete(userId)
+        return adminUser(userId)
       }),
 
     listProjects: () =>

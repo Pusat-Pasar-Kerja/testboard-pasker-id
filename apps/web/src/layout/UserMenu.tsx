@@ -1,6 +1,8 @@
-import { LogOut } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { LogOut, ShieldCheck, UserRound, UsersRound } from 'lucide-react'
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useCurrentUser } from '../hooks/queries'
 import { useDataSource } from '../services/use-data-source'
 
@@ -13,14 +15,30 @@ function initials(name: string): string {
     .join('')
 }
 
+const ITEM =
+  'flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-sm hover:bg-neutral-soft'
+
 export function UserMenu() {
   const { t } = useTranslation()
+  const ds = useDataSource()
   const me = useCurrentUser()
-  const demo = useDataSource().kind === 'mock'
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const details = useRef<HTMLDetailsElement>(null)
+  const demo = ds.kind === 'mock'
   const name = me.data?.display_name ?? '…'
+  const close = () => details.current?.removeAttribute('open')
+
+  const logout = useMutation({
+    mutationFn: () => ds.logout(),
+    onSettled: () => {
+      queryClient.clear()
+      navigate('/login', { replace: true })
+    },
+  })
 
   return (
-    <details className="relative">
+    <details ref={details} className="relative">
       <summary
         className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg px-1.5 hover:bg-neutral-soft [&::-webkit-details-marker]:hidden"
         aria-label={t('shell.signedInAs', { name })}
@@ -33,25 +51,54 @@ export function UserMenu() {
         </span>
         <span className="hidden text-left leading-tight xl:block">
           <span className="block text-sm font-semibold">{name}</span>
-          {demo && (
+          {demo ? (
             <span className="block text-[11px] font-semibold text-warning">
               {t('mode.demoShort')}
             </span>
+          ) : (
+            me.data?.is_super_admin && (
+              <span className="block text-[11px] font-semibold text-brand-700">
+                {t('shell.superAdmin')}
+              </span>
+            )
           )}
         </span>
       </summary>
       <div className="absolute right-0 z-30 mt-2 w-64 origin-top-right animate-pop-in rounded-xl border border-line bg-surface p-2 shadow-lg">
         <p className="px-3 py-2 text-sm">
           {t('shell.signedInAs', { name })}
+          {me.data && (
+            <span className="block truncate text-xs text-ink-muted">{me.data.email}</span>
+          )}
           {demo && <span className="mt-1 block text-xs text-warning">{t('mode.demo')}</span>}
         </p>
-        <Link
-          to="/login"
-          className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm hover:bg-neutral-soft"
-        >
-          <LogOut aria-hidden="true" className="size-4" />
-          {t('shell.signOutDemo')}
+        <Link to="/profile" className={ITEM} onClick={close}>
+          <UserRound aria-hidden="true" className="size-4" />
+          {t('nav.profile')}
         </Link>
+        {me.data?.is_super_admin && (
+          <Link to="/admin/users" className={ITEM} onClick={close}>
+            <UsersRound aria-hidden="true" className="size-4" />
+            {t('nav.adminUsers')}
+            <ShieldCheck aria-hidden="true" className="ml-auto size-4 text-brand-600" />
+          </Link>
+        )}
+        {demo ? (
+          <Link to="/login" className={ITEM} onClick={close}>
+            <LogOut aria-hidden="true" className="size-4" />
+            {t('shell.signOutDemo')}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className={ITEM}
+            disabled={logout.isPending}
+            onClick={() => logout.mutate()}
+          >
+            <LogOut aria-hidden="true" className="size-4" />
+            {t('shell.signOut')}
+          </button>
+        )}
       </div>
     </details>
   )
