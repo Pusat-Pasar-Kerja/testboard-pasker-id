@@ -32,7 +32,7 @@ import { importRoutes } from './imports.js'
 import { defectWriteRoutes } from './defects-write.js'
 import { memberRoutes } from './members.js'
 import { moduleRoutes } from './modules.js'
-import { reportRoutes } from './reports.js'
+import { auditRoutes, reportRoutes } from './reports.js'
 import { runCaseRoutes } from './run-cases.js'
 import { runRoutes } from './runs.js'
 import { runWriteRoutes } from './runs-write.js'
@@ -191,6 +191,7 @@ export function projectRoutes(pool: Pool, files: FileService, imports: ImportSto
   scoped.route('/defects', defectRoutes(pool))
   scoped.route('/defects', defectWriteRoutes(pool))
   scoped.route('/reports', reportRoutes(pool))
+  scoped.route('/audit-logs', auditRoutes(pool))
   scoped.route('/files', fileRoutes(pool, files))
   scoped.route('/executions', executionRoutes(pool))
   scoped.route('/imports', importRoutes(pool, files, imports))

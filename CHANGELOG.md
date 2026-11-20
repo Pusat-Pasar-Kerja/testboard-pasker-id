@@ -2,6 +2,22 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.7.1] - 2026-11-20
+
+Milestone 7 bagian 1 (API): laporan, ekspor CSV/XLSX, dan log audit proyek.
+
+### Ditambahkan
+
+- `GET /projects/:p/reports/overview`: ringkasan per run, modul, dan penguji, ditambah ringkasan bug per tingkat keparahan dan status. Filternya run, siklus, modul, dan periode (hari kalender WIB). Satu test case dalam run dihitung sekali, memakai percobaan terakhir; tingkat lulus = Berhasil Diuji / semua test case dalam run.
+- `GET /projects/:p/reports/export`: dataset hasil terbaru, semua percobaan, bug, dan pustaka test case (format template impor), dalam CSV (BOM, formula dinetralkan) atau XLSX asli (sel bertipe, tanpa formula, header beku + filter). Label status mengikuti bahasa (ID/EN), waktu dalam WIB. Hanya QA Lead/Admin, setiap ekspor tercatat di audit, maksimal 50.000 baris.
+- `GET /projects/:p/audit-logs`: log aktivitas proyek untuk QA Lead/Admin, dengan filter jenis data, aksi, pengguna, dan periode, plus daftar field yang berubah.
+- Modul bersama `@testboard/shared`: penulis CSV/XLSX/ZIP tanpa dependensi baru, label kode ID/EN untuk file ekspor, definisi dataset laporan.
+- Tes integrasi laporan (agregasi, filter, isolasi proyek, injeksi CSV, XLSX dibaca ulang, hak akses, audit).
+
+### Diubah
+
+- CSV daftar masalah impor memakai penulis CSV bersama.
+
 ## [0.7.0] - 2026-11-20
 
 **Milestone 6 selesai**: test case dan hasil UAT lama bisa diimpor dari Excel, CSV, atau JSON lewat wizard di UI (mode API dan demo).

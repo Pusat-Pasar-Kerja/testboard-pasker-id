@@ -13,6 +13,7 @@ export type AuditAction =
   | 'LOGIN'
   | 'LOGOUT'
   | 'PASSWORD_CHANGE'
+  | 'EXPORT'
 
 const SECRET_KEYS = /password|token|secret|cookie|hash/i
 

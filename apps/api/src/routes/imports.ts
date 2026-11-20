@@ -1,4 +1,5 @@
 import {
+  CSV_MIME,
   extensionOf,
   IMPORT_LIMITS,
   IMPORT_ROW_STATUSES,
@@ -14,6 +15,8 @@ import {
   type ImportSourceFormat,
   type ImportSourceKind,
   type Paginated,
+  type TabularValue,
+  toCsv,
 } from '@testboard/shared'
 import busboy from 'busboy'
 import type { Context } from 'hono'
@@ -75,17 +78,7 @@ const JOB_SELECT = `
   SELECT j.*, u.display_name AS creator_name
     FROM import_jobs j LEFT JOIN users u ON u.id = j.created_by`
 
-/** Byte order mark so Excel opens the UTF-8 CSV correctly. */
-const BOM = String.fromCharCode(0xfeff)
-
 const FORMAT_BY_EXT: Record<string, ImportSourceFormat> = { xlsx: 'XLSX', csv: 'CSV', json: 'JSON' }
-
-/** Cells that a spreadsheet would treat as a formula are neutralised (doc 08 section I). */
-export function csvCell(value: unknown): string {
-  let text = value === null || value === undefined ? '' : String(value)
-  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`
-  return /[",\n\r;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
-}
 
 async function loadJob(db: Pool, projectId: string, jobId: string) {
   const row = await selectOne<JobRow>(db, `${JOB_SELECT} WHERE j.id = ? AND j.project_id = ?`, [
@@ -405,7 +398,7 @@ export function importRoutes(pool: Pool, files: FileService, store: ImportStore)
         ORDER BY id`,
       [job.id],
     )
-    const lines = [['sheet', 'row', 'case_code', 'title', 'status', 'issues'].join(',')]
+    const lines: TabularValue[][] = []
     for (const r of rows) {
       const mapped = parseJson<{ values?: { title?: string }; duplicate_of?: string | null }>(
         r.mapped_payload_json,
@@ -414,22 +407,18 @@ export function importRoutes(pool: Pool, files: FileService, store: ImportStore)
         (i) => `${i.level}:${i.field ?? '-'}:${i.code}${i.value ? `(${i.value})` : ''}`,
       )
       if (mapped?.duplicate_of) issues.push(`duplicate_of:${mapped.duplicate_of}`)
-      lines.push(
-        [
-          r.sheet_name,
-          r.source_row_number,
-          r.external_case_code,
-          mapped?.values?.title,
-          r.status_code,
-          issues.join(' | '),
-        ]
-          .map(csvCell)
-          .join(','),
-      )
+      lines.push([
+        r.sheet_name,
+        r.source_row_number,
+        r.external_case_code,
+        mapped?.values?.title,
+        r.status_code,
+        issues.join(' | '),
+      ])
     }
-    c.header('Content-Type', 'text/csv; charset=utf-8')
+    c.header('Content-Type', CSV_MIME)
     c.header('Content-Disposition', `attachment; filename="import-${job.id}-errors.csv"`)
-    return c.body(`${BOM}${lines.join('\r\n')}\r\n`)
+    return c.body(toCsv(['sheet', 'row', 'case_code', 'title', 'status', 'issues'], lines))
   })
 
   /** Embedded image from the uploaded workbook, for the review step (lead-only). */
