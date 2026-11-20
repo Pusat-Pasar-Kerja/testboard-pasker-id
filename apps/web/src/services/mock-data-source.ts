@@ -1,4 +1,15 @@
 import {
+  canTransitionDefect,
+  DEFECT_FIELDS,
+  defectCommentSchema,
+  defectCreateSchema,
+  defectEditableFields,
+  defectStatusSchema,
+  defectUpdateSchema,
+  roleCan,
+  type DefectActor,
+  type DefectField,
+  type Permission,
   countStatuses,
   emptySeverityCounts,
   isOpenDefect,
@@ -352,6 +363,125 @@ export function createMockDataSource(
       fail(409, 'CONFLICT', 'role_code', 'A project must keep at least one ADMIN.')
     }
   }
+
+  // ---- Milestone 4: bug workflow (demo, same rules as the API, ADR 0007) ------------
+  const effectiveRole = (projectId: string): MemberRole =>
+    superAdmins.has(db.currentUserId) ? 'ADMIN' : roleIn(projectId)
+  const forbidden = (message: string, fields: string[] = []): never => {
+    throw new ApiClientError(
+      403,
+      'FORBIDDEN',
+      message,
+      'mock-request',
+      fields.map((field) => ({ field, message: 'Not allowed for your role' })),
+    )
+  }
+  const requireRole = (projectId: string, permission: Permission) => {
+    if (!roleCan(effectiveRole(projectId), permission)) forbidden('Not allowed.')
+  }
+  const defectIn = (projectId: string, defectId: string) =>
+    db.defects.find((d) => d.id === defectId && d.projectId === projectId) ?? notFound()
+  const defectActor = (projectId: string, d: MockDefect): DefectActor => ({
+    role: effectiveRole(projectId),
+    isAssignee: d.assignedTo === db.currentUserId,
+    isReporter: d.reportedBy === db.currentUserId,
+  })
+  const assertDefectAssignee = (projectId: string, userId: string | null | undefined) => {
+    if (!userId) return
+    const member = db.projects
+      .find((p) => p.id === projectId)
+      ?.members.find((m) => m.userId === userId)
+    if (!member || member.role === 'VIEWER' || inactive.has(userId)) {
+      fail(422, 'VALIDATION_ERROR', 'assigned_to', 'Assignee must be an active project member')
+    }
+  }
+  const assertDefectModule = (projectId: string, moduleId: string | null | undefined) => {
+    if (moduleId && !db.modules.some((m) => m.id === moduleId && m.projectId === projectId)) {
+      fail(422, 'VALIDATION_ERROR', 'module_id', 'Module not found in this project')
+    }
+  }
+  const executionInProject = (projectId: string, executionId: string) => {
+    const exec = db.executions.find((e) => e.id === executionId)
+    const rc = db.runCases.find((x) => x.id === exec?.runCaseId)
+    return db.runs.some((r) => r.id === rc?.runId && r.projectId === projectId)
+  }
+  const nextBugCode = (p: MockDb['projects'][number]) => {
+    const codes = db.defects.filter((d) => d.projectId === p.id).map((d) => d.bug_code)
+    const segment =
+      p.project_code
+        .split(/[^A-Z0-9]+/)
+        .filter(Boolean)
+        .at(-1) ?? 'PRJ'
+    const prefix =
+      p.bugPrefix || codes.at(-1)?.match(/^(.+)-\d+$/)?.[1] || `BUG-${segment.slice(0, 3)}`
+    const max = codes.reduce((m, c) => {
+      const tail = c.startsWith(`${prefix}-`) ? c.slice(prefix.length + 1) : ''
+      return /^\d+$/.test(tail) ? Math.max(m, Number.parseInt(tail, 10)) : m
+    }, 0)
+    return `${prefix}-${String(max + 1).padStart(4, '0')}`
+  }
+  /** API field name -> mock property; text fields are stored as '' when empty. */
+  const DEFECT_PROP: Record<DefectField, keyof MockDefect> = {
+    title: 'title',
+    description: 'description',
+    steps_to_reproduce: 'steps_to_reproduce',
+    expected_behavior: 'expected_behavior',
+    actual_behavior: 'actual_behavior',
+    module_id: 'moduleId',
+    severity_code: 'severity_code',
+    priority_code: 'priority_code',
+    environment_name: 'environment_name',
+    build_version: 'build_version',
+    browser_name: 'browser_name',
+    assigned_to: 'assignedTo',
+    fixed_in_version: 'fixed_in_version',
+  }
+  const NULLABLE_PROPS = new Set<keyof MockDefect>(['moduleId', 'assignedTo', 'fixed_in_version'])
+  const defectDetail = (d: MockDefect): DefectDetail => ({
+    ...defectListItem(d),
+    description: d.description || null,
+    steps_to_reproduce: d.steps_to_reproduce || null,
+    expected_behavior: d.expected_behavior || null,
+    actual_behavior: d.actual_behavior || null,
+    source_kind: d.source_kind,
+    environment_name: d.environment_name || null,
+    build_version: d.build_version || null,
+    browser_name: d.browser_name || null,
+    fixed_in_version: d.fixed_in_version,
+    linked_executions: d.executionIds.flatMap((eid) => {
+      const exec = db.executions.find((e) => e.id === eid)
+      const rc = db.runCases.find((x) => x.id === exec?.runCaseId)
+      const run = db.runs.find((r) => r.id === rc?.runId)
+      const c = db.cases.find((x) => x.id === rc?.caseId)
+      if (!exec || !rc || !run || !c) return []
+      return [
+        {
+          execution_id: exec.id,
+          run_id: run.id,
+          run_code: run.run_code,
+          run_case_id: rc.id,
+          case_code: c.case_code,
+          attempt_number: exec.attempt_number,
+          result_status: exec.result_status,
+          tested_at: exec.tested_at,
+        },
+      ]
+    }),
+    history: d.history.map((h) => ({
+      from_status: h.from,
+      to_status: h.to,
+      changed_by: userRef(h.by),
+      change_comment: h.comment,
+      changed_at: h.at,
+    })),
+    comments: d.comments.map((c) => ({
+      id: c.id,
+      author: userRef(c.authorId),
+      body: c.body,
+      created_at: c.created_at,
+    })),
+  })
+  const defectReplays = new Map<string, DefectDetail>()
 
   // ---- Milestone 3: cycles, runs and executions (demo, in memory) -------------------
   const conflict = (message: string): never => {
@@ -1082,60 +1212,182 @@ export function createMockDataSource(
           .filter((d) => !query.severity || d.severity_code === query.severity)
           .filter((d) => !query.priority || d.priority_code === query.priority)
           .filter(
+            (d) =>
+              !query.assigned_to ||
+              (query.assigned_to === 'none'
+                ? d.assignedTo === null
+                : d.assignedTo === query.assigned_to),
+          )
+          .filter(
             (d) => !q || d.bug_code.toLowerCase().includes(q) || d.title.toLowerCase().includes(q),
           )
           .map(defectListItem)
         return paginate(items, query)
       }),
 
-    getDefect: (code, defectId) =>
-      delay((): DefectDetail => {
+    getDefect: (code, defectId) => delay(() => defectDetail(defectIn(project(code).id, defectId))),
+
+    createDefect: (code, input, idempotencyKey) =>
+      delay(() => {
         const p = project(code)
-        const d = db.defects.find((x) => x.id === defectId && x.projectId === p.id) ?? notFound()
-        return {
-          ...defectListItem(d),
-          description: d.description,
-          steps_to_reproduce: d.steps_to_reproduce,
-          expected_behavior: d.expected_behavior,
-          actual_behavior: d.actual_behavior,
-          source_kind: d.source_kind,
-          environment_name: d.environment_name,
-          build_version: d.build_version,
-          browser_name: d.browser_name,
-          fixed_in_version: d.fixed_in_version,
-          linked_executions: d.executionIds.flatMap((eid) => {
-            const exec = db.executions.find((e) => e.id === eid)
-            const rc = db.runCases.find((x) => x.id === exec?.runCaseId)
-            const run = db.runs.find((r) => r.id === rc?.runId)
-            const c = db.cases.find((x) => x.id === rc?.caseId)
-            if (!exec || !rc || !run || !c) return []
-            return [
-              {
-                execution_id: exec.id,
-                run_id: run.id,
-                run_code: run.run_code,
-                run_case_id: rc.id,
-                case_code: c.case_code,
-                attempt_number: exec.attempt_number,
-                result_status: exec.result_status,
-                tested_at: exec.tested_at,
-              },
-            ]
-          }),
-          history: d.history.map((h) => ({
-            from_status: h.from,
-            to_status: h.to,
-            changed_by: userRef(h.by),
-            change_comment: h.comment,
-            changed_at: h.at,
-          })),
-          comments: d.comments.map((c) => ({
-            id: c.id,
-            author: userRef(c.authorId),
-            body: c.body,
-            created_at: c.created_at,
-          })),
+        const replayKey = `${p.id}:${db.currentUserId}:${idempotencyKey}`
+        const replay = defectReplays.get(replayKey)
+        if (replay) return replay
+        requireRole(p.id, 'defect.create')
+        const parsed = defectCreateSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const data = parsed.data
+        const role = effectiveRole(p.id)
+        if (data.assigned_to && role !== 'ADMIN' && role !== 'QA_LEAD') {
+          forbidden('Only an ADMIN or QA_LEAD can assign a bug.', ['assigned_to'])
         }
+        assertDefectModule(p.id, data.module_id)
+        assertDefectAssignee(p.id, data.assigned_to)
+        const executionIds = [...new Set(data.execution_ids ?? [])]
+        if (executionIds.some((id) => !executionInProject(p.id, id))) {
+          fail(422, 'VALIDATION_ERROR', 'execution_ids', 'Test attempt not found in this project')
+        }
+        const bugCode = data.bug_code ?? nextBugCode(p)
+        if (db.defects.some((d) => d.projectId === p.id && d.bug_code === bugCode)) {
+          fail(409, 'CONFLICT', 'bug_code', 'Already used')
+        }
+        const at = now()
+        const defect: MockDefect = {
+          id: newId(),
+          projectId: p.id,
+          moduleId: data.module_id ?? null,
+          bug_code: bugCode,
+          title: data.title,
+          description: data.description ?? '',
+          steps_to_reproduce: data.steps_to_reproduce ?? '',
+          expected_behavior: data.expected_behavior ?? '',
+          actual_behavior: data.actual_behavior ?? '',
+          severity_code: data.severity_code,
+          priority_code: data.priority_code,
+          status_code: 'OPEN',
+          source_kind: data.source_kind,
+          environment_name: data.environment_name ?? '',
+          build_version: data.build_version ?? '',
+          browser_name: data.browser_name ?? '',
+          fixed_in_version: data.fixed_in_version ?? null,
+          reportedBy: db.currentUserId,
+          assignedTo: data.assigned_to ?? null,
+          created_at: at,
+          updated_at: at,
+          executionIds,
+          history: [{ from: null, to: 'OPEN', by: db.currentUserId, comment: null, at }],
+          comments: [],
+        }
+        db.defects.push(defect)
+        const dto = defectDetail(defect)
+        defectReplays.set(replayKey, dto)
+        return dto
+      }),
+
+    updateDefect: (code, defectId, input) =>
+      delay(() => {
+        const p = project(code)
+        const d = defectIn(p.id, defectId)
+        requireRole(p.id, 'defect.update')
+        const parsed = defectUpdateSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const data = parsed.data
+        if (
+          data.expected_updated_at &&
+          new Date(data.expected_updated_at).toISOString() !== d.updated_at
+        ) {
+          conflict('This bug was changed by someone else. Reload to see the latest version.')
+        }
+        const requested = DEFECT_FIELDS.filter((field) => data[field] !== undefined)
+        const allowed = defectEditableFields(defectActor(p.id, d))
+        const denied = requested.filter((field) => !allowed.includes(field))
+        if (denied.length > 0) forbidden('You cannot change these fields of this bug.', denied)
+        const changed = requested.filter(
+          (field) => String(d[DEFECT_PROP[field]] ?? '') !== String(data[field] ?? ''),
+        )
+        if (changed.length === 0) return defectDetail(d)
+        if (changed.includes('module_id')) assertDefectModule(p.id, data.module_id)
+        if (changed.includes('assigned_to')) assertDefectAssignee(p.id, data.assigned_to)
+        const target = d as unknown as Record<string, unknown>
+        for (const field of changed) {
+          const prop = DEFECT_PROP[field]
+          target[prop] = data[field] ?? (NULLABLE_PROPS.has(prop) ? null : '')
+        }
+        d.updated_at = now()
+        return defectDetail(d)
+      }),
+
+    changeDefectStatus: (code, defectId, change) =>
+      delay(() => {
+        const p = project(code)
+        const d = defectIn(p.id, defectId)
+        requireRole(p.id, 'defect.update')
+        const parsed = defectStatusSchema.safeParse(change)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const { status_code: to, expected_status, comment, fixed_in_version } = parsed.data
+        const from = d.status_code
+        if (expected_status && expected_status !== from) {
+          fail(409, 'CONFLICT', 'status_code', `Current status is ${from}`)
+        }
+        if (!canTransitionDefect(from, to)) {
+          fail(409, 'CONFLICT', 'status_code', `Invalid transition ${from} -> ${to}`)
+        }
+        if (!canTransitionDefect(from, to, defectActor(p.id, d))) {
+          forbidden('Your role cannot move this bug to that status.')
+        }
+        const at = now()
+        d.status_code = to
+        if ((to === 'FIXED' || to === 'READY_FOR_RETEST') && fixed_in_version) {
+          d.fixed_in_version = fixed_in_version
+        }
+        d.history.push({ from, to, by: db.currentUserId, comment: comment ?? null, at })
+        d.updated_at = at
+        return defectDetail(d)
+      }),
+
+    addDefectComment: (code, defectId, body) =>
+      delay(() => {
+        const p = project(code)
+        const d = defectIn(p.id, defectId)
+        requireRole(p.id, 'defect.comment')
+        const parsed = defectCommentSchema.safeParse({ body })
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const comment = {
+          id: newId(),
+          authorId: db.currentUserId,
+          body: parsed.data.body,
+          created_at: now(),
+        }
+        d.comments.push(comment)
+        return {
+          id: comment.id,
+          author: userRef(comment.authorId),
+          body: comment.body,
+          created_at: comment.created_at,
+        }
+      }),
+
+    linkDefectExecution: (code, defectId, executionId) =>
+      delay(() => {
+        const p = project(code)
+        const d = defectIn(p.id, defectId)
+        requireRole(p.id, 'defect.link')
+        if (!executionInProject(p.id, executionId)) {
+          fail(422, 'VALIDATION_ERROR', 'execution_ids', 'Test attempt not found in this project')
+        }
+        if (!d.executionIds.includes(executionId)) d.executionIds.push(executionId)
+        return defectDetail(d)
+      }),
+
+    unlinkDefectExecution: (code, defectId, executionId) =>
+      delay(() => {
+        const p = project(code)
+        const d = defectIn(p.id, defectId)
+        requireRole(p.id, 'defect.link')
+        const index = d.executionIds.indexOf(executionId)
+        if (index < 0) notFound()
+        d.executionIds.splice(index, 1)
+        return defectDetail(d)
       }),
   }
 }

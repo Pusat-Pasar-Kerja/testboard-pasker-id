@@ -1,4 +1,5 @@
 import { useId, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { useFocusTrap } from '../../hooks/use-focus-trap'
 import { Button } from './Button'
@@ -32,8 +33,10 @@ export function ConfirmDialog({
   // Focus "cancel" first so Enter never triggers a destructive action by accident.
   useFocusTrap(open, ref, onCancel, '[data-autofocus]')
   if (!open) return null
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+  // Portal to <body>: an animated (transformed) page wrapper would otherwise become the
+  // containing block of `position: fixed` and the dialog would open off-screen.
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-4 sm:items-center">
       <div
         aria-hidden="true"
         className="absolute inset-0 animate-fade-in bg-ink/30 backdrop-blur-[2px]"
@@ -65,6 +68,7 @@ export function ConfirmDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -2,6 +2,24 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.5.0] - 2026-11-20
+
+**Milestone 4 selesai**: alur bug lengkap dari UI (mode API dan demo).
+
+### Ditambahkan
+
+- Laporkan bug dari Daftar Bug (bug mandiri, mis. laporan pengguna) atau langsung dari workspace eksekusi: "Laporkan bug dari percobaan #n" mengisi judul, langkah, perilaku yang diharapkan/aktual, modul, lingkungan, build, dan browser dari hasil uji, menautkan bug ke percobaan itu, lalu kembali ke pengujian.
+- "Tautkan bug yang ada" di workspace eksekusi (cari bug terbuka, tautkan ke percobaan terakhir).
+- Detail bug: tombol status sesuai peran dan alur ADR 0007 dengan konfirmasi (versi perbaikan saat ditandai diperbaiki, alasan wajib saat dibuka kembali atau tidak diperbaiki), riwayat status dengan nama dan alasan, komentar, lepas tautan percobaan uji, tautan langsung ke workspace eksekusi.
+- Form ubah bug dengan kolom terkunci sesuai peran (pelapor mengubah uraian, developer yang ditugaskan mengisi versi perbaikan, QA Lead/Admin semua termasuk penugasan) dan pencegahan saling timpa.
+- Filter penugasan di Daftar Bug ("Ditugaskan ke saya", belum ditugaskan, per orang); API `GET /defects?assigned_to=`.
+- Mode demo menerapkan aturan bug yang sama dengan API.
+- Tes: aturan bug di data demo dan alur UI (lapor mandiri, lapor dari hasil gagal, tautkan, alur status, developer, viewer, komentar).
+
+### Diperbaiki
+
+- Dialog konfirmasi kadang muncul jauh di bawah layar dan halaman melompat: dialog kini dirender di `document.body` dan animasi masuk halaman tidak lagi menahan `transform` setelah selesai.
+
 ## [0.4.1] - 2026-11-20
 
 Milestone 4 bagian API.

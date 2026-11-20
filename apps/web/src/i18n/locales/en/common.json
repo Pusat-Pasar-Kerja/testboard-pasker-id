@@ -372,7 +372,11 @@
       "subtitle": "Defects from UAT runs and from user reports.",
       "searchPlaceholder": "Search bug code or title…",
       "empty": "No bugs in this project yet.",
-      "emptyFiltered": "No bugs match the filters."
+      "emptyFiltered": "No bugs match the filters.",
+      "newBug": "Report a bug",
+      "assigneeFilter": "Assignment",
+      "mine": "Assigned to me",
+      "unassigned": "Unassigned"
     },
     "bugDetail": {
       "details": "Details",
@@ -381,7 +385,34 @@
       "history": "Status history",
       "created": "Created with status {{to}}",
       "comments": "Comments",
-      "noComments": "No comments yet."
+      "noComments": "No comments yet.",
+      "action": {
+        "IN_PROGRESS": "Start fixing",
+        "FIXED": "Mark fixed",
+        "READY_FOR_RETEST": "Ready for retest",
+        "VERIFIED": "Verify as passed",
+        "REOPENED": "Reopen",
+        "CLOSED": "Close bug",
+        "WONT_FIX": "Won't fix"
+      },
+      "statusTitle": "Change {{code}} to \"{{status}}\"?",
+      "statusNote": "The change is recorded in the status history with your name.",
+      "statusHint": {
+        "VERIFIED": "Make sure the retest passed. Earlier test results do not change.",
+        "REOPENED": "Explain why the bug is reopened, e.g. the retest still fails.",
+        "WONT_FIX": "Explain why the bug will not be fixed.",
+        "CLOSED": "A closed bug can still be reopened if it happens again."
+      },
+      "statusChanged": "{{code}} is now: {{status}}.",
+      "workflowHint": "Flow: Open → In progress → Fixed → Ready for retest → Verified → Closed.",
+      "commentLabel": "Write a comment",
+      "commentPlaceholder": "Update, question or check result…",
+      "commentSubmit": "Send comment",
+      "commentAdded": "Comment sent.",
+      "unlink": "Unlink {{case}} attempt #{{n}}",
+      "unlinkTitle": "Unlink {{case}} attempt #{{n}}?",
+      "unlinkBody": "The test result is not deleted; only its link to this bug is removed.",
+      "unlinked": "Link removed."
     },
     "comingSoon": {
       "title": "Coming soon",
@@ -534,10 +565,32 @@
       "evidenceSoon": "Evidence upload (screenshots/video) arrives in Milestone 5.",
       "bugsHeading": "Linked bugs",
       "bugsEmpty": "No linked bugs yet.",
-      "bugsSoon": "Creating a bug straight from a failed result arrives in Milestone 4.",
       "openEnvironment": "Open the test environment",
       "conflict": "Result not saved: {{message}}",
-      "stepsPassed": "{{passed}}/{{total}} steps passed"
+      "stepsPassed": "{{passed}}/{{total}} steps passed",
+      "reportBug": "Report a bug from attempt #{{n}}",
+      "linkBug": "Link an existing bug",
+      "linkSearch": "Search open bugs",
+      "linkEmpty": "No matching open bugs.",
+      "linkAction": "Link {{code}}",
+      "linked": "Bug {{code}} linked to attempt #{{n}}.",
+      "bugsHint": "A failed result never creates a bug by itself. Report a new bug or link an existing one.",
+      "bugsNeedAttempt": "Record a test result first to report or link a bug."
+    },
+    "bugForm": {
+      "newTitle": "Report a bug",
+      "editTitle": "Edit bug {{code}}",
+      "fromExecution": "This bug will be linked to {{run}} · {{case}} · attempt #{{n}}. The fields below come from that test result; review and complete them.",
+      "titleHint": "Short and specific, e.g. \"Save button does nothing on the job form\".",
+      "describe": "Bug description",
+      "classify": "Classification",
+      "environment": "Environment",
+      "noModule": "No module",
+      "unassigned": "Unassigned",
+      "assigneeHint": "Only a QA lead or admin can assign a bug.",
+      "lockedField": "Some fields are locked because your role cannot change them.",
+      "created": "Bug {{code}} created.",
+      "saved": "Bug changes saved."
     }
   },
   "errors": {

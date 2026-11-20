@@ -260,3 +260,85 @@ describe('runs and executions (Milestone 3, same rules as the API)', () => {
     expect((error as ApiClientError).status).toBe(409)
   })
 })
+
+describe('bug workflow (Milestone 4, same rules as the API)', () => {
+  const setup = (currentUserId = '1', superAdmin = true) => {
+    const db = createMockDb()
+    db.currentUserId = currentUserId
+    const source = createMockDataSource({ latencyMs: 0, db, superAdmin })
+    const main = db.projects.find((p) => p.project_code === MAIN)
+    const bugOf = (status: string) => {
+      const bug = db.defects.find((d) => d.projectId === main?.id && d.status_code === status)
+      if (!bug) throw new Error(status)
+      return bug
+    }
+    return { db, source, main, bugOf }
+  }
+
+  it('numbers new bugs after the existing ones and records the OPEN entry (TB-BUG-002)', async () => {
+    const { db, source, main } = setup()
+    const before = db.defects.filter((d) => d.projectId === main?.id).length
+    const bug = await source.createDefect(MAIN, { title: 'Laporan pengguna baru' }, 'key-1')
+    expect(bug.bug_code).toBe(`BUG-DKR-${String(before + 1).padStart(4, '0')}`)
+    expect(bug.history).toEqual([expect.objectContaining({ from_status: null, to_status: 'OPEN' })])
+    const again = await source.createDefect(MAIN, { title: 'Laporan pengguna baru' }, 'key-1')
+    expect(again.id).toBe(bug.id)
+  })
+
+  it('links a new bug to the failed attempt it came from (TB-BUG-001)', async () => {
+    const { db, source } = setup()
+    const failed = db.executions.find((e) => e.result_status === 'FAILED')
+    const bug = await source.createDefect(
+      MAIN,
+      { title: 'Gagal simpan', execution_ids: [failed?.id ?? ''] },
+      'key-2',
+    )
+    expect(bug.linked_executions[0]?.execution_id).toBe(failed?.id)
+    const workspace = await source.getRunCase(MAIN, failed?.runCaseId ?? '')
+    expect(workspace.linked_defects.map((d) => d.id)).toContain(bug.id)
+  })
+
+  it('rejects invalid transitions, missing reasons and the wrong role (TB-BUG-003/004)', async () => {
+    const { db, source, main, bugOf } = setup()
+    const open = bugOf('OPEN')
+    await expect(
+      source.changeDefectStatus(MAIN, open.id, { status_code: 'CLOSED' }),
+    ).rejects.toMatchObject({ status: 409 })
+    const retest = db.defects.find((d) => d.projectId === main?.id && d.id !== open.id)
+    if (!retest) throw new Error('no second bug')
+    retest.status_code = 'READY_FOR_RETEST'
+    await expect(
+      source.changeDefectStatus(MAIN, retest.id, { status_code: 'REOPENED' }),
+    ).rejects.toMatchObject({ status: 422 })
+    const reopened = await source.changeDefectStatus(MAIN, retest.id, {
+      status_code: 'REOPENED',
+      comment: 'Uji ulang masih gagal',
+    })
+    expect(reopened.history.at(-1)).toMatchObject({
+      to_status: 'REOPENED',
+      change_comment: 'Uji ulang masih gagal',
+    })
+
+    const dev = setup('5', false)
+    const notMine = dev.db.defects.find((d) => d.status_code === 'OPEN' && d.assignedTo !== '5')
+    if (notMine) {
+      await expect(
+        dev.source.changeDefectStatus(MAIN, notMine.id, { status_code: 'IN_PROGRESS' }),
+      ).rejects.toMatchObject({ status: 403 })
+    }
+  })
+
+  it('applies field restrictions', async () => {
+    const { db, source } = setup('3', false)
+    const others = db.defects.find((d) => d.reportedBy !== '3')
+    await expect(
+      source.updateDefect(MAIN, others?.id ?? '', { title: 'Bukan pelapor' }),
+    ).rejects.toMatchObject({ status: 403 })
+    const mine = await source.createDefect(MAIN, { title: 'Bug milik penguji' }, 'key-3')
+    const edited = await source.updateDefect(MAIN, mine.id, { title: 'Judul lebih jelas' })
+    expect(edited.title).toBe('Judul lebih jelas')
+    await expect(source.updateDefect(MAIN, mine.id, { assigned_to: '5' })).rejects.toMatchObject({
+      status: 403,
+    })
+  })
+})

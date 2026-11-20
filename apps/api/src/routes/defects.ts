@@ -222,6 +222,12 @@ export function defectRoutes(pool: Pool) {
       where.push('d.priority_code = ?')
       params.push(priority)
     }
+    const assignee = c.req.query('assigned_to')
+    if (assignee === 'none') where.push('d.assigned_to IS NULL')
+    else if (assignee && /^\d{1,20}$/.test(assignee)) {
+      where.push('d.assigned_to = ?')
+      params.push(assignee)
+    }
     const q = c.req.query('q')?.trim()
     if (q) {
       where.push('(d.bug_code LIKE ? OR d.title LIKE ?)')

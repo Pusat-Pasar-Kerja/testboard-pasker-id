@@ -372,7 +372,11 @@
       "subtitle": "Defect dari pelaksanaan UAT maupun laporan pengguna.",
       "searchPlaceholder": "Cari kode atau judul bug…",
       "empty": "Belum ada bug di proyek ini.",
-      "emptyFiltered": "Tidak ada bug yang cocok dengan filter."
+      "emptyFiltered": "Tidak ada bug yang cocok dengan filter.",
+      "newBug": "Laporkan bug",
+      "assigneeFilter": "Penugasan",
+      "mine": "Ditugaskan ke saya",
+      "unassigned": "Belum ditugaskan"
     },
     "bugDetail": {
       "details": "Detail",
@@ -381,7 +385,34 @@
       "history": "Riwayat status",
       "created": "Dibuat dengan status {{to}}",
       "comments": "Komentar",
-      "noComments": "Belum ada komentar."
+      "noComments": "Belum ada komentar.",
+      "action": {
+        "IN_PROGRESS": "Mulai perbaiki",
+        "FIXED": "Tandai diperbaiki",
+        "READY_FOR_RETEST": "Siap diuji ulang",
+        "VERIFIED": "Verifikasi lulus",
+        "REOPENED": "Buka kembali",
+        "CLOSED": "Tutup bug",
+        "WONT_FIX": "Tidak akan diperbaiki"
+      },
+      "statusTitle": "Ubah status {{code}} menjadi \"{{status}}\"?",
+      "statusNote": "Perubahan dicatat di riwayat status beserta nama Anda.",
+      "statusHint": {
+        "VERIFIED": "Pastikan uji ulang sudah lulus. Hasil uji lama tidak berubah.",
+        "REOPENED": "Jelaskan mengapa bug dibuka kembali, mis. hasil uji ulang masih gagal.",
+        "WONT_FIX": "Jelaskan alasan bug tidak akan diperbaiki.",
+        "CLOSED": "Bug yang ditutup masih bisa dibuka kembali bila terjadi lagi."
+      },
+      "statusChanged": "Status {{code}} sekarang: {{status}}.",
+      "workflowHint": "Alur: Terbuka → Sedang Diperbaiki → Diperbaiki → Siap Diuji Ulang → Terverifikasi → Ditutup.",
+      "commentLabel": "Tulis komentar",
+      "commentPlaceholder": "Pembaruan, pertanyaan, atau hasil pengecekan…",
+      "commentSubmit": "Kirim komentar",
+      "commentAdded": "Komentar terkirim.",
+      "unlink": "Lepas tautan {{case}} percobaan #{{n}}",
+      "unlinkTitle": "Lepas tautan ke {{case}} percobaan #{{n}}?",
+      "unlinkBody": "Hasil uji tidak terhapus; hanya tautannya ke bug ini yang dilepas.",
+      "unlinked": "Tautan dilepas."
     },
     "comingSoon": {
       "title": "Segera hadir",
@@ -534,10 +565,32 @@
       "evidenceSoon": "Unggah bukti (tangkapan layar/video) tersedia di Milestone 5.",
       "bugsHeading": "Bug terkait",
       "bugsEmpty": "Belum ada bug terkait.",
-      "bugsSoon": "Membuat bug langsung dari hasil gagal tersedia di Milestone 4.",
       "openEnvironment": "Buka lingkungan uji",
       "conflict": "Hasil tidak disimpan: {{message}}",
-      "stepsPassed": "{{passed}}/{{total}} langkah lulus"
+      "stepsPassed": "{{passed}}/{{total}} langkah lulus",
+      "reportBug": "Laporkan bug dari percobaan #{{n}}",
+      "linkBug": "Tautkan bug yang ada",
+      "linkSearch": "Cari bug terbuka",
+      "linkEmpty": "Tidak ada bug terbuka yang cocok.",
+      "linkAction": "Tautkan {{code}}",
+      "linked": "Bug {{code}} ditautkan ke percobaan #{{n}}.",
+      "bugsHint": "Hasil gagal tidak membuat bug otomatis. Laporkan bug baru atau tautkan bug yang sudah ada.",
+      "bugsNeedAttempt": "Catat hasil uji dulu untuk melaporkan atau menautkan bug."
+    },
+    "bugForm": {
+      "newTitle": "Laporkan bug",
+      "editTitle": "Ubah bug {{code}}",
+      "fromExecution": "Bug ini akan ditautkan ke {{run}} · {{case}} · percobaan #{{n}}. Isian di bawah diambil dari hasil uji tersebut; periksa dan lengkapi.",
+      "titleHint": "Ringkas dan spesifik, mis. \"Tombol Simpan tidak merespons di form lowongan\".",
+      "describe": "Uraian bug",
+      "classify": "Klasifikasi",
+      "environment": "Lingkungan",
+      "noModule": "Tanpa modul",
+      "unassigned": "Belum ditugaskan",
+      "assigneeHint": "Hanya QA Lead atau Admin yang dapat menugaskan bug.",
+      "lockedField": "Sebagian kolom terkunci karena peran Anda tidak dapat mengubahnya.",
+      "created": "Bug {{code}} dibuat.",
+      "saved": "Perubahan bug disimpan."
     }
   },
   "errors": {

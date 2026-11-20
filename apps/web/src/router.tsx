@@ -3,6 +3,7 @@ import { AppShell } from './layout/AppShell'
 import { RequireAuth } from './layout/RequireAuth'
 import { AdminUsersPage } from './pages/AdminUsersPage'
 import { BugDetailPage } from './pages/BugDetailPage'
+import { BugFormPage } from './pages/BugFormPage'
 import { BugsPage } from './pages/BugsPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
 import { CyclesPage } from './pages/CyclesPage'
@@ -52,7 +53,9 @@ export const routes: RouteObject[] = [
           { path: 'runs/:runId/edit', element: <RunFormPage mode="edit" /> },
           { path: 'runs/:runId/cases/:runCaseId', element: <ExecutionPage /> },
           { path: 'bugs', element: <BugsPage /> },
+          { path: 'bugs/new', element: <BugFormPage mode="create" /> },
           { path: 'bugs/:bugId', element: <BugDetailPage /> },
+          { path: 'bugs/:bugId/edit', element: <BugFormPage mode="edit" /> },
           { path: 'cycles', element: <CyclesPage /> },
           { path: 'evidence', element: <ComingSoonPage feature="evidence" /> },
           { path: 'imports', element: <ComingSoonPage feature="imports" /> },

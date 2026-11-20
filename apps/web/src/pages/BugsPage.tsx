@@ -5,23 +5,26 @@ import {
   type DefectListItem,
   type DefectStatus,
 } from '@testboard/shared'
+import { Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import {
   DefectPriorityBadge,
   DefectStatusBadge,
   SeverityBadge,
 } from '../components/status/StatusBadges'
+import { ButtonLink } from '../components/ui/Button'
 import { FilterBar, SearchField, SelectFilter } from '../components/ui/Filters'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Pagination } from '../components/ui/Pagination'
 import { ResponsiveTable } from '../components/ui/ResponsiveTable'
 import { Section } from '../components/ui/Section'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
-import { useDefects } from '../hooks/queries'
+import { useCan } from '../hooks/permissions'
+import { useCurrentUser, useDefects, useMembers } from '../hooks/queries'
 import { oneOf, projectPath, useProjectCode, useUrlFilters } from '../hooks/route-state'
 import { formatShortDateTime, toLocale } from '../lib/format'
 
-const FILTER_KEYS = ['q', 'status', 'severity', 'priority'] as const
+const FILTER_KEYS = ['q', 'status', 'severity', 'priority', 'assignee'] as const
 const STATUS_FILTERS: readonly (DefectStatus | 'open')[] = ['open', ...DEFECT_STATUSES]
 
 export function BugsPage() {
@@ -29,11 +32,16 @@ export function BugsPage() {
   const locale = toLocale(i18n.resolvedLanguage)
   const code = useProjectCode()
   const { values, page, setFilter, setPage, reset, active } = useUrlFilters(FILTER_KEYS)
+  const can = useCan(code)
+  const me = useCurrentUser()
+  const members = useMembers(code)
+  const assignee = values.assignee === 'me' ? me.data?.id : values.assignee || undefined
   const defects = useDefects(code, {
     q: values.q || undefined,
     status: oneOf(STATUS_FILTERS, values.status),
     severity: oneOf(DEFECT_SEVERITIES, values.severity),
     priority: oneOf(DEFECT_PRIORITIES, values.priority),
+    assigned_to: assignee,
     page,
   })
 
@@ -43,6 +51,13 @@ export function BugsPage() {
         title={t('pages.bugs.title')}
         subtitle={t('pages.bugs.subtitle')}
         crumbs={[{ label: code, to: projectPath(code) }, { label: t('pages.bugs.title') }]}
+        actions={
+          can('defect.create') && (
+            <ButtonLink to={projectPath(code, 'bugs/new')} icon={Plus}>
+              {t('pages.bugs.newBug')}
+            </ButtonLink>
+          )
+        }
       />
 
       <FilterBar onReset={active ? reset : undefined}>
@@ -75,6 +90,18 @@ export function BugsPage() {
             value: p,
             label: t(`codes.defectPriority.${p}`),
           }))}
+        />
+        <SelectFilter
+          label={t('pages.bugs.assigneeFilter')}
+          value={values.assignee}
+          onChange={(value) => setFilter('assignee', value)}
+          options={[
+            ...(me.data ? [{ value: 'me', label: t('pages.bugs.mine') }] : []),
+            { value: 'none', label: t('pages.bugs.unassigned') },
+            ...(members.data ?? [])
+              .filter((m) => m.role_code !== 'VIEWER')
+              .map((m) => ({ value: m.user.id, label: m.user.display_name })),
+          ]}
         />
       </FilterBar>
 

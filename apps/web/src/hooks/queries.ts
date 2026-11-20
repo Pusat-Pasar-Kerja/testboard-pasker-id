@@ -78,26 +78,32 @@ export function useCycles(code: string) {
   return useQuery({ queryKey: ['cycles', code], queryFn: () => ds.listCycles(code) })
 }
 
-export function useRunCase(code: string, runCaseId: string) {
+export function useRunCase(code: string, runCaseId: string, enabled = true) {
   const ds = useDataSource()
   return useQuery({
     queryKey: ['run-case', code, runCaseId],
     queryFn: () => ds.getRunCase(code, runCaseId),
+    enabled,
   })
 }
 
-export function useDefects(code: string, query: DefectQuery) {
+export function useDefects(code: string, query: DefectQuery, enabled = true) {
   const ds = useDataSource()
   return useQuery({
     queryKey: ['defects', code, query],
     queryFn: () => ds.listDefects(code, query),
     placeholderData: keepPreviousData,
+    enabled,
   })
 }
 
-export function useDefect(code: string, id: string) {
+export function useDefect(code: string, id: string, enabled = true) {
   const ds = useDataSource()
-  return useQuery({ queryKey: ['defect', code, id], queryFn: () => ds.getDefect(code, id) })
+  return useQuery({
+    queryKey: ['defect', code, id],
+    queryFn: () => ds.getDefect(code, id),
+    enabled,
+  })
 }
 
 export function useAdminUsers(q: string, enabled = true) {
@@ -123,4 +129,19 @@ export async function invalidateRunData(queryClient: QueryClient, code: string, 
     queryClient.invalidateQueries({ queryKey: ['cycles', code] }),
     queryClient.invalidateQueries({ queryKey: ['projects'] }),
   ])
+}
+
+/** After any bug change: lists, detail, dashboard figures and run/workspace bug links. */
+export async function invalidateDefectData(queryClient: QueryClient, code: string) {
+  await Promise.all(
+    [
+      ['defects', code],
+      ['defect', code],
+      ['dashboard', code],
+      ['projects'],
+      ['run-case', code],
+      ['run', code],
+      ['runs', code],
+    ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+  )
 }

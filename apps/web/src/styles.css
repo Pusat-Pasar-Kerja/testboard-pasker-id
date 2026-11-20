@@ -59,7 +59,9 @@
 
   /* Motion: short, soft deceleration; nothing bounces or flashes. */
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
-  --animate-page-in: page-in 260ms var(--ease-soft) both;
+  /* `backwards`, not `both`: a finished animation must not keep acting as a transform,
+     which would trap `position: fixed` descendants inside the page wrapper. */
+  --animate-page-in: page-in 260ms var(--ease-soft) backwards;
   --animate-fade-in: fade-in 180ms var(--ease-soft) both;
   --animate-drawer-in: drawer-in 280ms var(--ease-soft) both;
   --animate-pop-in: pop-in 180ms var(--ease-soft) both;

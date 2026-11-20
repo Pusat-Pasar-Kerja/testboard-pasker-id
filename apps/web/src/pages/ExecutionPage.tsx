@@ -7,6 +7,9 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowRight,
+  Bug,
+  Link2,
+  X,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
@@ -35,11 +38,18 @@ import { ConfirmDialog } from '../components/ui/Dialog'
 import { FormAlert, SelectField, TextArea, TextField } from '../components/ui/Form'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Section } from '../components/ui/Section'
+import { SearchField } from '../components/ui/Filters'
 import { ErrorState, LoadingState } from '../components/ui/States'
 import { Tabs } from '../components/ui/Tabs'
 import { useToast } from '../components/ui/toast-context'
 import { useCan } from '../hooks/permissions'
-import { invalidateRunData, useCurrentUser, useRunCase } from '../hooks/queries'
+import {
+  invalidateDefectData,
+  invalidateRunData,
+  useCurrentUser,
+  useDefects,
+  useRunCase,
+} from '../hooks/queries'
 import { projectPath, useProjectCode } from '../hooks/route-state'
 import { useMediaQuery } from '../hooks/use-media-query'
 import { apiErrorText, apiFieldErrors } from '../lib/api-errors'
@@ -131,6 +141,136 @@ function AttemptCard({
         </div>
       )}
     </article>
+  )
+}
+
+/** Bugs found in this case: open them, report a new one from the latest attempt or link one. */
+function BugsPanel({
+  code,
+  detail,
+  canLink,
+}: {
+  code: string
+  detail: RunCaseDetail
+  canLink: boolean
+}) {
+  const { t } = useTranslation()
+  const ds = useDataSource()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [linking, setLinking] = useState(false)
+  const [q, setQ] = useState('')
+  const latest = detail.attempts[0] ?? null
+  const open = useDefects(code, { status: 'open', q: q || undefined, page_size: 20 }, linking)
+  const linkedIds = new Set(detail.linked_defects.map((bug) => bug.id))
+  const candidates = (open.data?.data ?? []).filter((bug) => !linkedIds.has(bug.id))
+
+  const link = useMutation({
+    mutationFn: (bugId: string) => ds.linkDefectExecution(code, bugId, latest?.id ?? ''),
+    onSuccess: async (bug) => {
+      setLinking(false)
+      await invalidateDefectData(queryClient, code)
+      toast.show(
+        t('pages.execution.linked', { code: bug.bug_code, n: latest?.attempt_number ?? 0 }),
+      )
+    },
+    onError: (error) => toast.show(apiErrorText(t, error)),
+  })
+
+  return (
+    <Section title={t('pages.execution.bugsHeading')}>
+      {detail.linked_defects.length === 0 ? (
+        <p className="text-sm text-ink-muted">{t('pages.execution.bugsEmpty')}</p>
+      ) : (
+        <ul className="space-y-2">
+          {detail.linked_defects.map((bug) => (
+            <li key={bug.id}>
+              <Link
+                to={projectPath(code, `bugs/${bug.id}`)}
+                className="block rounded-lg border border-line p-3 text-sm hover:border-brand-200 hover:shadow-sm"
+              >
+                <span className="text-xs font-semibold text-brand-700">{bug.bug_code}</span>
+                <span className="block font-medium break-words">{bug.title}</span>
+                <span className="mt-1 flex flex-wrap gap-2">
+                  <DefectStatusBadge status={bug.status_code} />
+                  <SeverityBadge severity={bug.severity_code} />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {canLink && !latest && (
+        <p className="mt-3 text-xs text-ink-muted">{t('pages.execution.bugsNeedAttempt')}</p>
+      )}
+      {canLink && latest && (
+        <div className="mt-4 space-y-3">
+          <p className="text-xs text-ink-muted">{t('pages.execution.bugsHint')}</p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <ButtonLink
+              to={`${projectPath(code, 'bugs/new')}?runCase=${encodeURIComponent(
+                detail.run_case_id,
+              )}&execution=${encodeURIComponent(latest.id)}`}
+              variant="secondary"
+              icon={Bug}
+            >
+              {t('pages.execution.reportBug', { n: latest.attempt_number })}
+            </ButtonLink>
+            {!linking && (
+              <Button variant="ghost" icon={Link2} onClick={() => setLinking(true)}>
+                {t('pages.execution.linkBug')}
+              </Button>
+            )}
+          </div>
+          {linking && (
+            <div className="animate-fade-in space-y-3 rounded-lg border border-line p-3">
+              <div className="flex items-end gap-2">
+                <SearchField
+                  label={t('pages.execution.linkSearch')}
+                  placeholder={t('pages.bugs.searchPlaceholder')}
+                  value={q}
+                  onSearch={setQ}
+                />
+                <Button variant="ghost" icon={X} onClick={() => setLinking(false)}>
+                  <span className="sr-only">{t('actions.close')}</span>
+                </Button>
+              </div>
+              {open.isPending ? (
+                <LoadingState rows={2} />
+              ) : candidates.length === 0 ? (
+                <p className="text-sm text-ink-muted">{t('pages.execution.linkEmpty')}</p>
+              ) : (
+                <ul className="max-h-72 divide-y divide-line overflow-y-auto">
+                  {candidates.map((bug) => (
+                    <li key={bug.id} className="flex items-center gap-3 py-2">
+                      <span className="min-w-0 flex-1 text-sm">
+                        <span className="block text-xs font-semibold text-brand-700">
+                          {bug.bug_code}
+                        </span>
+                        <span className="block break-words">{bug.title}</span>
+                      </span>
+                      <DefectStatusBadge status={bug.status_code} />
+                      <Button
+                        variant="secondary"
+                        icon={Link2}
+                        disabled={link.isPending}
+                        onClick={() => link.mutate(bug.id)}
+                        aria-label={t('pages.execution.linkAction', { code: bug.bug_code })}
+                      >
+                        <span className="sr-only">
+                          {t('pages.execution.linkAction', { code: bug.bug_code })}
+                        </span>
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </Section>
   )
 }
 
@@ -537,32 +677,7 @@ function Workspace({ detail }: { detail: RunCaseDetail }) {
     </Section>
   )
 
-  const bugs = (
-    <Section title={t('pages.execution.bugsHeading')}>
-      {detail.linked_defects.length === 0 ? (
-        <p className="text-sm text-ink-muted">{t('pages.execution.bugsEmpty')}</p>
-      ) : (
-        <ul className="space-y-2">
-          {detail.linked_defects.map((bug) => (
-            <li key={bug.id}>
-              <Link
-                to={projectPath(code, `bugs/${bug.id}`)}
-                className="block rounded-lg border border-line p-3 text-sm hover:border-brand-200 hover:shadow-sm"
-              >
-                <span className="text-xs font-semibold text-brand-700">{bug.bug_code}</span>
-                <span className="block font-medium break-words">{bug.title}</span>
-                <span className="mt-1 flex flex-wrap gap-2">
-                  <DefectStatusBadge status={bug.status_code} />
-                  <SeverityBadge severity={bug.severity_code} />
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className="mt-3 text-xs text-ink-muted">{t('pages.execution.bugsSoon')}</p>
-    </Section>
-  )
+  const bugs = <BugsPanel code={code} detail={detail} canLink={can('defect.link')} />
 
   return (
     <>

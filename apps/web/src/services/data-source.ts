@@ -8,10 +8,12 @@ import type {
   RunCaseDetail,
   RunStatus,
   DashboardSummary,
+  DefectCommentDto,
   DefectDetail,
   DefectListItem,
   DefectPriority,
   DefectSeverity,
+  DefectSourceKind,
   DefectStatus,
   HealthResponse,
   Locale,
@@ -50,6 +52,8 @@ export interface DefectQuery extends PageQuery {
   status?: DefectStatus | 'open'
   severity?: DefectSeverity
   priority?: DefectPriority
+  /** A user id, or 'none' for unassigned bugs. */
+  assigned_to?: string
 }
 
 /** Editable test case fields (mirrors the API create/update schemas). */
@@ -111,6 +115,36 @@ export interface ExecutionInput {
 export interface AddRunCasesResult {
   added: number
   skipped: { test_case_id: string; reason: 'NOT_FOUND' | 'NOT_READY' | 'ALREADY_IN_RUN' }[]
+}
+
+/** Bug fields for create/edit (mirrors the API schemas; edit sends only changed fields). */
+export interface DefectInput {
+  bug_code?: string
+  title?: string
+  description?: string | null
+  steps_to_reproduce?: string | null
+  expected_behavior?: string | null
+  actual_behavior?: string | null
+  module_id?: string | null
+  severity_code?: DefectSeverity
+  priority_code?: DefectPriority
+  source_kind?: DefectSourceKind
+  environment_name?: string | null
+  build_version?: string | null
+  browser_name?: string | null
+  assigned_to?: string | null
+  fixed_in_version?: string | null
+  /** Create only: test attempts the bug was found in. */
+  execution_ids?: string[]
+  /** Edit only: the `updated_at` the form was loaded with. */
+  expected_updated_at?: string
+}
+
+export interface DefectStatusChange {
+  status_code: DefectStatus
+  expected_status?: DefectStatus
+  comment?: string | null
+  fixed_in_version?: string | null
 }
 
 export interface AdminUserInput {
@@ -199,6 +233,28 @@ export interface DataSource {
   // Bugs (read-only until Milestone 4)
   listDefects(projectCode: string, query?: DefectQuery): Promise<Paginated<DefectListItem>>
   getDefect(projectCode: string, defectId: string): Promise<DefectDetail>
+  createDefect(
+    projectCode: string,
+    input: DefectInput,
+    idempotencyKey: string,
+  ): Promise<DefectDetail>
+  updateDefect(projectCode: string, defectId: string, input: DefectInput): Promise<DefectDetail>
+  changeDefectStatus(
+    projectCode: string,
+    defectId: string,
+    change: DefectStatusChange,
+  ): Promise<DefectDetail>
+  addDefectComment(projectCode: string, defectId: string, body: string): Promise<DefectCommentDto>
+  linkDefectExecution(
+    projectCode: string,
+    defectId: string,
+    executionId: string,
+  ): Promise<DefectDetail>
+  unlinkDefectExecution(
+    projectCode: string,
+    defectId: string,
+    executionId: string,
+  ): Promise<DefectDetail>
 
   // Super Admin (ADR 0004)
   listUsers(q?: string): Promise<AdminUserDto[]>
@@ -285,6 +341,17 @@ export function createHttpDataSource(client: ApiClient): DataSource {
       }),
     listDefects: (code, query) => client.get(`${p(code)}/defects${toQueryString(query)}`),
     getDefect: (code, id) => client.get(`${p(code)}/defects/${seg(id)}`),
+    createDefect: (code, input, idempotencyKey) =>
+      client.post(`${p(code)}/defects`, input, { 'Idempotency-Key': idempotencyKey }),
+    updateDefect: (code, id, input) => client.patch(`${p(code)}/defects/${seg(id)}`, input),
+    changeDefectStatus: (code, id, change) =>
+      client.post(`${p(code)}/defects/${seg(id)}/status`, change),
+    addDefectComment: (code, id, body) =>
+      client.post(`${p(code)}/defects/${seg(id)}/comments`, { body }),
+    linkDefectExecution: (code, id, executionId) =>
+      client.post(`${p(code)}/defects/${seg(id)}/executions`, { execution_id: executionId }),
+    unlinkDefectExecution: (code, id, executionId) =>
+      client.delete(`${p(code)}/defects/${seg(id)}/executions/${seg(executionId)}`),
 
     listUsers: (q) => client.get(`/admin/users${toQueryString({ q })}`),
     createUser: (input) => client.post('/admin/users', input),
