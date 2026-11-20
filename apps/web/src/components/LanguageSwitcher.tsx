@@ -19,7 +19,7 @@ export function LanguageSwitcher() {
       aria-label={t('language.label')}
       className="inline-flex items-center gap-1 rounded-lg border border-line bg-surface p-1"
     >
-      <Languages aria-hidden="true" className="mx-1 size-4 text-ink-muted" />
+      <Languages aria-hidden="true" className="mx-1 hidden size-4 text-ink-muted sm:block" />
       {LOCALES.map((locale) => {
         const active = locale === current
         return (

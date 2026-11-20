@@ -1,7 +1,6 @@
 {
   "app": {
     "title": "TestBoard PASKER ID",
-    "shortTitle": "TestBoard",
     "tagline": "Platform for test case documentation, UAT execution, test evidence and bug tracking."
   },
   "language": {
@@ -12,26 +11,286 @@
   },
   "mode": {
     "demo": "DEMO - fictitious sample data",
+    "demoShort": "DEMO",
     "live": "Connected to API"
   },
-  "foundation": {
-    "heading": "Application foundation ready",
-    "description": "Milestone 0: monorepo structure, base API, uniform error format and mock data adapter. Full screens follow in Milestone 1.",
-    "apiStatus": "API status",
-    "service": "Service",
-    "version": "Version",
-    "database": "Database",
-    "checkedAt": "Checked",
-    "retry": "Retry"
+  "nav": {
+    "main": "Main navigation",
+    "projects": "All projects",
+    "dashboard": "Dashboard",
+    "testCases": "Test Cases",
+    "cycles": "Test Cycles",
+    "runs": "Test Runs",
+    "bugs": "Bug Tracker",
+    "evidence": "Evidence Center",
+    "imports": "Imports",
+    "reports": "Reports",
+    "team": "Team & Settings",
+    "soon": "Soon",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu"
   },
-  "status": {
-    "ok": "Healthy",
-    "loading": "Checking…",
-    "error": "Unable to connect",
-    "database": {
-      "not_configured": "Not configured",
-      "up": "Connected",
-      "down": "Disconnected"
+  "shell": {
+    "skipToContent": "Skip to main content",
+    "project": "Project",
+    "search": "Search test cases…",
+    "searchLabel": "Search test cases in this project",
+    "signedInAs": "Signed in as {{name}}",
+    "signOutDemo": "Leave demo",
+    "breadcrumb": "Breadcrumb"
+  },
+  "actions": {
+    "retry": "Retry",
+    "back": "Back",
+    "viewAll": "View all",
+    "resetFilters": "Clear filters",
+    "search": "Search",
+    "signInDemo": "Sign in as demo user"
+  },
+  "states": {
+    "loading": "Loading data…",
+    "emptyTitle": "Nothing here yet",
+    "filteredTitle": "No results",
+    "errorTitle": "Could not load data"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "summary": "{{from}}-{{to}} of {{total}}",
+    "page": "Page {{page}} of {{pages}}"
+  },
+  "filters": {
+    "keyword": "Keyword",
+    "module": "Module",
+    "priority": "Priority",
+    "type": "Test type",
+    "status": "Status",
+    "severity": "Severity",
+    "run": "Run",
+    "all": "All",
+    "allRuns": "All runs",
+    "openOnly": "Not done yet"
+  },
+  "codes": {
+    "execution": {
+      "NOT_RUN": "Not Tested",
+      "IN_PROGRESS": "In Progress",
+      "PASSED": "Passed",
+      "FAILED": "Failed",
+      "BLOCKED": "Blocked",
+      "SKIPPED": "Skipped"
+    },
+    "executionKind": {
+      "INITIAL": "Initial",
+      "RETEST": "Retest",
+      "RERUN": "Rerun"
+    },
+    "defectStatus": {
+      "OPEN": "Open",
+      "IN_PROGRESS": "In Progress",
+      "FIXED": "Fixed",
+      "READY_FOR_RETEST": "Ready for Retest",
+      "VERIFIED": "Verified",
+      "REOPENED": "Reopened",
+      "CLOSED": "Closed",
+      "WONT_FIX": "Won't Fix"
+    },
+    "severity": {
+      "CRITICAL": "Critical",
+      "HIGH": "High",
+      "MEDIUM": "Medium",
+      "LOW": "Low",
+      "INFO": "Informational"
+    },
+    "defectPriority": {
+      "URGENT": "Urgent",
+      "HIGH": "High",
+      "MEDIUM": "Medium",
+      "LOW": "Low"
+    },
+    "casePriority": {
+      "MUST_HAVE": "Must Have",
+      "SHOULD_HAVE": "Should Have",
+      "COULD_HAVE": "Could Have",
+      "WONT_HAVE": "Won't Have"
+    },
+    "testType": {
+      "POSITIVE": "Positive",
+      "NEGATIVE": "Negative",
+      "RBAC": "Access control",
+      "SLA": "SLA",
+      "UI_UX": "UI/UX",
+      "INTEGRATION": "Integration",
+      "OTHER": "Other"
+    },
+    "caseStatus": {
+      "DRAFT": "Draft",
+      "READY": "Ready",
+      "ARCHIVED": "Archived"
+    },
+    "runStatus": {
+      "PLANNED": "Planned",
+      "ACTIVE": "Active",
+      "COMPLETED": "Completed",
+      "LOCKED": "Locked"
+    },
+    "role": {
+      "ADMIN": "Admin",
+      "QA_LEAD": "QA Lead",
+      "TESTER": "Tester",
+      "DEVELOPER": "Developer",
+      "VIEWER": "Viewer"
+    },
+    "caseSource": {
+      "MANUAL": "Manual",
+      "LEGACY_IMPORT": "Legacy Excel import",
+      "AI_IMPORT": "AI-generated import"
+    },
+    "defectSource": {
+      "UAT": "UAT",
+      "USER_REPORT": "User report",
+      "OTHER": "Other"
+    }
+  },
+  "fields": {
+    "caseCode": "Code",
+    "title": "Title",
+    "module": "Module",
+    "suite": "Suite",
+    "category": "Category",
+    "priority": "Priority",
+    "type": "Test type",
+    "status": "Status",
+    "version": "Version",
+    "updatedAt": "Updated",
+    "createdAt": "Created",
+    "actor": "Actor",
+    "preconditions": "Preconditions",
+    "steps": "Test steps",
+    "expectedResult": "Expected result",
+    "requirementRefs": "Requirement references",
+    "source": "Source",
+    "contentLanguage": "Content language",
+    "assignee": "Assigned to",
+    "reporter": "Reporter",
+    "severity": "Severity",
+    "attempts": "Attempts",
+    "lastTested": "Last tested",
+    "linkedBugs": "Linked bugs",
+    "environment": "Environment",
+    "environmentUrl": "Environment URL",
+    "build": "Build/version",
+    "cycle": "Cycle",
+    "period": "Period",
+    "progress": "Progress",
+    "bugCode": "Bug code",
+    "description": "Description",
+    "stepsToReproduce": "Steps to reproduce",
+    "expectedBehavior": "Expected behaviour",
+    "actualBehavior": "Actual behaviour",
+    "browser": "Browser",
+    "fixedIn": "Fixed in version",
+    "run": "Run",
+    "name": "Name",
+    "attempt": "Attempt #{{n}}",
+    "result": "Result",
+    "testedAt": "Tested at",
+    "role": "Role",
+    "none": "-"
+  },
+  "pages": {
+    "login": {
+      "title": "Sign in to TestBoard",
+      "demoNotice": "DEMO mode: there is no authentication and no real data yet. Sign-in with an account and password is built in Milestone 2.",
+      "demoUser": "You will enter as {{name}} ({{role}}) in the sample projects."
+    },
+    "projects": {
+      "title": "Projects",
+      "subtitle": "Pick a project to start working. You only see projects you are a member of.",
+      "cases_one": "{{count}} test case",
+      "cases_other": "{{count}} test cases",
+      "runs_one": "{{count}} run",
+      "runs_other": "{{count}} runs",
+      "openBugs_one": "{{count}} open bug",
+      "openBugs_other": "{{count}} open bugs",
+      "yourRole": "Your role: {{role}}",
+      "empty": "You are not a member of any project yet."
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "kpiPlanned": "Test cases planned",
+      "kpiExecuted": "Executed",
+      "kpiPassRate": "Pass rate",
+      "kpiOpenBugs": "Open bugs",
+      "kpiCriticalHigh": "Critical & high bugs",
+      "statusHeading": "Latest test case status",
+      "statusNote": "Counted from the latest attempt of each test case in a run. Retests are not double-counted; Blocked, Skipped and Not Tested never count as passed.",
+      "statusBarLabel": "Latest status distribution: {{summary}}",
+      "severityHeading": "Open bugs by severity",
+      "severityBarLabel": "{{severity}}: {{count}} open bugs",
+      "runsHeading": "Run progress",
+      "recentBugs": "Recent bugs",
+      "noRuns": "No runs in this project yet.",
+      "noBugs": "No bugs in this project yet.",
+      "noRunCases": "No test cases have been scheduled in a run yet."
+    },
+    "cases": {
+      "title": "Test Cases",
+      "subtitle": "Library of test case definitions. Test results are recorded separately in each run.",
+      "searchPlaceholder": "Search code or title…",
+      "empty": "No test cases in this project yet.",
+      "emptyFiltered": "No test cases match the filters."
+    },
+    "caseDetail": {
+      "tabOverview": "Overview",
+      "tabRevisions": "Revisions",
+      "tabRuns": "Used in runs",
+      "tabEvidence": "Evidence",
+      "revision": "Revision {{n}}",
+      "noRevisions": "No revisions yet.",
+      "notUsed": "This test case has not been used in any run yet.",
+      "stepsPreserved": "Step text is shown exactly as in the source.",
+      "evidenceLater": "Evidence attachments (screenshots, videos, documents) arrive in Milestone 5."
+    },
+    "runs": {
+      "title": "Test Runs",
+      "subtitle": "A run is a set of test cases executed on a given environment and build.",
+      "empty": "No runs in this project yet."
+    },
+    "runDetail": {
+      "casesHeading": "Test cases in this run",
+      "snapshotNote": "Title and version come from the snapshot taken when the case joined the run, so later edits never change past results.",
+      "emptyFiltered": "No test cases with this status.",
+      "unassigned": "Unassigned"
+    },
+    "bugs": {
+      "title": "Bug Tracker",
+      "subtitle": "Defects from UAT runs and from user reports.",
+      "searchPlaceholder": "Search bug code or title…",
+      "empty": "No bugs in this project yet.",
+      "emptyFiltered": "No bugs match the filters."
+    },
+    "bugDetail": {
+      "details": "Details",
+      "linkedExecutions": "Linked executions",
+      "noLinked": "Standalone bug - not linked to a test execution.",
+      "history": "Status history",
+      "created": "Created with status {{to}}",
+      "comments": "Comments",
+      "noComments": "No comments yet."
+    },
+    "comingSoon": {
+      "title": "Coming soon",
+      "body": "{{feature}} is built in Milestone {{milestone}}. See the roadmap in the README.",
+      "back": "Back to dashboard"
+    },
+    "notFound": {
+      "title": "Page not found",
+      "body": "The address you opened does not exist or has moved.",
+      "project": "Project not found, or you are not a member of it.",
+      "item": "This item was not found in the project.",
+      "home": "Go to projects"
     }
   },
   "errors": {

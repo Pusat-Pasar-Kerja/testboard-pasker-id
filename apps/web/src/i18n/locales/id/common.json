@@ -1,7 +1,6 @@
 {
   "app": {
     "title": "TestBoard PASKER ID",
-    "shortTitle": "TestBoard",
     "tagline": "Platform dokumentasi test case, pelaksanaan UAT, bukti uji, dan pelacakan bug."
   },
   "language": {
@@ -12,26 +11,286 @@
   },
   "mode": {
     "demo": "DEMO - data contoh fiktif",
+    "demoShort": "DEMO",
     "live": "Terhubung ke API"
   },
-  "foundation": {
-    "heading": "Fondasi aplikasi siap",
-    "description": "Milestone 0: struktur monorepo, API dasar, format error seragam, dan adaptor data mock. Layar lengkap menyusul pada Milestone 1.",
-    "apiStatus": "Status API",
-    "service": "Layanan",
-    "version": "Versi",
-    "database": "Database",
-    "checkedAt": "Diperiksa",
-    "retry": "Coba lagi"
+  "nav": {
+    "main": "Navigasi utama",
+    "projects": "Semua proyek",
+    "dashboard": "Dasbor",
+    "testCases": "Test Case",
+    "cycles": "Siklus Uji",
+    "runs": "Pelaksanaan UAT",
+    "bugs": "Daftar Bug",
+    "evidence": "Pusat Bukti",
+    "imports": "Impor",
+    "reports": "Laporan",
+    "team": "Tim & Pengaturan",
+    "soon": "Segera",
+    "openMenu": "Buka menu navigasi",
+    "closeMenu": "Tutup menu navigasi"
   },
-  "status": {
-    "ok": "Normal",
-    "loading": "Memeriksa…",
-    "error": "Tidak dapat terhubung",
-    "database": {
-      "not_configured": "Belum dikonfigurasi",
-      "up": "Tersambung",
-      "down": "Tidak tersambung"
+  "shell": {
+    "skipToContent": "Lewati ke konten utama",
+    "project": "Proyek",
+    "search": "Cari test case…",
+    "searchLabel": "Cari test case di proyek ini",
+    "signedInAs": "Masuk sebagai {{name}}",
+    "signOutDemo": "Keluar dari demo",
+    "breadcrumb": "Lokasi halaman"
+  },
+  "actions": {
+    "retry": "Coba lagi",
+    "back": "Kembali",
+    "viewAll": "Lihat semua",
+    "resetFilters": "Hapus filter",
+    "search": "Cari",
+    "signInDemo": "Masuk sebagai pengguna demo"
+  },
+  "states": {
+    "loading": "Memuat data…",
+    "emptyTitle": "Belum ada data",
+    "filteredTitle": "Tidak ada hasil",
+    "errorTitle": "Data gagal dimuat"
+  },
+  "pagination": {
+    "label": "Navigasi halaman",
+    "previous": "Sebelumnya",
+    "next": "Berikutnya",
+    "summary": "{{from}}-{{to}} dari {{total}}",
+    "page": "Halaman {{page}} dari {{pages}}"
+  },
+  "filters": {
+    "keyword": "Kata kunci",
+    "module": "Modul",
+    "priority": "Prioritas",
+    "type": "Jenis pengujian",
+    "status": "Status",
+    "severity": "Severity",
+    "run": "Run",
+    "all": "Semua",
+    "allRuns": "Semua run",
+    "openOnly": "Belum selesai"
+  },
+  "codes": {
+    "execution": {
+      "NOT_RUN": "Belum Diuji",
+      "IN_PROGRESS": "Sedang Diuji",
+      "PASSED": "Berhasil Diuji",
+      "FAILED": "Gagal Diuji",
+      "BLOCKED": "Terhambat",
+      "SKIPPED": "Dilewati"
+    },
+    "executionKind": {
+      "INITIAL": "Awal",
+      "RETEST": "Uji ulang",
+      "RERUN": "Ulang"
+    },
+    "defectStatus": {
+      "OPEN": "Terbuka",
+      "IN_PROGRESS": "Sedang Diperbaiki",
+      "FIXED": "Diperbaiki",
+      "READY_FOR_RETEST": "Siap Diuji Ulang",
+      "VERIFIED": "Terverifikasi",
+      "REOPENED": "Dibuka Kembali",
+      "CLOSED": "Ditutup",
+      "WONT_FIX": "Tidak Akan Diperbaiki"
+    },
+    "severity": {
+      "CRITICAL": "Kritis",
+      "HIGH": "Tinggi",
+      "MEDIUM": "Sedang",
+      "LOW": "Rendah",
+      "INFO": "Informasi"
+    },
+    "defectPriority": {
+      "URGENT": "Mendesak",
+      "HIGH": "Tinggi",
+      "MEDIUM": "Sedang",
+      "LOW": "Rendah"
+    },
+    "casePriority": {
+      "MUST_HAVE": "Must Have",
+      "SHOULD_HAVE": "Should Have",
+      "COULD_HAVE": "Could Have",
+      "WONT_HAVE": "Won't Have"
+    },
+    "testType": {
+      "POSITIVE": "Positif",
+      "NEGATIVE": "Negatif",
+      "RBAC": "Hak Akses",
+      "SLA": "SLA",
+      "UI_UX": "UI/UX",
+      "INTEGRATION": "Integrasi",
+      "OTHER": "Lainnya"
+    },
+    "caseStatus": {
+      "DRAFT": "Draf",
+      "READY": "Siap",
+      "ARCHIVED": "Diarsipkan"
+    },
+    "runStatus": {
+      "PLANNED": "Direncanakan",
+      "ACTIVE": "Berjalan",
+      "COMPLETED": "Selesai",
+      "LOCKED": "Dikunci"
+    },
+    "role": {
+      "ADMIN": "Admin",
+      "QA_LEAD": "QA Lead",
+      "TESTER": "Penguji",
+      "DEVELOPER": "Developer",
+      "VIEWER": "Pemantau"
+    },
+    "caseSource": {
+      "MANUAL": "Manual",
+      "LEGACY_IMPORT": "Impor Excel lama",
+      "AI_IMPORT": "Impor hasil AI"
+    },
+    "defectSource": {
+      "UAT": "UAT",
+      "USER_REPORT": "Laporan pengguna",
+      "OTHER": "Lainnya"
+    }
+  },
+  "fields": {
+    "caseCode": "Kode",
+    "title": "Judul",
+    "module": "Modul",
+    "suite": "Suite",
+    "category": "Kategori",
+    "priority": "Prioritas",
+    "type": "Jenis pengujian",
+    "status": "Status",
+    "version": "Versi",
+    "updatedAt": "Diperbarui",
+    "createdAt": "Dibuat",
+    "actor": "Aktor",
+    "preconditions": "Prasyarat",
+    "steps": "Langkah pengujian",
+    "expectedResult": "Hasil yang diharapkan",
+    "requirementRefs": "Rujukan kebutuhan",
+    "source": "Sumber",
+    "contentLanguage": "Bahasa konten",
+    "assignee": "Ditugaskan ke",
+    "reporter": "Pelapor",
+    "severity": "Severity",
+    "attempts": "Percobaan",
+    "lastTested": "Terakhir diuji",
+    "linkedBugs": "Bug terkait",
+    "environment": "Lingkungan",
+    "environmentUrl": "URL lingkungan",
+    "build": "Build/versi",
+    "cycle": "Siklus",
+    "period": "Periode",
+    "progress": "Progres",
+    "bugCode": "Kode bug",
+    "description": "Deskripsi",
+    "stepsToReproduce": "Langkah reproduksi",
+    "expectedBehavior": "Perilaku yang diharapkan",
+    "actualBehavior": "Perilaku aktual",
+    "browser": "Browser",
+    "fixedIn": "Diperbaiki di versi",
+    "run": "Run",
+    "name": "Nama",
+    "attempt": "Percobaan #{{n}}",
+    "result": "Hasil",
+    "testedAt": "Waktu uji",
+    "role": "Peran",
+    "none": "-"
+  },
+  "pages": {
+    "login": {
+      "title": "Masuk ke TestBoard",
+      "demoNotice": "Mode DEMO: belum ada autentikasi dan tidak ada data asli. Login dengan akun dan kata sandi dibangun pada Milestone 2.",
+      "demoUser": "Anda akan masuk sebagai {{name}} ({{role}}) di proyek contoh."
+    },
+    "projects": {
+      "title": "Proyek",
+      "subtitle": "Pilih proyek untuk mulai bekerja. Anda hanya melihat proyek tempat Anda menjadi anggota.",
+      "cases_one": "{{count}} test case",
+      "cases_other": "{{count}} test case",
+      "runs_one": "{{count}} run",
+      "runs_other": "{{count}} run",
+      "openBugs_one": "{{count}} bug terbuka",
+      "openBugs_other": "{{count}} bug terbuka",
+      "yourRole": "Peran Anda: {{role}}",
+      "empty": "Anda belum menjadi anggota proyek mana pun."
+    },
+    "dashboard": {
+      "title": "Dasbor",
+      "kpiPlanned": "Test case direncanakan",
+      "kpiExecuted": "Sudah dieksekusi",
+      "kpiPassRate": "Tingkat lulus",
+      "kpiOpenBugs": "Bug terbuka",
+      "kpiCriticalHigh": "Bug kritis & tinggi",
+      "statusHeading": "Status terbaru test case",
+      "statusNote": "Dihitung dari percobaan terakhir setiap test case dalam run. Retest tidak dihitung ganda; Terhambat, Dilewati, dan Belum Diuji tidak dihitung lulus.",
+      "statusBarLabel": "Distribusi status terbaru: {{summary}}",
+      "severityHeading": "Bug terbuka per severity",
+      "severityBarLabel": "{{severity}}: {{count}} bug terbuka",
+      "runsHeading": "Progres run",
+      "recentBugs": "Bug terbaru",
+      "noRuns": "Belum ada run di proyek ini.",
+      "noBugs": "Belum ada bug di proyek ini.",
+      "noRunCases": "Belum ada test case yang dijadwalkan dalam run."
+    },
+    "cases": {
+      "title": "Test Case",
+      "subtitle": "Pustaka definisi test case. Hasil uji dicatat terpisah di setiap run.",
+      "searchPlaceholder": "Cari kode atau judul…",
+      "empty": "Belum ada test case di proyek ini.",
+      "emptyFiltered": "Tidak ada test case yang cocok dengan filter."
+    },
+    "caseDetail": {
+      "tabOverview": "Ringkasan",
+      "tabRevisions": "Revisi",
+      "tabRuns": "Dipakai di run",
+      "tabEvidence": "Bukti",
+      "revision": "Revisi {{n}}",
+      "noRevisions": "Belum ada revisi.",
+      "notUsed": "Test case ini belum dipakai di run mana pun.",
+      "stepsPreserved": "Teks langkah ditampilkan apa adanya dari sumber.",
+      "evidenceLater": "Lampiran bukti (screenshot, video, dokumen) tersedia pada Milestone 5."
+    },
+    "runs": {
+      "title": "Pelaksanaan UAT",
+      "subtitle": "Run = kumpulan test case yang diuji pada lingkungan dan build tertentu.",
+      "empty": "Belum ada run di proyek ini."
+    },
+    "runDetail": {
+      "casesHeading": "Test case dalam run",
+      "snapshotNote": "Judul dan versi diambil dari snapshot saat test case masuk run, sehingga perubahan test case tidak mengubah hasil lama.",
+      "emptyFiltered": "Tidak ada test case dengan status ini.",
+      "unassigned": "Belum ditugaskan"
+    },
+    "bugs": {
+      "title": "Daftar Bug",
+      "subtitle": "Defect dari pelaksanaan UAT maupun laporan pengguna.",
+      "searchPlaceholder": "Cari kode atau judul bug…",
+      "empty": "Belum ada bug di proyek ini.",
+      "emptyFiltered": "Tidak ada bug yang cocok dengan filter."
+    },
+    "bugDetail": {
+      "details": "Detail",
+      "linkedExecutions": "Eksekusi terkait",
+      "noLinked": "Bug mandiri - tidak terkait eksekusi test case.",
+      "history": "Riwayat status",
+      "created": "Dibuat dengan status {{to}}",
+      "comments": "Komentar",
+      "noComments": "Belum ada komentar."
+    },
+    "comingSoon": {
+      "title": "Segera hadir",
+      "body": "Fitur {{feature}} dibangun pada Milestone {{milestone}}. Lihat roadmap di README.",
+      "back": "Kembali ke dasbor"
+    },
+    "notFound": {
+      "title": "Halaman tidak ditemukan",
+      "body": "Alamat yang Anda buka tidak ada atau sudah dipindahkan.",
+      "project": "Proyek tidak ditemukan, atau Anda bukan anggota proyek ini.",
+      "item": "Data tidak ditemukan di proyek ini.",
+      "home": "Ke daftar proyek"
     }
   },
   "errors": {

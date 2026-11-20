@@ -1,14 +1,17 @@
 import type { Locale } from '@testboard/shared'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
-import type { ReactElement } from 'react'
 import { I18nextProvider } from 'react-i18next'
+import { createMemoryRouter, RouterProvider } from 'react-router'
 import { createI18n } from '../i18n'
-import { createMockDataSource, type DataSource } from '../services/data-source'
+import { routes } from '../router'
+import type { DataSource } from '../services/data-source'
 import { DataSourceProvider } from '../services/data-source-context'
+import { createMockDataSource } from '../services/mock-data-source'
 
-export function renderWithProviders(
-  ui: ReactElement,
+/** Renders the real route tree at `path` with mock data and no artificial latency. */
+export function renderRoute(
+  path: string,
   {
     locale = 'id',
     dataSource = createMockDataSource({ latencyMs: 0 }),
@@ -16,12 +19,16 @@ export function renderWithProviders(
 ) {
   const i18n = createI18n(locale)
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const router = createMemoryRouter(routes, { initialEntries: [path] })
   return {
     i18n,
+    router,
     ...render(
       <I18nextProvider i18n={i18n}>
         <QueryClientProvider client={queryClient}>
-          <DataSourceProvider value={dataSource}>{ui}</DataSourceProvider>
+          <DataSourceProvider value={dataSource}>
+            <RouterProvider router={router} />
+          </DataSourceProvider>
         </QueryClientProvider>
       </I18nextProvider>,
     ),

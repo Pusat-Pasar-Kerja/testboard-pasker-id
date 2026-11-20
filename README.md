@@ -2,7 +2,7 @@
 
 Platform web multi-project untuk mendokumentasikan test case, merencanakan siklus UAT, menjalankan pengujian, menyimpan bukti uji, melacak bug, dan menyusun laporan. UI dua bahasa: **Indonesia** dan **English**.
 
-> Status: **Milestone 0 - fondasi** (`v0.1.0`). Belum siap produksi. Spesifikasi lengkap ada di [`docs/blueprint/`](docs/blueprint/README.md).
+> Status: **Milestone 1 - design system & prototype demo** (`v0.2.0`). Data masih contoh fiktif (mock); belum siap produksi. Spesifikasi lengkap ada di [`docs/blueprint/`](docs/blueprint/README.md).
 
 ## Arsitektur
 
@@ -62,8 +62,8 @@ Repo ini **publik**. Jangan commit `.env`, kredensial, workbook UAT asli, screen
 | Milestone | Isi                                                                       | Status             |
 | --------- | ------------------------------------------------------------------------- | ------------------ |
 | M0        | Repo, tooling, healthcheck API, adaptor mock, format error                | Selesai (`v0.1.0`) |
-| M1        | Design system, AppShell, layar prototype dengan data mock, bilingual      | Berikutnya         |
-| M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi |                    |
+| M1        | Design system, AppShell, layar prototype dengan data mock, bilingual      | Selesai (`v0.2.0`) |
+| M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi | Berikutnya         |
 | M3        | Cycle, run, execution append-only, dashboard latest status                |                    |
 | M4        | Bug tracking + workflow status + riwayat                                  |                    |
 | M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             |                    |

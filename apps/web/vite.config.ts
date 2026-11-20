@@ -26,7 +26,19 @@ export default defineConfig(({ mode }) => {
       },
     },
     preview: { host: '127.0.0.1', port: 4173 },
-    build: { sourcemap: false },
+    build: {
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          // Long-lived vendor chunks cache across app releases.
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined
+            if (/[\\/](react|react-dom|react-router|scheduler)[\\/]/.test(id)) return 'vendor-react'
+            return 'vendor'
+          },
+        },
+      },
+    },
     test: {
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
