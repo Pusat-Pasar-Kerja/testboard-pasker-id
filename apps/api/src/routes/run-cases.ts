@@ -13,6 +13,8 @@ import {
 import { Hono } from 'hono'
 import type { Pool } from 'mysql2/promise'
 import { requirePermission } from '../access/project-access.js'
+import { assertAttachable, linkFiles } from '../files/attach.js'
+import { attachedFiles } from '../files/dto.js'
 import {
   execute,
   insertedId,
@@ -125,6 +127,11 @@ export async function listExecutions(db: Db, runCaseId: string): Promise<Executi
         rows.map((r) => r.id),
       )
     : []
+  const files = await attachedFiles(
+    db,
+    'execution',
+    rows.map((r) => String(r.id)),
+  )
   return rows.map((row) => ({
     id: String(row.id),
     attempt_number: Number(row.attempt_number),
@@ -147,6 +154,7 @@ export async function listExecutions(db: Db, runCaseId: string): Promise<Executi
         result_status: s.result_status,
         actual_result: s.actual_result,
       })),
+    files: files.get(String(row.id)) ?? [],
   }))
 }
 
@@ -249,6 +257,7 @@ export function runCaseRoutes(pool: Pool) {
         throw new AppError(403, 'FORBIDDEN', 'This test case is assigned to someone else.')
       }
       const snapshot = snapshotFor(row)
+      await assertAttachable(conn, project.id, input.evidence ?? [])
       for (const step of input.step_results ?? []) {
         if (step.step_number > Math.max(snapshot.steps.length, 1)) {
           throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
@@ -304,6 +313,7 @@ export function runCaseRoutes(pool: Pool) {
           [id, insertedId(anchor), step.result_status, step.actual_result ?? null],
         )
       }
+      if (input.evidence?.length) await linkFiles(conn, 'execution', id, input.evidence)
       await writeAudit(conn, c, {
         projectId: project.id,
         entityType: 'test_execution',
@@ -315,6 +325,7 @@ export function runCaseRoutes(pool: Pool) {
           attempt_number: attempt,
           execution_kind: kind,
           result_status: input.result_status,
+          evidence_file_ids: (input.evidence ?? []).map((e) => e.file_id),
         },
       })
       return id

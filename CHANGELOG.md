@@ -2,6 +2,19 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.5.1] - 2026-11-20
+
+Milestone 5 bagian API: unggah bukti dengan pemeriksaan dan kompresi.
+
+### Ditambahkan
+
+- `POST /projects/:p/files`: unggah banyak file sekaligus (multipart, di-stream ke karantina privat, batas per jenis dan per permintaan), diproses di belakang; `GET /files` (Pusat Bukti: filter jenis/status/nama/belum dipakai, beserta tempat file dipakai), `GET /files/:id`, `/status`, `/preview` (dengan `Range`), `/thumbnail`, `/download` (tercatat di audit), `DELETE /files/:id` untuk unggahan yang belum dipakai.
+- Pipeline doc 07: jenis asli dari byte, pemeriksaan virus (default pemeriksaan dasar tanpa konfigurasi, ClamAV opsional; gagal periksa tidak pernah lolos), screenshot dikompres tanpa mengubah piksel (WebP lossless/PNG optimize, JPEG berkualitas tinggi hanya bila jauh lebih kecil), EXIF/GPS dibuang, thumbnail; PDF/DOCX/XLSX diperiksa dari skrip, makro, objek tertanam, dan zip bomb; log harus teks, HAR disensor otomatis (cookie, token, Authorization), gzip bila lebih kecil.
+- Lampirkan bukti saat menyimpan hasil uji (`evidence` di `POST /run-cases/:id/executions`), ke percobaan yang sudah ada (`POST/DELETE /executions/:id/files`), ke bug (`evidence` saat membuat bug, `POST/DELETE /defects/:id/files`), dan ke test case (`POST/DELETE /test-cases/:id/files`); file yang sama bisa dipakai di beberapa tempat tanpa disalin. Detail percobaan, bug, dan test case kini memuat daftar file.
+- Migration `0006`: jenis pemeriksaan, waktu periksa, dan alasan penolakan per file. Pengaturan `STORAGE_DIR` (wajib di luar folder aplikasi saat production), `SCAN_ENGINE`, `CLAMD_HOST`, `CLAMD_PORT`.
+- Upload yang terputus karena restart ditandai gagal, tidak pernah dirilis.
+- Tes integrasi TB-FILE-001..006 plus sensor HAR, makro, zip bomb, batas ukuran, hak lampir, pemakaian ulang file, dan pemulihan setelah restart; ADR 0008.
+
 ## [0.5.0] - 2026-11-20
 
 **Milestone 4 selesai**: alur bug lengkap dari UI (mode API dan demo).

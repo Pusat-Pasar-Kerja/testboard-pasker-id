@@ -1,4 +1,5 @@
 import {
+  fileAttachSchema,
   isOneOf,
   stepsFromText,
   TEST_CASE_PRIORITIES,
@@ -21,6 +22,8 @@ import type { Context } from 'hono'
 import { Hono } from 'hono'
 import type { Pool, PoolConnection } from 'mysql2/promise'
 import { requirePermission } from '../access/project-access.js'
+import { assertAttachable, linkFiles, unlinkFile } from '../files/attach.js'
+import { attachedFiles } from '../files/dto.js'
 import {
   execute,
   insertedId,
@@ -291,7 +294,7 @@ export function testCaseRoutes(pool: Pool) {
   routes.get('/:caseId', requirePermission('case.read'), async (c) => {
     const project = c.get('project')
     const row = await loadCase(pool, project.id, idParam(c, 'caseId'))
-    const [steps, revisions, usage] = await Promise.all([
+    const [steps, revisions, usage, files] = await Promise.all([
       select<{ step_number: number; instruction: string; expected_result: string | null }>(
         pool,
         'SELECT step_number, instruction, expected_result FROM test_case_steps WHERE test_case_id = ? ORDER BY step_number',
@@ -331,6 +334,7 @@ export function testCaseRoutes(pool: Pool) {
           ORDER BY r.created_at DESC`,
         [row.id, project.id],
       ),
+      attachedFiles(pool, 'test_case', [String(row.id)]),
     ])
     const detail: TestCaseDetail = {
       ...toListItem(row),
@@ -361,6 +365,7 @@ export function testCaseRoutes(pool: Pool) {
         case_version: Number(u.case_version),
         attempts: Number(u.attempts),
       })),
+      files: files.get(String(row.id)) ?? [],
     }
     return c.json(detail)
   })
@@ -600,6 +605,49 @@ export function testCaseRoutes(pool: Pool) {
       return id
     })
     return c.json(toListItem(await loadCase(pool, project.id, newId)), 201)
+  })
+
+  /** Reference files for the case definition (doc 02: dokumen acuan). Leads only. */
+  routes.post('/:caseId/files', requirePermission('case.write'), async (c) => {
+    const project = c.get('project')
+    const caseId = idParam(c, 'caseId')
+    const body = await parseBody(c, fileAttachSchema)
+    await withTransaction(pool, async (conn) => {
+      await loadCase(conn, project.id, caseId, true)
+      await assertAttachable(conn, project.id, body.files)
+      const added = await linkFiles(conn, 'test_case', caseId, body.files)
+      if (added > 0) {
+        await writeAudit(conn, c, {
+          projectId: project.id,
+          entityType: 'test_case',
+          entityId: caseId,
+          action: 'UPDATE',
+          newValues: { attached_file_ids: body.files.map((f) => f.file_id) },
+        })
+      }
+    })
+    const files = await attachedFiles(pool, 'test_case', [caseId])
+    return c.json(files.get(caseId) ?? [], 201)
+  })
+
+  routes.delete('/:caseId/files/:fileId', requirePermission('case.write'), async (c) => {
+    const project = c.get('project')
+    const caseId = idParam(c, 'caseId')
+    const fileId = idParam(c, 'fileId')
+    await withTransaction(pool, async (conn) => {
+      await loadCase(conn, project.id, caseId, true)
+      if (!(await unlinkFile(conn, 'test_case', caseId, fileId))) {
+        throw new AppError(404, 'NOT_FOUND', 'Not found.')
+      }
+      await writeAudit(conn, c, {
+        projectId: project.id,
+        entityType: 'test_case',
+        entityId: caseId,
+        action: 'UPDATE',
+        oldValues: { attached_file_id: fileId },
+      })
+    })
+    return c.body(null, 204)
   })
 
   return routes

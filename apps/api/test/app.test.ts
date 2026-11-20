@@ -14,6 +14,8 @@ const config: AppConfig = {
   cookieSecure: false,
   sessionHours: 12,
   sessionIdleMinutes: 120,
+  storageDir: '.private-storage-unused',
+  scan: { engine: 'basic', clamdHost: '127.0.0.1', clamdPort: 3310 },
 }
 
 function makeApp() {

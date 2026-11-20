@@ -15,6 +15,7 @@ import {
   errorBody,
   type ErrorLogger,
 } from './lib/errors.js'
+import { createFileService, type FileService } from './files/pipeline.js'
 import { readAppVersion } from './lib/version.js'
 import { adminRoutes } from './routes/admin.js'
 import { authRoutes } from './routes/auth.js'
@@ -30,7 +31,11 @@ export interface AppDeps {
   logError?: ErrorLogger
   /** Database probe; omitted when no database is configured. */
   checkDatabase?: () => Promise<DatabaseHealth>
+  /** Evidence storage + processing; created from config when omitted. */
+  files?: FileService
 }
+
+const UPLOAD_PATH = /\/projects\/[^/]+\/files\/?$/
 
 export function createApp({
   config,
@@ -38,6 +43,7 @@ export function createApp({
   version = readAppVersion(),
   logError = consoleErrorLogger,
   checkDatabase = async () => 'not_configured',
+  files,
 }: AppDeps) {
   const app = new Hono<AppEnv>()
 
@@ -50,8 +56,17 @@ export function createApp({
   api.route('/health', healthRoutes(version, checkDatabase))
 
   if (pool) {
-    // JSON APIs never need large bodies; uploads get their own limits in Milestone 5.
-    api.use('*', bodyLimit({ maxSize: 1024 * 1024 }))
+    const fileService =
+      files ??
+      createFileService(pool, config, {
+        logError: (error) => logError(undefined, error),
+      })
+    // JSON APIs never need large bodies. Evidence uploads stream to disk with their own
+    // per-file and per-request limits (routes/files.ts).
+    const jsonLimit = bodyLimit({ maxSize: 1024 * 1024 })
+    api.use('*', (c, next) =>
+      c.req.method === 'POST' && UPLOAD_PATH.test(c.req.path) ? next() : jsonLimit(c, next),
+    )
     api.use('*', sessionMiddleware(pool, config))
     api.use('*', csrfMiddleware(config))
     api.use('*', async (c, next) => {
@@ -60,7 +75,7 @@ export function createApp({
       c.header('Cache-Control', 'no-store')
     })
     api.route('/', authRoutes(pool, config))
-    api.route('/', projectRoutes(pool))
+    api.route('/', projectRoutes(pool, fileService))
     api.route('/admin', adminRoutes(pool))
   } else {
     api.all('*', () => {

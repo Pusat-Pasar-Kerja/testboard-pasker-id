@@ -9,6 +9,7 @@ import { Hono } from 'hono'
 import type { Pool } from 'mysql2/promise'
 import { projectAccess, requirePermission } from '../access/project-access.js'
 import { requireAuth, requireSuperAdmin } from '../auth/middleware.js'
+import type { FileService } from '../files/pipeline.js'
 import {
   execute,
   insertedId,
@@ -24,6 +25,8 @@ import { parseBody } from '../lib/validation.js'
 import type { AppEnv } from '../types.js'
 import { cycleRoutes } from './cycles.js'
 import { defectRoutes } from './defects.js'
+import { executionRoutes } from './executions.js'
+import { fileRoutes } from './files.js'
 import { defectWriteRoutes } from './defects-write.js'
 import { memberRoutes } from './members.js'
 import { moduleRoutes } from './modules.js'
@@ -83,7 +86,7 @@ async function projectRows(
   }))
 }
 
-export function projectRoutes(pool: Pool) {
+export function projectRoutes(pool: Pool, files: FileService) {
   const routes = new Hono<AppEnv>()
 
   routes.get('/projects', async (c) => {
@@ -186,6 +189,8 @@ export function projectRoutes(pool: Pool) {
   scoped.route('/defects', defectRoutes(pool))
   scoped.route('/defects', defectWriteRoutes(pool))
   scoped.route('/reports', reportRoutes(pool))
+  scoped.route('/files', fileRoutes(pool, files))
+  scoped.route('/executions', executionRoutes(pool))
 
   routes.route('/projects/:projectCode', scoped)
   return routes

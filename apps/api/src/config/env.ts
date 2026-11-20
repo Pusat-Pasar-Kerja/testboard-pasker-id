@@ -1,3 +1,5 @@
+import { isAbsolute, relative, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
 import type { DbConfig } from '../db/pool.js'
 
@@ -21,6 +23,12 @@ const EnvSchema = z.object({
   COOKIE_SECURE: booleanFromString.optional(),
   SESSION_HOURS: z.coerce.number().int().min(1).max(72).default(12),
   SESSION_IDLE_MINUTES: z.coerce.number().int().min(5).max(1440).default(120),
+  /** Private evidence storage, outside any web root (doc 07). */
+  STORAGE_DIR: z.string().min(1).optional(),
+  /** basic = built-in content checks (default, no setup); clamav = clamd antivirus (ADR 0008). */
+  SCAN_ENGINE: z.enum(['basic', 'clamav']).default('basic'),
+  CLAMD_HOST: z.string().min(1).default('127.0.0.1'),
+  CLAMD_PORT: z.coerce.number().int().min(1).max(65535).default(3310),
 })
 
 export interface AppConfig {
@@ -35,6 +43,16 @@ export interface AppConfig {
   cookieSecure: boolean
   sessionHours: number
   sessionIdleMinutes: number
+  storageDir: string
+  scan: { engine: 'basic' | 'clamav'; clamdHost: string; clamdPort: number }
+}
+
+/** Workspace root (apps/api/{src,dist}/config -> repo). Evidence must never live inside it. */
+const REPO_ROOT = fileURLToPath(new URL('../../../../', import.meta.url))
+
+const isInside = (child: string, parent: string) => {
+  const rel = relative(resolve(parent), resolve(child))
+  return rel === '' || (!rel.startsWith('..') && !isAbsolute(rel))
 }
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', 'localhost'])
@@ -86,6 +104,18 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
     )
   }
 
+  // On the VPS the repository sits under the Apache web root, so evidence stored inside it
+  // could become downloadable without any permission check.
+  const storageDir = resolve(values.STORAGE_DIR ?? resolve(REPO_ROOT, '.private-storage'))
+  if (values.NODE_ENV === 'production') {
+    if (!values.STORAGE_DIR || !isAbsolute(values.STORAGE_DIR)) {
+      throw new Error('In production STORAGE_DIR must be an absolute path outside the web root.')
+    }
+    if (isInside(storageDir, REPO_ROOT)) {
+      throw new Error('STORAGE_DIR must not be inside the application directory.')
+    }
+  }
+
   return {
     nodeEnv: values.NODE_ENV,
     host: values.API_HOST,
@@ -99,5 +129,11 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
     cookieSecure: values.NODE_ENV === 'production' ? true : (values.COOKIE_SECURE ?? false),
     sessionHours: values.SESSION_HOURS,
     sessionIdleMinutes: values.SESSION_IDLE_MINUTES,
+    storageDir,
+    scan: {
+      engine: values.SCAN_ENGINE,
+      clamdHost: values.CLAMD_HOST,
+      clamdPort: values.CLAMD_PORT,
+    },
   }
 }

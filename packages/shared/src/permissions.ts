@@ -31,6 +31,9 @@ export const PERMISSIONS = {
   'defect.comment': ['ADMIN', 'QA_LEAD', 'TESTER', 'DEVELOPER'],
   // Link/unlink a bug and a test attempt (TB-BUG-001).
   'defect.link': ['ADMIN', 'QA_LEAD', 'TESTER'],
+  // Upload evidence (doc 09: testers for their tests, developers for their bugs; the
+  // attach routes check the entity). VIEWER never uploads.
+  'file.upload': ['ADMIN', 'QA_LEAD', 'TESTER', 'DEVELOPER'],
   'report.read': ALL,
   'report.export': LEADS,
   'audit.read': LEADS,

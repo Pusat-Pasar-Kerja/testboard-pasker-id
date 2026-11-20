@@ -1,5 +1,9 @@
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { loadConfig } from '../src/config/env.js'
+
+const REPO = fileURLToPath(new URL('../../../', import.meta.url))
 
 const DB_ENV = {
   DB_HOST: '127.0.0.1',
@@ -9,7 +13,12 @@ const DB_ENV = {
   DB_PASSWORD: 'local-only',
 }
 
-const PROD = { NODE_ENV: 'production', ALLOWED_ORIGINS: 'https://testboard.example', ...DB_ENV }
+const PROD = {
+  NODE_ENV: 'production',
+  ALLOWED_ORIGINS: 'https://testboard.example',
+  STORAGE_DIR: '/var/lib/testboard/storage',
+  ...DB_ENV,
+}
 
 describe('loadConfig', () => {
   it('applies safe local defaults without a database', () => {
@@ -23,6 +32,8 @@ describe('loadConfig', () => {
       cookieSecure: false,
       sessionHours: 12,
       sessionIdleMinutes: 120,
+      storageDir: expect.stringMatching(/\.private-storage$/),
+      scan: { engine: 'basic', clamdHost: '127.0.0.1', clamdPort: 3310 },
     })
   })
 
@@ -63,5 +74,25 @@ describe('loadConfig', () => {
     const prod = loadConfig({ ...PROD, COOKIE_SECURE: 'false' })
     expect(prod.cookieSecure).toBe(true)
     expect(prod.allowedOrigins).toEqual(['https://testboard.example'])
+  })
+
+  it('keeps production evidence outside the application (web root) directory', () => {
+    const { STORAGE_DIR: _omit, ...withoutStorage } = PROD
+    expect(() => loadConfig(withoutStorage)).toThrow(/STORAGE_DIR/)
+    expect(() => loadConfig({ ...PROD, STORAGE_DIR: 'storage' })).toThrow(/absolute/)
+    expect(() => loadConfig({ ...PROD, STORAGE_DIR: join(REPO, 'evidence') })).toThrow(
+      /application directory/,
+    )
+    expect(loadConfig(PROD).storageDir).toMatch(/testboard[\\/]storage$/)
+  })
+
+  it('uses the built-in checks by default and ClamAV only when asked', () => {
+    expect(loadConfig({}).scan.engine).toBe('basic')
+    expect(loadConfig({ SCAN_ENGINE: 'clamav', CLAMD_PORT: '3311' }).scan).toEqual({
+      engine: 'clamav',
+      clamdHost: '127.0.0.1',
+      clamdPort: 3311,
+    })
+    expect(() => loadConfig({ SCAN_ENGINE: 'virustotal' })).toThrow(/SCAN_ENGINE/)
   })
 })

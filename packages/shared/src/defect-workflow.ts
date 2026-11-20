@@ -7,6 +7,7 @@ import {
   type DefectStatus,
   type MemberRole,
 } from './enums.js'
+import { evidenceRefSchema, UPLOAD_LIMITS } from './files.js'
 import { codeSchema } from './schemas.js'
 
 /**
@@ -133,6 +134,8 @@ export const defectCreateSchema = z.object({
   source_kind: z.enum(DEFECT_SOURCE_KINDS).default('UAT'),
   /** Test attempts this bug was found in (TB-BUG-001). Empty = standalone (TB-BUG-002). */
   execution_ids: z.array(idString).max(20).optional(),
+  /** Evidence to attach right away, e.g. the screenshots of the failed attempt (doc 07). */
+  evidence: z.array(evidenceRefSchema).max(UPLOAD_LIMITS.attachPerRequest).optional(),
 })
 
 export const defectUpdateSchema = z

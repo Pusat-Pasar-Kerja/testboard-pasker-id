@@ -16,6 +16,7 @@ import {
 import { Hono } from 'hono'
 import type { Pool } from 'mysql2/promise'
 import { requirePermission } from '../access/project-access.js'
+import { attachedFiles } from '../files/dto.js'
 import { iso, select, selectOne, type Db } from '../db/tx.js'
 import { AppError } from '../lib/errors.js'
 import { idParam, pageParams } from '../lib/validation.js'
@@ -105,7 +106,7 @@ export async function loadDefectDetail(
   )
   if (!row) return null
 
-  const [links, history, comments] = await Promise.all([
+  const [links, history, comments, files] = await Promise.all([
     select<{
       execution_id: string
       run_id: string
@@ -156,6 +157,7 @@ export async function loadDefectDetail(
           WHERE cm.defect_id = ? ORDER BY cm.created_at, cm.id`,
       [defectId],
     ),
+    attachedFiles(db, 'defect', [defectId]),
   ])
   const detail: DefectDetail = {
     ...toDefectListItem(row),
@@ -191,6 +193,7 @@ export async function loadDefectDetail(
       body: cm.body,
       created_at: iso(cm.created_at) as string,
     })),
+    files: files.get(String(defectId)) ?? [],
   }
   return detail
 }

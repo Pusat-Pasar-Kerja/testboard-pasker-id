@@ -1,4 +1,6 @@
-import { existsSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { MemberRole } from '@testboard/shared'
 import type { Pool } from 'mysql2/promise'
 import { createApp } from '../../src/app.js'
@@ -6,6 +8,8 @@ import { hashPassword } from '../../src/auth/passwords.js'
 import { loadConfig, type AppConfig } from '../../src/config/env.js'
 import { createPool } from '../../src/db/pool.js'
 import { execute, insertedId } from '../../src/db/tx.js'
+import { createFileService } from '../../src/files/pipeline.js'
+import type { Scanner } from '../../src/files/scanner.js'
 import { TEST_DATABASE } from './global-setup.js'
 
 /** Shared integration-test harness: real app + real (local, throwaway) database. */
@@ -13,6 +17,11 @@ const envFile = new URL('../../.env', import.meta.url)
 if (existsSync(envFile)) process.loadEnvFile(envFile)
 
 export const ORIGIN = 'http://127.0.0.1:5173'
+
+/** Test evidence lives on the repo drive (gitignored), cleared by global-setup. */
+export const TEST_STORAGE = fileURLToPath(
+  new URL('../../../../.private-storage/test/', import.meta.url),
+)
 
 export function testConfig(): AppConfig {
   const config = loadConfig({
@@ -28,11 +37,17 @@ export function testConfig(): AppConfig {
   return config
 }
 
-export function createHarness() {
-  const config = testConfig()
+/**
+ * Real app + pool. Evidence goes to a throwaway temp folder per harness; `scanner`
+ * replaces the antivirus step (e.g. to simulate a scan failure).
+ */
+export function createHarness(options: { scanner?: Scanner } = {}) {
+  mkdirSync(TEST_STORAGE, { recursive: true })
+  const config = { ...testConfig(), storageDir: mkdtempSync(join(TEST_STORAGE, 'run-')) }
   const pool: Pool = createPool(config.db!)
-  const app = createApp({ config, pool, logError: () => undefined })
-  return { config, pool, app }
+  const files = createFileService(pool, config, { scanner: options.scanner })
+  const app = createApp({ config, pool, files, logError: () => undefined })
+  return { config, pool, app, files }
 }
 
 export type Harness = ReturnType<typeof createHarness>
@@ -122,6 +137,36 @@ export class Client {
 
   get(path: string) {
     return this.request('GET', path)
+  }
+
+  /** Multipart upload of evidence files (field name "files"). */
+  async upload(path: string, files: { name: string; data: Buffer | string }[]) {
+    const form = new FormData()
+    for (const file of files) form.append('files', new Blob([file.data]), file.name)
+    const headers: Record<string, string> = { Origin: ORIGIN }
+    if (this.cookies.size > 0) {
+      headers.Cookie = [...this.cookies].map(([k, v]) => `${k}=${v}`).join('; ')
+    }
+    const csrf = this.cookies.get('tb_csrf')
+    if (csrf) headers['X-CSRF-Token'] = csrf
+    const res = await this.harness.app.request(`/api/v1${path}`, {
+      method: 'POST',
+      headers,
+      body: form,
+    })
+    const text = await res.text()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- loose JSON in tests
+    return { status: res.status, json: (text ? JSON.parse(text) : null) as any }
+  }
+
+  /** Raw GET for file streams: status, headers and bytes. */
+  async raw(path: string, extraHeaders: Record<string, string> = {}) {
+    const headers: Record<string, string> = { ...extraHeaders }
+    if (this.cookies.size > 0) {
+      headers.Cookie = [...this.cookies].map(([k, v]) => `${k}=${v}`).join('; ')
+    }
+    const res = await this.harness.app.request(`/api/v1${path}`, { headers })
+    return { status: res.status, headers: res.headers, bytes: Buffer.from(await res.arrayBuffer()) }
   }
   post(path: string, body: unknown = {}) {
     return this.request('POST', path, body)

@@ -4,6 +4,7 @@
  * Used by the mock data source now and by the real API from Milestone 2/3.
  */
 import type { IdString } from './api.js'
+import type { AttachedFileDto } from './files.js'
 import type {
   CycleStatus,
   DefectPriority,
@@ -134,6 +135,8 @@ export interface TestCaseDetail extends TestCaseListItem {
   steps: TestCaseStepDto[]
   revisions: TestCaseRevisionDto[]
   used_in_runs: TestCaseRunUsage[]
+  /** Reference documents/screenshots for the case definition. */
+  files: AttachedFileDto[]
 }
 
 /** Counts of latest status per run case (never per attempt). */
@@ -204,6 +207,7 @@ export interface ExecutionDto {
   device_name: string | null
   operating_system: string | null
   step_results: ExecutionStepResultDto[]
+  files: AttachedFileDto[]
 }
 
 /** Test case definition frozen when the case joined the run (doc 02, TB-CASE-003). */
@@ -297,6 +301,7 @@ export interface DefectDetail extends DefectListItem {
   linked_executions: DefectLinkedExecution[]
   history: DefectHistoryEntry[]
   comments: DefectCommentDto[]
+  files: AttachedFileDto[]
 }
 
 export interface DashboardSummary {

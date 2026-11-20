@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, rmSync } from 'node:fs'
 import mysql from 'mysql2/promise'
 
 /**
@@ -22,6 +22,8 @@ function readCnf(): Record<string, string> {
 }
 
 export default async function setup() {
+  // Evidence written by earlier test runs (gitignored, on the repo drive).
+  rmSync(new URL('.private-storage/test/', repoRoot), { recursive: true, force: true })
   const cnf = readCnf()
   if (!['127.0.0.1', 'localhost'].includes(cnf.host ?? '')) {
     throw new Error('Integration tests only run against the local database.')

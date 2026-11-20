@@ -68,8 +68,7 @@ export type DefectSourceKind = (typeof DEFECT_SOURCE_KINDS)[number]
 export const MEMBER_ROLES = ['ADMIN', 'QA_LEAD', 'TESTER', 'DEVELOPER', 'VIEWER'] as const
 export type MemberRole = (typeof MEMBER_ROLES)[number]
 
-export const EVIDENCE_TYPES = ['SCREENSHOT', 'VIDEO', 'DOCUMENT', 'LOG', 'OTHER'] as const
-export type EvidenceType = (typeof EVIDENCE_TYPES)[number]
+// Evidence types live in files.ts (the app accepts SCREENSHOT | DOCUMENT | LOG, ADR 0008).
 
 export const FILE_PROCESSING_STATUSES = ['PROCESSING', 'READY', 'FAILED', 'REJECTED'] as const
 export type FileProcessingStatus = (typeof FILE_PROCESSING_STATUSES)[number]

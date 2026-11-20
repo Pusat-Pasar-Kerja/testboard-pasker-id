@@ -480,6 +480,7 @@ export function createMockDataSource(
       body: c.body,
       created_at: c.created_at,
     })),
+    files: [],
   })
   const defectReplays = new Map<string, DefectDetail>()
 
@@ -531,6 +532,7 @@ export function createMockDataSource(
     device_name: e.device_name ?? null,
     operating_system: e.operating_system ?? null,
     step_results: e.step_results ?? [],
+    files: [],
   })
   const assertRunEditable = (run: MockRun, allowCompleted = false) => {
     if (run.status_code === 'LOCKED' || (run.status_code === 'COMPLETED' && !allowCompleted)) {
@@ -917,6 +919,7 @@ export function createMockDataSource(
                 attempts: attempts.length,
               }
             }),
+          files: [],
         }
       }),
 

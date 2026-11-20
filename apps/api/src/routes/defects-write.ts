@@ -6,6 +6,7 @@ import {
   defectLinkSchema,
   defectStatusSchema,
   defectUpdateSchema,
+  fileAttachSchema,
   type DefectActor,
   type DefectCommentDto,
   type DefectField,
@@ -31,6 +32,7 @@ import { AppError } from '../lib/errors.js'
 import { IdempotencyStore } from '../lib/idempotency.js'
 import { idParam, parseBody } from '../lib/validation.js'
 import type { AppEnv } from '../types.js'
+import { assertAttachable, linkFiles, unlinkFile } from '../files/attach.js'
 import { loadDefectDetail } from './defects.js'
 
 /** DEC-08: reporter and assignee are always members of the project. VIEWER cannot own a bug. */
@@ -185,6 +187,7 @@ export function defectWriteRoutes(pool: Pool) {
       await assertModule(conn, project.id, body.module_id)
       await assertAssignee(conn, project.id, body.assigned_to)
       await assertExecutions(conn, project.id, executionIds)
+      await assertAttachable(conn, project.id, body.evidence ?? [])
       const bugCode = body.bug_code ?? (await nextBugCode(conn, project.id, project.code))
       let id: string
       try {
@@ -238,6 +241,7 @@ export function defectWriteRoutes(pool: Pool) {
           [id, executionId],
         )
       }
+      if (body.evidence?.length) await linkFiles(conn, 'defect', id, body.evidence)
       await writeAudit(conn, c, {
         projectId: project.id,
         entityType: 'defect',
@@ -462,6 +466,66 @@ export function defectWriteRoutes(pool: Pool) {
       return c.json(await loadDefectDetail(pool, project.id, defectId))
     },
   )
+
+  /**
+   * Evidence on a bug (doc 09: leads and testers; developers on bugs assigned to them).
+   * The same file object can also belong to the execution it came from (no copy).
+   */
+  routes.post('/:defectId/files', requirePermission('file.upload'), async (c) => {
+    const project = c.get('project')
+    const defectId = idParam(c, 'defectId')
+    const body = await parseBody(c, fileAttachSchema)
+    await withTransaction(pool, async (conn) => {
+      const row = await lockDefect(conn, project.id, defectId)
+      const actor = actorFor(c, row)
+      if (actor.role === 'DEVELOPER' && !actor.isAssignee) {
+        throw new AppError(403, 'FORBIDDEN', 'Only the assigned developer can add evidence.')
+      }
+      await assertAttachable(conn, project.id, body.files)
+      const added = await linkFiles(conn, 'defect', defectId, body.files)
+      if (added > 0) {
+        await writeAudit(conn, c, {
+          projectId: project.id,
+          entityType: 'defect',
+          entityId: defectId,
+          action: 'UPDATE',
+          newValues: { attached_file_ids: body.files.map((f) => f.file_id) },
+        })
+      }
+    })
+    return c.json(await loadDefectDetail(pool, project.id, defectId), 201)
+  })
+
+  routes.delete('/:defectId/files/:fileId', requirePermission('file.upload'), async (c) => {
+    const project = c.get('project')
+    const defectId = idParam(c, 'defectId')
+    const fileId = idParam(c, 'fileId')
+    await withTransaction(pool, async (conn) => {
+      await lockDefect(conn, project.id, defectId)
+      const isLead = project.role === 'ADMIN' || project.role === 'QA_LEAD'
+      if (!isLead) {
+        const file = await selectOne<{ uploaded_by: string | null }>(
+          conn,
+          'SELECT uploaded_by FROM file_objects WHERE id = ? AND project_id = ?',
+          [fileId, project.id],
+        )
+        if (!file || String(file.uploaded_by) !== c.get('auth')?.userId) {
+          throw new AppError(403, 'FORBIDDEN', 'Only the uploader or a lead can detach this file.')
+        }
+      }
+      if (!(await unlinkFile(conn, 'defect', defectId, fileId))) {
+        throw new AppError(404, 'NOT_FOUND', 'Not found.')
+      }
+      await writeAudit(conn, c, {
+        projectId: project.id,
+        entityType: 'defect',
+        entityId: defectId,
+        action: 'UPDATE',
+        oldValues: { attached_file_id: fileId },
+      })
+    })
+    return c.json(await loadDefectDetail(pool, project.id, defectId))
+  })
 
   return routes
 }

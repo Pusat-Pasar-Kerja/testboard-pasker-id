@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { evidenceRefSchema, UPLOAD_LIMITS } from './files.js'
 import { codeSchema } from './schemas.js'
 import { CYCLE_STATUSES, RUN_STATUSES, type ExecutionStatus, type RunStatus } from './enums.js'
 
@@ -115,6 +116,8 @@ export const executionCreateSchema = z
       )
       .max(500)
       .optional(),
+    /** Evidence uploaded before saving (doc 06); must be READY + CLEAN in this project. */
+    evidence: z.array(evidenceRefSchema).max(UPLOAD_LIMITS.attachPerRequest).optional(),
   })
   .superRefine((value, ctx) => {
     // doc 02: FAILED needs the actual result; BLOCKED and SKIPPED need a reason.
