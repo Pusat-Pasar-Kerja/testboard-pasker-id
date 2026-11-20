@@ -25,9 +25,11 @@ class JobQueue {
 
   constructor(private readonly concurrency: number) {}
 
-  push(job: () => Promise<void>) {
-    this.waiting.push(job)
-    this.next()
+  push(job: () => Promise<void>): Promise<void> {
+    return new Promise((resolve) => {
+      this.waiting.push(() => job().finally(resolve))
+      this.next()
+    })
   }
 
   private next() {
@@ -54,6 +56,8 @@ export interface FileService {
   storage: LocalStorage
   scanner: Scanner
   enqueue(job: FileJob): void
+  /** Process now (queued with the others) and resolve once the file is finished. */
+  process(job: FileJob): Promise<void>
   /** Resolves when no file is waiting or being processed (tests, graceful shutdown). */
   idle(): Promise<void>
   /** Startup: anything left PROCESSING by a previous process is failed, quarantine cleared. */
@@ -172,7 +176,13 @@ export function createFileService(
   return {
     storage,
     scanner,
-    enqueue: (job) =>
+    enqueue: (job) => {
+      void queue.push(async () => {
+        await ready
+        await run(job)
+      })
+    },
+    process: (job) =>
       queue.push(async () => {
         await ready
         await run(job)

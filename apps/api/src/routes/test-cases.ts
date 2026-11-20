@@ -40,7 +40,7 @@ import { AppError } from '../lib/errors.js'
 import { idParam, pageParams, parseBody } from '../lib/validation.js'
 import type { AppEnv } from '../types.js'
 
-interface CaseRow {
+export interface CaseRow {
   id: string
   project_id: string
   module_id: string | null
@@ -106,7 +106,7 @@ function toListItem(row: CaseRow): TestCaseListItem {
 }
 
 /** Snapshot stored in test_case_revisions (immutable record of each saved version). */
-function snapshot(row: CaseRow) {
+export function snapshot(row: CaseRow) {
   return {
     case_code: row.case_code,
     version: Number(row.current_version),
@@ -127,7 +127,7 @@ function snapshot(row: CaseRow) {
   }
 }
 
-async function loadCase(db: Db, projectId: string, caseId: string, lock = false) {
+export async function loadCase(db: Db, projectId: string, caseId: string, lock = false) {
   const row = await selectOne<CaseRow>(
     db,
     `${CASE_SELECT} WHERE tc.id = ? AND tc.project_id = ?${lock ? ' FOR UPDATE' : ''}`,
@@ -170,7 +170,11 @@ async function assertSuite(db: Db, projectId: string, suiteId: string | null | u
  * Next free UAT-<MODULE>-NNN code. The project row lock serialises concurrent creators,
  * so two users never get the same generated code.
  */
-async function nextCaseCode(conn: PoolConnection, projectId: string, moduleCode: string | null) {
+export async function nextCaseCode(
+  conn: PoolConnection,
+  projectId: string,
+  moduleCode: string | null,
+) {
   await execute(conn, 'SELECT id FROM projects WHERE id = ? FOR UPDATE', [projectId])
   const prefix = `UAT-${moduleCode ?? 'CASE'}-`
   const rows = await select<{ case_code: string }>(
@@ -185,7 +189,7 @@ async function nextCaseCode(conn: PoolConnection, projectId: string, moduleCode:
   return `${prefix}${String(max + 1).padStart(3, '0')}`
 }
 
-async function insertRevision(
+export async function insertRevision(
   conn: PoolConnection,
   row: CaseRow,
   userId: string | null,

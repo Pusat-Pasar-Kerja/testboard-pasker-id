@@ -16,6 +16,7 @@ import {
   type ErrorLogger,
 } from './lib/errors.js'
 import { createFileService, type FileService } from './files/pipeline.js'
+import { ImportStore } from './imports/analyze.js'
 import { readAppVersion } from './lib/version.js'
 import { adminRoutes } from './routes/admin.js'
 import { authRoutes } from './routes/auth.js'
@@ -35,7 +36,7 @@ export interface AppDeps {
   files?: FileService
 }
 
-const UPLOAD_PATH = /\/projects\/[^/]+\/files\/?$/
+const UPLOAD_PATH = /\/projects\/[^/]+\/(files|imports)\/?$/
 
 export function createApp({
   config,
@@ -75,7 +76,7 @@ export function createApp({
       c.header('Cache-Control', 'no-store')
     })
     api.route('/', authRoutes(pool, config))
-    api.route('/', projectRoutes(pool, fileService))
+    api.route('/', projectRoutes(pool, fileService, new ImportStore(config.storageDir)))
     api.route('/admin', adminRoutes(pool))
   } else {
     api.all('*', () => {

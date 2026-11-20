@@ -82,7 +82,7 @@ async function assertAssignee(db: Db, projectId: string, userId: string | null |
 }
 
 /** RUN-YYYYMMDD-N, generated under the project row lock (unique under concurrency). */
-async function nextRunCode(conn: PoolConnection, projectId: string) {
+export async function nextRunCode(conn: PoolConnection, projectId: string) {
   await execute(conn, 'SELECT id FROM projects WHERE id = ? FOR UPDATE', [projectId])
   const prefix = `RUN-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-`
   const rows = await select<{ run_code: string }>(

@@ -16,6 +16,11 @@ const files = pool
 if (pool && files) {
   // Uploads interrupted by a restart are failed, never silently released.
   const interrupted = await files.recover()
+  // An import being applied when the process stopped: its transaction was rolled back.
+  await pool.query(
+    `UPDATE import_jobs SET status_code = 'FAILED', error_summary = '{"failure":"INTERRUPTED"}',
+            completed_at = UTC_TIMESTAMP(3) WHERE status_code = 'IMPORTING'`,
+  )
   if (interrupted > 0)
     console.log(`[testboard-api] ${interrupted} interrupted upload(s) marked FAILED`)
 }

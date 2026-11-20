@@ -2,6 +2,20 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.6.1] - 2026-11-20
+
+Milestone 6 bagian API: impor test case dan migrasi hasil UAT lama.
+
+### Ditambahkan
+
+- Job impor: `POST /projects/:p/imports` (XLSX/CSV/JSON, maks 40 MB), `PUT /imports/:id/config` (sheet, baris header, pemetaan kolom, modul/suite per sheet, mode, opsi migrasi hasil) yang langsung menghasilkan pratinjau, `GET /imports/:id/rows` (filter valid/perlu ditinjau/duplikat/tidak valid), `GET /imports/:id/errors.csv` (aman dari formula injection), `GET /imports/:id/images/:key`, `POST /imports/:id/commit` (di latar), `GET /imports`, `DELETE /imports/:id`.
+- Pembaca XLSX yang ketat (batas ukuran per bagian ZIP, DTD dan makro ditolak, formula tidak dijalankan): banyak sheet, sheet tersembunyi, deteksi header (mis. baris 11), metadata dokumen di atas header, sel gabungan, sel tanggal, gambar tertanam dengan anchor sel.
+- Aturan bersama (`@testboard/shared`): pemetaan nama kolom lama, normalisasi prioritas/jenis/status/tanggal campuran, parser CSV, skema JSON AI, validasi baris, sidik isi untuk impor ulang.
+- Duplikat dalam file dan terhadap proyek, mode CREATE_ONLY / UPDATE / NEW_REVISION (selalu versi + revisi baru, snapshot run lama aman).
+- Migrasi hasil UAT lama ke run baru: status dipetakan (label retest tidak diterjemahkan diam-diam), nama penguji sebagai teks tanpa membuat akun, screenshot tertanam diperiksa + dikompres lalu ditautkan ke percobaan; gambar tanpa baris = perlu ditinjau.
+- Semua perubahan dalam satu transaksi; job yang terputus saat restart ditandai gagal.
+- Tes integrasi TB-IMP-001..007 dan unit aturan impor; ADR 0009.
+
 ## [0.6.0] - 2026-11-20
 
 **Milestone 5 selesai**: bukti (screenshot, dokumen, log) bisa diunggah, diperiksa, dikompres, dilihat, dan dilampirkan dari UI (mode API dan demo).

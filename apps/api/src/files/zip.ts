@@ -1,3 +1,5 @@
+import { inflateRawSync } from 'node:zlib'
+
 /**
  * Minimal ZIP central-directory reader for DOCX/XLSX checks: entry names and declared
  * sizes only, nothing is decompressed. Enough to refuse macros, ActiveX/OLE objects and
@@ -7,6 +9,9 @@ export interface ZipEntry {
   name: string
   compressedSize: number
   uncompressedSize: number
+  /** 0 = stored, 8 = deflate. */
+  method: number
+  localOffset: number
 }
 
 const EOCD_SIGNATURE = 0x06054b50
@@ -31,13 +36,15 @@ export function readZipEntries(bytes: Buffer): ZipEntry[] | null {
   const entries: ZipEntry[] = []
   for (let i = 0; i < count; i++) {
     if (offset + 46 > bytes.length || bytes.readUInt32LE(offset) !== CENTRAL_SIGNATURE) return null
+    const method = bytes.readUInt16LE(offset + 10)
     const compressedSize = bytes.readUInt32LE(offset + 20)
     const uncompressedSize = bytes.readUInt32LE(offset + 24)
     const nameLength = bytes.readUInt16LE(offset + 28)
     const extraLength = bytes.readUInt16LE(offset + 30)
     const commentLength = bytes.readUInt16LE(offset + 32)
     const name = bytes.toString('utf8', offset + 46, offset + 46 + nameLength)
-    entries.push({ name, compressedSize, uncompressedSize })
+    const localOffset = bytes.readUInt32LE(offset + 42)
+    entries.push({ name, compressedSize, uncompressedSize, method, localOffset })
     offset += 46 + nameLength + extraLength + commentLength
   }
   return entries
@@ -78,4 +85,22 @@ export function checkOfficePackage(bytes: Buffer, ext: 'docx' | 'xlsx'): OfficeC
     }
   }
   return total > MAX_TOTAL_UNCOMPRESSED ? 'ARCHIVE_BOMB' : 'OK'
+}
+
+/**
+ * Extract one entry, never producing more than its declared size (zip-bomb guard: the
+ * declared sizes were already checked against limits by the caller).
+ */
+export function extractZipEntry(bytes: Buffer, entry: ZipEntry): Buffer {
+  const at = entry.localOffset
+  if (at + 30 > bytes.length || bytes.readUInt32LE(at) !== 0x04034b50) {
+    throw new Error('Corrupt ZIP entry')
+  }
+  const start = at + 30 + bytes.readUInt16LE(at + 26) + bytes.readUInt16LE(at + 28)
+  const data = bytes.subarray(start, start + entry.compressedSize)
+  if (entry.method === 0) return Buffer.from(data)
+  if (entry.method !== 8) throw new Error('Unsupported ZIP compression')
+  const out = inflateRawSync(data, { maxOutputLength: Math.max(1, entry.uncompressedSize) })
+  if (out.length !== entry.uncompressedSize) throw new Error('Corrupt ZIP entry')
+  return out
 }

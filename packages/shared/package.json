@@ -1,6 +1,6 @@
 {
   "name": "@testboard/shared",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "description": "Shared enums, API contract types and helpers for TestBoard PASKER ID",
   "type": "module",
