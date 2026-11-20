@@ -2,6 +2,17 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.3.1] - 2026-11-20
+
+Milestone 3 bagian API.
+
+### Ditambahkan
+
+- Siklus uji: `GET/POST /projects/:p/cycles`, `PATCH /cycles/:id` (validasi tanggal, kode unik).
+- Run: buat (kode otomatis `RUN-YYYYMMDD-N`), ubah, transisi status `PLANNED -> ACTIVE -> COMPLETED -> (ACTIVE | LOCKED)`, tambah test case READY dengan snapshot beku, keluarkan case yang belum punya hasil, tugaskan penguji massal (hanya anggota ADMIN/QA Lead/Tester aktif).
+- Eksekusi: `POST /projects/:p/run-cases/:id/executions` append-only dengan nomor attempt di bawah kunci baris, INITIAL/RETEST, hasil per langkah, wajib hasil aktual (FAILED) / alasan (BLOCKED, SKIPPED), penguji & waktu dari server, TESTER hanya case miliknya, `Idempotency-Key` anti klik ganda. `GET /run-cases/:id` untuk workspace (snapshot, riwayat attempt, bug terkait, navigasi sebelum/berikutnya).
+- Tes integrasi TB-RUN-001/002, TB-EXEC-001..004, siklus status, penugasan, idempotensi, isolasi proyek; ADR 0006.
+
 ## [0.3.0] - 2026-11-20
 
 **Milestone 2 selesai**: login asli, sesi, Super Admin, hak akses per proyek, serta pengelolaan test case, anggota, modul, dan suite dari UI.

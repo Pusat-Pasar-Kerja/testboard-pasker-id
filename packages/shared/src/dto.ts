@@ -143,9 +143,11 @@ export interface CycleDto {
   id: IdString
   cycle_code: string
   title: string
+  description?: string | null
   status_code: CycleStatus
   starts_on: string | null
   ends_on: string | null
+  run_count?: number
 }
 
 export interface TestRunSummary {
@@ -181,14 +183,65 @@ export interface TestRunDetail extends TestRunSummary {
   run_cases: RunCaseRow[]
 }
 
-export interface ExecutionAttemptDto {
+export interface ExecutionStepResultDto {
+  step_number: number
+  result_status: ExecutionStatus
+  actual_result: string | null
+}
+
+/** One attempt. Append-only: a retest is a new row, the earlier result stays visible. */
+export interface ExecutionDto {
   id: IdString
   attempt_number: number
   execution_kind: ExecutionKind
   result_status: ExecutionStatus
   actual_result: string | null
+  notes: string | null
   tester: UserRef | null
+  legacy_tester_name: string | null
   tested_at: string | null
+  browser_name: string | null
+  device_name: string | null
+  operating_system: string | null
+  step_results: ExecutionStepResultDto[]
+}
+
+/** Test case definition frozen when the case joined the run (doc 02, TB-CASE-003). */
+export interface CaseSnapshot {
+  case_code: string
+  title: string
+  version: number
+  module_code: string | null
+  category: string | null
+  priority_code: TestCasePriority
+  test_type_code: TestType
+  actor_label: string | null
+  preconditions: string | null
+  test_steps_text: string | null
+  steps: TestCaseStepDto[]
+  expected_result: string | null
+}
+
+/** Everything the execution workspace needs for one case in one run. */
+export interface RunCaseDetail {
+  run_case_id: IdString
+  test_case_id: IdString
+  run: Pick<
+    TestRunSummary,
+    'id' | 'run_code' | 'name' | 'status_code' | 'environment_name' | 'build_version'
+  > & { environment_url: string | null }
+  case_version: number
+  current_case_version: number
+  snapshot: CaseSnapshot
+  assigned_to: UserRef | null
+  latest_status: ExecutionStatus
+  attempts: ExecutionDto[]
+  linked_defects: Pick<
+    DefectListItem,
+    'id' | 'bug_code' | 'title' | 'status_code' | 'severity_code'
+  >[]
+  previous_run_case_id: IdString | null
+  next_run_case_id: IdString | null
 }
 
 export interface DefectListItem {

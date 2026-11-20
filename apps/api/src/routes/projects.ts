@@ -22,11 +22,14 @@ import { writeAudit } from '../lib/audit.js'
 import { AppError } from '../lib/errors.js'
 import { parseBody } from '../lib/validation.js'
 import type { AppEnv } from '../types.js'
+import { cycleRoutes } from './cycles.js'
 import { defectRoutes } from './defects.js'
 import { memberRoutes } from './members.js'
 import { moduleRoutes } from './modules.js'
 import { reportRoutes } from './reports.js'
+import { runCaseRoutes } from './run-cases.js'
 import { runRoutes } from './runs.js'
+import { runWriteRoutes } from './runs-write.js'
 import { suiteRoutes } from './suites.js'
 import { testCaseRoutes } from './test-cases.js'
 
@@ -175,7 +178,10 @@ export function projectRoutes(pool: Pool) {
   scoped.route('/modules', moduleRoutes(pool))
   scoped.route('/suites', suiteRoutes(pool))
   scoped.route('/test-cases', testCaseRoutes(pool))
+  scoped.route('/cycles', cycleRoutes(pool))
   scoped.route('/runs', runRoutes(pool))
+  scoped.route('/runs', runWriteRoutes(pool))
+  scoped.route('/run-cases', runCaseRoutes(pool))
   scoped.route('/defects', defectRoutes(pool))
   scoped.route('/reports', reportRoutes(pool))
 
