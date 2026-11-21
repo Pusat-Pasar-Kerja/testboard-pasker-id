@@ -151,7 +151,9 @@ describe('bulk actions on bugs', () => {
       status_code: 'IN_PROGRESS',
     })
     expect(byDev.json.updated).toBe(1)
-    expect(byDev.json.skipped).toEqual([{ id: notMine.id, code: notMine.bug_code, reason: 'FORBIDDEN' }])
+    expect(byDev.json.skipped).toEqual([
+      { id: notMine.id, code: notMine.bug_code, reason: 'FORBIDDEN' },
+    ])
   })
 })
 

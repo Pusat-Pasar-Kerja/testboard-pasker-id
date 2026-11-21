@@ -346,7 +346,8 @@ export function defectWriteRoutes(pool: Pool) {
             WHERE e.id = ?`,
           [executionIds[0]],
         )
-        cycleId = run?.cycle_id === null || run?.cycle_id === undefined ? null : String(run.cycle_id)
+        cycleId =
+          run?.cycle_id === null || run?.cycle_id === undefined ? null : String(run.cycle_id)
       }
       const bugCode = body.bug_code ?? (await nextBugCode(conn, project.id, project.code))
       let id: string

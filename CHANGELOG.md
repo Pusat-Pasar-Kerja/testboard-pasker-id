@@ -2,6 +2,12 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.11.2] - 2026-11-21
+
+### Diperbaiki
+
+- Format kode dua file dari v0.11.1 (pemeriksaan format CI gagal). Tidak ada perubahan perilaku; v0.11.1 tidak dinaikkan ke `main`.
+
 ## [0.11.1] - 2026-11-21
 
 Perubahan v1 tahap 4, bagian 1: siklus pada bug dan aksi massal (ADR 0013).
