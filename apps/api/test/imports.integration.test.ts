@@ -391,3 +391,94 @@ describe('safety and permissions', () => {
     expect((await lead.delete(`${P()}/imports/${up.json.id}`)).status).toBe(204)
   })
 })
+
+describe('code conflicts between sheets (ADR 0013)', () => {
+  const titleOf = (code: string) =>
+    selectOne<{ id: string; title: string }>(
+      h.pool,
+      'SELECT id, title FROM test_cases WHERE project_id = ? AND case_code = ?',
+      [project.id, code],
+    )
+  const row = (code: string, title: string, expected: string): Cell[] => [
+    '1',
+    code,
+    'Kategori',
+    title,
+    'Must Have',
+    'Positif',
+    'Pengguna',
+    '-',
+    '1. Buka',
+    expected,
+    'Belum Diuji',
+    '',
+    '',
+    '',
+    '',
+  ]
+
+  it('creates a different case that reuses a code under the next free code', async () => {
+    const visible = buildXlsx([
+      {
+        name: 'Lapor Loker',
+        rows: legacySheetRows([
+          row('UAT-LPL-001', 'Aksi lapor pada lowongan yang sudah dilamar', 'Aksi tampil'),
+          row('UAT-LPL-002', 'Tombol batal pada form', 'Form tertutup'),
+        ]),
+      },
+    ])
+    const first = await upload(lead, 'phase2-visible.xlsx', visible)
+    await configure(first.json, {}, { module_code: 'LPL', suite_name: 'Lapor Loker' })
+    expect((await commitAndWait(first.json.id)).status_code).toBe('COMPLETED')
+
+    const hidden = buildXlsx([
+      {
+        name: 'Lapor Loker 3',
+        rows: legacySheetRows([
+          row('UAT-LPL-001', 'Aksi lapor pada detail lowongan', 'Aksi laporkan tampil'),
+          row('UAT-LPL-002', 'Tombol batal pada form', 'Form tertutup'),
+          row('UAT-LPL-003', 'Email terisi otomatis', 'Email sesuai profil'),
+        ]),
+      },
+    ])
+    const second = await upload(lead, 'phase2-hidden.xlsx', hidden)
+    const skipped = await configure(
+      second.json,
+      {},
+      { module_code: 'LPL', suite_name: 'Lapor Loker' },
+    )
+    expect(skipped.json.preview.counts).toMatchObject({ create: 1, duplicate: 2 })
+    expect(skipped.json.preview.conflicts).toEqual([
+      expect.objectContaining({
+        code: 'UAT-LPL-001',
+        title: 'Aksi lapor pada detail lowongan',
+        other_title: 'Aksi lapor pada lowongan yang sudah dilamar',
+        other: 'EXISTING',
+        decision: 'SKIP',
+      }),
+    ])
+
+    const renumber = await configure(
+      second.json,
+      { code_conflict: 'NEW_CODE' },
+      { module_code: 'LPL', suite_name: 'Lapor Loker' },
+    )
+    expect(renumber.json.preview.counts).toMatchObject({ create: 2, duplicate: 1 })
+    expect(renumber.json.preview.conflicts[0].decision).toBe('NEW_CODE')
+    expect((await commitAndWait(second.json.id)).status_code).toBe('COMPLETED')
+
+    // 003 keeps its own code; the conflicting 001 gets the next free one (004).
+    expect((await titleOf('UAT-LPL-003'))?.title).toBe('Email terisi otomatis')
+    const moved = await titleOf('UAT-LPL-004')
+    expect(moved?.title).toBe('Aksi lapor pada detail lowongan')
+    expect((await titleOf('UAT-LPL-001'))?.title).toBe(
+      'Aksi lapor pada lowongan yang sudah dilamar',
+    )
+    const revision = await selectOne<{ change_reason: string }>(
+      h.pool,
+      'SELECT change_reason FROM test_case_revisions WHERE test_case_id = ?',
+      [moved?.id],
+    )
+    expect(revision?.change_reason).toContain('original code UAT-LPL-001')
+  })
+})

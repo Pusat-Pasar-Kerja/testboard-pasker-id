@@ -26,6 +26,8 @@ Data UAT Karirhub ada di tiga workbook: hasil UAT Fase 1 (30-31 Juli 2026), Trac
    - Screenshot tertanam mengikuti baris tempatnya berada dan masuk lewat pipeline bukti, lalu dilampirkan ke bug.
    - Bug yang kodenya sudah ada (mis. aduan yang pernah diimpor) tidak dibuat ulang. Status awal dicatat di riwayat ("Diimpor dari ..."), kategori dan status retest ditambahkan ke detail, dan asal baris disimpan di `source_reference`.
 
+7. **Kode bentrok saat impor test case** (untuk sheet tersembunyi "... 3" Fase 2): bila kode di file sudah dipakai test case dengan **isi berbeda** (di proyek, atau di baris lebih awal di file), baris itu tampil di daftar "Kode bentrok" pada pratinjau, berdampingan dengan judul yang sudah ada. Pilihan per baris atau untuk semua: _Lewati_ (bawaan, perilaku lama) atau _Buat dengan kode baru_ (nomor berikutnya di modul itu, mis. UAT-LPL-125; kode asal dicatat di revisi pertama). Baris dengan isi sama tetap dianggap duplikat. Baris berkode baru dibuat paling akhir agar tidak mengambil kode yang masih dipakai baris lain di file yang sama. Setelah itu "Cari yang mirip" dan "Gabungkan" dipakai untuk merapikan test case yang ternyata sama.
+
 ## Konsekuensi
 
 - Endpoint baru: `POST /projects/:p/defects/bulk` dan `POST /projects/:p/test-cases/bulk`, jawaban `{ updated, unchanged, skipped: [{ id, code, reason }] }`. Filter baru `GET /defects?cycle=<id|none>`. `POST /projects/:p/test-cases/merge` (`target_id`, `source_ids`, khusus lead) dan `GET /projects/:p/test-cases/similar?module=`.

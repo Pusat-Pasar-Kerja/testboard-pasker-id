@@ -843,7 +843,25 @@
       },
       "noDataRows": "No data rows below the header. Check the header row number and the selected sheets.",
       "applyRun": "Old results go into a new completed run \"{{name}}\".",
-      "summaryInvalid": "{{count}} invalid"
+      "summaryInvalid": "{{count}} invalid",
+      "codeConflict": "When a code is already used by another test case",
+      "codeConflictHint": "E.g. the hidden \"... 3\" sheet uses UAT-LPL-001 for different content. New code = the next number in that module; the original code is kept in the history.",
+      "conflictDecision": {
+        "SKIP": "Skip the row",
+        "NEW_CODE": "Create with a new code"
+      },
+      "conflicts_one": "Code conflicts ({{count}})",
+      "conflicts_other": "Code conflicts ({{count}})",
+      "conflictsHint": "These codes are already used by test cases with different content. Decide per row, then press \"Check\" again.",
+      "conflictAll": {
+        "SKIP": "Skip all",
+        "NEW_CODE": "New codes for all"
+      },
+      "conflictOther": {
+        "EXISTING": "Already in the project:",
+        "FILE": "Earlier row in the file:"
+      },
+      "conflictFor": "Decision for {{code}} ({{row}})"
     },
     "reports": {
       "title": "Reports",

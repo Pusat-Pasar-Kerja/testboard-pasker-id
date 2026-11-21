@@ -129,6 +129,7 @@ export async function saveRows(conn: PoolConnection, jobId: string, rows: Prepar
           action: r.action,
           duplicate_of: r.duplicate_of,
           images: r.images,
+          renumber: r.renumber ?? false,
         }),
         r.status,
         JSON.stringify(r.issues),
@@ -268,11 +269,16 @@ export async function commitImport(
     }
 
     const caseIds = new Map<string, string>()
-    for (const row of stored) {
+    // Rows that need a new code go last, so they never take a code another row still uses.
+    const renumbered = (row: StoredRow) =>
+      Boolean(asJson<{ renumber?: boolean }>(row.mapped_payload_json).renumber)
+    const ordered = [...stored.filter((r) => !renumbered(r)), ...stored.filter(renumbered)]
+    for (const row of ordered) {
       const mapped = asJson<{
         values: CheckedCase
         result: PreparedResult
         action: PreparedRow['action']
+        renumber?: boolean
       }>(row.mapped_payload_json)
       if (row.status_code === 'DUPLICATE') {
         await execute(conn, "UPDATE import_job_rows SET status_code = 'SKIPPED' WHERE id = ?", [
@@ -290,7 +296,11 @@ export async function commitImport(
       let changed = false
 
       if (mapped.action === 'CREATE') {
-        const code = v.case_code ?? (await nextCaseCode(conn, job.projectId, v.module_code))
+        // A code taken by a different case: the next free code of the module (ADR 0013).
+        const code =
+          v.case_code && !mapped.renumber
+            ? v.case_code
+            : await nextCaseCode(conn, job.projectId, v.module_code)
         try {
           const result = await execute(
             conn,
@@ -338,7 +348,9 @@ export async function commitImport(
           conn,
           await loadCase(conn, job.projectId, caseId),
           job.createdBy,
-          `Imported: ${job.filename} (${where})`,
+          mapped.renumber
+            ? `Imported: ${job.filename} (${where}), original code ${v.case_code}`
+            : `Imported: ${job.filename} (${where})`,
         )
         summary.created_cases++
         changed = true

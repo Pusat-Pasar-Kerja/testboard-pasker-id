@@ -594,6 +594,29 @@ export interface ImportConfig {
   status_map?: Record<string, ExecutionStatus | 'IGNORE'>
   /** Image key -> data row number on its sheet, or null to leave the image out. */
   image_rows?: Record<string, number | null>
+  /**
+   * A code already used by a DIFFERENT test case (in the project or earlier in the file):
+   * skip the row (default) or create it under the next free code (ADR 0013).
+   */
+  code_conflict?: CodeConflictDecision
+  /** Per-row decision, key "<sheet>!<row>", overriding code_conflict. */
+  conflict_rows?: Record<string, CodeConflictDecision>
+}
+
+export const CODE_CONFLICT_DECISIONS = ['SKIP', 'NEW_CODE'] as const
+export type CodeConflictDecision = (typeof CODE_CONFLICT_DECISIONS)[number]
+
+/** A row whose code is taken by a different test case. */
+export interface ImportCodeConflict {
+  key: string
+  sheet: string
+  row: number
+  code: string
+  title: string
+  /** Title of the case already using the code (existing case or earlier row). */
+  other_title: string
+  other: 'EXISTING' | 'FILE'
+  decision: CodeConflictDecision
 }
 
 export interface ImportImage {
@@ -622,6 +645,8 @@ export interface ImportPreview {
   new_modules: string[]
   new_suites: string[]
   images: { total: number; auto: number; review: ImportImage[] }
+  /** Same code, different content (ADR 0013); decided per row. */
+  conflicts: ImportCodeConflict[]
 }
 
 export interface ImportResultSummary {
@@ -712,6 +737,8 @@ export const importConfigSchema = z
       .optional(),
     status_map: z.record(z.string().max(200), z.enum([...EXECUTION_STATUSES, 'IGNORE'])).optional(),
     image_rows: z.record(z.string().max(200), z.number().int().min(1).nullable()).optional(),
+    code_conflict: z.enum(CODE_CONFLICT_DECISIONS).default('SKIP'),
+    conflict_rows: z.record(z.string().max(300), z.enum(CODE_CONFLICT_DECISIONS)).optional(),
   })
   .superRefine((value, ctx) => {
     if (value.include_results && !value.run) {

@@ -1,4 +1,6 @@
 import {
+  CODE_CONFLICT_DECISIONS,
+  type CodeConflictDecision,
   CASE_IMPORT_FIELDS,
   EXECUTION_STATUSES,
   IMPORT_MODES,
@@ -57,6 +59,8 @@ interface Draft {
   run: { name: string; environment_name: string; build_version: string }
   status_map: Record<string, string>
   image_rows: Record<string, number | null>
+  code_conflict: CodeConflictDecision
+  conflict_rows: Record<string, CodeConflictDecision>
 }
 
 const headerOf = (info: ImportSheetInfo | undefined, row: number) => info?.top_rows[row - 1] ?? []
@@ -95,6 +99,8 @@ function initialDraft(job: ImportJobDto): Draft {
     },
     status_map: { ...(config?.status_map ?? {}) },
     image_rows: { ...(config?.image_rows ?? {}) },
+    code_conflict: config?.code_conflict ?? 'SKIP',
+    conflict_rows: { ...(config?.conflict_rows ?? {}) },
   }
 }
 
@@ -125,6 +131,8 @@ function toConfig(draft: Draft): ImportConfigInput {
       Object.entries(draft.status_map).filter(([, v]) => v !== ''),
     ) as ImportConfigInput['status_map'],
     image_rows: draft.image_rows,
+    code_conflict: draft.code_conflict,
+    conflict_rows: draft.conflict_rows,
   }
 }
 
@@ -625,6 +633,22 @@ function ImportJob({ job }: { job: ImportJobDto }) {
                     }))}
                   />
                 )}
+                <SelectField
+                  label={t('pages.importJob.codeConflict')}
+                  hint={t('pages.importJob.codeConflictHint')}
+                  className="max-w-md"
+                  value={draft.code_conflict}
+                  onChange={(e) =>
+                    update({
+                      code_conflict: e.target.value as CodeConflictDecision,
+                      conflict_rows: {},
+                    })
+                  }
+                  options={CODE_CONFLICT_DECISIONS.map((d) => ({
+                    value: d,
+                    label: t(`pages.importJob.conflictDecision.${d}`),
+                  }))}
+                />
                 <div className="rounded-lg border border-line p-3">
                   <label className="flex cursor-pointer items-start gap-3">
                     <input
@@ -720,6 +744,69 @@ function ImportJob({ job }: { job: ImportJobDto }) {
                   {preview.new_suites.length > 0 &&
                     t('pages.importJob.newSuites', { list: preview.new_suites.join(', ') })}
                 </p>
+              )}
+
+              {preview.conflicts.length > 0 && (
+                <fieldset className="space-y-2">
+                  <legend className="text-sm font-semibold">
+                    {t('pages.importJob.conflicts', { count: preview.conflicts.length })}
+                  </legend>
+                  <p className="text-xs text-ink-muted">{t('pages.importJob.conflictsHint')}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {CODE_CONFLICT_DECISIONS.map((d) => (
+                      <Button
+                        key={d}
+                        variant="secondary"
+                        onClick={() => update({ code_conflict: d, conflict_rows: {} })}
+                      >
+                        {t(`pages.importJob.conflictAll.${d}`)}
+                      </Button>
+                    ))}
+                  </div>
+                  <ul className="max-h-96 space-y-2 overflow-y-auto">
+                    {preview.conflicts.map((conflict) => (
+                      <li
+                        key={conflict.key}
+                        className="grid gap-2 rounded-lg border border-line p-3 text-sm md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_12rem] md:items-center"
+                      >
+                        <span className="min-w-0">
+                          <span className="block font-mono text-xs text-brand-700">
+                            {conflict.code} · {conflict.sheet}!{conflict.row}
+                          </span>
+                          <span className="block break-words">{conflict.title}</span>
+                        </span>
+                        <span className="min-w-0 text-ink-muted">
+                          <span className="block text-xs">
+                            {t(`pages.importJob.conflictOther.${conflict.other}`)}
+                          </span>
+                          <span className="block break-words">{conflict.other_title}</span>
+                        </span>
+                        <select
+                          className={CONTROL}
+                          aria-label={t('pages.importJob.conflictFor', {
+                            code: conflict.code,
+                            row: conflict.key,
+                          })}
+                          value={draft.conflict_rows[conflict.key] ?? conflict.decision}
+                          onChange={(e) =>
+                            update({
+                              conflict_rows: {
+                                ...draft.conflict_rows,
+                                [conflict.key]: e.target.value as CodeConflictDecision,
+                              },
+                            })
+                          }
+                        >
+                          {CODE_CONFLICT_DECISIONS.map((d) => (
+                            <option key={d} value={d}>
+                              {t(`pages.importJob.conflictDecision.${d}`)}
+                            </option>
+                          ))}
+                        </select>
+                      </li>
+                    ))}
+                  </ul>
+                </fieldset>
               )}
 
               {preview.statuses.length > 0 && (

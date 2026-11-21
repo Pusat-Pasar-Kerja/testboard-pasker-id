@@ -158,6 +158,61 @@ describe('bulk actions and bug cycle (ADR 0013)', () => {
     expect(merged.merged_into).toEqual({ id: a.id, case_code: a.case_code })
   })
 
+  it('reviews code conflicts and creates the different case under a new code', async () => {
+    const user = userEvent.setup()
+    const { db, dataSource } = setup()
+    const header =
+      'case_code,module_code,suite_name,category,title,requirement_refs,priority_code,test_type_code,actor_label,preconditions,test_steps_text,expected_result,source_locale,source_document'
+    await dataSource.createTestCase('DEMO-KARIR', {
+      case_code: 'UAT-KON-001',
+      module_code: db.modules[0]!.module_code,
+      title: 'Aksi lapor pada lowongan yang sudah dilamar',
+      expected_result: 'Aksi tampil',
+    })
+    const moduleCode = db.modules[0]!.module_code
+    const csv = [
+      header,
+      `UAT-KON-001,${moduleCode},Fase 2,,Aksi lapor pada detail lowongan,,Must Have,Positif,,,1. Buka,Aksi laporkan tampil,id,`,
+    ].join('\n')
+    const { router } = renderRoute('/projects/DEMO-KARIR/imports', { dataSource })
+    await user.upload(
+      await screen.findByLabelText('Pilih file'),
+      new File([csv], 'fase2-tersembunyi.csv', { type: 'text/csv' }),
+    )
+    await waitFor(() => expect(router.state.location.pathname).toMatch(/\/imports\/\d+$/))
+    await screen.findByRole('heading', { level: 1, name: 'fase2-tersembunyi.csv' })
+    await user.click(await screen.findByRole('button', { name: 'Periksa' }))
+
+    const decision = await screen.findByRole('combobox', {
+      name: 'Keputusan untuk UAT-KON-001 (CSV!2)',
+    })
+    expect(decision).toHaveValue('SKIP')
+    expect(screen.getByText('Aksi lapor pada lowongan yang sudah dilamar')).toBeInTheDocument()
+    await user.selectOptions(decision, 'Buat dengan kode baru')
+    await user.click(screen.getByRole('button', { name: 'Periksa' }))
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /Keputusan untuk UAT-KON-001/ })).toHaveValue(
+        'NEW_CODE',
+      ),
+    )
+    const apply = await screen.findByRole('button', { name: 'Terapkan impor' })
+    await waitFor(() => expect(apply).toBeEnabled())
+    await user.click(apply)
+    await user.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: 'Terapkan impor',
+      }),
+    )
+    await waitFor(() =>
+      expect(db.cases.some((c) => c.title === 'Aksi lapor pada detail lowongan')).toBe(true),
+    )
+    const created = db.cases.find((c) => c.title === 'Aksi lapor pada detail lowongan')!
+    expect(created.case_code).not.toBe('UAT-KON-001')
+    expect(db.cases.find((c) => c.case_code === 'UAT-KON-001')?.title).toBe(
+      'Aksi lapor pada lowongan yang sudah dilamar',
+    )
+  })
+
   it('imports bugs from a tracker CSV: failed rows become bugs, passed rows are skipped', async () => {
     const user = userEvent.setup()
     const { db, dataSource, project } = setup()

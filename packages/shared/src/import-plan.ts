@@ -7,6 +7,8 @@ import {
   normalizeResultStatus,
   parseLegacyDate,
   type CheckedCase,
+  type CodeConflictDecision,
+  type ImportCodeConflict,
   type ImportConfig,
   type ImportImage,
   type ImportIssue,
@@ -48,6 +50,8 @@ export interface PreparedRow {
   images: string[]
   /** Content fingerprint (the API stores its SHA-256 as source_hash). */
   fingerprint: string
+  /** Code taken by a different case: created under the next free code (ADR 0013). */
+  renumber?: boolean
 }
 
 export interface ExistingCase {
@@ -183,21 +187,41 @@ export function planRows(
   }
 
   // Same code twice in the file: the first row wins, later ones are reported (TB-IMP-004).
+  // When the later row is a DIFFERENT case under the same code, the conflict decision
+  // applies: skip it, or create it under a new code (ADR 0013).
   const firstByCode = new Map<string, PreparedRow>()
   for (const row of rows) {
     const code = row.values.case_code
     if (!code || row.status === 'ERROR') continue
     const first = firstByCode.get(code)
-    if (first) {
-      row.status = 'DUPLICATE'
-      row.duplicate_of = `${first.sheet}!${first.row}`
-    } else firstByCode.set(code, row)
+    if (!first) {
+      firstByCode.set(code, row)
+      continue
+    }
+    if (first.fingerprint !== row.fingerprint) {
+      row.issues.push({ field: 'case_code', level: 'warning', code: 'CODE_CONFLICT', value: code })
+      if (conflictDecision(config, row) === 'NEW_CODE') {
+        row.renumber = true
+        continue
+      }
+    }
+    row.status = 'DUPLICATE'
+    row.duplicate_of = `${first.sheet}!${first.row}`
   }
   for (const image of images) {
     if (image.row_number === null) continue
     rows.find((r) => r.sheet === image.sheet && r.row === image.row_number)?.images.push(image.key)
   }
   return { rows, images, codes: [...firstByCode.keys()] }
+}
+
+export const conflictKey = (row: Pick<PreparedRow, 'sheet' | 'row'>) => `${row.sheet}!${row.row}`
+
+export function conflictDecision(
+  config: Pick<ImportConfig, 'code_conflict' | 'conflict_rows'>,
+  row: Pick<PreparedRow, 'sheet' | 'row'>,
+): CodeConflictDecision {
+  return config.conflict_rows?.[conflictKey(row)] ?? config.code_conflict ?? 'SKIP'
 }
 
 /** Phase 2: compare with existing cases and summarise for the preview screen. */
@@ -209,12 +233,66 @@ export function finishPlan(
   knownModules: Set<string>,
   knownSuites: Set<string>,
 ): ImportPreview {
+  const conflicts: ImportCodeConflict[] = []
+  const firstTitle = new Map<string, string>()
   for (const row of rows) {
+    const code = row.values.case_code
+    if (code && !row.renumber && !firstTitle.has(code)) firstTitle.set(code, row.values.title)
+  }
+  for (const row of rows) {
+    const inFile = row.issues.some((i) => i.code === 'CODE_CONFLICT')
+    if (inFile && row.values.case_code) {
+      conflicts.push({
+        key: conflictKey(row),
+        sheet: row.sheet,
+        row: row.row,
+        code: row.values.case_code,
+        title: row.values.title,
+        other_title: firstTitle.get(row.values.case_code) ?? '',
+        other: 'FILE',
+        decision: conflictDecision(config, row),
+      })
+    }
     if (row.status !== 'VALID') continue
+    if (row.renumber) {
+      row.action = 'CREATE'
+      continue
+    }
     const found = row.values.case_code ? existing.get(row.values.case_code) : undefined
     if (!found) {
       row.action = 'CREATE'
       continue
+    }
+    // CREATE_ONLY: a code used by a different existing case is a conflict, decided per row.
+    if (
+      config.import_mode === 'CREATE_ONLY' &&
+      !config.include_results &&
+      found.case_status !== 'ARCHIVED' &&
+      caseFingerprint({ ...row.values, case_code: found.values.case_code }) !==
+        caseFingerprint(found.values)
+    ) {
+      const decision = conflictDecision(config, row)
+      row.issues.push({
+        field: 'case_code',
+        level: 'warning',
+        code: 'CODE_CONFLICT',
+        value: row.values.case_code ?? '',
+      })
+      conflicts.push({
+        key: conflictKey(row),
+        sheet: row.sheet,
+        row: row.row,
+        code: row.values.case_code ?? '',
+        title: row.values.title,
+        other_title: found.values.title,
+        other: 'EXISTING',
+        decision,
+      })
+      if (decision === 'NEW_CODE') {
+        row.renumber = true
+        row.action = 'CREATE'
+        continue
+      }
     }
     row.target_id = found.id
     if (found.case_status === 'ARCHIVED') {
@@ -276,5 +354,6 @@ export function finishPlan(
       auto: images.filter((i) => i.state === 'AUTO' || i.state === 'ASSIGNED').length,
       review: images.filter((i) => i.state === 'REVIEW'),
     },
+    conflicts: conflicts.slice(0, 500),
   }
 }

@@ -2,6 +2,16 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.11.5] - 2026-11-21
+
+Perubahan v1 tahap 4, bagian 4: peninjauan kode bentrok saat impor test case (ADR 0013).
+
+### Ditambahkan
+
+- Impor test case: pengaturan **"Bila kode sudah dipakai test case lain"**, pilihannya _Lewati baris_ atau _Buat dengan kode baru_. Dipakai untuk sheet tersembunyi Fase 2 yang memakai kode yang sama untuk isi berbeda.
+- Pratinjau menampilkan daftar **Kode bentrok**: judul di file berdampingan dengan judul yang sudah ada. Keputusan bisa diatur per baris, atau "Semua pakai kode baru" / "Lewati semua".
+- Test case berkode baru mendapat nomor berikutnya di modulnya; kode asalnya dicatat di riwayat revisi.
+
 ## [0.11.4] - 2026-11-21
 
 Perubahan v1 tahap 4, bagian 3: Impor Bug (ADR 0013).

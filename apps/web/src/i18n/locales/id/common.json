@@ -843,7 +843,25 @@
       },
       "noDataRows": "Tidak ada baris data di bawah header. Pastikan nomor baris header dan sheet yang dipilih sudah benar.",
       "applyRun": "Hasil uji lama masuk ke run baru \"{{name}}\" berstatus Selesai.",
-      "summaryInvalid": "{{count}} tidak valid"
+      "summaryInvalid": "{{count}} tidak valid",
+      "codeConflict": "Bila kode sudah dipakai test case lain",
+      "codeConflictHint": "Mis. sheet tersembunyi \"... 3\" memakai UAT-LPL-001 untuk isi yang berbeda. Kode baru = nomor berikutnya di modul itu; kode asal dicatat di riwayat.",
+      "conflictDecision": {
+        "SKIP": "Lewati baris",
+        "NEW_CODE": "Buat dengan kode baru"
+      },
+      "conflicts_one": "Kode bentrok ({{count}})",
+      "conflicts_other": "Kode bentrok ({{count}})",
+      "conflictsHint": "Kode di file sudah dipakai test case dengan isi berbeda. Pilih per baris, lalu tekan \"Periksa\" lagi.",
+      "conflictAll": {
+        "SKIP": "Lewati semua",
+        "NEW_CODE": "Semua pakai kode baru"
+      },
+      "conflictOther": {
+        "EXISTING": "Sudah ada di proyek:",
+        "FILE": "Baris lebih awal di file:"
+      },
+      "conflictFor": "Keputusan untuk {{code}} ({{row}})"
     },
     "reports": {
       "title": "Laporan",

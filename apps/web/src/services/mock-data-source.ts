@@ -719,7 +719,11 @@ export function createMockDataSource(
       images_left_out: 0,
     }
     const caseFor = new Map<string, MockCase>()
-    for (const row of job.rows) {
+    // Rows that need a new code go last (ADR 0013).
+    for (const row of [
+      ...job.rows.filter((r) => !r.renumber),
+      ...job.rows.filter((r) => r.renumber),
+    ]) {
       if (row.status === 'DUPLICATE') {
         row.final = 'SKIPPED'
         summary.skipped_rows++
@@ -761,7 +765,8 @@ export function createMockDataSource(
           projectId: job.projectId,
           moduleId: mod.id,
           suiteName: v.suite_name ?? '',
-          case_code: v.case_code ?? nextCode(job.projectId, v.module_code),
+          case_code:
+            v.case_code && !row.renumber ? v.case_code : nextCode(job.projectId, v.module_code),
           category: v.category ?? '',
           title: v.title,
           requirement_refs: v.requirement_refs,
