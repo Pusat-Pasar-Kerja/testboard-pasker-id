@@ -1,3 +1,9 @@
+import type {
+  DefectImportConfig,
+  DefectImportPreview,
+  DefectImportResult,
+  ImportTarget,
+} from './defect-import.js'
 import { z } from 'zod'
 import type { IdString } from './api.js'
 import type { UserRef } from './dto.js'
@@ -635,6 +641,8 @@ export interface ImportJobDto {
   original_filename: string
   source_format: ImportSourceFormat
   source_kind: ImportSourceKind
+  /** What the job creates: test cases (default) or bugs ("Impor Bug", ADR 0013). */
+  import_target: ImportTarget
   import_mode: ImportMode
   status_code: ImportJobStatus
   total_rows: number
@@ -649,6 +657,10 @@ export interface ImportJobDto {
   config: ImportConfig | null
   preview: ImportPreview | null
   result: ImportResultSummary | null
+  /** Bug imports only (import_target DEFECTS). */
+  defect_config: DefectImportConfig | null
+  defect_preview: DefectImportPreview | null
+  defect_result: DefectImportResult | null
   /** Safe failure reason when status is FAILED. */
   failure: string | null
 }

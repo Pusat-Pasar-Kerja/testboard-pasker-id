@@ -711,8 +711,8 @@
       "uploader": "Diunggah oleh {{name}}"
     },
     "imports": {
-      "title": "Impor Test Case",
-      "subtitle": "Impor dari Excel UAT lama, template CSV, atau JSON hasil AI. Semua baris diperiksa dulu sebelum diterapkan.",
+      "title": "Impor Data",
+      "subtitle": "Test case atau bug dari Excel UAT/Tracker, template CSV, atau JSON hasil AI. Semua baris diperiksa dulu sebelum diterapkan.",
       "leadsOnly": "Impor hanya bisa dilakukan oleh QA Lead atau Admin proyek.",
       "newImport": "Impor baru",
       "drop": "Tarik file XLSX, CSV, atau JSON ke sini",
@@ -739,6 +739,15 @@
         "INVALID_JSON": "JSON tidak valid.",
         "SCHEMA_MISMATCH": "JSON tidak sesuai skema AI v1.0.",
         "DEMO_XLSX": "Impor Excel butuh server; di mode demo gunakan CSV atau JSON."
+      },
+      "targetQuestion": "Apa yang ingin diimpor?",
+      "target": {
+        "TEST_CASES": "Test case",
+        "DEFECTS": "Bug"
+      },
+      "targetHint": {
+        "TEST_CASES": "Pustaka test case, bisa sekaligus hasil UAT lama (dengan screenshot).",
+        "DEFECTS": "Bug dari tracker: baris Gagal Diuji dan aduan pengguna, dengan severity dan screenshot."
       }
     },
     "importJob": {
@@ -1348,5 +1357,48 @@
     "sharedRefs": "Rujukan: {{refs}}",
     "keep": "Pertahankan {{code}}",
     "notDuplicate": "Bukan duplikat"
+  },
+  "defectImport": {
+    "sheetsHint": "Centang sheet yang berisi bug. Sheet tersembunyi biasanya salinan; biarkan tidak dicentang bila isinya sama.",
+    "moduleHint": "Kode modul bug dari sheet ini. Modul baru dibuat otomatis.",
+    "sourceKind": "Sumber bug",
+    "mapping_one": "Kolom ({{count}} dipetakan)",
+    "mapping_other": "Kolom ({{count}} dipetakan)",
+    "columnFor": "Arti kolom {{column}}",
+    "notUsed": "Tidak dipakai (tetap disimpan sebagai data asli)",
+    "fields": {
+      "bug_code": "Kode bug",
+      "case_code": "Kode test case (ID UAT)",
+      "category": "Kategori",
+      "title": "Judul",
+      "description": "Detail / hasil aktual",
+      "notes": "Catatan (jadi komentar)",
+      "severity": "Severity",
+      "priority": "Prioritas",
+      "status": "Status",
+      "retest_status": "Status retest",
+      "reporter_name": "Pelapor / penguji (teks)",
+      "reported_at": "Tanggal lapor",
+      "evidence": "Bukti / screenshot"
+    },
+    "settings": "Pengaturan",
+    "cycleHint": "Semua bug yang diimpor masuk ke siklus ini, mis. UAT Fase 1.",
+    "linkResults": "Tautkan ke hasil uji",
+    "linkResultsHint": "Bila ada kolom ID UAT, bug ditautkan ke hasil uji terakhir test case itu di siklus yang dipilih (yang gagal diutamakan).",
+    "check": "Periksa",
+    "recheck": "Periksa ulang",
+    "stale": "Pengaturan berubah. Tekan \"Periksa ulang\" sebelum menerapkan.",
+    "counts": "{{create}} bug akan dibuat · {{skipped}} baris dilewati · {{duplicate}} sudah ada · {{invalid}} bermasalah",
+    "imageCount": "{{auto}} dari {{total}} screenshot terhubung ke barisnya",
+    "statusMap": "Status di file → status bug",
+    "severityMap": "Severity di file",
+    "priorityMap": "Prioritas di file",
+    "empty": "(kosong)",
+    "unknown": "Belum dipetakan (jadi Terbuka)",
+    "skip": "Lewati (tidak diimpor)",
+    "applyBody_one": "{{count}} bug akan dibuat beserta screenshot-nya. Bug yang sudah ada tidak dibuat ulang.",
+    "applyBody_other": "{{count}} bug akan dibuat beserta screenshot-nya. Bug yang sudah ada tidak dibuat ulang.",
+    "summary": "{{created}} bug dibuat · {{skipped}} baris dilewati · {{linked}} ditautkan ke hasil uji · {{images}} screenshot",
+    "openBugs": "Buka Daftar Bug"
   }
 }

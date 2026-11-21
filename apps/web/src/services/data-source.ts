@@ -1,6 +1,8 @@
 import type {
   BulkResult,
   CaseBulkInput,
+  DefectImportConfigInput,
+  ImportTarget,
   SimilarCasePair,
   TestCaseMergeInput,
   TestCaseMergeResult,
@@ -206,6 +208,8 @@ export interface UploadResult {
 export interface UploadOptions {
   onProgress?: (fraction: number) => void
   signal?: AbortSignal
+  /** Imports only: create bugs instead of test cases ("Impor Bug", ADR 0013). */
+  target?: ImportTarget
 }
 
 export type FileUrlKind = 'preview' | 'thumbnail' | 'download'
@@ -373,6 +377,12 @@ export interface DataSource {
     query?: ImportRowQuery,
   ): Promise<Paginated<ImportRowDto>>
   commitImport(projectCode: string, jobId: string): Promise<ImportJobDto>
+  /** Bug imports: sheets, mapping and value maps -> preview. */
+  configureDefectImport(
+    projectCode: string,
+    jobId: string,
+    config: DefectImportConfigInput,
+  ): Promise<ImportJobDto>
   deleteImport(projectCode: string, jobId: string): Promise<void>
   /** Authorized URLs: the formula-safe error CSV, or an embedded workbook image. */
   importUrl(projectCode: string, jobId: string, what: 'errors' | { image: string }): string
@@ -544,7 +554,8 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     uploadImport: (code, file, options) => {
       const form = new FormData()
       form.append('file', file, file.name)
-      return client.upload(`${p(code)}/imports`, form, options)
+      const target = options?.target === 'DEFECTS' ? '?target=DEFECTS' : ''
+      return client.upload(`${p(code)}/imports${target}`, form, options)
     },
     listImports: (code, query) => client.get(`${p(code)}/imports${toQueryString(query)}`),
     getImport: (code, id) => client.get(`${p(code)}/imports/${seg(id)}`),
@@ -553,6 +564,8 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     listImportRows: (code, id, query) =>
       client.get(`${p(code)}/imports/${seg(id)}/rows${toQueryString(query)}`),
     commitImport: (code, id) => client.post(`${p(code)}/imports/${seg(id)}/commit`),
+    configureDefectImport: (code, id, config) =>
+      client.put(`${p(code)}/imports/${seg(id)}/config`, config),
     deleteImport: (code, id) => client.delete(`${p(code)}/imports/${seg(id)}`),
     importUrl: (code, id, what) =>
       client.url(

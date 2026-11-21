@@ -19,7 +19,15 @@ Data UAT Karirhub ada di tiga workbook: hasil UAT Fase 1 (30-31 Juli 2026), Trac
 4. **Gabung test case duplikat**: pilih 2 atau lebih test case (aksi massal "Gabungkan"), lalu pilih yang dipertahankan. Yang lain diarsipkan dengan `merged_into_id` menunjuk ke yang dipertahankan (versi + revisi "Merged into ..." + log). Test case yang dipertahankan tidak diubah. Hasil run lama tetap utuh. Detail test case menampilkan "Sudah digabung ke ..." atau "Gabungan dari ...". Mengaktifkan lagi test case yang digabung menghapus tautannya.
 5. **Cari yang mirip** (`Test Case > Cari yang mirip`): pasangan kemungkinan duplikat, diurutkan dari yang paling mirip. Skor = 60% kemiripan kata judul + 30% kemiripan kata hasil yang diharapkan + 10% bila ada rujukan dalam kurung yang sama (mis. `[FSD-LPL-001/002]` menjadi FSD-LPL-001 dan FSD-LPL-002). **Kode tidak dipakai**, karena sheet Fase 2 memakai kode yang sama untuk isi yang berbeda. Hasil ditampilkan per pasangan, tidak dirangkai menjadi kelompok besar (satu rujukan seperti FSD-LPL-003 muncul di banyak test case yang berbeda). Ambang 45%, maksimal 200 pasangan. "Bukan duplikat" disembunyikan di tab browser itu saja.
 
+6. **Impor Bug** (migration `0010`: `import_jobs.import_target`): di halaman Impor pilih "Bug", lalu alurnya sama dengan impor test case (unggah, pilih sheet dan kolom, periksa, terapkan).
+   - Kolom dikenali otomatis: "ID UAT" = kode test case (untuk menautkan ke hasil uji), "ID" = kode bug, "Fitur / Proses" = judul, "Detail Hasil Aktual / Defect" = detail, Severity, Prioritas, Status / Status UAT, Status Retest, Notes (menjadi komentar), Penguji (teks, bukan akun), Tgl, Bukti (screenshot).
+   - **Peta nilai** yang bisa diubah: status di file ke status bug, atau "Lewati". Bawaannya: Gagal Diuji = Terbuka; Berhasil, Belum, Terhambat, dan Dilewati Diuji = dilewati; Done = Ditutup; Not Done = Terbuka; Info = Ditutup; sel kosong = dilewati untuk sheet UAT dan Terbuka untuk laporan pengguna. Severity (Critical/High/Medium/Minor/Info) dan prioritas juga dipetakan.
+   - Per sheet: modul (dibuat bila belum ada) dan sumber (UAT / laporan pengguna). Per impor: siklus, dan opsi menautkan bug ke hasil uji terakhir test case-nya di siklus itu (hasil gagal diutamakan).
+   - Screenshot tertanam mengikuti baris tempatnya berada dan masuk lewat pipeline bukti, lalu dilampirkan ke bug.
+   - Bug yang kodenya sudah ada (mis. aduan yang pernah diimpor) tidak dibuat ulang. Status awal dicatat di riwayat ("Diimpor dari ..."), kategori dan status retest ditambahkan ke detail, dan asal baris disimpan di `source_reference`.
+
 ## Konsekuensi
 
 - Endpoint baru: `POST /projects/:p/defects/bulk` dan `POST /projects/:p/test-cases/bulk`, jawaban `{ updated, unchanged, skipped: [{ id, code, reason }] }`. Filter baru `GET /defects?cycle=<id|none>`. `POST /projects/:p/test-cases/merge` (`target_id`, `source_ids`, khusus lead) dan `GET /projects/:p/test-cases/similar?module=`.
-- Migration `0009` hanya menambah kolom NULL; tidak ada data lama yang berubah.
+- Migration `0009` hanya menambah kolom NULL; `0010` menambah 1 kolom dengan nilai bawaan. Tidak ada data lama yang berubah.
+- `POST /projects/:p/imports?target=DEFECTS` membuat job impor bug; `PUT .../config` lalu menerima pengaturan bug (`defectImportConfigSchema`).

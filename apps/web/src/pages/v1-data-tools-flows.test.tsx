@@ -157,4 +157,47 @@ describe('bulk actions and bug cycle (ADR 0013)', () => {
     const merged = await dataSource.getTestCase('DEMO-KARIR', b.id)
     expect(merged.merged_into).toEqual({ id: a.id, case_code: a.case_code })
   })
+
+  it('imports bugs from a tracker CSV: failed rows become bugs, passed rows are skipped', async () => {
+    const user = userEvent.setup()
+    const { db, dataSource, project } = setup()
+    const before = db.defects.filter((d) => d.projectId === project.id).length
+    const { router } = renderRoute('/projects/DEMO-KARIR/imports', { dataSource })
+    await user.click(await screen.findByRole('radio', { name: /^Bug/ }))
+    const csv = [
+      'ID UAT,Fitur / Proses,Status UAT,Detail Hasil Aktual / Defect,Severity,Penguji,Tgl UAT',
+      'UAT-X-001,Simpan profil,Gagal Diuji,Tombol simpan tidak merespons,High,Penguji Contoh,30/07/2026',
+      'UAT-X-002,Ubah sandi,Berhasil Diuji,Sesuai,Info,Penguji Contoh,30/07/2026',
+      'UAT-X-003,Unggah foto,Gagal Diuji,Foto tidak tersimpan,Critical,Penguji Contoh,31/07/2026',
+    ].join('\n')
+    await user.upload(
+      screen.getByLabelText('Pilih file'),
+      new File([csv], 'tracker.csv', { type: 'text/csv' }),
+    )
+    await waitFor(() => expect(router.state.location.pathname).toMatch(/\/imports\/\d+$/))
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'tracker.csv' }),
+    ).toBeInTheDocument()
+
+    await user.click(await screen.findByRole('button', { name: 'Periksa' }))
+    expect(
+      await screen.findByText(/2 bug akan dibuat · 1 baris dilewati · 0 sudah ada · 0 bermasalah/),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('combobox', { name: 'Status di file → status bug: Gagal Diuji' }),
+    ).toHaveValue('OPEN')
+    await user.click(screen.getByRole('button', { name: 'Terapkan impor' }))
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Terapkan impor' }))
+    expect(await screen.findByText(/2 bug dibuat · 1 baris dilewati/)).toBeInTheDocument()
+    const created = db.defects.filter((d) => d.projectId === project.id).slice(before)
+    expect(created.map((d) => [d.title, d.severity_code, d.status_code])).toEqual([
+      ['Simpan profil', 'HIGH', 'OPEN'],
+      ['Unggah foto', 'CRITICAL', 'OPEN'],
+    ])
+    expect(created[0]).toMatchObject({
+      legacyReporterName: 'Penguji Contoh',
+      sourceReference: 'tracker.csv / CSV / baris 2 / UAT-X-001',
+    })
+  })
 })

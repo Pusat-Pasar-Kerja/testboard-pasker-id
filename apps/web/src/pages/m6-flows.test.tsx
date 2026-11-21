@@ -23,7 +23,7 @@ describe('import wizard (TB-IMP-001)', () => {
     const user = userEvent.setup()
     const { db, dataSource } = withDb()
     const { router } = renderRoute(`${P}/imports`, { dataSource })
-    await screen.findByRole('heading', { level: 1, name: 'Impor Test Case' })
+    await screen.findByRole('heading', { level: 1, name: 'Impor Data' })
 
     await user.upload(
       screen.getByLabelText('Pilih file'),

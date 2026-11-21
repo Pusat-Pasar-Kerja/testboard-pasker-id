@@ -1,4 +1,12 @@
 import {
+  defectImportConfigSchema,
+  type DefectImportConfig,
+  type DefectImportPreview,
+  type DefectImportResult,
+  type ImportTarget,
+} from '@testboard/shared'
+import { commitDefectImport, prepareDefectImport, saveDefectRows } from '../imports/defects.js'
+import {
   CSV_MIME,
   extensionOf,
   IMPORT_LIMITS,
@@ -59,6 +67,7 @@ interface JobRow {
   original_filename: string
   source_format: ImportSourceFormat
   source_kind: ImportSourceKind
+  import_target: ImportTarget
   import_mode: ImportConfig['import_mode']
   status_code: ImportJobStatus
   column_mapping_json: unknown
@@ -89,22 +98,39 @@ async function loadJob(db: Pool, projectId: string, jobId: string) {
   return row
 }
 
-function summaryOf(row: JobRow): { result: ImportResultSummary | null; failure: string | null } {
-  const parsed = parseJson<{ result?: ImportResultSummary; failure?: string }>(row.error_summary)
-  return { result: parsed?.result ?? null, failure: parsed?.failure ?? null }
+function summaryOf(row: JobRow): {
+  result: ImportResultSummary | null
+  defectResult: DefectImportResult | null
+  failure: string | null
+} {
+  const parsed = parseJson<{
+    result?: ImportResultSummary
+    defect_result?: DefectImportResult
+    failure?: string
+  }>(row.error_summary)
+  return {
+    result: parsed?.result ?? null,
+    defectResult: parsed?.defect_result ?? null,
+    failure: parsed?.failure ?? null,
+  }
 }
 
 async function jobDto(row: JobRow, store: ImportStore, full: boolean): Promise<ImportJobDto> {
   const parsed = full ? await store.readJson<ParsedSource>(String(row.id), 'parsed') : null
   const preview = full
-    ? await store.readJson<{ preview: ImportPreview }>(String(row.id), 'preview')
+    ? await store.readJson<{ preview?: ImportPreview; defect_preview?: DefectImportPreview }>(
+        String(row.id),
+        'preview',
+      )
     : null
-  const { result, failure } = summaryOf(row)
+  const { result, defectResult, failure } = summaryOf(row)
+  const defects = row.import_target === 'DEFECTS'
   return {
     id: String(row.id),
     original_filename: row.original_filename,
     source_format: row.source_format,
     source_kind: row.source_kind,
+    import_target: defects ? 'DEFECTS' : 'TEST_CASES',
     import_mode: row.import_mode,
     status_code: row.status_code,
     total_rows: Number(row.total_rows),
@@ -118,9 +144,12 @@ async function jobDto(row: JobRow, store: ImportStore, full: boolean): Promise<I
     created_at: iso(row.created_at) as string,
     completed_at: iso(row.completed_at),
     sheets: parsed ? parsed.sheets.map((s) => sheetInfo(s, row.source_format)) : [],
-    config: parseJson<ImportConfig>(row.column_mapping_json),
-    preview: preview?.preview ?? null,
+    config: defects ? null : parseJson<ImportConfig>(row.column_mapping_json),
+    preview: defects ? null : (preview?.preview ?? null),
     result,
+    defect_config: defects ? parseJson<DefectImportConfig>(row.column_mapping_json) : null,
+    defect_preview: defects ? (preview?.defect_preview ?? null) : null,
+    defect_result: defectResult,
     failure,
   }
 }
@@ -210,15 +239,17 @@ export function importRoutes(pool: Pool, files: FileService, store: ImportStore)
         if (error instanceof ImportSourceError) throw invalidFile(error.message)
         throw error
       }
+      const target: ImportTarget = c.req.query('target') === 'DEFECTS' ? 'DEFECTS' : 'TEST_CASES'
       const result = await execute(
         pool,
-        `INSERT INTO import_jobs (project_id, original_filename, source_format, source_kind, import_mode, status_code, created_by)
-         VALUES (?, ?, ?, ?, 'CREATE_ONLY', 'UPLOADED', ?)`,
+        `INSERT INTO import_jobs (project_id, original_filename, source_format, source_kind, import_target, import_mode, status_code, created_by)
+         VALUES (?, ?, ?, ?, ?, 'CREATE_ONLY', 'UPLOADED', ?)`,
         [
           project.id,
           upload.filename || `import.${format.toLowerCase()}`,
           format,
           parsed.kind,
+          target,
           c.get('auth')?.userId ?? null,
         ],
       )
@@ -272,9 +303,44 @@ export function importRoutes(pool: Pool, files: FileService, store: ImportStore)
     if (job.status_code !== 'UPLOADED' && job.status_code !== 'PREVIEW') {
       throw new AppError(409, 'CONFLICT', 'This import can no longer be changed.')
     }
-    const config = (await parseBody(c, importConfigSchema)) as ImportConfig
     const parsed = await store.readJson<ParsedSource>(String(job.id), 'parsed')
     if (!parsed) throw new AppError(409, 'CONFLICT', 'The uploaded file is no longer available.')
+    if (job.import_target === 'DEFECTS') {
+      const defectConfig = await parseBody(c, defectImportConfigSchema)
+      for (const sheet of defectConfig.sheets) {
+        if (!parsed.sheets.some((s) => s.name === sheet.name)) {
+          throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+            { field: 'sheets', message: `Sheet not found: ${sheet.name}` },
+          ])
+        }
+      }
+      const plan = await prepareDefectImport(pool, project.id, parsed, defectConfig)
+      await withTransaction(pool, async (conn) => {
+        await saveDefectRows(conn, String(job.id), plan.rows)
+        await execute(
+          conn,
+          `UPDATE import_jobs
+              SET status_code = 'PREVIEW', column_mapping_json = ?, selected_sheets_json = ?,
+                  total_rows = ?, valid_rows = ?, invalid_rows = ?, skipped_rows = ?, imported_rows = 0
+            WHERE id = ?`,
+          [
+            JSON.stringify(defectConfig),
+            JSON.stringify(defectConfig.sheets.map((s) => s.name)),
+            plan.preview.counts.total,
+            plan.preview.counts.create,
+            plan.preview.counts.invalid,
+            plan.preview.counts.skipped + plan.preview.counts.duplicate,
+            job.id,
+          ],
+        )
+      })
+      await store.writeJson(String(job.id), 'preview', {
+        defect_preview: plan.preview,
+        images: plan.images,
+      })
+      return c.json(await jobDto(await loadJob(pool, project.id, String(job.id)), store, true))
+    }
+    const config = (await parseBody(c, importConfigSchema)) as ImportConfig
     for (const sheet of config.sheets) {
       if (!parsed.sheets.some((s) => s.name === sheet.name)) {
         throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
@@ -458,6 +524,48 @@ export function importRoutes(pool: Pool, files: FileService, store: ImportStore)
     if (claimed.affectedRows === 0)
       throw new AppError(409, 'CONFLICT', 'This import is not ready to be applied.')
     const job = await loadJob(pool, project.id, jobId)
+    const commitJob = {
+      id: jobId,
+      projectId: project.id,
+      filename: job.original_filename,
+      format: job.source_format,
+      kind: job.source_kind,
+      createdBy: c.get('auth')?.userId ?? null,
+    }
+    if (job.import_target === 'DEFECTS') {
+      const defectConfig = parseJson<DefectImportConfig>(
+        job.column_mapping_json,
+      ) as DefectImportConfig
+      void (async () => {
+        try {
+          const summary = await commitDefectImport(pool, files, store, commitJob, defectConfig, c)
+          const partial = Number(job.invalid_rows) > 0 || summary.images_failed > 0
+          await execute(
+            pool,
+            `UPDATE import_jobs
+                SET status_code = ?, imported_rows = ?, skipped_rows = ?, error_summary = ?,
+                    completed_at = UTC_TIMESTAMP(3)
+              WHERE id = ?`,
+            [
+              partial ? 'PARTIAL' : 'COMPLETED',
+              summary.created_defects,
+              summary.skipped_rows,
+              JSON.stringify({ defect_result: summary }),
+              jobId,
+            ],
+          )
+          await store.remove(jobId)
+        } catch (error) {
+          console.error('[imports] bug import failed', error)
+          await execute(
+            pool,
+            "UPDATE import_jobs SET status_code = 'FAILED', error_summary = ?, completed_at = UTC_TIMESTAMP(3) WHERE id = ?",
+            [JSON.stringify({ failure: 'COMMIT_FAILED' }), jobId],
+          ).catch(() => undefined)
+        }
+      })()
+      return c.json(await jobDto(job, store, true), 202)
+    }
     const config = parseJson<ImportConfig>(job.column_mapping_json) as ImportConfig
     void (async () => {
       try {

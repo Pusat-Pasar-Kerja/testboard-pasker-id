@@ -494,81 +494,16 @@ export async function commitImport(
     if (mapped.images?.length) rowImages.set(row.id, mapped.images)
   }
   const totalImages = preview?.images.length ?? 0
-  // Media come straight from the stored package using the cached anchors (no re-parse).
-  const sourceBytes =
-    job.format === 'XLSX' && executionForRow.size > 0
-      ? await store.readSource(job.id, 'XLSX')
-      : null
-  const zipEntries = sourceBytes ? (readZipEntries(sourceBytes) ?? []) : []
-  const parsedCache = sourceBytes ? await store.readJson<ParsedSource>(job.id, 'parsed') : null
-  const mediaOf = new Map<string, string>()
-  for (const sheet of parsedCache?.sheets ?? []) {
-    for (const image of sheet.images) mediaOf.set(image.key, image.media)
-  }
-  const readMedia = (path: string) => {
-    const entry = zipEntries.find((e) => e.name === path)
-    if (!entry || !sourceBytes || entry.uncompressedSize > 30 * 1024 * 1024) return null
-    return extractZipEntry(sourceBytes, entry)
-  }
+  const media = await openImportMedia(store, job, executionForRow.size > 0)
   let linked = 0
   for (const [rowId, keys] of rowImages) {
     const executionId = executionForRow.get(rowId)
-    if (!executionId || !sourceBytes) continue
+    if (!executionId || !media) continue
     let order = 0
     for (const key of keys) {
-      const media = mediaOf.get(key)
       const image = imageByKey.get(key)
-      const ext = IMAGE_EXT[(media ?? '').split('.').pop()?.toLowerCase() ?? '']
-      if (!media || !image || !ext) {
-        summary.images_failed++
-        continue
-      }
-      const bytes = readMedia(media)
-      if (!bytes) {
-        summary.images_failed++
-        continue
-      }
-      const kind = sniff(bytes.subarray(0, 64))
-      const real =
-        kind === 'png' ? 'png' : kind === 'jpeg' ? 'jpg' : kind === 'webp' ? 'webp' : null
-      if (!real) {
-        summary.images_failed++
-        continue
-      }
-      const temp = files.storage.tempPath()
-      await writeFile(temp, bytes)
-      const name = `${image.sheet}-${image.anchor}.${real}`.replace(/[^\w.-]+/g, '_').slice(0, 200)
-      const result = await execute(
-        pool,
-        `INSERT INTO file_objects (project_id, storage_backend, bucket_name, object_key, original_filename, original_mime,
-                                   stored_mime, evidence_type, original_size_bytes, processing_status, scan_status, uploaded_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'SCREENSHOT', ?, 'PROCESSING', 'PENDING', ?)`,
-        [
-          job.projectId,
-          STORAGE_BACKEND,
-          BUCKET,
-          files.storage.newKey(job.projectId, 'part'),
-          name,
-          real === 'jpg' ? 'image/jpeg' : `image/${real}`,
-          real === 'jpg' ? 'image/jpeg' : `image/${real}`,
-          bytes.length,
-          job.createdBy,
-        ],
-      )
-      const fileId = insertedId(result)
-      await files.process({
-        fileId,
-        projectId: job.projectId,
-        tempPath: temp,
-        ext: real,
-        type: 'SCREENSHOT',
-      })
-      const done = await select<{ processing_status: string; scan_status: string }>(
-        pool,
-        'SELECT processing_status, scan_status FROM file_objects WHERE id = ?',
-        [fileId],
-      )
-      if (done[0]?.processing_status !== 'READY' || done[0]?.scan_status !== 'CLEAN') {
+      const fileId = image ? await saveImportImage(pool, files, job, media, image) : null
+      if (!fileId || !image) {
         summary.images_failed++
         continue
       }
@@ -588,4 +523,92 @@ export async function commitImport(
   summary.images_imported = linked
   summary.images_left_out = Math.max(0, totalImages - linked - summary.images_failed)
   return { summary, rowErrors }
+}
+
+export interface ImportMedia {
+  mediaOf: Map<string, string>
+  read: (path: string) => Buffer | null
+}
+
+/**
+ * Embedded images of an uploaded XLSX, read straight from the stored package using the
+ * cached anchors (no re-parse). Null when there is nothing to read.
+ */
+export async function openImportMedia(
+  store: ImportStore,
+  job: Pick<CommitJob, 'id' | 'format'>,
+  needed: boolean,
+): Promise<ImportMedia | null> {
+  if (job.format !== 'XLSX' || !needed) return null
+  const sourceBytes = await store.readSource(job.id, 'XLSX')
+  if (!sourceBytes) return null
+  const zipEntries = readZipEntries(sourceBytes) ?? []
+  const parsedCache = await store.readJson<ParsedSource>(job.id, 'parsed')
+  const mediaOf = new Map<string, string>()
+  for (const sheet of parsedCache?.sheets ?? []) {
+    for (const image of sheet.images) mediaOf.set(image.key, image.media)
+  }
+  return {
+    mediaOf,
+    read: (path) => {
+      const entry = zipEntries.find((e) => e.name === path)
+      if (!entry || entry.uncompressedSize > 30 * 1024 * 1024) return null
+      return extractZipEntry(sourceBytes, entry)
+    },
+  }
+}
+
+/**
+ * One embedded screenshot through the normal evidence pipeline (ADR 0008: checks +
+ * compression). Returns the file id when it is READY and CLEAN, else null.
+ */
+export async function saveImportImage(
+  pool: Pool,
+  files: FileService,
+  job: Pick<CommitJob, 'projectId' | 'createdBy'>,
+  media: ImportMedia,
+  image: ImportImage,
+): Promise<string | null> {
+  const part = media.mediaOf.get(image.key)
+  const ext = IMAGE_EXT[(part ?? '').split('.').pop()?.toLowerCase() ?? '']
+  if (!part || !ext) return null
+  const bytes = media.read(part)
+  if (!bytes) return null
+  const kind = sniff(bytes.subarray(0, 64))
+  const real = kind === 'png' ? 'png' : kind === 'jpeg' ? 'jpg' : kind === 'webp' ? 'webp' : null
+  if (!real) return null
+  const temp = files.storage.tempPath()
+  await writeFile(temp, bytes)
+  const name = `${image.sheet}-${image.anchor}.${real}`.replace(/[^\w.-]+/g, '_').slice(0, 200)
+  const result = await execute(
+    pool,
+    `INSERT INTO file_objects (project_id, storage_backend, bucket_name, object_key, original_filename, original_mime,
+                               stored_mime, evidence_type, original_size_bytes, processing_status, scan_status, uploaded_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'SCREENSHOT', ?, 'PROCESSING', 'PENDING', ?)`,
+    [
+      job.projectId,
+      STORAGE_BACKEND,
+      BUCKET,
+      files.storage.newKey(job.projectId, 'part'),
+      name,
+      real === 'jpg' ? 'image/jpeg' : `image/${real}`,
+      real === 'jpg' ? 'image/jpeg' : `image/${real}`,
+      bytes.length,
+      job.createdBy,
+    ],
+  )
+  const fileId = insertedId(result)
+  await files.process({
+    fileId,
+    projectId: job.projectId,
+    tempPath: temp,
+    ext: real,
+    type: 'SCREENSHOT',
+  })
+  const done = await select<{ processing_status: string; scan_status: string }>(
+    pool,
+    'SELECT processing_status, scan_status FROM file_objects WHERE id = ?',
+    [fileId],
+  )
+  return done[0]?.processing_status === 'READY' && done[0]?.scan_status === 'CLEAN' ? fileId : null
 }

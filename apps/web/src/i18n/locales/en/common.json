@@ -711,8 +711,8 @@
       "uploader": "Uploaded by {{name}}"
     },
     "imports": {
-      "title": "Import Test Cases",
-      "subtitle": "Import from legacy UAT Excel, the CSV template, or AI-generated JSON. Every row is checked before anything is applied.",
+      "title": "Import data",
+      "subtitle": "Test cases or bugs from UAT/tracker Excel files, the CSV template or AI JSON. Every row is checked before it is applied.",
       "leadsOnly": "Only a QA lead or project admin can import.",
       "newImport": "New import",
       "drop": "Drag an XLSX, CSV or JSON file here",
@@ -739,6 +739,15 @@
         "INVALID_JSON": "Invalid JSON.",
         "SCHEMA_MISMATCH": "The JSON does not match the AI schema v1.0.",
         "DEMO_XLSX": "Excel import needs the server; in demo mode use CSV or JSON."
+      },
+      "targetQuestion": "What do you want to import?",
+      "target": {
+        "TEST_CASES": "Test cases",
+        "DEFECTS": "Bugs"
+      },
+      "targetHint": {
+        "TEST_CASES": "A test case library, optionally with old UAT results (and screenshots).",
+        "DEFECTS": "Bugs from a tracker: failed rows and user complaints, with severity and screenshots."
       }
     },
     "importJob": {
@@ -1348,5 +1357,48 @@
     "sharedRefs": "References: {{refs}}",
     "keep": "Keep {{code}}",
     "notDuplicate": "Not a duplicate"
+  },
+  "defectImport": {
+    "sheetsHint": "Tick the sheets that contain bugs. Hidden sheets are usually copies; leave them unticked if the content is the same.",
+    "moduleHint": "Module code for the bugs of this sheet. New modules are created automatically.",
+    "sourceKind": "Bug source",
+    "mapping_one": "Columns ({{count}} mapped)",
+    "mapping_other": "Columns ({{count}} mapped)",
+    "columnFor": "Meaning of column {{column}}",
+    "notUsed": "Not used (kept as raw data)",
+    "fields": {
+      "bug_code": "Bug code",
+      "case_code": "Test case code (ID UAT)",
+      "category": "Category",
+      "title": "Title",
+      "description": "Details / actual result",
+      "notes": "Notes (become a comment)",
+      "severity": "Severity",
+      "priority": "Priority",
+      "status": "Status",
+      "retest_status": "Retest status",
+      "reporter_name": "Reporter / tester (text)",
+      "reported_at": "Report date",
+      "evidence": "Evidence / screenshot"
+    },
+    "settings": "Settings",
+    "cycleHint": "Every imported bug goes into this cycle, e.g. UAT Phase 1.",
+    "linkResults": "Link to test results",
+    "linkResultsHint": "With an ID UAT column, each bug is linked to the latest result of that test case in the chosen cycle (failed ones first).",
+    "check": "Check",
+    "recheck": "Check again",
+    "stale": "The settings changed. Press \"Check again\" before applying.",
+    "counts": "{{create}} bugs will be created · {{skipped}} rows skipped · {{duplicate}} already exist · {{invalid}} with problems",
+    "imageCount": "{{auto}} of {{total}} screenshots matched to their row",
+    "statusMap": "Status in the file → bug status",
+    "severityMap": "Severity in the file",
+    "priorityMap": "Priority in the file",
+    "empty": "(empty)",
+    "unknown": "Not mapped yet (becomes Open)",
+    "skip": "Skip (not imported)",
+    "applyBody_one": "{{count}} bug will be created with its screenshots. Existing bugs are not created again.",
+    "applyBody_other": "{{count}} bugs will be created with their screenshots. Existing bugs are not created again.",
+    "summary": "{{created}} bugs created · {{skipped}} rows skipped · {{linked}} linked to results · {{images}} screenshots",
+    "openBugs": "Open the bug list"
   }
 }

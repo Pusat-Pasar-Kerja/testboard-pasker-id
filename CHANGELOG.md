@@ -2,6 +2,23 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.11.4] - 2026-11-21
+
+Perubahan v1 tahap 4, bagian 3: Impor Bug (ADR 0013).
+
+### Ditambahkan
+
+- **Impor Bug**: di halaman Impor (sekarang "Impor Data") pilih "Bug", lalu unggah tracker (XLSX/CSV).
+  - Kolom dikenali otomatis: ID UAT, ID, Fitur / Proses, Detail Hasil Aktual / Defect, Severity, Prioritas, Status (UAT / Retest), Notes, Penguji, Tgl, Bukti.
+  - Status, severity, dan prioritas di file dipetakan ke nilai sistem dan bisa diubah. Baris berhasil atau belum diuji dilewati; Gagal Diuji menjadi bug Terbuka; Done menjadi Ditutup.
+  - Per sheet bisa diatur modul dan sumber (UAT / laporan pengguna). Semua bug masuk ke siklus yang dipilih dan bisa otomatis ditautkan ke hasil uji test case-nya.
+  - Screenshot tertanam ikut dilampirkan ke bug yang tepat. Bug yang kodenya sudah ada tidak dibuat dua kali.
+- Migration `0010_import_target.sql` (1 kolom dengan nilai bawaan).
+
+### Diubah
+
+- Judul halaman Impor menjadi "Impor Data" (test case atau bug).
+
 ## [0.11.3] - 2026-11-21
 
 Perubahan v1 tahap 4, bagian 2: gabung test case duplikat (ADR 0013).

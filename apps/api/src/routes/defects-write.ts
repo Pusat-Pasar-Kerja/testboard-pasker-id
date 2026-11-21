@@ -146,7 +146,7 @@ async function bugPrefix(conn: PoolConnection, projectId: string, projectCode: s
 }
 
 /** BUG-XXX-0001 under the project row lock, so two reporters never get the same code. */
-async function nextBugCode(conn: PoolConnection, projectId: string, projectCode: string) {
+export async function nextBugCode(conn: PoolConnection, projectId: string, projectCode: string) {
   await execute(conn, 'SELECT id FROM projects WHERE id = ? FOR UPDATE', [projectId])
   const prefix = await bugPrefix(conn, projectId, projectCode)
   const rows = await select<{ bug_code: string }>(

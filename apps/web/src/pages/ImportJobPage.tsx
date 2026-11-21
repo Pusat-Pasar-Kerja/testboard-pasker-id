@@ -35,6 +35,7 @@ import { ApiClientError } from '../services/api-client'
 import type { ImportRowQuery } from '../services/data-source'
 import { useDataSource } from '../services/use-data-source'
 import { ImportStatusBadge } from './ImportsPage'
+import { DefectImportJob } from './DefectImportJob'
 import { NotFoundPage } from './NotFoundPage'
 
 interface DraftSheet {
@@ -274,7 +275,7 @@ function SheetCard({
   )
 }
 
-function RowsList({ code, job }: { code: string; job: ImportJobDto }) {
+export function RowsList({ code, job }: { code: string; job: ImportJobDto }) {
   const { t } = useTranslation()
   const done = ['COMPLETED', 'PARTIAL', 'FAILED'].includes(job.status_code)
   type TabId = 'all' | 'ok' | 'review' | 'DUPLICATE' | 'ERROR' | 'IMPORTED' | 'SKIPPED'
@@ -880,5 +881,9 @@ export function ImportJobPage() {
       <ErrorState error={job.error} onRetry={() => void job.refetch()} />
     )
   }
-  return <ImportJob key={job.data.id} job={job.data} />
+  return job.data.import_target === 'DEFECTS' ? (
+    <DefectImportJob key={job.data.id} job={job.data} />
+  ) : (
+    <ImportJob key={job.data.id} job={job.data} />
+  )
 }

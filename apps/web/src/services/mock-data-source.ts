@@ -2,6 +2,14 @@ import {
   adminProjectUpdateSchema,
   caseBulkSchema,
   DEFECT_REASON_REQUIRED,
+  defectImportConfigSchema,
+  importedDescription,
+  planDefectRows,
+  type DefectImportConfig,
+  type DefectImportPreview,
+  type DefectImportResult,
+  type ImportTarget,
+  type PreparedDefectRow,
   findSimilarPairs,
   testCaseMergeSchema,
   defectBulkSchema,
@@ -481,6 +489,11 @@ export function createMockDataSource(
     rows: (PreparedRow & { id: string; final?: 'IMPORTED' | 'SKIPPED' | 'ERROR' })[]
     preview: ImportPreview | null
     result: ImportResultSummary | null
+    target: ImportTarget
+    defectConfig: DefectImportConfig | null
+    defectRows: (PreparedDefectRow & { id: string; final?: 'IMPORTED' | 'SKIPPED' })[]
+    defectPreview: DefectImportPreview | null
+    defectResult: DefectImportResult | null
     createdBy: string
     created_at: string
     completed_at: string | null
@@ -513,11 +526,40 @@ export function createMockDataSource(
   })
   const importDto = (job: MockImportJob): ImportJobDto => {
     const counts = job.preview?.counts
+    if (job.target === 'DEFECTS') {
+      const d = job.defectPreview?.counts
+      return {
+        id: job.id,
+        original_filename: job.filename,
+        source_format: job.format,
+        source_kind: job.kind,
+        import_target: 'DEFECTS',
+        import_mode: 'CREATE_ONLY',
+        status_code: job.status,
+        total_rows: d?.total ?? 0,
+        valid_rows: d?.create ?? 0,
+        imported_rows: job.defectResult?.created_defects ?? 0,
+        skipped_rows: job.defectResult?.skipped_rows ?? (d ? d.skipped + d.duplicate : 0),
+        invalid_rows: d?.invalid ?? 0,
+        created_by: userRef(job.createdBy),
+        created_at: job.created_at,
+        completed_at: job.completed_at,
+        sheets: job.sheets.map(sheetInfoOf),
+        config: null,
+        preview: null,
+        result: null,
+        defect_config: job.defectConfig,
+        defect_preview: job.defectPreview,
+        defect_result: job.defectResult,
+        failure: null,
+      }
+    }
     return {
       id: job.id,
       original_filename: job.filename,
       source_format: job.format,
       source_kind: job.kind,
+      import_target: 'TEST_CASES',
       import_mode: job.config?.import_mode ?? 'CREATE_ONLY',
       status_code: job.status,
       total_rows: counts?.total ?? 0,
@@ -534,8 +576,116 @@ export function createMockDataSource(
       config: job.config,
       preview: job.preview,
       result: job.result,
+      defect_config: null,
+      defect_preview: null,
+      defect_result: null,
       failure: null,
     }
+  }
+  /** Demo bug import: same plan as the API, then bugs are created in memory. */
+  const applyDefectImport = (job: MockImportJob) => {
+    const p = db.projects.find((x) => x.id === job.projectId)!
+    const config = job.defectConfig!
+    const result: DefectImportResult = {
+      created_defects: 0,
+      skipped_rows: 0,
+      linked_results: 0,
+      images_imported: 0,
+      images_failed: 0,
+      images_left_out: 0,
+    }
+    const cycle = db.cycles.find((cy) => cy.id === config.cycle_id && cy.projectId === p.id)
+    for (const row of job.defectRows) {
+      if (row.status !== 'VALID') {
+        result.skipped_rows++
+        row.final = 'SKIPPED'
+        continue
+      }
+      const v = row.values
+      let moduleId: string | null = null
+      if (v.module_code) {
+        let mod = db.modules.find((m) => m.projectId === p.id && m.module_code === v.module_code)
+        if (!mod) {
+          mod = { id: newId(), projectId: p.id, module_code: v.module_code, name: row.sheet }
+          db.modules.push(mod)
+        }
+        moduleId = mod.id
+      }
+      const at = now()
+      const code =
+        v.bug_code && !db.defects.some((d) => d.projectId === p.id && d.bug_code === v.bug_code)
+          ? v.bug_code
+          : nextBugCode(p)
+      const executionIds: string[] = []
+      if (config.link_results && v.case_code) {
+        const c = db.cases.find((x) => x.projectId === p.id && x.case_code === v.case_code)
+        const attempts = db.executions.filter((e) => {
+          const rc = db.runCases.find((x) => x.id === e.runCaseId)
+          const run = db.runs.find((r) => r.id === rc?.runId)
+          return rc?.caseId === c?.id && run && (!cycle || run.cycleId === cycle.id)
+        })
+        const best =
+          attempts.find((e) => e.result_status === 'FAILED') ?? attempts[attempts.length - 1]
+        if (best) {
+          executionIds.push(best.id)
+          result.linked_results++
+        }
+      }
+      db.defects.push({
+        id: newId(),
+        projectId: p.id,
+        moduleId,
+        cycleId: cycle?.id ?? null,
+        legacyReporterName: v.reporter_name,
+        reportedAt: v.reported_at ? `${v.reported_at.slice(0, 10)}T00:00:00.000Z` : null,
+        sourceReference: [job.filename, row.sheet, `baris ${row.row}`, v.case_code]
+          .filter(Boolean)
+          .join(' / '),
+        bug_code: code,
+        title: v.title,
+        description: importedDescription(v) ?? '',
+        steps_to_reproduce: '',
+        expected_behavior: '',
+        actual_behavior: '',
+        severity_code: v.severity,
+        priority_code: v.priority,
+        status_code: v.status,
+        source_kind: v.source_kind,
+        environment_name: '',
+        build_version: '',
+        browser_name: '',
+        fixed_in_version: null,
+        reportedBy: '',
+        assignedTo: null,
+        created_at: at,
+        updated_at: at,
+        executionIds,
+        history: [
+          {
+            from: null,
+            to: v.status,
+            by: job.createdBy,
+            comment: `Diimpor dari ${job.filename}`,
+            at,
+          },
+        ],
+        comments: v.notes
+          ? [
+              {
+                id: newId(),
+                authorId: job.createdBy,
+                body: `Catatan dari file: ${v.notes}`,
+                created_at: at,
+              },
+            ]
+          : [],
+      })
+      row.final = 'IMPORTED'
+      result.created_defects++
+    }
+    job.defectResult = result
+    job.status = 'COMPLETED'
+    job.completed_at = now()
   }
   const checkedOf = (c: MockCase): CheckedCase => ({
     case_code: c.case_code,
@@ -2233,6 +2383,11 @@ export function createMockDataSource(
         ]
       }
       const job: MockImportJob = {
+        target: options.target === 'DEFECTS' ? 'DEFECTS' : 'TEST_CASES',
+        defectConfig: null,
+        defectRows: [],
+        defectPreview: null,
+        defectResult: null,
         id: newId(),
         projectId: p.id,
         filename: file.name,
@@ -2310,11 +2465,64 @@ export function createMockDataSource(
         return importDto(job)
       }),
 
+    configureDefectImport: (code, jobId, input) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'import.manage')
+        const job = importJobIn(p.id, jobId)
+        if (job.target !== 'DEFECTS') conflict('This is not a bug import.')
+        if (job.status !== 'UPLOADED' && job.status !== 'PREVIEW') {
+          conflict('This import can no longer be changed.')
+        }
+        const parsed = defectImportConfigSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const plan = planDefectRows(
+          job.sheets,
+          parsed.data,
+          new Set(db.defects.filter((d) => d.projectId === p.id).map((d) => d.bug_code)),
+          new Set(db.modules.filter((m) => m.projectId === p.id).map((m) => m.module_code)),
+        )
+        job.defectConfig = parsed.data
+        job.defectRows = plan.rows.map((row) => ({ ...row, id: newId() }))
+        job.defectPreview = plan.preview
+        job.status = 'PREVIEW'
+        return importDto(job)
+      }),
+
     listImportRows: (code, jobId, query: ImportRowQuery = {}) =>
       delay(() => {
         const p = project(code)
         requireRole(p.id, 'import.manage')
         const job = importJobIn(p.id, jobId)
+        if (job.target === 'DEFECTS') {
+          const state = (row: MockImportJob['defectRows'][number]) => row.final ?? row.status
+          const items = job.defectRows
+            .filter((row) =>
+              !query.status
+                ? true
+                : query.status === 'ok'
+                  ? state(row) === 'VALID' && row.issues.length === 0
+                  : query.status === 'review'
+                    ? state(row) === 'VALID' && row.issues.length > 0
+                    : state(row) === query.status,
+            )
+            .map((row): ImportRowDto => ({
+              id: row.id,
+              sheet_name: row.sheet,
+              source_row_number: row.row,
+              external_case_code: row.values.bug_code ?? row.values.case_code,
+              status_code: state(row),
+              action: row.action,
+              title: row.values.title,
+              module_code: row.values.module_code,
+              result_status: null,
+              issues: row.issues as ImportRowDto['issues'],
+              duplicate_of: row.duplicate_of,
+              target_test_case_id: null,
+              image_count: row.images.length,
+            }))
+          return paginate(items, query)
+        }
         const state = (row: MockImportJob['rows'][number]) => row.final ?? row.status
         const items = job.rows
           .filter((row) =>
@@ -2353,7 +2561,10 @@ export function createMockDataSource(
         if (job.status !== 'PREVIEW') conflict('This import is not ready to be applied.')
         job.status = 'IMPORTING'
         const answer = importDto(job)
-        setTimeout(() => applyImport(job), Math.max(latencyMs * 2, 30))
+        setTimeout(
+          () => (job.target === 'DEFECTS' ? applyDefectImport(job) : applyImport(job)),
+          Math.max(latencyMs * 2, 30),
+        )
         return answer
       }),
 

@@ -1,4 +1,4 @@
-import type { ImportJobDto, ImportJobStatus } from '@testboard/shared'
+import type { ImportJobDto, ImportJobStatus, ImportTarget } from '@testboard/shared'
 import { useMutation } from '@tanstack/react-query'
 import { Download, FileSpreadsheet, LoaderCircle, UploadCloud } from 'lucide-react'
 import { useId, useState, type DragEvent } from 'react'
@@ -46,8 +46,9 @@ function Uploader({ code }: { code: string }) {
   const [dragging, setDragging] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [target, setTarget] = useState<ImportTarget>('TEST_CASES')
   const upload = useMutation({
-    mutationFn: (file: File) => ds.uploadImport(code, file, { onProgress: setProgress }),
+    mutationFn: (file: File) => ds.uploadImport(code, file, { onProgress: setProgress, target }),
     onSuccess: (job) => navigate(projectPath(code, `imports/${job.id}`)),
     onError: (err) => {
       const reason = err instanceof ApiClientError ? err.details[0]?.message : undefined
@@ -70,6 +71,33 @@ function Uploader({ code }: { code: string }) {
 
   return (
     <Section title={t('pages.imports.newImport')}>
+      <fieldset className="mb-4">
+        <legend className="mb-2 text-sm font-semibold">{t('pages.imports.targetQuestion')}</legend>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {(['TEST_CASES', 'DEFECTS'] as const).map((value) => (
+            <label
+              key={value}
+              className={`flex cursor-pointer gap-3 rounded-xl border p-3 text-sm ${
+                target === value ? 'border-brand-300 bg-brand-50' : 'border-line bg-surface'
+              }`}
+            >
+              <input
+                type="radio"
+                name="import-target"
+                className="mt-0.5 size-4 accent-brand-700"
+                checked={target === value}
+                onChange={() => setTarget(value)}
+              />
+              <span>
+                <span className="block font-semibold">{t(`pages.imports.target.${value}`)}</span>
+                <span className="block text-xs text-ink-muted">
+                  {t(`pages.imports.targetHint.${value}`)}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
       <div
         onDragOver={(e: DragEvent) => {
           e.preventDefault()
@@ -154,8 +182,11 @@ function JobItem({ code, job }: { code: string; job: ImportJobDto }) {
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold">{job.original_filename}</span>
           <span className="block text-xs text-ink-muted">
-            {job.source_format} · {t(`codes.importMode.${job.import_mode}`)} ·{' '}
-            {job.created_by?.display_name ?? '-'} · {formatShortDateTime(job.created_at, locale)}
+            {job.source_format} ·{' '}
+            {job.import_target === 'DEFECTS'
+              ? t('pages.imports.target.DEFECTS')
+              : t(`codes.importMode.${job.import_mode}`)}{' '}
+            · {job.created_by?.display_name ?? '-'} · {formatShortDateTime(job.created_at, locale)}
           </span>
           {job.total_rows > 0 && (
             <span className="block text-xs text-ink-muted">
