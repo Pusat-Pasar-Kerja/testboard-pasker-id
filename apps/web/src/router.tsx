@@ -24,6 +24,7 @@ import { ProjectGate } from './pages/ProjectGate'
 import { ProjectSettingsPage } from './pages/ProjectSettingsPage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { RecoverPage } from './pages/RecoverPage'
+import { SimilarCasesPage } from './pages/SimilarCasesPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { RunDetailPage } from './pages/RunDetailPage'
 import { RunFormPage } from './pages/RunFormPage'
@@ -62,6 +63,7 @@ export const routes: RouteObject[] = [
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'test-cases', element: <TestCasesPage /> },
           { path: 'test-cases/new', element: <TestCaseFormPage mode="create" /> },
+          { path: 'test-cases/similar', element: <SimilarCasesPage /> },
           { path: 'test-cases/:caseId', element: <TestCaseDetailPage /> },
           { path: 'test-cases/:caseId/edit', element: <TestCaseFormPage mode="edit" /> },
           { path: 'runs', element: <RunsPage /> },

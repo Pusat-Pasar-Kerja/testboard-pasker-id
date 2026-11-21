@@ -1311,11 +1311,42 @@
       "set_module": "Pindahkan ke modul",
       "set_priority": "Ubah prioritas",
       "add_to_run": "Tambahkan ke run",
-      "archive": "Arsipkan"
+      "archive": "Arsipkan",
+      "merge": "Gabungkan (duplikat)"
     },
     "noOpenRun": "Belum ada run yang direncanakan atau aktif",
     "archiveTitle_one": "Arsipkan {{count}} test case?",
     "archiveTitle_other": "Arsipkan {{count}} test case?",
     "archiveBody": "Test case yang diarsipkan tidak bisa dipakai di run baru. Hasil uji lama tetap tersimpan, dan test case bisa diaktifkan lagi kapan saja."
+  },
+  "merge": {
+    "title_one": "Gabungkan {{count}} test case",
+    "title_other": "Gabungkan {{count}} test case",
+    "description": "Pilih test case yang dipertahankan. Yang lain diarsipkan dan menunjuk ke test case itu. Hasil uji lama tidak berubah.",
+    "keepWhich": "Mana yang dipertahankan?",
+    "kept": "Dipertahankan",
+    "archived": "Diarsipkan dan digabung ke yang dipertahankan",
+    "submit_one": "Gabungkan {{count}} ke {{code}}",
+    "submit_other": "Gabungkan {{count}} ke {{code}}",
+    "done": "{{codes}} digabung ke {{code}}.",
+    "mergedInto": "Test case ini sudah digabung ke",
+    "mergedIntoHint": "Gunakan test case itu untuk run baru. Bila digabung karena keliru, aktifkan lagi test case ini.",
+    "mergedFrom_one": "Gabungan dari:",
+    "mergedFrom_other": "Gabungan dari:"
+  },
+  "similar": {
+    "open": "Cari yang mirip",
+    "title": "Test case yang mirip",
+    "subtitle": "Kemungkinan duplikat berdasarkan kemiripan judul, hasil yang diharapkan, dan rujukan dalam kurung (mis. [FSD-LPL-001]). Kode tidak dipakai, karena sheet berbeda bisa memakai kode yang sama untuk isi yang lain.",
+    "empty": "Tidak ada pasangan yang mirip. Coba pilih modul lain.",
+    "score": "Mirip {{percent}}%",
+    "reasons": {
+      "TITLE": "Judul mirip",
+      "EXPECTED": "Hasil diharapkan mirip",
+      "REFERENCE": "Rujukan sama"
+    },
+    "sharedRefs": "Rujukan: {{refs}}",
+    "keep": "Pertahankan {{code}}",
+    "notDuplicate": "Bukan duplikat"
   }
 }

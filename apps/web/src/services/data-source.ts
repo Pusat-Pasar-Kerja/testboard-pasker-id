@@ -1,6 +1,9 @@
 import type {
   BulkResult,
   CaseBulkInput,
+  SimilarCasePair,
+  TestCaseMergeInput,
+  TestCaseMergeResult,
   DefectBulkInput,
   IssuedResetLink,
   RecoveryRequestDto,
@@ -265,6 +268,10 @@ export interface DataSource {
   archiveTestCase(projectCode: string, caseId: string): Promise<TestCaseListItem>
   /** Status / module / priority / archive for many cases (ADR 0013). */
   bulkTestCases(projectCode: string, input: CaseBulkInput): Promise<BulkResult>
+  /** Likely duplicates, most similar first (ADR 0013). */
+  listSimilarCases(projectCode: string, moduleCode?: string): Promise<SimilarCasePair[]>
+  /** Keep one case; the others are archived and point to it. */
+  mergeTestCases(projectCode: string, input: TestCaseMergeInput): Promise<TestCaseMergeResult>
   cloneTestCase(projectCode: string, caseId: string): Promise<TestCaseListItem>
 
   // Cycles, runs and executions (Milestone 3)
@@ -468,6 +475,9 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     updateTestCase: (code, id, input) => client.patch(`${p(code)}/test-cases/${seg(id)}`, input),
     archiveTestCase: (code, id) => client.post(`${p(code)}/test-cases/${seg(id)}/archive`),
     bulkTestCases: (code, input) => client.post(`${p(code)}/test-cases/bulk`, input),
+    listSimilarCases: (code, moduleCode) =>
+      client.get(`${p(code)}/test-cases/similar${toQueryString({ module: moduleCode })}`),
+    mergeTestCases: (code, input) => client.post(`${p(code)}/test-cases/merge`, input),
     cloneTestCase: (code, id) => client.post(`${p(code)}/test-cases/${seg(id)}/clone`, {}),
 
     getDashboard: (code, filter) =>

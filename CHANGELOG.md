@@ -2,6 +2,16 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.11.3] - 2026-11-21
+
+Perubahan v1 tahap 4, bagian 2: gabung test case duplikat (ADR 0013).
+
+### Ditambahkan
+
+- **Gabungkan (duplikat)** di aksi massal Test Case: pilih 2 atau lebih, lalu tentukan yang dipertahankan. Sisanya diarsipkan dan menunjuk ke yang dipertahankan. Hasil uji lama tidak berubah.
+- **Cari yang mirip** (tombol di halaman Test Case): pasangan kemungkinan duplikat berdampingan, dengan skor, alasan (judul mirip, hasil diharapkan mirip, rujukan sama), serta tombol "Pertahankan ..." atau "Bukan duplikat". Kode tidak dipakai untuk mencocokkan.
+- Detail test case: catatan "Sudah digabung ke ..." dan "Gabungan dari ..." dengan tautan.
+
 ## [0.11.2] - 2026-11-21
 
 ### Diperbaiki

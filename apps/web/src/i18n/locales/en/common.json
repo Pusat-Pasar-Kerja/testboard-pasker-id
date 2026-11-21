@@ -1311,11 +1311,42 @@
       "set_module": "Move to module",
       "set_priority": "Change priority",
       "add_to_run": "Add to run",
-      "archive": "Archive"
+      "archive": "Archive",
+      "merge": "Merge (duplicates)"
     },
     "noOpenRun": "No planned or active run yet",
     "archiveTitle_one": "Archive {{count}} test case?",
     "archiveTitle_other": "Archive {{count}} test cases?",
     "archiveBody": "Archived test cases cannot be used in new runs. Old results stay, and a test case can be restored at any time."
+  },
+  "merge": {
+    "title_one": "Merge {{count}} test case",
+    "title_other": "Merge {{count}} test cases",
+    "description": "Choose the test case to keep. The others are archived and point to it. Old results do not change.",
+    "keepWhich": "Which one stays?",
+    "kept": "Kept",
+    "archived": "Archived and merged into the kept one",
+    "submit_one": "Merge {{count}} into {{code}}",
+    "submit_other": "Merge {{count}} into {{code}}",
+    "done": "{{codes}} merged into {{code}}.",
+    "mergedInto": "This test case was merged into",
+    "mergedIntoHint": "Use that test case for new runs. If it was merged by mistake, restore this one.",
+    "mergedFrom_one": "Merged from:",
+    "mergedFrom_other": "Merged from:"
+  },
+  "similar": {
+    "open": "Find similar",
+    "title": "Similar test cases",
+    "subtitle": "Likely duplicates by similar title, expected result and bracket references (e.g. [FSD-LPL-001]). Codes are ignored, because different sheets can use the same code for different content.",
+    "empty": "No similar pairs. Try another module.",
+    "score": "{{percent}}% similar",
+    "reasons": {
+      "TITLE": "Similar title",
+      "EXPECTED": "Similar expected result",
+      "REFERENCE": "Same reference"
+    },
+    "sharedRefs": "References: {{refs}}",
+    "keep": "Keep {{code}}",
+    "notDuplicate": "Not a duplicate"
   }
 }

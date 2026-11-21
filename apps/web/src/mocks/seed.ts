@@ -54,6 +54,8 @@ export interface MockModule {
 export interface MockCase {
   id: string
   projectId: string
+  /** Archived because it was merged into this case (ADR 0013). */
+  mergedInto?: string | null
   moduleId: string
   suiteName: string
   case_code: string

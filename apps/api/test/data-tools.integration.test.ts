@@ -230,3 +230,83 @@ describe('bulk actions on test cases', () => {
     ).toBe(403)
   })
 })
+
+describe('merging duplicate test cases', () => {
+  const create = async (title: string, expected: string) =>
+    (
+      await lead.post(`${P()}/test-cases`, {
+        module_code: 'AUTH',
+        title,
+        test_steps_text: '1. Buka',
+        expected_result: expected,
+      })
+    ).json
+
+  it('finds likely duplicates by words and bracket references, not by code', async () => {
+    const a = await create(
+      '[FSD-LPL-001/002/030] Aksi Lapor pada lowongan yang sudah dilamar',
+      'Aksi Laporkan tampil pada lowongan native yang telah dilamar',
+    )
+    const b = await create(
+      '[FSD-LPL-001/002] Aksi Lapor pada detail lowongan',
+      'Aksi Laporkan lowongan ini tampil dan dapat dipilih',
+    )
+    await create('Ekspor laporan bulanan ke Excel', 'File XLSX terunduh')
+    const pairs = (await lead.get(`${P()}/test-cases/similar?module=AUTH`)).json
+    const pair = pairs.find(
+      (p: { a: { id: string }; b: { id: string } }) =>
+        [p.a.id, p.b.id].sort().join() === [a.id, b.id].sort().join(),
+    )
+    expect(pair).toMatchObject({ reasons: expect.arrayContaining(['REFERENCE']) })
+    expect(pair.shared_refs).toEqual(['FSD-LPL-001', 'FSD-LPL-002'])
+    expect(pair.score).toBeGreaterThan(0.45)
+  })
+
+  it('archives the merged cases with a link to the kept one; restoring clears it', async () => {
+    const keep = await create('Login dengan akun SIAPkerja', 'Pengguna masuk ke dasbor')
+    const dup1 = await create('Login memakai akun SIAPkerja', 'Pengguna masuk ke dasbor')
+    const dup2 = await create('Masuk dengan akun SIAPkerja', 'Dasbor tampil')
+    const res = await lead.post(`${P()}/test-cases/merge`, {
+      target_id: keep.id,
+      source_ids: [dup1.id, dup2.id],
+    })
+    expect(res.status).toBe(200)
+    expect(res.json.merged.map((m: { id: string }) => m.id)).toEqual([dup1.id, dup2.id])
+
+    const merged = (await lead.get(`${P()}/test-cases/${dup1.id}`)).json
+    expect(merged).toMatchObject({
+      case_status: 'ARCHIVED',
+      merged_into: { id: keep.id, case_code: keep.case_code },
+    })
+    expect(merged.revisions[0].change_reason).toBe(`Merged into ${keep.case_code}`)
+    const kept = (await lead.get(`${P()}/test-cases/${keep.id}`)).json
+    expect(kept.case_status).toBe('DRAFT')
+    expect(kept.merged_from.map((m: { id: string }) => m.id).sort()).toEqual(
+      [dup1.id, dup2.id].sort(),
+    )
+
+    // Merging an archived case again, or into itself, is refused.
+    expect(
+      (await lead.post(`${P()}/test-cases/merge`, { target_id: keep.id, source_ids: [dup1.id] }))
+        .status,
+    ).toBe(409)
+    expect(
+      (await lead.post(`${P()}/test-cases/merge`, { target_id: keep.id, source_ids: [keep.id] }))
+        .status,
+    ).toBe(422)
+    expect(
+      (await tester.post(`${P()}/test-cases/merge`, { target_id: keep.id, source_ids: [dup2.id] }))
+        .status,
+    ).toBe(403)
+
+    await lead.patch(`${P()}/test-cases/${dup1.id}`, { case_status: 'DRAFT' })
+    const restored = (await lead.get(`${P()}/test-cases/${dup1.id}`)).json
+    expect(restored.merged_into).toBeNull()
+    const row = await selectOne<{ merged_into_id: string | null }>(
+      h.pool,
+      'SELECT merged_into_id FROM test_cases WHERE id = ?',
+      [dup1.id],
+    )
+    expect(row?.merged_into_id).toBeNull()
+  })
+})

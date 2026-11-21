@@ -9,9 +9,11 @@ import { useDataSource } from '../../services/use-data-source'
 import { BULK_SELECT } from '../ui/BulkBar'
 import { Button } from '../ui/Button'
 import { ConfirmDialog } from '../ui/Dialog'
+import { MergeDialog, type MergeCandidate } from './MergeDialog'
 import { useToast } from '../ui/toast-context'
 
-type CaseAction = 'ready' | 'draft' | 'set_module' | 'set_priority' | 'add_to_run' | 'archive'
+type CaseAction =
+  'ready' | 'draft' | 'set_module' | 'set_priority' | 'add_to_run' | 'merge' | 'archive'
 
 /**
  * Bulk actions on selected test cases (ADR 0013): mark ready / draft, move to a module,
@@ -20,10 +22,13 @@ type CaseAction = 'ready' | 'draft' | 'set_module' | 'set_priority' | 'add_to_ru
 export function CaseBulkActions({
   code,
   ids,
+  rows,
   onDone,
 }: {
   code: string
   ids: string[]
+  /** The selected cases (for the merge dialog). */
+  rows: MergeCandidate[]
   onDone: (result: BulkResult) => void
 }) {
   const { t } = useTranslation()
@@ -35,6 +40,7 @@ export function CaseBulkActions({
   const [action, setAction] = useState<CaseAction>('ready')
   const [value, setValue] = useState('')
   const [confirmArchive, setConfirmArchive] = useState(false)
+  const [merging, setMerging] = useState(false)
 
   const openRuns = (runs.data ?? []).filter(
     (r) => r.status_code === 'PLANNED' || r.status_code === 'ACTIVE',
@@ -107,6 +113,7 @@ export function CaseBulkActions({
     'set_module',
     'set_priority',
     'add_to_run',
+    ...(ids.length >= 2 ? (['merge'] as const) : []),
     'archive',
   ]
   return (
@@ -149,10 +156,28 @@ export function CaseBulkActions({
         icon={Check}
         disabled={needsValue && !value}
         loading={apply.isPending && !confirmArchive}
-        onClick={() => (action === 'archive' ? setConfirmArchive(true) : apply.mutate())}
+        onClick={() =>
+          action === 'archive'
+            ? setConfirmArchive(true)
+            : action === 'merge'
+              ? setMerging(true)
+              : apply.mutate()
+        }
       >
         {t('bulk.apply', { count: ids.length })}
       </Button>
+      {merging && (
+        <MergeDialog
+          open
+          code={code}
+          cases={rows}
+          onClose={() => setMerging(false)}
+          onMerged={(result) => {
+            setMerging(false)
+            onDone({ updated: result.merged.length, unchanged: 0, skipped: [] })
+          }}
+        />
+      )}
       <ConfirmDialog
         open={confirmArchive}
         title={t('bulk.archiveTitle', { count: ids.length })}

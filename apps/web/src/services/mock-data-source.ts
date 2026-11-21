@@ -2,6 +2,8 @@ import {
   adminProjectUpdateSchema,
   caseBulkSchema,
   DEFECT_REASON_REQUIRED,
+  findSimilarPairs,
+  testCaseMergeSchema,
   defectBulkSchema,
   type BulkResult,
   defaultSiteSettings,
@@ -1282,6 +1284,7 @@ export function createMockDataSource(
         }
         if (data.expected_result !== undefined) c.expected_result = data.expected_result
         if (data.case_status) c.case_status = data.case_status
+        if (c.case_status !== 'ARCHIVED') c.mergedInto = null
         c.current_version += 1
         c.updated_at = now()
         c.updatedBy = db.currentUserId
@@ -1484,6 +1487,62 @@ export function createMockDataSource(
               }
             }),
           files: attachedDtos(c.files),
+          merged_into: (() => {
+            const target = db.cases.find((x) => x.id === c.mergedInto)
+            return target ? { id: target.id, case_code: target.case_code } : null
+          })(),
+          merged_from: db.cases
+            .filter((x) => x.mergedInto === c.id)
+            .map((x) => ({ id: x.id, case_code: x.case_code }))
+            .sort((a, b) => a.case_code.localeCompare(b.case_code)),
+        }
+      }),
+
+    listSimilarCases: (code, moduleCode) =>
+      delay(() => {
+        const p = project(code)
+        const cases = db.cases
+          .filter(
+            (c) =>
+              c.projectId === p.id &&
+              c.case_status !== 'ARCHIVED' &&
+              (!moduleCode || moduleDto(c.moduleId)?.module_code === moduleCode),
+          )
+          .map((c) => ({
+            id: c.id,
+            case_code: c.case_code,
+            title: c.title,
+            expected_result: c.expected_result || null,
+            module_code: moduleDto(c.moduleId)?.module_code ?? null,
+            case_status: c.case_status,
+          }))
+        return findSimilarPairs(cases).map(({ a, b, similarity }) => ({ ...similarity, a, b }))
+      }),
+
+    mergeTestCases: (code, input) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'case.archive')
+        const parsed = testCaseMergeSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const target = caseIn(p.id, parsed.data.target_id)
+        if (target.case_status === 'ARCHIVED') {
+          fail(409, 'CONFLICT', 'target_id', 'ARCHIVED')
+        }
+        const sources = [...new Set(parsed.data.source_ids)].map((id) => caseIn(p.id, id))
+        if (sources.some((s) => s.case_status === 'ARCHIVED')) {
+          fail(409, 'CONFLICT', 'source_ids', 'ARCHIVED')
+        }
+        for (const source of sources) {
+          source.case_status = 'ARCHIVED'
+          source.mergedInto = target.id
+          source.current_version += 1
+          source.updated_at = now()
+          addRevision(source, `Merged into ${target.case_code}`)
+        }
+        return {
+          target: { id: target.id, case_code: target.case_code },
+          merged: sources.map((s) => ({ id: s.id, case_code: s.case_code })),
         }
       }),
 

@@ -12,29 +12,29 @@ export function useRowSelection<T>(
   labels: { row: (row: T) => string; all: string },
   resetKey: string,
 ) {
-  const [state, setState] = useState<{ resetKey: string; ids: Set<string> }>({
+  const [state, setState] = useState<{ resetKey: string; items: Map<string, T> }>({
     resetKey,
-    ids: new Set(),
+    items: new Map(),
   })
-  const selected = state.resetKey === resetKey ? state.ids : new Set<string>()
-  const update = (next: Set<string>) => setState({ resetKey, ids: next })
+  const selected = state.resetKey === resetKey ? state.items : new Map<string, T>()
+  const update = (next: Map<string, T>) => setState({ resetKey, items: next })
 
   const visible = rows.map(key)
   const allSelected = visible.length > 0 && visible.every((id) => selected.has(id))
   const selection: RowSelection<T> = {
     isSelected: (row) => selected.has(key(row)),
     onToggle: (row) => {
-      const next = new Set(selected)
+      const next = new Map(selected)
       const id = key(row)
       if (next.has(id)) next.delete(id)
-      else next.add(id)
+      else next.set(id, row)
       update(next)
     },
     onToggleAll: () => {
-      const next = new Set(selected)
-      for (const id of visible) {
-        if (allSelected) next.delete(id)
-        else next.add(id)
+      const next = new Map(selected)
+      for (const row of rows) {
+        if (allSelected) next.delete(key(row))
+        else next.set(key(row), row)
       }
       update(next)
     },
@@ -43,5 +43,10 @@ export function useRowSelection<T>(
     rowLabel: labels.row,
     allLabel: labels.all,
   }
-  return { ids: [...selected], selection, clear: () => update(new Set()) }
+  return {
+    ids: [...selected.keys()],
+    rows: [...selected.values()],
+    selection,
+    clear: () => update(new Map()),
+  }
 }

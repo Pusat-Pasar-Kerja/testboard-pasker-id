@@ -106,4 +106,55 @@ describe('bulk actions and bug cycle (ADR 0013)', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Arsipkan' }))
     await waitFor(() => expect(target.case_status).toBe('ARCHIVED'))
   })
+
+  it('merges selected duplicates from the bulk bar, keeping the chosen one', async () => {
+    const user = userEvent.setup()
+    const { db, dataSource, project } = setup()
+    const [keep, dup] = db.cases
+      .filter((c) => c.projectId === project.id && c.case_status !== 'ARCHIVED')
+      .slice(0, 2)
+    renderRoute('/projects/DEMO-KARIR/test-cases', { dataSource })
+    await screen.findAllByText(keep!.case_code)
+    await user.click(checkbox(`Pilih ${keep!.case_code}`))
+    await user.click(checkbox(`Pilih ${dup!.case_code}`))
+    const bar = screen.getByRole('region', { name: '2 dipilih' })
+    await user.selectOptions(within(bar).getByLabelText('Aksi'), 'Gabungkan (duplikat)')
+    await user.click(within(bar).getByRole('button', { name: 'Terapkan ke 2' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Gabungkan 2 test case' })
+    await user.click(within(dialog).getByRole('radio', { name: new RegExp(keep!.case_code) }))
+    await user.click(
+      within(dialog).getByRole('button', { name: `Gabungkan 1 ke ${keep!.case_code}` }),
+    )
+    await waitFor(() => expect(dup!.case_status).toBe('ARCHIVED'))
+    expect(dup!.mergedInto).toBe(keep!.id)
+    expect(keep!.case_status).not.toBe('ARCHIVED')
+  })
+
+  it('lists similar cases side by side and merges one pair', async () => {
+    const user = userEvent.setup()
+    const { db, dataSource } = setup()
+    const a = await dataSource.createTestCase('DEMO-KARIR', {
+      module_code: db.modules[0]!.module_code,
+      title: '[FSD-LPL-001/002/030] Aksi Lapor pada lowongan yang sudah dilamar',
+      expected_result: 'Aksi Laporkan tampil pada lowongan native yang telah dilamar',
+    })
+    const b = await dataSource.createTestCase('DEMO-KARIR', {
+      module_code: db.modules[0]!.module_code,
+      title: '[FSD-LPL-001/002] Aksi Lapor pada detail lowongan',
+      expected_result: 'Aksi Laporkan lowongan ini tampil dan dapat dipilih',
+    })
+    renderRoute('/projects/DEMO-KARIR/test-cases/similar', { dataSource })
+    const keepA = await screen.findByRole('button', { name: `Pertahankan ${a.case_code}` })
+    const card = keepA.closest('li') as HTMLElement
+    expect(within(card).getByText('Rujukan sama')).toBeInTheDocument()
+    expect(within(card).getByText('Rujukan: FSD-LPL-001, FSD-LPL-002')).toBeInTheDocument()
+    await user.click(keepA)
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: `Gabungkan 1 ke ${a.case_code}` }))
+    expect(
+      await screen.findByText(`${b.case_code} digabung ke ${a.case_code}.`),
+    ).toBeInTheDocument()
+    const merged = await dataSource.getTestCase('DEMO-KARIR', b.id)
+    expect(merged.merged_into).toEqual({ id: a.id, case_code: a.case_code })
+  })
 })

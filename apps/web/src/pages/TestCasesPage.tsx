@@ -5,7 +5,7 @@ import {
   type BulkResult,
   type TestCaseListItem,
 } from '@testboard/shared'
-import { Plus } from 'lucide-react'
+import { CopyCheck, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CaseBulkActions } from '../components/bulk/CaseBulkActions'
@@ -61,9 +61,18 @@ export function TestCasesPage() {
         crumbs={[{ label: code, to: projectPath(code) }, { label: t('pages.cases.title') }]}
         actions={
           can('case.write') && (
-            <ButtonLink to={projectPath(code, 'test-cases/new')} icon={Plus}>
-              {t('pages.cases.create')}
-            </ButtonLink>
+            <>
+              <ButtonLink
+                to={projectPath(code, 'test-cases/similar')}
+                icon={CopyCheck}
+                variant="secondary"
+              >
+                {t('similar.open')}
+              </ButtonLink>
+              <ButtonLink to={projectPath(code, 'test-cases/new')} icon={Plus}>
+                {t('pages.cases.create')}
+              </ButtonLink>
+            </>
           )
         }
       />
@@ -122,6 +131,7 @@ export function TestCasesPage() {
             <CaseBulkActions
               code={code}
               ids={selected.ids}
+              rows={selected.rows}
               onDone={(result) => {
                 setReport(result)
                 selected.clear()

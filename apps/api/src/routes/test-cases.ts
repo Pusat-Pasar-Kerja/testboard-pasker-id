@@ -1,5 +1,7 @@
 import {
   caseBulkSchema,
+  findSimilarPairs,
+  testCaseMergeSchema,
   fileAttachSchema,
   roleCan,
   isOneOf,
@@ -11,6 +13,8 @@ import {
   testCaseCreateSchema,
   testCaseUpdateSchema,
   type BulkResult,
+  type SimilarCasePair,
+  type TestCaseMergeResult,
   type ExecutionStatus,
   type Locale,
   type Paginated,
@@ -46,6 +50,7 @@ import type { AppEnv } from '../types.js'
 
 export interface CaseRow {
   id: string
+  merged_into_id: string | null
   project_id: string
   module_id: string | null
   module_code: string | null
@@ -310,6 +315,9 @@ async function applyCaseUpdate(
     (changed.length === 1 && changed[0] === 'case_status'
       ? `Status ${before.case_status} -> ${after.case_status}`
       : `Updated: ${changed.join(', ')}`)
+  if (before.case_status === 'ARCHIVED' && after.case_status !== 'ARCHIVED') {
+    await execute(conn, 'UPDATE test_cases SET merged_into_id = NULL WHERE id = ?', [caseId])
+  }
   await insertRevision(conn, after, userIdOf(c), reason)
   await writeAudit(conn, c, {
     projectId: project.id,
@@ -416,6 +424,36 @@ export function testCaseRoutes(pool: Pool) {
     return c.json(body)
   })
 
+  /** Probable duplicates (ADR 0013): title / expected-result words and bracket references. */
+  routes.get('/similar', requirePermission('case.read'), async (c) => {
+    const project = c.get('project')
+    const moduleCode = c.req.query('module')?.trim() || null
+    const rows = await select<{
+      id: string
+      case_code: string
+      title: string
+      expected_result: string | null
+      module_code: string | null
+      case_status: 'DRAFT' | 'READY' | 'ARCHIVED'
+    }>(
+      pool,
+      `SELECT tc.id, tc.case_code, tc.title, tc.expected_result, m.module_code, tc.case_status
+         FROM test_cases tc LEFT JOIN modules m ON m.id = tc.module_id
+        WHERE tc.project_id = ? AND tc.deleted_at IS NULL AND tc.case_status <> 'ARCHIVED'
+          AND (? IS NULL OR m.module_code = ?)
+        ORDER BY tc.case_code
+        LIMIT 3000`,
+      [project.id, moduleCode, moduleCode],
+    )
+    const cases = rows.map((r) => ({ ...r, id: String(r.id) }))
+    const body: SimilarCasePair[] = findSimilarPairs(cases).map(({ a, b, similarity }) => ({
+      ...similarity,
+      a,
+      b,
+    }))
+    return c.json(body)
+  })
+
   routes.get('/:caseId', requirePermission('case.read'), async (c) => {
     const project = c.get('project')
     const row = await loadCase(pool, project.id, idParam(c, 'caseId'))
@@ -461,6 +499,20 @@ export function testCaseRoutes(pool: Pool) {
       ),
       attachedFiles(pool, 'test_case', [String(row.id)]),
     ])
+    const [mergedInto, mergedFrom] = await Promise.all([
+      row.merged_into_id
+        ? selectOne<{ id: string; case_code: string }>(
+            pool,
+            'SELECT id, case_code FROM test_cases WHERE id = ? AND project_id = ?',
+            [row.merged_into_id, project.id],
+          )
+        : null,
+      select<{ id: string; case_code: string }>(
+        pool,
+        'SELECT id, case_code FROM test_cases WHERE merged_into_id = ? AND project_id = ? ORDER BY case_code',
+        [row.id, project.id],
+      ),
+    ])
     const detail: TestCaseDetail = {
       ...toListItem(row),
       suite_name: row.suite_name,
@@ -491,6 +543,10 @@ export function testCaseRoutes(pool: Pool) {
         attempts: Number(u.attempts),
       })),
       files: files.get(String(row.id)) ?? [],
+      merged_into: mergedInto
+        ? { id: String(mergedInto.id), case_code: mergedInto.case_code }
+        : null,
+      merged_from: mergedFrom.map((m) => ({ id: String(m.id), case_code: m.case_code })),
     }
     return c.json(detail)
   })
@@ -595,6 +651,61 @@ export function testCaseRoutes(pool: Pool) {
     const caseId = idParam(c, 'caseId')
     await withTransaction(pool, (conn) => applyCaseArchive(conn, c, caseId))
     return c.json(toListItem(await loadCase(pool, project.id, caseId)))
+  })
+
+  /**
+   * Merge duplicates (ADR 0013): the kept case stays as it is; every other case is archived
+   * with merged_into pointing to it (new version + revision + audit). Past run results of
+   * the merged cases are kept unchanged.
+   */
+  routes.post('/merge', requirePermission('case.archive'), async (c) => {
+    const project = c.get('project')
+    const input = await parseBody(c, testCaseMergeSchema)
+    const sourceIds = [...new Set(input.source_ids)]
+    const result = await withTransaction(pool, async (conn): Promise<TestCaseMergeResult> => {
+      const target = await loadCase(conn, project.id, input.target_id, true)
+      if (target.case_status === 'ARCHIVED') {
+        throw new AppError(409, 'CONFLICT', 'The kept test case is archived.', [
+          { field: 'target_id', message: 'ARCHIVED' },
+        ])
+      }
+      const merged: { id: string; case_code: string }[] = []
+      for (const id of sourceIds) {
+        const source = await loadCase(conn, project.id, id, true)
+        if (source.case_status === 'ARCHIVED') {
+          throw new AppError(409, 'CONFLICT', `${source.case_code} is already archived.`, [
+            { field: 'source_ids', message: 'ARCHIVED' },
+          ])
+        }
+        await execute(
+          conn,
+          `UPDATE test_cases SET case_status = 'ARCHIVED', merged_into_id = ?,
+                  current_version = current_version + 1, updated_by = ?
+            WHERE id = ? AND project_id = ?`,
+          [target.id, userIdOf(c), id, project.id],
+        )
+        const after = await loadCase(conn, project.id, id)
+        await insertRevision(conn, after, userIdOf(c), `Merged into ${target.case_code}`)
+        await writeAudit(conn, c, {
+          projectId: project.id,
+          entityType: 'test_case',
+          entityId: id,
+          action: 'ARCHIVE',
+          oldValues: { case_status: source.case_status },
+          newValues: { case_status: 'ARCHIVED', merged_into: target.case_code },
+        })
+        merged.push({ id: String(id), case_code: source.case_code })
+      }
+      await writeAudit(conn, c, {
+        projectId: project.id,
+        entityType: 'test_case',
+        entityId: String(target.id),
+        action: 'UPDATE',
+        newValues: { merged_from: merged.map((m) => m.case_code) },
+      })
+      return { target: { id: String(target.id), case_code: target.case_code }, merged }
+    })
+    return c.json(result)
   })
 
   /**

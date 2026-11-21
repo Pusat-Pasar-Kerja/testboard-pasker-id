@@ -58,9 +58,37 @@ export function TestCaseDetailPage() {
         actions={<TestCaseActions code={code} testCase={c} />}
       />
 
-      {c.case_status === 'ARCHIVED' && (
+      {c.case_status === 'ARCHIVED' && !c.merged_into && (
         <p className="mb-4 rounded-lg bg-neutral-soft p-3 text-sm text-ink-muted">
           {t('pages.caseDetail.archivedNotice')}
+        </p>
+      )}
+      {c.merged_into && (
+        <p className="mb-4 rounded-lg bg-pastel-lavender p-3 text-sm text-pastel-lavender-ink">
+          {t('merge.mergedInto')}{' '}
+          <Link
+            to={projectPath(code, `test-cases/${c.merged_into.id}`)}
+            className="font-mono font-semibold underline"
+          >
+            {c.merged_into.case_code}
+          </Link>
+          . {t('merge.mergedIntoHint')}
+        </p>
+      )}
+      {c.merged_from.length > 0 && (
+        <p className="mb-4 rounded-lg bg-pastel-mint p-3 text-sm text-pastel-mint-ink">
+          {t('merge.mergedFrom', { count: c.merged_from.length })}{' '}
+          {c.merged_from.map((m, index) => (
+            <span key={m.id}>
+              {index > 0 && ', '}
+              <Link
+                to={projectPath(code, `test-cases/${m.id}`)}
+                className="font-mono font-semibold underline"
+              >
+                {m.case_code}
+              </Link>
+            </span>
+          ))}
         </p>
       )}
 

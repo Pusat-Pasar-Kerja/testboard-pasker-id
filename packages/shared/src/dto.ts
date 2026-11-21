@@ -154,6 +154,10 @@ export interface TestCaseDetail extends TestCaseListItem {
   used_in_runs: TestCaseRunUsage[]
   /** Reference documents/screenshots for the case definition. */
   files: AttachedFileDto[]
+  /** Archived because it was merged into this case (ADR 0013). */
+  merged_into: { id: IdString; case_code: string } | null
+  /** Cases that were merged into this one. */
+  merged_from: { id: IdString; case_code: string }[]
 }
 
 /** Counts of latest status per run case (never per attempt). */
