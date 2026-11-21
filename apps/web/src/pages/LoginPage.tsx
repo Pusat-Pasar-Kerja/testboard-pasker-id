@@ -3,12 +3,11 @@ import { Eye, EyeOff, FlaskConical, LogIn } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
-import { TestBoardLogo } from '../components/brand/TestBoardLogo'
-import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { Button } from '../components/ui/Button'
 import { FormAlert, TextField } from '../components/ui/Form'
 import { useCurrentUser, usePublicSettings } from '../hooks/queries'
 import { storeLocale } from '../i18n'
+import { PublicLayout } from '../layout/PublicLayout'
 import { ApiClientError } from '../services/api-client'
 import { useDataSource } from '../services/use-data-source'
 
@@ -156,24 +155,27 @@ export function LoginPage() {
   if (!demo && me.data) return <Navigate to={next} replace />
 
   return (
-    <div className="flex min-h-dvh flex-col bg-canvas">
-      <div className="flex justify-end p-4">
-        <LanguageSwitcher />
+    <PublicLayout>
+      <div className="space-y-2">
+        <h1 className="text-xl font-bold">
+          {publicSettings.data
+            ? t('pages.login.titleSite', { name: publicSettings.data['site.name'] })
+            : t('pages.login.title')}
+        </h1>
+        <p className="text-sm text-ink-muted">{t('app.tagline')}</p>
       </div>
-      <main className="flex flex-1 items-center justify-center px-4 pb-16">
-        <div className="w-full max-w-md animate-page-in space-y-6 rounded-2xl border border-line bg-surface p-6 shadow-sm sm:p-8">
-          <TestBoardLogo size="lg" />
-          <div className="space-y-2">
-            <h1 className="text-xl font-bold">
-              {publicSettings.data
-                ? t('pages.login.titleSite', { name: publicSettings.data['site.name'] })
-                : t('pages.login.title')}
-            </h1>
-            <p className="text-sm text-ink-muted">{t('app.tagline')}</p>
-          </div>
-          {demo ? <DemoLogin /> : <PasswordLogin next={next} />}
-        </div>
-      </main>
-    </div>
+      {demo ? <DemoLogin /> : <PasswordLogin next={next} />}
+      <nav
+        aria-label={t('recovery.help')}
+        className="flex flex-wrap justify-center gap-x-4 gap-y-1 border-t border-line pt-4 text-sm"
+      >
+        <Link to="/recover" className="font-medium text-brand-700 hover:underline">
+          {t('recovery.forgotPassword')}
+        </Link>
+        <Link to="/recover?type=email" className="font-medium text-brand-700 hover:underline">
+          {t('recovery.forgotEmail')}
+        </Link>
+      </nav>
+    </PublicLayout>
   )
 }

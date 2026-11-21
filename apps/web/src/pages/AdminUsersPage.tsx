@@ -1,8 +1,10 @@
 import type { AdminUserDto } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, Copy, LockKeyhole, ShieldCheck, UserPlus } from 'lucide-react'
+import { Check, Copy, Link2, LockKeyhole, ShieldCheck, UserPlus } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ResetLinkDialog } from '../components/recovery/ResetLinkDialog'
+import { ValidityBar } from '../components/recovery/ValidityBar'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { ConfirmDialog } from '../components/ui/Dialog'
@@ -136,6 +138,7 @@ function UserRow({ user, isMe }: { user: AdminUserDto; isMe: boolean }) {
   const toast = useToast()
   const queryClient = useQueryClient()
   const [confirmDeactivate, setConfirmDeactivate] = useState(false)
+  const [linkOpen, setLinkOpen] = useState(false)
 
   const update = useMutation({
     mutationFn: (input: { is_active?: boolean; is_super_admin?: boolean }) =>
@@ -173,8 +176,27 @@ function UserRow({ user, isMe }: { user: AdminUserDto; isMe: boolean }) {
         {user.is_permanent && (
           <p className="text-xs text-ink-muted">{t('pages.adminUsers.permanentHint')}</p>
         )}
+        {user.reset_link && (
+          <div className="mt-2 max-w-sm space-y-1">
+            <p className="text-xs font-semibold text-ink-muted">{t('recovery.admin.activeLink')}</p>
+            <ValidityBar
+              issuedAt={user.reset_link.issued_at}
+              expiresAt={user.reset_link.expires_at}
+              compact
+            />
+          </div>
+        )}
       </div>
       <div className="flex flex-wrap gap-2">
+        <Button
+          variant="secondary"
+          icon={Link2}
+          disabled={user.is_permanent || !user.is_active}
+          title={user.is_permanent ? t('recovery.admin.ownerOnServer') : undefined}
+          onClick={() => setLinkOpen(true)}
+        >
+          {t('pages.adminUsers.resetLink')}
+        </Button>
         <Button
           variant="secondary"
           disabled={update.isPending || user.is_permanent}
@@ -202,6 +224,12 @@ function UserRow({ user, isMe }: { user: AdminUserDto; isMe: boolean }) {
           </Button>
         )}
       </div>
+      <ResetLinkDialog
+        open={linkOpen}
+        user={user}
+        activeLink={user.reset_link}
+        onClose={() => setLinkOpen(false)}
+      />
       <ConfirmDialog
         open={confirmDeactivate}
         title={t('pages.adminUsers.deactivateTitle', { name: user.display_name })}

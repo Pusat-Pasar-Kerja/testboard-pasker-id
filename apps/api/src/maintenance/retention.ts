@@ -23,6 +23,10 @@ export interface RetentionPolicy {
   /** Expired, idle or revoked sessions older than this are removed from the table. */
   sessionDays: number
   loginAttemptDays: number
+  /** Closed account recovery requests (names, contacts) are removed after this (ADR 0012). */
+  recoveryRequestDays: number
+  /** Reset links (only hashes) are removed this long after they expired. */
+  resetLinkDays: number
   /** Quarantine leftovers (interrupted uploads) older than this are removed. */
   tempHours: number
 }
@@ -33,6 +37,8 @@ export const DEFAULT_RETENTION: RetentionPolicy = {
   deletedFileGraceDays: 7,
   sessionDays: 7,
   loginAttemptDays: 90,
+  recoveryRequestDays: 180,
+  resetLinkDays: 30,
   tempHours: 24,
 }
 
@@ -44,6 +50,8 @@ export interface RetentionReport {
   import_folders_removed: number
   sessions_removed: number
   login_attempts_removed: number
+  recovery_requests_removed: number
+  reset_links_removed: number
   temp_files_removed: number
 }
 
@@ -84,6 +92,8 @@ export async function runRetention(
     import_folders_removed: 0,
     sessions_removed: 0,
     login_attempts_removed: 0,
+    recovery_requests_removed: 0,
+    reset_links_removed: 0,
     temp_files_removed: 0,
   }
 
@@ -206,7 +216,32 @@ export async function runRetention(
     ).affectedRows
   }
 
-  // 5. Quarantine leftovers.
+  // 5. Account recovery: closed requests (personal data) and long-expired reset links.
+  const requestCutoff = before(policy.recoveryRequestDays)
+  const linkCutoff = before(policy.resetLinkDays)
+  const closedRequests = `FROM account_recovery_requests
+    WHERE status_code <> 'OPEN' AND COALESCE(handled_at, last_submitted_at) < ?`
+  if (dryRun) {
+    const [r] = await select<{ n: number }>(pool, `SELECT COUNT(*) AS n ${closedRequests}`, [
+      requestCutoff,
+    ])
+    const [l] = await select<{ n: number }>(
+      pool,
+      'SELECT COUNT(*) AS n FROM password_reset_links WHERE expires_at < ?',
+      [linkCutoff],
+    )
+    report.recovery_requests_removed = Number(r?.n ?? 0)
+    report.reset_links_removed = Number(l?.n ?? 0)
+  } else {
+    report.reset_links_removed = (
+      await execute(pool, 'DELETE FROM password_reset_links WHERE expires_at < ?', [linkCutoff])
+    ).affectedRows
+    report.recovery_requests_removed = (
+      await execute(pool, `DELETE ${closedRequests}`, [requestCutoff])
+    ).affectedRows
+  }
+
+  // 6. Quarantine leftovers.
   const tmpDir = join(storage.root, 'tmp')
   if (existsSync(tmpDir)) {
     const cutoff = now.getTime() - policy.tempHours * 3_600_000

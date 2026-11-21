@@ -18,7 +18,13 @@ export const PROJECT_AUDIT_ENTITIES = [
 ] as const
 
 /** The website-wide log adds accounts and website settings. */
-export const SITE_AUDIT_ENTITIES = [...PROJECT_AUDIT_ENTITIES, 'user', 'system_setting'] as const
+export const SITE_AUDIT_ENTITIES = [
+  ...PROJECT_AUDIT_ENTITIES,
+  'user',
+  'system_setting',
+  'recovery_request',
+  'reset_link',
+] as const
 
 export const AUDIT_ACTIONS = [
   'CREATE',
@@ -32,6 +38,8 @@ export const AUDIT_ACTIONS = [
   'LOGIN',
   'LOGOUT',
   'PASSWORD_CHANGE',
+  'PASSWORD_RESET',
+  'REVOKE',
 ] as const
 
 type AuditEntity = (typeof SITE_AUDIT_ENTITIES)[number]

@@ -3,6 +3,7 @@ import { AppShell } from './layout/AppShell'
 import { RequireAuth } from './layout/RequireAuth'
 import { AdminAuditPage } from './pages/AdminAuditPage'
 import { AdminProjectsPage } from './pages/AdminProjectsPage'
+import { AdminRecoveryPage } from './pages/AdminRecoveryPage'
 import { AdminSettingsPage } from './pages/AdminSettingsPage'
 import { AdminUsersPage } from './pages/AdminUsersPage'
 import { BugDetailPage } from './pages/BugDetailPage'
@@ -22,6 +23,8 @@ import { ProfilePage } from './pages/ProfilePage'
 import { ProjectGate } from './pages/ProjectGate'
 import { ProjectSettingsPage } from './pages/ProjectSettingsPage'
 import { ProjectsPage } from './pages/ProjectsPage'
+import { RecoverPage } from './pages/RecoverPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { RunDetailPage } from './pages/RunDetailPage'
 import { RunFormPage } from './pages/RunFormPage'
 import { RunsPage } from './pages/RunsPage'
@@ -33,6 +36,9 @@ import { TestCasesPage } from './pages/TestCasesPage'
 export const routes: RouteObject[] = [
   { path: '/', element: <Navigate to="/projects" replace /> },
   { path: '/login', element: <LoginPage /> },
+  // Account recovery (ADR 0012): reachable while signed out.
+  { path: '/recover', element: <RecoverPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   {
     element: (
       <RequireAuth>
@@ -45,6 +51,7 @@ export const routes: RouteObject[] = [
       { path: '/admin', element: <Navigate to="/admin/projects" replace /> },
       { path: '/admin/projects', element: <AdminProjectsPage /> },
       { path: '/admin/users', element: <AdminUsersPage /> },
+      { path: '/admin/recovery', element: <AdminRecoveryPage /> },
       { path: '/admin/settings', element: <AdminSettingsPage /> },
       { path: '/admin/audit', element: <AdminAuditPage /> },
       {

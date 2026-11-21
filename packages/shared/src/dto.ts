@@ -51,6 +51,8 @@ export interface AdminUserDto {
   /** Owner account (set on the server only): cannot be revoked or deactivated. */
   is_permanent: boolean
   created_at: string
+  /** Active password reset link (ADR 0012); the link itself is never shown again. */
+  reset_link: { issued_at: string; expires_at: string } | null
 }
 
 /** Project as listed in the Super Admin console (archived ones included). */

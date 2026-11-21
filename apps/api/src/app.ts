@@ -29,6 +29,7 @@ import { adminRoutes } from './routes/admin.js'
 import { authRoutes } from './routes/auth.js'
 import { healthRoutes } from './routes/health.js'
 import { projectRoutes } from './routes/projects.js'
+import { recoveryAdminRoutes, recoveryPublicRoutes } from './routes/recovery.js'
 import type { AppEnv } from './types.js'
 
 export interface AppDeps {
@@ -94,8 +95,10 @@ export function createApp({
     // Public: site name, banner, default language and support contact (login page).
     api.get('/settings/public', async (c) => c.json(publicSettings(await settings.get())))
     api.route('/', authRoutes(pool, config, settings))
+    api.route('/', recoveryPublicRoutes(pool))
     api.route('/', projectRoutes(pool, fileService, new ImportStore(config.storageDir)))
     api.route('/admin', adminRoutes(pool, settings))
+    api.route('/admin', recoveryAdminRoutes(pool, settings))
   } else {
     api.all('*', () => {
       throw new AppError(503, 'SERVICE_UNAVAILABLE', 'Database is not configured.')

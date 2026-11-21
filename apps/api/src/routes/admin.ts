@@ -48,6 +48,8 @@ interface UserRow {
   is_super_admin: number
   is_permanent: number
   created_at: Date
+  link_issued_at: Date | null
+  link_expires_at: Date | null
 }
 
 async function listUsers(db: Db, userId?: string, q?: string): Promise<AdminUserDto[]> {
@@ -59,8 +61,11 @@ async function listUsers(db: Db, userId?: string, q?: string): Promise<AdminUser
                      WHERE r.user_id = u.id AND r.role_code = 'SUPER_ADMIN') AS is_super_admin,
             EXISTS (SELECT 1 FROM user_system_roles r
                      WHERE r.user_id = u.id AND r.role_code = 'SUPER_ADMIN'
-                       AND r.is_permanent = 1) AS is_permanent
+                       AND r.is_permanent = 1) AS is_permanent,
+            l.issued_at AS link_issued_at, l.expires_at AS link_expires_at
        FROM users u
+       LEFT JOIN password_reset_links l
+         ON l.active_user_id = u.id AND l.expires_at > UTC_TIMESTAMP(3)
       WHERE (? IS NULL OR u.id = ?) AND (? IS NULL OR u.email LIKE ? OR u.display_name LIKE ?)
       ORDER BY u.display_name
       LIMIT 500`,
@@ -75,6 +80,13 @@ async function listUsers(db: Db, userId?: string, q?: string): Promise<AdminUser
     is_super_admin: Number(row.is_super_admin) === 1,
     is_permanent: Number(row.is_permanent) === 1,
     created_at: iso(row.created_at) as string,
+    reset_link:
+      row.link_issued_at && row.link_expires_at
+        ? {
+            issued_at: iso(row.link_issued_at) as string,
+            expires_at: iso(row.link_expires_at) as string,
+          }
+        : null,
   }))
 }
 

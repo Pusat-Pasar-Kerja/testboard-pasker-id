@@ -37,7 +37,9 @@
     "adminProjects": "Proyek",
     "adminUsersShort": "Pengguna",
     "adminSettings": "Pengaturan situs",
-    "adminAudit": "Log aktivitas"
+    "adminAudit": "Log aktivitas",
+    "adminRecovery": "Pemulihan akun",
+    "openRequests": "permintaan baru"
   },
   "shell": {
     "skipToContent": "Lewati ke konten utama",
@@ -71,7 +73,8 @@
     "clone": "Duplikat",
     "close": "Tutup",
     "copy": "Salin",
-    "copied": "Tersalin"
+    "copied": "Tersalin",
+    "done": "Selesai"
   },
   "states": {
     "loading": "Memuat data…",
@@ -237,7 +240,9 @@
       "project": "Proyek",
       "project_member": "Anggota",
       "user": "Akun pengguna",
-      "system_setting": "Pengaturan situs"
+      "system_setting": "Pengaturan situs",
+      "recovery_request": "Permintaan pemulihan",
+      "reset_link": "Tautan reset"
     },
     "auditAction": {
       "CREATE": "Dibuat",
@@ -250,7 +255,9 @@
       "DOWNLOAD": "Diunduh",
       "LOGIN": "Masuk",
       "LOGOUT": "Keluar",
-      "PASSWORD_CHANGE": "Ganti kata sandi"
+      "PASSWORD_CHANGE": "Ganti kata sandi",
+      "PASSWORD_RESET": "Kata sandi direset",
+      "REVOKE": "Dicabut"
     }
   },
   "fields": {
@@ -586,7 +593,8 @@
       "forbidden": "Halaman ini hanya untuk Super Admin.",
       "empty": "Tidak ada pengguna yang cocok.",
       "permanent": "Super Admin utama",
-      "permanentHint": "Akun pemilik: tidak bisa dicabut atau dinonaktifkan dari website oleh siapa pun."
+      "permanentHint": "Akun pemilik: tidak bisa dicabut atau dinonaktifkan dari website oleh siapa pun.",
+      "resetLink": "Tautan reset"
     },
     "cycles": {
       "title": "Siklus Uji",
@@ -975,7 +983,9 @@
       "saved": "Pengaturan situs disimpan.",
       "noChanges": "Tidak ada perubahan untuk disimpan.",
       "lastChanged": "Diubah {{date}} oleh {{name}}",
-      "isDefault": "Nilai bawaan"
+      "isDefault": "Nilai bawaan",
+      "linkHours": "Masa berlaku tautan reset (jam)",
+      "linkHoursHint": "1-168 jam. Untuk tautan yang dibuat berikutnya."
     },
     "adminAudit": {
       "title": "Log aktivitas situs",
@@ -1119,5 +1129,142 @@
     "ARCHIVED_CASE": "test case sudah diarsipkan",
     "EXISTING_CASE_KEPT": "test case sudah ada, definisinya tidak diubah",
     "CODE_TAKEN": "kode sudah dipakai saat diterapkan"
+  },
+  "recovery": {
+    "help": "Bantuan masuk",
+    "forgotPassword": "Lupa kata sandi?",
+    "forgotEmail": "Lupa email?",
+    "forgotPasswordTab": "Lupa kata sandi",
+    "forgotEmailTab": "Lupa email",
+    "backToLogin": "Kembali ke halaman masuk",
+    "duration": {
+      "daysHours": "{{days}} hari {{hours}} jam",
+      "hoursMinutes": "{{hours}} jam {{minutes}} menit",
+      "minutes": "{{minutes}} menit",
+      "lessThanMinute": "kurang dari 1 menit"
+    },
+    "validity": {
+      "label": "Sisa masa berlaku tautan",
+      "remaining": "Berlaku {{time}} lagi",
+      "expired": "Tautan sudah kedaluwarsa",
+      "until": "sampai {{date}}"
+    },
+    "kind": {
+      "FORGOT_PASSWORD": "Lupa kata sandi",
+      "FORGOT_EMAIL": "Lupa email"
+    },
+    "status": {
+      "OPEN": "Menunggu",
+      "RESOLVED": "Selesai",
+      "DISMISSED": "Diabaikan"
+    },
+    "filter": {
+      "OPEN": "Menunggu",
+      "RESOLVED": "Selesai",
+      "DISMISSED": "Diabaikan",
+      "ALL": "Semua"
+    },
+    "errors": {
+      "RESET_LINK_ACTIVE": "Akun ini sudah punya tautan aktif. Cabut dulu tautan lama, atau pilih \"Cabut & buat tautan baru\".",
+      "ACCOUNT_INACTIVE": "Akun nonaktif. Aktifkan akun dulu sebelum membuat tautan reset."
+    },
+    "request": {
+      "title": "Hubungi Administrator",
+      "subtitle": "Hanya Super Admin yang bisa membantu memulihkan akun. Permintaan Anda langsung masuk ke daftar mereka.",
+      "introPassword": "Isi email akun Anda. Setelah memastikan identitas Anda, Administrator mengirim tautan untuk membuat kata sandi baru.",
+      "introEmail": "Isi nama dan kontak yang bisa dihubungi. Administrator akan mencari akun Anda dan memberi tahu email yang terdaftar.",
+      "accountEmail": "Email akun",
+      "invalidEmail": "Format email tidak valid",
+      "contact": "Kontak yang bisa dihubungi",
+      "contactHint": "Mis. nomor WhatsApp kantor atau email lain, agar Administrator bisa memastikan ini Anda.",
+      "message": "Pesan untuk Administrator",
+      "messageHintEmail": "Mis. unit kerja, peran di proyek, atau perkiraan email yang dipakai.",
+      "submit": "Kirim ke Administrator",
+      "tooMany": "Terlalu banyak permintaan dari jaringan ini. Coba lagi dalam 1 jam.",
+      "sentTitle": "Permintaan terkirim",
+      "sentBody": "Bila data cocok dengan akun, Administrator akan menghubungi Anda lewat kontak yang Anda berikan. Jangan bagikan kata sandi kepada siapa pun, termasuk Administrator."
+    },
+    "reset": {
+      "title": "Buat kata sandi baru",
+      "account": "Akun",
+      "submit": "Simpan kata sandi baru",
+      "containsEmail": "Kata sandi tidak boleh memuat nama email Anda.",
+      "doneTitle": "Kata sandi baru tersimpan",
+      "doneBody": "Semua perangkat yang masih masuk sudah dikeluarkan. Silakan masuk dengan kata sandi baru.",
+      "toLogin": "Masuk sekarang",
+      "askAgain": "Minta tautan baru kepada Administrator lewat formulir \"Lupa kata sandi\".",
+      "newRequest": "Hubungi Administrator",
+      "problem": {
+        "INVALID": "Tautan ini tidak dikenal atau tidak lengkap.",
+        "EXPIRED": "Tautan ini sudah kedaluwarsa.",
+        "USED": "Tautan ini sudah dipakai.",
+        "REVOKED": "Tautan ini sudah dicabut oleh Administrator."
+      }
+    },
+    "dialog": {
+      "title": "Buat tautan reset untuk {{name}}",
+      "body_one": "Tautan berlaku {{count}} jam dan hanya bisa dipakai sekali.",
+      "body_other": "Tautan berlaku {{count}} jam dan hanya bisa dipakai sekali.",
+      "bodyNoHours": "Tautan berlaku terbatas dan hanya bisa dipakai sekali.",
+      "activeWarning": "Akun ini sudah punya tautan aktif. Agar tidak ada dua tautan untuk satu akun, tautan lama akan dicabut saat tautan baru dibuat.",
+      "issue": "Buat tautan",
+      "replace": "Cabut & buat tautan baru",
+      "issued": "Tautan reset untuk {{email}} dibuat.",
+      "issuedTitle": "Tautan reset siap dikirim",
+      "linkFor": "Tautan untuk {{email}}",
+      "tipSend": "Kirim hanya kepada pemilik akun, lewat kontak yang sudah Anda pastikan.",
+      "tipOnce": "Tautan tampil sekali ini saja. Bila hilang, buat tautan baru (tautan lama otomatis dicabut).",
+      "tipWhat": "Saat dibuka, pemilik melihat email akunnya lalu membuat kata sandi baru. Semua sesinya dikeluarkan."
+    },
+    "admin": {
+      "title": "Pemulihan akun",
+      "subtitle": "Permintaan dari tombol \"Lupa kata sandi\" dan \"Lupa email\" di halaman masuk. Pastikan identitas peminta lewat kontaknya, lalu buat tautan reset berbatas waktu.",
+      "howNotified": "Belum ada email otomatis: jumlah permintaan baru tampil sebagai angka merah di menu Administrasi > Pemulihan akun.",
+      "activeLinks": "Tautan aktif",
+      "activeLinksHint": "Satu akun hanya bisa punya satu tautan aktif. Bar menunjukkan sisa masa berlaku.",
+      "noActiveLinks": "Tidak ada tautan reset yang sedang aktif.",
+      "requests": "Permintaan",
+      "issuedBy": "Dibuat oleh {{name}}",
+      "revoke": "Cabut",
+      "revokeTitle": "Cabut tautan untuk {{email}}?",
+      "revokeBody": "Tautan langsung tidak bisa dipakai lagi. Anda bisa membuat tautan baru kapan saja.",
+      "revoked": "Tautan untuk {{email}} dicabut.",
+      "pickAccount": "Pilih akun…",
+      "findAccount": "Hubungkan ke akun",
+      "linkAccount": "Hubungkan",
+      "linked": "Permintaan dihubungkan ke akun.",
+      "statusSaved": {
+        "OPEN": "Permintaan dibuka lagi.",
+        "RESOLVED": "Permintaan ditandai selesai.",
+        "DISMISSED": "Permintaan diabaikan."
+      },
+      "ownerOnServer": "Akun Super Admin utama hanya bisa dipulihkan dari server: bash ops/testboard.sh create-admin --email <email> --reset-password",
+      "sentAt": "Dikirim {{date}}",
+      "sentTimes_one": "dikirim {{count}}×",
+      "sentTimes_other": "dikirim {{count}}×",
+      "typedEmail": "Email yang diisi",
+      "account": "Akun:",
+      "noMatch": "Email ini tidak cocok dengan akun mana pun. Bila perlu, hubungkan ke akun yang benar.",
+      "findHint": "Cari akun yang cocok dengan nama dan kontak di atas, lalu hubungkan.",
+      "activeLink": "Tautan reset aktif",
+      "handled": {
+        "RESOLVED": "Diselesaikan oleh {{name}}, {{date}}",
+        "DISMISSED": "Diabaikan oleh {{name}}, {{date}}"
+      },
+      "handledAuto": "Selesai otomatis: kata sandi sudah diganti lewat tautan",
+      "newLink": "Buat tautan baru",
+      "issueLink": "Buat tautan reset",
+      "resolve": "Tandai selesai",
+      "dismiss": "Abaikan",
+      "reopen": "Buka lagi",
+      "closeTitle": {
+        "RESOLVED": "Tandai permintaan selesai",
+        "DISMISSED": "Abaikan permintaan"
+      },
+      "note": "Catatan",
+      "noteHint": "Opsional, mis. \"Email diberi tahu lewat WhatsApp\". Hanya terlihat oleh Super Admin.",
+      "emptyOpen": "Tidak ada permintaan yang menunggu.",
+      "empty": "Tidak ada permintaan untuk filter ini."
+    }
   }
 }

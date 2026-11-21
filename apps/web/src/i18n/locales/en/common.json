@@ -37,7 +37,9 @@
     "adminProjects": "Projects",
     "adminUsersShort": "Users",
     "adminSettings": "Site settings",
-    "adminAudit": "Activity log"
+    "adminAudit": "Activity log",
+    "adminRecovery": "Account recovery",
+    "openRequests": "new requests"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -71,7 +73,8 @@
     "clone": "Duplicate",
     "close": "Close",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "done": "Done"
   },
   "states": {
     "loading": "Loading data…",
@@ -237,7 +240,9 @@
       "project": "Project",
       "project_member": "Member",
       "user": "User account",
-      "system_setting": "Site settings"
+      "system_setting": "Site settings",
+      "recovery_request": "Recovery request",
+      "reset_link": "Reset link"
     },
     "auditAction": {
       "CREATE": "Created",
@@ -250,7 +255,9 @@
       "DOWNLOAD": "Downloaded",
       "LOGIN": "Signed in",
       "LOGOUT": "Signed out",
-      "PASSWORD_CHANGE": "Password changed"
+      "PASSWORD_CHANGE": "Password changed",
+      "PASSWORD_RESET": "Password reset",
+      "REVOKE": "Revoked"
     }
   },
   "fields": {
@@ -586,7 +593,8 @@
       "forbidden": "This page is for Super Admins only.",
       "empty": "No matching users.",
       "permanent": "Permanent Super Admin",
-      "permanentHint": "Owner account: nobody can revoke or deactivate it from the website."
+      "permanentHint": "Owner account: nobody can revoke or deactivate it from the website.",
+      "resetLink": "Reset link"
     },
     "cycles": {
       "title": "Test cycles",
@@ -975,7 +983,9 @@
       "saved": "Site settings saved.",
       "noChanges": "Nothing to save.",
       "lastChanged": "Changed {{date}} by {{name}}",
-      "isDefault": "Default value"
+      "isDefault": "Default value",
+      "linkHours": "Reset link validity (hours)",
+      "linkHoursHint": "1-168 hours. Applies to links created from now on."
     },
     "adminAudit": {
       "title": "Site activity log",
@@ -1119,5 +1129,142 @@
     "ARCHIVED_CASE": "test case is archived",
     "EXISTING_CASE_KEPT": "test case exists, its definition is kept",
     "CODE_TAKEN": "code was taken while applying"
+  },
+  "recovery": {
+    "help": "Sign-in help",
+    "forgotPassword": "Forgot password?",
+    "forgotEmail": "Forgot e-mail?",
+    "forgotPasswordTab": "Forgot password",
+    "forgotEmailTab": "Forgot e-mail",
+    "backToLogin": "Back to sign in",
+    "duration": {
+      "daysHours": "{{days}} d {{hours}} h",
+      "hoursMinutes": "{{hours}} h {{minutes}} min",
+      "minutes": "{{minutes}} min",
+      "lessThanMinute": "less than 1 min"
+    },
+    "validity": {
+      "label": "Remaining link validity",
+      "remaining": "Valid for {{time}}",
+      "expired": "The link has expired",
+      "until": "until {{date}}"
+    },
+    "kind": {
+      "FORGOT_PASSWORD": "Forgot password",
+      "FORGOT_EMAIL": "Forgot e-mail"
+    },
+    "status": {
+      "OPEN": "Waiting",
+      "RESOLVED": "Resolved",
+      "DISMISSED": "Dismissed"
+    },
+    "filter": {
+      "OPEN": "Waiting",
+      "RESOLVED": "Resolved",
+      "DISMISSED": "Dismissed",
+      "ALL": "All"
+    },
+    "errors": {
+      "RESET_LINK_ACTIVE": "This account already has an active link. Revoke it first, or choose \"Revoke & create new link\".",
+      "ACCOUNT_INACTIVE": "The account is inactive. Activate it before creating a reset link."
+    },
+    "request": {
+      "title": "Contact the administrators",
+      "subtitle": "Only a Super Admin can help you recover an account. Your request goes straight to their list.",
+      "introPassword": "Enter the e-mail of your account. After confirming who you are, an administrator sends you a link to set a new password.",
+      "introEmail": "Enter your name and a way to reach you. An administrator will look up your account and tell you the registered e-mail.",
+      "accountEmail": "Account e-mail",
+      "invalidEmail": "Not a valid e-mail address",
+      "contact": "How to reach you",
+      "contactHint": "E.g. office WhatsApp number or another e-mail, so the administrator can confirm it is you.",
+      "message": "Message to the administrators",
+      "messageHintEmail": "E.g. your unit, your role in the project, or the e-mail you think you used.",
+      "submit": "Send to the administrators",
+      "tooMany": "Too many requests from this network. Try again in 1 hour.",
+      "sentTitle": "Request sent",
+      "sentBody": "If the details match an account, an administrator will contact you using the details you gave. Never share your password with anyone, administrators included."
+    },
+    "reset": {
+      "title": "Set a new password",
+      "account": "Account",
+      "submit": "Save new password",
+      "containsEmail": "The password must not contain your e-mail name.",
+      "doneTitle": "New password saved",
+      "doneBody": "Every device that was still signed in has been signed out. Sign in with your new password.",
+      "toLogin": "Sign in now",
+      "askAgain": "Ask the administrators for a new link with the \"Forgot password\" form.",
+      "newRequest": "Contact the administrators",
+      "problem": {
+        "INVALID": "This link is unknown or incomplete.",
+        "EXPIRED": "This link has expired.",
+        "USED": "This link has already been used.",
+        "REVOKED": "This link was revoked by an administrator."
+      }
+    },
+    "dialog": {
+      "title": "Create a reset link for {{name}}",
+      "body_one": "The link is valid for {{count}} hour and works only once.",
+      "body_other": "The link is valid for {{count}} hours and works only once.",
+      "bodyNoHours": "The link is valid for a limited time and works only once.",
+      "activeWarning": "This account already has an active link. To never have two links for one account, the old link is revoked when the new one is created.",
+      "issue": "Create link",
+      "replace": "Revoke & create new link",
+      "issued": "Reset link for {{email}} created.",
+      "issuedTitle": "Reset link ready to send",
+      "linkFor": "Link for {{email}}",
+      "tipSend": "Send it only to the account owner, through a contact you have verified.",
+      "tipOnce": "The link is shown only this once. If it gets lost, create a new one (the old one is revoked).",
+      "tipWhat": "When opened, the owner sees the account e-mail and sets a new password. All their sessions are signed out."
+    },
+    "admin": {
+      "title": "Account recovery",
+      "subtitle": "Requests from the \"Forgot password\" and \"Forgot e-mail\" buttons on the sign-in page. Confirm who is asking through their contact, then create a time-limited reset link.",
+      "howNotified": "No e-mail is sent yet: the number of new requests appears as a red badge at Administration > Account recovery.",
+      "activeLinks": "Active links",
+      "activeLinksHint": "An account can have only one active link. The bar shows the remaining validity.",
+      "noActiveLinks": "No reset link is active.",
+      "requests": "Requests",
+      "issuedBy": "Created by {{name}}",
+      "revoke": "Revoke",
+      "revokeTitle": "Revoke the link for {{email}}?",
+      "revokeBody": "The link stops working immediately. You can create a new one at any time.",
+      "revoked": "Link for {{email}} revoked.",
+      "pickAccount": "Choose an account…",
+      "findAccount": "Link to account",
+      "linkAccount": "Link",
+      "linked": "Request linked to the account.",
+      "statusSaved": {
+        "OPEN": "Request reopened.",
+        "RESOLVED": "Request marked as resolved.",
+        "DISMISSED": "Request dismissed."
+      },
+      "ownerOnServer": "The permanent Super Admin can only be recovered on the server: bash ops/testboard.sh create-admin --email <email> --reset-password",
+      "sentAt": "Sent {{date}}",
+      "sentTimes_one": "sent {{count}}×",
+      "sentTimes_other": "sent {{count}}×",
+      "typedEmail": "E-mail entered",
+      "account": "Account:",
+      "noMatch": "This e-mail matches no account. Link it to the right account if needed.",
+      "findHint": "Find the account that matches the name and contact above, then link it.",
+      "activeLink": "Active reset link",
+      "handled": {
+        "RESOLVED": "Resolved by {{name}}, {{date}}",
+        "DISMISSED": "Dismissed by {{name}}, {{date}}"
+      },
+      "handledAuto": "Resolved automatically: the password was changed with the link",
+      "newLink": "Create new link",
+      "issueLink": "Create reset link",
+      "resolve": "Mark resolved",
+      "dismiss": "Dismiss",
+      "reopen": "Reopen",
+      "closeTitle": {
+        "RESOLVED": "Mark request as resolved",
+        "DISMISSED": "Dismiss request"
+      },
+      "note": "Note",
+      "noteHint": "Optional, e.g. \"E-mail told via WhatsApp\". Only Super Admins see it.",
+      "emptyOpen": "No requests are waiting.",
+      "empty": "No requests for this filter."
+    }
   }
 }

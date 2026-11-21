@@ -18,6 +18,8 @@ export const SITE_SETTINGS = {
   'site.support_contact': { schema: z.string().trim().max(300), default: '' },
   'auth.session_hours': { schema: z.number().int().min(1).max(72), default: 12 },
   'auth.idle_minutes': { schema: z.number().int().min(5).max(1440), default: 120 },
+  /** How long a password reset link issued by a Super Admin stays valid (ADR 0012). */
+  'recovery.link_hours': { schema: z.number().int().min(1).max(168), default: 24 },
   'retention.unused_file_days': { schema: z.number().int().min(7).max(3650), default: 90 },
   'retention.import_days': { schema: z.number().int().min(7).max(3650), default: 90 },
 } as const

@@ -10,6 +10,9 @@ export function apiErrorText(t: TFunction, error: unknown): string {
     const reason = error.details[0]?.message
     if (reason === 'PROJECT_ARCHIVED') return t('errors.projectArchived')
     if (reason === 'PERMANENT_SUPER_ADMIN') return t('errors.permanentSuperAdmin')
+    if (reason === 'RESET_LINK_ACTIVE' || reason === 'ACCOUNT_INACTIVE') {
+      return t(`recovery.errors.${reason}`)
+    }
     if (error.status === 409 || error.status === 422) {
       return error.details[0]?.message ?? error.message
     }

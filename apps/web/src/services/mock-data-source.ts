@@ -120,6 +120,7 @@ import {
   mockReportRecords,
   type MockAuditEntry,
 } from './mock-reports'
+import { createMockRecovery } from './mock-recovery'
 import type {
   AddRunCasesResult,
   DataSource,
@@ -316,6 +317,18 @@ export function createMockDataSource(
   let sequence = 900_000
   const newId = () => String(++sequence)
   const now = () => new Date().toISOString()
+  const recovery = createMockRecovery({
+    delay,
+    users: () => db.users,
+    currentUserId: () => db.currentUserId,
+    requireSuperAdmin: () => requireSuperAdmin(),
+    isPermanent: (userId) => permanentAdmins.has(userId),
+    isActive: (userId) => !inactive.has(userId),
+    linkHours: () => siteSettings['recovery.link_hours'],
+    audit: (entityType, entityId, action, newValues) =>
+      siteAudit('', entityType, entityId, action, undefined, newValues),
+    newId,
+  })
 
   interface MockSuite {
     id: string
@@ -402,6 +415,7 @@ export function createMockDataSource(
       is_super_admin: superAdmins.has(user.id),
       is_permanent: permanentAdmins.has(user.id),
       created_at: '2026-10-01T02:00:00.000Z',
+      reset_link: recovery.activeLinkOf(user.id),
     }
   }
 
@@ -2462,5 +2476,7 @@ export function createMockDataSource(
           .sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id))
         return paginate(entries, { page, page_size })
       }),
+
+    ...recovery.methods,
   }
 }

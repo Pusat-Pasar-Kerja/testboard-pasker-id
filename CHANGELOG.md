@@ -2,6 +2,32 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.10.0] - 2026-11-21
+
+Perubahan v1 tahap 2: pemulihan akun lewat Super Admin (ADR 0012).
+
+### Ditambahkan
+
+- **"Lupa kata sandi?" dan "Lupa email?"** di halaman masuk: formulir "Hubungi Administrator" tanpa perlu masuk. Jawabannya selalu sama, baik email terdaftar maupun tidak. Permintaan yang diulang digabung, bukan menjadi baris ganda. Ada batas per jaringan dan penyaring bot.
+- **Administrasi > Pemulihan akun** (hanya Super Admin), dengan angka merah di menu untuk permintaan baru:
+  - daftar permintaan (Menunggu / Selesai / Diabaikan / Semua): otomatis dicocokkan dengan akun lewat email, atau dihubungkan ke akun oleh admin; tandai selesai atau abaikan dengan catatan; buka lagi;
+  - daftar tautan aktif, masing-masing dengan bar sisa masa berlaku dan tombol Cabut.
+- **Tautan reset berbatas waktu**, dibuat dari permintaan atau dari halaman Pengguna:
+  - berlaku 24 jam (diatur di Pengaturan situs, 1-168 jam) dan hanya sekali pakai;
+  - tampil sekali dengan tombol salin; database hanya menyimpan hash-nya;
+  - **satu tautan aktif per akun**, dijamin di database. Membuat tautan kedua harus lewat "Cabut & buat tautan baru".
+- **Bar masa berlaku** (sisa waktu, jam berakhir, warna hijau/kuning/merah) di dialog, daftar tautan, kartu permintaan, daftar Pengguna, dan halaman reset.
+- **Halaman buat kata sandi baru** (`/reset-password`):
+  - menampilkan nama dan email akun, sehingga juga menjawab "lupa email";
+  - setelah berhasil, semua sesi dikeluarkan dan permintaan terbuka akun itu otomatis selesai;
+  - tautan yang kedaluwarsa, dicabut, atau sudah dipakai menjelaskan alasannya.
+- Migration `0008_account_recovery.sql` (2 tabel baru). Retensi harian juga menghapus isi permintaan yang sudah selesai setelah 180 hari, dan tautan 30 hari setelah kedaluwarsa.
+
+### Keamanan
+
+- Token tautan 256-bit diletakkan setelah `#`, jadi tidak terkirim ke server dan tidak tercatat di log Apache. Token juga dihapus dari bilah alamat begitu dibaca.
+- Akun Super Admin utama tidak bisa direset dari website. Pemulihannya lewat server: `bash ops/testboard.sh create-admin --email ... --reset-password`.
+
 ## [0.9.0] - 2026-11-21
 
 Perubahan v1 tahap 1 (permintaan pemilik proyek setelah go-live pertama): konsol Super Admin (ADR 0011).

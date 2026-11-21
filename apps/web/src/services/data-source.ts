@@ -1,4 +1,13 @@
 import type {
+  IssuedResetLink,
+  RecoveryRequestDto,
+  RecoveryRequestInput,
+  RecoveryRequestUpdate,
+  RecoveryStatus,
+  RecoverySummary,
+  ResetLinkCheck,
+  ResetLinkDto,
+  ResetLinkIssueInput,
   AdminProjectDto,
   AdminProjectUpdateInput,
   ProjectCreateInput,
@@ -379,6 +388,22 @@ export interface DataSource {
   /** Anyone, also signed out: site name, banner, default language, support contact. */
   getPublicSettings(): Promise<PublicSiteSettings>
   listSiteAuditLogs(query?: AuditQuery): Promise<Paginated<AuditLogEntry>>
+
+  // Account recovery (ADR 0012). The first three work signed out.
+  /** "Hubungi Administrator": always accepted the same way (no account discovery). */
+  submitRecoveryRequest(input: RecoveryRequestInput): Promise<void>
+  checkResetLink(token: string): Promise<ResetLinkCheck>
+  resetPassword(input: { token: string; new_password: string }): Promise<void>
+  getRecoverySummary(): Promise<RecoverySummary>
+  listRecoveryRequests(status?: RecoveryStatus | 'ALL'): Promise<RecoveryRequestDto[]>
+  updateRecoveryRequest(
+    requestId: string,
+    input: RecoveryRequestUpdate,
+  ): Promise<RecoveryRequestDto>
+  listResetLinks(): Promise<ResetLinkDto[]>
+  /** The returned token is shown once; only its hash is stored. */
+  issueResetLink(userId: string, input?: ResetLinkIssueInput): Promise<IssuedResetLink>
+  revokeResetLink(userId: string): Promise<void>
 }
 
 export type AuditQuery = AuditFilter & PageQuery
@@ -537,5 +562,20 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     updateSiteSettings: (input) => client.put('/admin/settings', input),
     getPublicSettings: () => client.get('/settings/public'),
     listSiteAuditLogs: (query = {}) => client.get(`/admin/audit-logs${toQueryString(query)}`),
+
+    submitRecoveryRequest: async (input) => {
+      await client.post('/auth/recovery-requests', input)
+    },
+    checkResetLink: (token) => client.post('/auth/reset-password/check', { token }),
+    resetPassword: (input) => client.post('/auth/reset-password', input),
+    getRecoverySummary: () => client.get('/admin/recovery-summary'),
+    listRecoveryRequests: (status = 'OPEN') =>
+      client.get(`/admin/recovery-requests${toQueryString({ status })}`),
+    updateRecoveryRequest: (requestId, input) =>
+      client.patch(`/admin/recovery-requests/${seg(requestId)}`, input),
+    listResetLinks: () => client.get('/admin/reset-links'),
+    issueResetLink: (userId, input = {}) =>
+      client.post(`/admin/users/${seg(userId)}/reset-link`, input),
+    revokeResetLink: (userId) => client.delete(`/admin/users/${seg(userId)}/reset-link`),
   }
 }

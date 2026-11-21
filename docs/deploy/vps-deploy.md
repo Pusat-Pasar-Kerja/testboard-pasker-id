@@ -133,6 +133,17 @@ dari website; hanya bisa diubah lagi lewat perintah ini di server, ADR 0011):
 bash ops/testboard.sh protect-admin --email email-anda@instansi.go.id
 ```
 
+Bila pemilik akun itu lupa kata sandi, website tidak bisa mereset akun Super Admin utama
+(ADR 0012). Buat kata sandi sementara baru dari server:
+
+```bash
+bash ops/testboard.sh create-admin --email email-anda@instansi.go.id --reset-password
+```
+
+Pengguna lain yang lupa email atau kata sandi memakai tautan "Lupa kata sandi?" / "Lupa email?"
+di halaman masuk. Permintaannya muncul di menu **Administrasi > Pemulihan akun** (angka merah),
+tempat Super Admin membuat tautan reset berbatas waktu.
+
 ## Langkah 6 - Ganti `update.sh` lama
 
 ```bash

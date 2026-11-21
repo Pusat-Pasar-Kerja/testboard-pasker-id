@@ -27,6 +27,7 @@ type Draft = { [K in SiteSettingKey]: string }
 const NUMERIC: SiteSettingKey[] = [
   'auth.session_hours',
   'auth.idle_minutes',
+  'recovery.link_hours',
   'retention.unused_file_days',
   'retention.import_days',
 ]
@@ -178,6 +179,13 @@ function SettingsForm({ data }: { data: SiteSettingsDto }) {
             t('pages.adminSettings.idleMinutesHint'),
             5,
             1440,
+          )}
+          {number(
+            'recovery.link_hours',
+            t('pages.adminSettings.linkHours'),
+            t('pages.adminSettings.linkHoursHint'),
+            1,
+            168,
           )}
         </div>
       </Section>

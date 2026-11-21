@@ -1,4 +1,4 @@
-import type { ReportFilter } from '@testboard/shared'
+import type { RecoveryStatus, ReportFilter } from '@testboard/shared'
 import { keepPreviousData, useQuery, type QueryClient } from '@tanstack/react-query'
 import type {
   AuditQuery,
@@ -241,4 +241,30 @@ export function useSiteAuditLogs(query: AuditQuery, enabled = true) {
     placeholderData: keepPreviousData,
     enabled,
   })
+}
+
+/** Open recovery requests and active reset links (sidebar badge), refreshed every minute. */
+export function useRecoverySummary(enabled = true) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['recovery-summary'],
+    queryFn: () => ds.getRecoverySummary(),
+    enabled,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useRecoveryRequests(status: RecoveryStatus | 'ALL', enabled = true) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['recovery-requests', status],
+    queryFn: () => ds.listRecoveryRequests(status),
+    enabled,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useResetLinks(enabled = true) {
+  const ds = useDataSource()
+  return useQuery({ queryKey: ['reset-links'], queryFn: () => ds.listResetLinks(), enabled })
 }

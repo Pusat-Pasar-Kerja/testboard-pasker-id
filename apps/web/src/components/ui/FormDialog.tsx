@@ -11,6 +11,7 @@ export function FormDialog({
   description,
   submitLabel,
   busy = false,
+  hideCancel = false,
   onSubmit,
   onCancel,
   children,
@@ -20,6 +21,8 @@ export function FormDialog({
   description?: ReactNode
   submitLabel: string
   busy?: boolean
+  /** Only the submit button (e.g. a "Done" step that shows a result). */
+  hideCancel?: boolean
   onSubmit: () => void
   onCancel: () => void
   children: ReactNode
@@ -54,9 +57,11 @@ export function FormDialog({
         <form onSubmit={submit} noValidate className="mt-4 space-y-4">
           {children}
           <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-            <Button variant="secondary" onClick={onCancel} disabled={busy}>
-              {t('actions.cancel')}
-            </Button>
+            {!hideCancel && (
+              <Button variant="secondary" onClick={onCancel} disabled={busy}>
+                {t('actions.cancel')}
+              </Button>
+            )}
             <Button type="submit" loading={busy}>
               {submitLabel}
             </Button>

@@ -7,6 +7,7 @@ import {
   FolderKanban,
   History,
   Images,
+  KeyRound,
   LayoutDashboard,
   ListChecks,
   PlayCircle,
@@ -18,7 +19,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router'
 import { TestBoardLogo } from '../components/brand/TestBoardLogo'
-import { useCurrentUser } from '../hooks/queries'
+import { useCurrentUser, useRecoverySummary } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
 
 type NavKey =
@@ -49,6 +50,7 @@ const ITEMS: { key: NavKey; path: string; icon: LucideIcon; soon?: boolean }[] =
 const ADMIN_ITEMS = [
   { key: 'adminProjects', path: '/admin/projects', icon: FolderCog },
   { key: 'adminUsersShort', path: '/admin/users', icon: UsersRound },
+  { key: 'adminRecovery', path: '/admin/recovery', icon: KeyRound },
   { key: 'adminSettings', path: '/admin/settings', icon: Settings2 },
   { key: 'adminAudit', path: '/admin/audit', icon: History },
 ] as const
@@ -62,6 +64,9 @@ export function SidebarNav({
 }) {
   const { t } = useTranslation()
   const me = useCurrentUser()
+  // New "Lupa kata sandi / email" requests: shown as a badge (no e-mail is sent).
+  const recoverySummary = useRecoverySummary(Boolean(me.data?.is_super_admin))
+  const openRequests = recoverySummary.data?.open_requests ?? 0
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition-colors ${
       isActive
@@ -114,6 +119,12 @@ export function SidebarNav({
                     <NavLink to={item.path} className={linkClass} onClick={onNavigate}>
                       <item.icon aria-hidden="true" className="size-5 shrink-0" />
                       <span>{t(`nav.${item.key}`)}</span>
+                      {item.key === 'adminRecovery' && openRequests > 0 && (
+                        <span className="ml-auto rounded-full bg-danger px-1.5 text-xs font-semibold text-white tabular-nums">
+                          {openRequests}
+                          <span className="sr-only"> {t('nav.openRequests')}</span>
+                        </span>
+                      )}
                     </NavLink>
                   </li>
                 ))}
