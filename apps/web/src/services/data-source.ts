@@ -1,4 +1,7 @@
 import type {
+  BulkResult,
+  CaseBulkInput,
+  DefectBulkInput,
   IssuedResetLink,
   RecoveryRequestDto,
   RecoveryRequestInput,
@@ -84,6 +87,8 @@ export interface DefectQuery extends PageQuery {
   priority?: DefectPriority
   /** A user id, or 'none' for unassigned bugs. */
   assigned_to?: string
+  /** A cycle (phase) id, or 'none' for bugs outside any cycle. */
+  cycle?: string
 }
 
 /** Editable test case fields (mirrors the API create/update schemas). */
@@ -158,6 +163,7 @@ export interface DefectInput {
   expected_behavior?: string | null
   actual_behavior?: string | null
   module_id?: string | null
+  cycle_id?: string | null
   severity_code?: DefectSeverity
   priority_code?: DefectPriority
   source_kind?: DefectSourceKind
@@ -257,6 +263,8 @@ export interface DataSource {
     input: TestCaseInput,
   ): Promise<TestCaseListItem>
   archiveTestCase(projectCode: string, caseId: string): Promise<TestCaseListItem>
+  /** Status / module / priority / archive for many cases (ADR 0013). */
+  bulkTestCases(projectCode: string, input: CaseBulkInput): Promise<BulkResult>
   cloneTestCase(projectCode: string, caseId: string): Promise<TestCaseListItem>
 
   // Cycles, runs and executions (Milestone 3)
@@ -298,6 +306,8 @@ export interface DataSource {
     idempotencyKey: string,
   ): Promise<DefectDetail>
   updateDefect(projectCode: string, defectId: string, input: DefectInput): Promise<DefectDetail>
+  /** Edit or move many bugs; refused ones are reported, not applied (ADR 0013). */
+  bulkDefects(projectCode: string, input: DefectBulkInput): Promise<BulkResult>
   changeDefectStatus(
     projectCode: string,
     defectId: string,
@@ -457,6 +467,7 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     createTestCase: (code, input) => client.post(`${p(code)}/test-cases`, input),
     updateTestCase: (code, id, input) => client.patch(`${p(code)}/test-cases/${seg(id)}`, input),
     archiveTestCase: (code, id) => client.post(`${p(code)}/test-cases/${seg(id)}/archive`),
+    bulkTestCases: (code, input) => client.post(`${p(code)}/test-cases/bulk`, input),
     cloneTestCase: (code, id) => client.post(`${p(code)}/test-cases/${seg(id)}/clone`, {}),
 
     getDashboard: (code, filter) =>
@@ -485,6 +496,7 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     createDefect: (code, input, idempotencyKey) =>
       client.post(`${p(code)}/defects`, input, { 'Idempotency-Key': idempotencyKey }),
     updateDefect: (code, id, input) => client.patch(`${p(code)}/defects/${seg(id)}`, input),
+    bulkDefects: (code, input) => client.post(`${p(code)}/defects/bulk`, input),
     changeDefectStatus: (code, id, change) =>
       client.post(`${p(code)}/defects/${seg(id)}/status`, change),
     addDefectComment: (code, id, body) =>

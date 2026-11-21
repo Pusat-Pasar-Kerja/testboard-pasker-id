@@ -1,4 +1,5 @@
 export * from './api.js'
+export * from './bulk.js'
 export * from './code-labels.js'
 export * from './defect-workflow.js'
 export * from './dto.js'

@@ -30,6 +30,7 @@ import { useToast } from '../components/ui/toast-context'
 import { useCan, useDefectActor } from '../hooks/permissions'
 import {
   invalidateDefectData,
+  useCycles,
   useDefect,
   useMembers,
   useModules,
@@ -52,6 +53,7 @@ const EMPTY: BugForm = {
   expected_behavior: '',
   actual_behavior: '',
   module_id: '',
+  cycle_id: '',
   severity_code: 'MEDIUM',
   priority_code: 'MEDIUM',
   source_kind: 'UAT',
@@ -82,6 +84,7 @@ function fromDefect(d: DefectDetail): BugForm {
     expected_behavior: d.expected_behavior ?? '',
     actual_behavior: d.actual_behavior ?? '',
     module_id: d.module?.id ?? '',
+    cycle_id: d.cycle?.id ?? '',
     severity_code: d.severity_code,
     priority_code: d.priority_code,
     source_kind: d.source_kind,
@@ -147,6 +150,7 @@ function BugFormBody({
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const modules = useModules(code)
+  const cycles = useCycles(code)
   const members = useMembers(code)
   const [form, setForm] = useState<BugForm>(initial)
   const [errors, setErrors] = useState<Partial<Record<keyof BugForm, string>>>({})
@@ -236,6 +240,7 @@ function BugFormBody({
       expected_behavior: value('expected_behavior'),
       actual_behavior: value('actual_behavior'),
       module_id: value('module_id'),
+      cycle_id: value('cycle_id'),
       severity_code: form.severity_code as DefectInput['severity_code'],
       priority_code: form.priority_code as DefectInput['priority_code'],
       environment_name: value('environment_name'),
@@ -462,6 +467,21 @@ function BugFormBody({
                     ...(modules.data ?? []).map((m) => ({
                       value: m.id,
                       label: `${m.module_code} - ${m.name}`,
+                    })),
+                  ]}
+                />
+                <SelectField
+                  label={t('fields.cycle')}
+                  hint={link ? t('pages.bugForm.cycleFromRun') : undefined}
+                  value={form.cycle_id}
+                  onChange={(e) => set('cycle_id')(e.target.value)}
+                  error={errors.cycle_id}
+                  disabled={locked('cycle_id')}
+                  options={[
+                    { value: '', label: t('pages.bugForm.noCycle') },
+                    ...(cycles.data ?? []).map((cy) => ({
+                      value: cy.id,
+                      label: `${cy.cycle_code} - ${cy.title}`,
                     })),
                   ]}
                 />

@@ -1,5 +1,7 @@
 import {
+  caseBulkSchema,
   fileAttachSchema,
+  roleCan,
   isOneOf,
   stepsFromText,
   TEST_CASE_PRIORITIES,
@@ -8,6 +10,7 @@ import {
   testCaseCloneSchema,
   testCaseCreateSchema,
   testCaseUpdateSchema,
+  type BulkResult,
   type ExecutionStatus,
   type Locale,
   type Paginated,
@@ -19,6 +22,7 @@ import {
   type TestType,
 } from '@testboard/shared'
 import type { Context } from 'hono'
+import type { z } from 'zod'
 import { Hono } from 'hono'
 import type { Pool, PoolConnection } from 'mysql2/promise'
 import { requirePermission } from '../access/project-access.js'
@@ -230,9 +234,126 @@ function escapeLike(value: string) {
   return value.replace(/[\\%_]/g, '\\$&')
 }
 
+const userIdOf = (c: Context<AppEnv>) => c.get('auth')?.userId ?? null
+
+type CaseUpdateInput = Partial<z.output<typeof testCaseUpdateSchema>>
+
+/**
+ * Save one test case edit: a new version + immutable revision + audit (TB-CASE-003).
+ * Returns false when nothing changed. Validation happens before any write.
+ */
+async function applyCaseUpdate(
+  conn: PoolConnection,
+  c: Context<AppEnv>,
+  caseId: string,
+  input: CaseUpdateInput,
+): Promise<boolean> {
+  const project = c.get('project')
+  const before = await loadCase(conn, project.id, caseId, true)
+  if (
+    input.expected_version !== undefined &&
+    input.expected_version !== Number(before.current_version)
+  ) {
+    throw new AppError(
+      409,
+      'CONFLICT',
+      'This test case was changed by someone else. Reload and try again.',
+      [{ field: 'expected_version', message: `Current version is ${before.current_version}` }],
+    )
+  }
+  const changesContent = Object.keys(input).some(
+    (key) => !['case_status', 'change_reason', 'expected_version'].includes(key),
+  )
+  if (before.case_status === 'ARCHIVED' && changesContent) {
+    throw new AppError(409, 'CONFLICT', 'Restore the archived test case before editing it.')
+  }
+  const moduleId = await resolveModule(conn, project.id, input.module_code)
+  await assertSuite(conn, project.id, input.suite_id)
+
+  const next: Record<(typeof EDITABLE)[number], unknown> = {
+    module_id: moduleId === undefined ? before.module_id : moduleId,
+    suite_id: input.suite_id === undefined ? before.suite_id : input.suite_id,
+    sequence_number:
+      input.sequence_number === undefined ? before.sequence_number : input.sequence_number,
+    category: input.category === undefined ? before.category : input.category,
+    title: input.title ?? before.title,
+    requirement_refs:
+      input.requirement_refs === undefined ? before.requirement_refs : input.requirement_refs,
+    priority_code: input.priority_code ?? before.priority_code,
+    test_type_code: input.test_type_code ?? before.test_type_code,
+    actor_label: input.actor_label === undefined ? before.actor_label : input.actor_label,
+    preconditions: input.preconditions === undefined ? before.preconditions : input.preconditions,
+    test_steps_text:
+      input.test_steps_text === undefined ? before.test_steps_text : input.test_steps_text,
+    expected_result: input.expected_result ?? before.expected_result,
+    source_locale: input.source_locale ?? before.source_locale,
+    case_status: input.case_status ?? before.case_status,
+  }
+  const changed = EDITABLE.filter(
+    (col) =>
+      String(next[col] ?? '') !== String((before as unknown as Record<string, unknown>)[col] ?? ''),
+  )
+  if (changed.length === 0) return false
+
+  // Every saved change is a new version + immutable revision; runs keep their own
+  // frozen snapshot, so past UAT results never change meaning (TB-CASE-003).
+  await execute(
+    conn,
+    `UPDATE test_cases SET ${changed.map((col) => `${col} = ?`).join(', ')},
+              current_version = current_version + 1, updated_by = ?
+        WHERE id = ? AND project_id = ?`,
+    [...changed.map((col) => next[col]), userIdOf(c), caseId, project.id],
+  )
+  const after = await loadCase(conn, project.id, caseId)
+  const reason =
+    input.change_reason ??
+    (changed.length === 1 && changed[0] === 'case_status'
+      ? `Status ${before.case_status} -> ${after.case_status}`
+      : `Updated: ${changed.join(', ')}`)
+  await insertRevision(conn, after, userIdOf(c), reason)
+  await writeAudit(conn, c, {
+    projectId: project.id,
+    entityType: 'test_case',
+    entityId: caseId,
+    action: changed.length === 1 && changed[0] === 'case_status' ? 'STATUS_CHANGE' : 'UPDATE',
+    oldValues: Object.fromEntries(
+      changed.map((col) => [col, (before as unknown as Record<string, unknown>)[col]]),
+    ),
+    newValues: Object.fromEntries(changed.map((col) => [col, next[col]])),
+  })
+  return true
+}
+
+/** Archive one test case (a new version + revision); false when already archived. */
+async function applyCaseArchive(
+  conn: PoolConnection,
+  c: Context<AppEnv>,
+  caseId: string,
+): Promise<boolean> {
+  const project = c.get('project')
+  const before = await loadCase(conn, project.id, caseId, true)
+  if (before.case_status === 'ARCHIVED') return false
+  await execute(
+    conn,
+    `UPDATE test_cases SET case_status = 'ARCHIVED', current_version = current_version + 1,
+              updated_by = ? WHERE id = ? AND project_id = ?`,
+    [userIdOf(c), caseId, project.id],
+  )
+  const after = await loadCase(conn, project.id, caseId)
+  await insertRevision(conn, after, userIdOf(c), 'Archived')
+  await writeAudit(conn, c, {
+    projectId: project.id,
+    entityType: 'test_case',
+    entityId: caseId,
+    action: 'ARCHIVE',
+    oldValues: { case_status: before.case_status },
+    newValues: { case_status: 'ARCHIVED' },
+  })
+  return true
+}
+
 export function testCaseRoutes(pool: Pool) {
   const routes = new Hono<AppEnv>()
-  const userIdOf = (c: Context<AppEnv>) => c.get('auth')?.userId ?? null
 
   routes.get('/', requirePermission('case.read'), async (c) => {
     const project = c.get('project')
@@ -465,109 +586,72 @@ export function testCaseRoutes(pool: Pool) {
     const project = c.get('project')
     const caseId = idParam(c, 'caseId')
     const input = await parseBody(c, testCaseUpdateSchema)
-    await withTransaction(pool, async (conn) => {
-      const before = await loadCase(conn, project.id, caseId, true)
-      if (
-        input.expected_version !== undefined &&
-        input.expected_version !== Number(before.current_version)
-      ) {
-        throw new AppError(
-          409,
-          'CONFLICT',
-          'This test case was changed by someone else. Reload and try again.',
-          [{ field: 'expected_version', message: `Current version is ${before.current_version}` }],
-        )
-      }
-      const changesContent = Object.keys(input).some(
-        (key) => !['case_status', 'change_reason', 'expected_version'].includes(key),
-      )
-      if (before.case_status === 'ARCHIVED' && changesContent) {
-        throw new AppError(409, 'CONFLICT', 'Restore the archived test case before editing it.')
-      }
-      const moduleId = await resolveModule(conn, project.id, input.module_code)
-      await assertSuite(conn, project.id, input.suite_id)
-
-      const next: Record<(typeof EDITABLE)[number], unknown> = {
-        module_id: moduleId === undefined ? before.module_id : moduleId,
-        suite_id: input.suite_id === undefined ? before.suite_id : input.suite_id,
-        sequence_number:
-          input.sequence_number === undefined ? before.sequence_number : input.sequence_number,
-        category: input.category === undefined ? before.category : input.category,
-        title: input.title ?? before.title,
-        requirement_refs:
-          input.requirement_refs === undefined ? before.requirement_refs : input.requirement_refs,
-        priority_code: input.priority_code ?? before.priority_code,
-        test_type_code: input.test_type_code ?? before.test_type_code,
-        actor_label: input.actor_label === undefined ? before.actor_label : input.actor_label,
-        preconditions:
-          input.preconditions === undefined ? before.preconditions : input.preconditions,
-        test_steps_text:
-          input.test_steps_text === undefined ? before.test_steps_text : input.test_steps_text,
-        expected_result: input.expected_result ?? before.expected_result,
-        source_locale: input.source_locale ?? before.source_locale,
-        case_status: input.case_status ?? before.case_status,
-      }
-      const changed = EDITABLE.filter(
-        (col) =>
-          String(next[col] ?? '') !==
-          String((before as unknown as Record<string, unknown>)[col] ?? ''),
-      )
-      if (changed.length === 0) return
-
-      // Every saved change is a new version + immutable revision; runs keep their own
-      // frozen snapshot, so past UAT results never change meaning (TB-CASE-003).
-      await execute(
-        conn,
-        `UPDATE test_cases SET ${changed.map((col) => `${col} = ?`).join(', ')},
-                current_version = current_version + 1, updated_by = ?
-          WHERE id = ? AND project_id = ?`,
-        [...changed.map((col) => next[col]), userIdOf(c), caseId, project.id],
-      )
-      const after = await loadCase(conn, project.id, caseId)
-      const reason =
-        input.change_reason ??
-        (changed.length === 1 && changed[0] === 'case_status'
-          ? `Status ${before.case_status} -> ${after.case_status}`
-          : `Updated: ${changed.join(', ')}`)
-      await insertRevision(conn, after, userIdOf(c), reason)
-      await writeAudit(conn, c, {
-        projectId: project.id,
-        entityType: 'test_case',
-        entityId: caseId,
-        action: changed.length === 1 && changed[0] === 'case_status' ? 'STATUS_CHANGE' : 'UPDATE',
-        oldValues: Object.fromEntries(
-          changed.map((col) => [col, (before as unknown as Record<string, unknown>)[col]]),
-        ),
-        newValues: Object.fromEntries(changed.map((col) => [col, next[col]])),
-      })
-    })
+    await withTransaction(pool, (conn) => applyCaseUpdate(conn, c, caseId, input))
     return c.json(toListItem(await loadCase(pool, project.id, caseId)))
   })
 
   routes.post('/:caseId/archive', requirePermission('case.archive'), async (c) => {
     const project = c.get('project')
     const caseId = idParam(c, 'caseId')
-    await withTransaction(pool, async (conn) => {
-      const before = await loadCase(conn, project.id, caseId, true)
-      if (before.case_status === 'ARCHIVED') return
-      await execute(
-        conn,
-        `UPDATE test_cases SET case_status = 'ARCHIVED', current_version = current_version + 1,
-                updated_by = ? WHERE id = ? AND project_id = ?`,
-        [userIdOf(c), caseId, project.id],
-      )
-      const after = await loadCase(conn, project.id, caseId)
-      await insertRevision(conn, after, userIdOf(c), 'Archived')
-      await writeAudit(conn, c, {
-        projectId: project.id,
-        entityType: 'test_case',
-        entityId: caseId,
-        action: 'ARCHIVE',
-        oldValues: { case_status: before.case_status },
-        newValues: { case_status: 'ARCHIVED' },
-      })
-    })
+    await withTransaction(pool, (conn) => applyCaseArchive(conn, c, caseId))
     return c.json(toListItem(await loadCase(pool, project.id, caseId)))
+  })
+
+  /**
+   * Bulk status / module / priority / archive (ADR 0013). Each case goes through the same
+   * rules as a single edit (new version + revision + audit); refused cases are skipped.
+   */
+  routes.post('/bulk', requirePermission('case.write'), async (c) => {
+    const project = c.get('project')
+    const body = await parseBody(c, caseBulkSchema)
+    if (body.action === 'archive' && !roleCan(project.role, 'case.archive')) {
+      throw new AppError(403, 'FORBIDDEN', 'Your role cannot archive test cases.')
+    }
+    const ids = [...new Set(body.case_ids)]
+    const result: BulkResult = { updated: 0, unchanged: 0, skipped: [] }
+    await withTransaction(pool, async (conn) => {
+      if (body.action === 'set_module') await resolveModule(conn, project.id, body.module_code)
+      const found = await select<{ id: string; case_code: string }>(
+        conn,
+        `SELECT id, case_code FROM test_cases
+          WHERE project_id = ? AND deleted_at IS NULL AND id IN (${ids.map(() => '?').join(', ')})`,
+        [project.id, ...ids],
+      )
+      const codes = new Map(found.map((row) => [String(row.id), row.case_code]))
+      for (const id of ids) {
+        const code = codes.get(id)
+        if (!code) {
+          result.skipped.push({ id, code: '', reason: 'NOT_FOUND' })
+          continue
+        }
+        try {
+          const changed =
+            body.action === 'archive'
+              ? await applyCaseArchive(conn, c, id)
+              : await applyCaseUpdate(
+                  conn,
+                  c,
+                  id,
+                  body.action === 'set_status'
+                    ? { case_status: body.case_status }
+                    : body.action === 'set_module'
+                      ? { module_code: body.module_code }
+                      : { priority_code: body.priority_code },
+                )
+          if (changed) result.updated += 1
+          else result.unchanged += 1
+        } catch (error) {
+          if (!(error instanceof AppError)) throw error
+          result.skipped.push({
+            id,
+            code,
+            reason:
+              error.status === 409 ? 'ARCHIVED' : error.status === 403 ? 'FORBIDDEN' : error.code,
+          })
+        }
+      }
+    })
+    return c.json(result)
   })
 
   routes.post('/:caseId/clone', requirePermission('case.write'), async (c) => {

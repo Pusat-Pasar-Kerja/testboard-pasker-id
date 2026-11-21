@@ -32,6 +32,9 @@ export interface DefectRow {
   module_id: string | null
   module_code: string | null
   module_name: string | null
+  cycle_id: string | null
+  cycle_code: string | null
+  cycle_title: string | null
   reported_by: string | null
   reporter_name: string | null
   assigned_to: string | null
@@ -47,13 +50,18 @@ export interface DefectRow {
   build_version: string | null
   browser_name: string | null
   fixed_in_version: string | null
+  legacy_reporter_name: string | null
+  reported_at: Date | null
+  source_reference: string | null
 }
 
 export const DEFECT_SELECT = `
   SELECT d.*, m.module_code, m.name AS module_name,
+         cy.cycle_code, cy.title AS cycle_title,
          rep.display_name AS reporter_name, asg.display_name AS assignee_name
     FROM defects d
     LEFT JOIN modules m ON m.id = d.module_id
+    LEFT JOIN test_cycles cy ON cy.id = d.cycle_id
     LEFT JOIN users rep ON rep.id = d.reported_by
     LEFT JOIN users asg ON asg.id = d.assigned_to`
 
@@ -74,6 +82,9 @@ export function toDefectListItem(row: DefectRow): DefectListItem {
           module_code: row.module_code ?? '',
           name: row.module_name ?? '',
         }
+      : null,
+    cycle: row.cycle_id
+      ? { id: String(row.cycle_id), cycle_code: row.cycle_code ?? '', title: row.cycle_title ?? '' }
       : null,
     reported_by: person(row.reported_by, row.reporter_name),
     assigned_to: person(row.assigned_to, row.assignee_name),
@@ -166,6 +177,9 @@ export async function loadDefectDetail(
     expected_behavior: row.expected_behavior,
     actual_behavior: row.actual_behavior,
     source_kind: row.source_kind,
+    legacy_reporter_name: row.legacy_reporter_name,
+    reported_at: iso(row.reported_at),
+    source_reference: row.source_reference,
     environment_name: row.environment_name,
     build_version: row.build_version,
     browser_name: row.browser_name,
@@ -230,6 +244,12 @@ export function defectRoutes(pool: Pool) {
     else if (assignee && /^\d{1,20}$/.test(assignee)) {
       where.push('d.assigned_to = ?')
       params.push(assignee)
+    }
+    const cycle = c.req.query('cycle')
+    if (cycle === 'none') where.push('d.cycle_id IS NULL')
+    else if (cycle && /^\d{1,20}$/.test(cycle)) {
+      where.push('d.cycle_id = ?')
+      params.push(cycle)
     }
     const q = c.req.query('q')?.trim()
     if (q) {

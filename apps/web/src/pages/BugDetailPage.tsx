@@ -482,13 +482,35 @@ export function BugDetailPage() {
           <Section headingLevel={2}>
             <DescriptionList
               items={[
-                { label: t('fields.reporter'), value: d.reported_by?.display_name ?? none },
+                {
+                  label: t('fields.reporter'),
+                  value:
+                    d.reported_by?.display_name ??
+                    (d.legacy_reporter_name
+                      ? t('pages.bugDetail.legacyReporter', { name: d.legacy_reporter_name })
+                      : none),
+                },
                 { label: t('fields.assignee'), value: d.assigned_to?.display_name ?? none },
                 {
                   label: t('fields.module'),
                   value: d.module ? `${d.module.module_code} - ${d.module.name}` : none,
                 },
+                {
+                  label: t('fields.cycle'),
+                  value: d.cycle ? `${d.cycle.cycle_code} - ${d.cycle.title}` : none,
+                },
                 { label: t('fields.source'), value: t(`codes.defectSource.${d.source_kind}`) },
+                ...(d.source_reference
+                  ? [{ label: t('pages.bugDetail.importedFrom'), value: d.source_reference }]
+                  : []),
+                ...(d.reported_at
+                  ? [
+                      {
+                        label: t('pages.bugDetail.reportedAt'),
+                        value: formatDateTime(d.reported_at, locale),
+                      },
+                    ]
+                  : []),
                 { label: t('fields.environment'), value: d.environment_name ?? none },
                 { label: t('fields.build'), value: d.build_version ?? none },
                 { label: t('fields.browser'), value: d.browser_name ?? none },

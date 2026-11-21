@@ -2,10 +2,14 @@ import {
   TEST_CASE_PRIORITIES,
   TEST_CASE_STATUSES,
   TEST_TYPES,
+  type BulkResult,
   type TestCaseListItem,
 } from '@testboard/shared'
 import { Plus } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CaseBulkActions } from '../components/bulk/CaseBulkActions'
+import { BulkBar, BulkReport } from '../components/ui/BulkBar'
 import { ButtonLink } from '../components/ui/Button'
 import { useCan } from '../hooks/permissions'
 import { CaseStatusBadge } from '../components/status/StatusBadges'
@@ -16,6 +20,7 @@ import { ResponsiveTable } from '../components/ui/ResponsiveTable'
 import { Section } from '../components/ui/Section'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
 import { useModules, useTestCases } from '../hooks/queries'
+import { useRowSelection } from '../hooks/use-row-selection'
 import { oneOf, projectPath, useProjectCode, useUrlFilters } from '../hooks/route-state'
 import { formatShortDateTime, toLocale } from '../lib/format'
 
@@ -36,6 +41,17 @@ export function TestCasesPage() {
     status: oneOf(TEST_CASE_STATUSES, values.status),
     page,
   })
+  const [report, setReport] = useState<BulkResult | null>(null)
+  const canBulk = can('case.write')
+  const selected = useRowSelection<TestCaseListItem>(
+    cases.data?.data ?? [],
+    (row) => row.id,
+    {
+      row: (row) => t('bulk.selectRow', { code: row.case_code }),
+      all: t('bulk.selectPage'),
+    },
+    JSON.stringify(values),
+  )
 
   return (
     <>
@@ -100,9 +116,23 @@ export function TestCasesPage() {
             description={active ? t('pages.cases.emptyFiltered') : t('pages.cases.empty')}
           />
         )}
+        {report && <BulkReport result={report} onClose={() => setReport(null)} />}
+        {canBulk && (
+          <BulkBar count={selected.ids.length} onClear={selected.clear}>
+            <CaseBulkActions
+              code={code}
+              ids={selected.ids}
+              onDone={(result) => {
+                setReport(result)
+                selected.clear()
+              }}
+            />
+          </BulkBar>
+        )}
         {cases.isSuccess && cases.data.total > 0 && (
           <div className={cases.isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
             <ResponsiveTable<TestCaseListItem>
+              selection={canBulk ? selected.selection : undefined}
               caption={t('pages.cases.title')}
               rows={cases.data.data}
               rowKey={(row) => row.id}

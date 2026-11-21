@@ -273,6 +273,8 @@ export interface DefectListItem {
   severity_code: DefectSeverity
   priority_code: DefectPriority
   module: ModuleDto | null
+  /** Phase / test cycle the bug belongs to (ADR 0013). */
+  cycle: Pick<CycleDto, 'id' | 'cycle_code' | 'title'> | null
   reported_by: UserRef | null
   assigned_to: UserRef | null
   created_at: string
@@ -315,6 +317,12 @@ export interface DefectDetail extends DefectListItem {
   build_version: string | null
   browser_name: string | null
   fixed_in_version: string | null
+  /** Imported bugs: reporter name from the sheet (text, not an account). */
+  legacy_reporter_name: string | null
+  /** Imported bugs: original report date. */
+  reported_at: string | null
+  /** Imported bugs: where the row came from. */
+  source_reference: string | null
   linked_executions: DefectLinkedExecution[]
   history: DefectHistoryEntry[]
   comments: DefectCommentDto[]

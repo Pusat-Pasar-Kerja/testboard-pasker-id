@@ -1,5 +1,7 @@
 import {
   canTransitionDefect,
+  DEFECT_REASON_REQUIRED,
+  defectBulkSchema,
   defectCommentSchema,
   defectCreateSchema,
   defectEditableFields,
@@ -7,12 +9,14 @@ import {
   defectStatusSchema,
   defectUpdateSchema,
   fileAttachSchema,
+  type BulkResult,
   type DefectActor,
   type DefectCommentDto,
   type DefectField,
   type DefectStatus,
 } from '@testboard/shared'
 import type { Context } from 'hono'
+import type { z } from 'zod'
 import { Hono } from 'hono'
 import type { Pool, PoolConnection } from 'mysql2/promise'
 import { requirePermission } from '../access/project-access.js'
@@ -70,6 +74,18 @@ async function assertModule(db: Db, projectId: string, moduleId: string | null |
     ]))
   ) {
     throw invalid('module_id', 'Module not found in this project')
+  }
+}
+
+async function assertCycle(db: Db, projectId: string, cycleId: string | null | undefined) {
+  if (!cycleId) return
+  if (
+    !(await selectOne(db, 'SELECT 1 FROM test_cycles WHERE id = ? AND project_id = ?', [
+      cycleId,
+      projectId,
+    ]))
+  ) {
+    throw invalid('cycle_id', 'Cycle not found in this project')
   }
 }
 
@@ -159,6 +175,136 @@ function actorFor(
 
 const sameValue = (a: unknown, b: unknown) => String(a ?? '') === String(b ?? '')
 
+type DefectUpdateBody = z.output<typeof defectUpdateSchema>
+type DefectStatusBody = z.output<typeof defectStatusSchema>
+
+/** Edit one bug (field rights per role). Validation happens before any write. */
+async function applyDefectUpdate(
+  conn: PoolConnection,
+  c: Context<AppEnv>,
+  defectId: string,
+  body: Partial<DefectUpdateBody>,
+): Promise<boolean> {
+  const project = c.get('project')
+  const row = await lockDefect(conn, project.id, defectId)
+  if (
+    body.expected_updated_at &&
+    iso(row.updated_at) !== new Date(body.expected_updated_at).toISOString()
+  ) {
+    throw new AppError(
+      409,
+      'CONFLICT',
+      'This bug was changed by someone else. Reload to see the latest version.',
+    )
+  }
+  const requested = (Object.keys(body) as (keyof DefectUpdateBody)[]).filter(
+    (key): key is DefectField => key !== 'expected_updated_at' && body[key] !== undefined,
+  )
+  const allowed = defectEditableFields(actorFor(c, row))
+  const forbidden = requested.filter((field) => !allowed.includes(field))
+  if (forbidden.length > 0) {
+    throw new AppError(
+      403,
+      'FORBIDDEN',
+      'You cannot change these fields of this bug.',
+      forbidden.map((field) => ({ field, message: 'Not allowed for your role' })),
+    )
+  }
+  const changed = requested.filter((field) => !sameValue(row[field], body[field]))
+  if (changed.length === 0) return false
+  if (changed.includes('module_id')) await assertModule(conn, project.id, body.module_id)
+  if (changed.includes('cycle_id')) await assertCycle(conn, project.id, body.cycle_id)
+  if (changed.includes('assigned_to')) await assertAssignee(conn, project.id, body.assigned_to)
+
+  await execute(
+    conn,
+    `UPDATE defects SET ${changed.map((field) => `${field} = ?`).join(', ')} WHERE id = ?`,
+    [...changed.map((field) => body[field] ?? null), defectId],
+  )
+  await writeAudit(conn, c, {
+    projectId: project.id,
+    entityType: 'defect',
+    entityId: defectId,
+    action: 'UPDATE',
+    oldValues: Object.fromEntries(changed.map((field) => [field, row[field] ?? null])),
+    newValues: Object.fromEntries(changed.map((field) => [field, body[field] ?? null])),
+  })
+  return true
+}
+
+/** Move one bug along the workflow (TB-BUG-004 and the role rules). */
+async function applyDefectStatus(
+  conn: PoolConnection,
+  c: Context<AppEnv>,
+  defectId: string,
+  body: Pick<DefectStatusBody, 'status_code'> &
+    Partial<Pick<DefectStatusBody, 'comment' | 'expected_status' | 'fixed_in_version'>>,
+): Promise<boolean> {
+  const project = c.get('project')
+  const to = body.status_code
+  const row = await lockDefect(conn, project.id, defectId)
+  const from = row.status_code
+  // Bulk: a bug already in the target status is simply unchanged.
+  if (from === to && !body.expected_status) return false
+  if (body.expected_status && body.expected_status !== from) {
+    throw new AppError(
+      409,
+      'CONFLICT',
+      `The bug is already ${from}. Reload to see the latest status.`,
+      [{ field: 'status_code', message: `Current status is ${from}` }],
+    )
+  }
+  // TB-BUG-004: the backend rejects transitions outside the workflow.
+  if (!canTransitionDefect(from, to)) {
+    throw new AppError(409, 'CONFLICT', `A ${from} bug cannot become ${to}.`, [
+      { field: 'status_code', message: `Invalid transition ${from} -> ${to}` },
+    ])
+  }
+  if (!canTransitionDefect(from, to, actorFor(c, row))) {
+    throw new AppError(403, 'FORBIDDEN', 'Your role cannot move this bug to that status.')
+  }
+  const fixVersion =
+    (to === 'FIXED' || to === 'READY_FOR_RETEST') && body.fixed_in_version
+      ? body.fixed_in_version
+      : null
+  await execute(
+    conn,
+    `UPDATE defects
+        SET status_code = ?,
+            fixed_in_version = COALESCE(?, fixed_in_version),
+            resolved_at = CASE WHEN ? = 'FIXED' THEN UTC_TIMESTAMP(3)
+                               WHEN ? = 'REOPENED' THEN NULL ELSE resolved_at END,
+            closed_at = CASE WHEN ? IN ('CLOSED', 'WONT_FIX') THEN UTC_TIMESTAMP(3)
+                             WHEN ? = 'REOPENED' THEN NULL ELSE closed_at END
+      WHERE id = ?`,
+    [to, fixVersion, to, to, to, to, defectId],
+  )
+  await execute(
+    conn,
+    `INSERT INTO defect_status_history (defect_id, from_status, to_status, changed_by, change_comment)
+     VALUES (?, ?, ?, ?, ?)`,
+    [defectId, from, to, c.get('auth')?.userId ?? null, body.comment ?? null],
+  )
+  await writeAudit(conn, c, {
+    projectId: project.id,
+    entityType: 'defect',
+    entityId: defectId,
+    action: 'STATUS_CHANGE',
+    oldValues: { status_code: from },
+    newValues: { status_code: to, comment: body.comment ?? null, fixed_in_version: fixVersion },
+  })
+  return true
+}
+
+/** Short reason code for a bulk item the rules refused. */
+function bulkReason(error: AppError): string {
+  const detail = error.details[0]?.message ?? ''
+  if (error.status === 403) return 'FORBIDDEN'
+  if (detail.startsWith('Invalid transition')) return 'INVALID_TRANSITION'
+  if (error.status === 404) return 'NOT_FOUND'
+  return error.code
+}
+
 export function defectWriteRoutes(pool: Pool) {
   const routes = new Hono<AppEnv>()
   const idempotency = new IdempotencyStore()
@@ -185,23 +331,38 @@ export function defectWriteRoutes(pool: Pool) {
 
     const defectId = await withTransaction(pool, async (conn) => {
       await assertModule(conn, project.id, body.module_id)
+      await assertCycle(conn, project.id, body.cycle_id)
       await assertAssignee(conn, project.id, body.assigned_to)
       await assertExecutions(conn, project.id, executionIds)
       await assertAttachable(conn, project.id, body.evidence ?? [])
+      // Found in a test attempt and no cycle chosen: the bug follows the run's cycle.
+      let cycleId = body.cycle_id ?? null
+      if (!cycleId && executionIds.length > 0) {
+        const run = await selectOne<{ cycle_id: string | null }>(
+          conn,
+          `SELECT r.cycle_id FROM test_executions e
+             JOIN test_run_cases trc ON trc.id = e.run_case_id
+             JOIN test_runs r ON r.id = trc.test_run_id
+            WHERE e.id = ?`,
+          [executionIds[0]],
+        )
+        cycleId = run?.cycle_id === null || run?.cycle_id === undefined ? null : String(run.cycle_id)
+      }
       const bugCode = body.bug_code ?? (await nextBugCode(conn, project.id, project.code))
       let id: string
       try {
         const result = await execute(
           conn,
           `INSERT INTO defects
-             (project_id, module_id, bug_code, title, description, steps_to_reproduce,
+             (project_id, module_id, cycle_id, bug_code, title, description, steps_to_reproduce,
               expected_behavior, actual_behavior, severity_code, priority_code, status_code,
               source_kind, environment_name, build_version, browser_name, reported_by,
               assigned_to, fixed_in_version)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?)`,
           [
             project.id,
             body.module_id ?? null,
+            cycleId,
             bugCode,
             body.title,
             body.description ?? null,
@@ -261,51 +422,7 @@ export function defectWriteRoutes(pool: Pool) {
     const project = c.get('project')
     const defectId = idParam(c, 'defectId')
     const body = await parseBody(c, defectUpdateSchema)
-
-    await withTransaction(pool, async (conn) => {
-      const row = await lockDefect(conn, project.id, defectId)
-      if (
-        body.expected_updated_at &&
-        iso(row.updated_at) !== new Date(body.expected_updated_at).toISOString()
-      ) {
-        throw new AppError(
-          409,
-          'CONFLICT',
-          'This bug was changed by someone else. Reload to see the latest version.',
-        )
-      }
-      const requested = (Object.keys(body) as (keyof typeof body)[]).filter(
-        (key): key is DefectField => key !== 'expected_updated_at' && body[key] !== undefined,
-      )
-      const allowed = defectEditableFields(actorFor(c, row))
-      const forbidden = requested.filter((field) => !allowed.includes(field))
-      if (forbidden.length > 0) {
-        throw new AppError(
-          403,
-          'FORBIDDEN',
-          'You cannot change these fields of this bug.',
-          forbidden.map((field) => ({ field, message: 'Not allowed for your role' })),
-        )
-      }
-      const changed = requested.filter((field) => !sameValue(row[field], body[field]))
-      if (changed.length === 0) return
-      if (changed.includes('module_id')) await assertModule(conn, project.id, body.module_id)
-      if (changed.includes('assigned_to')) await assertAssignee(conn, project.id, body.assigned_to)
-
-      await execute(
-        conn,
-        `UPDATE defects SET ${changed.map((field) => `${field} = ?`).join(', ')} WHERE id = ?`,
-        [...changed.map((field) => body[field] ?? null), defectId],
-      )
-      await writeAudit(conn, c, {
-        projectId: project.id,
-        entityType: 'defect',
-        entityId: defectId,
-        action: 'UPDATE',
-        oldValues: Object.fromEntries(changed.map((field) => [field, row[field] ?? null])),
-        newValues: Object.fromEntries(changed.map((field) => [field, body[field] ?? null])),
-      })
-    })
+    await withTransaction(pool, (conn) => applyDefectUpdate(conn, c, defectId, body))
     return c.json(await loadDefectDetail(pool, project.id, defectId))
   })
 
@@ -313,60 +430,63 @@ export function defectWriteRoutes(pool: Pool) {
     const project = c.get('project')
     const defectId = idParam(c, 'defectId')
     const body = await parseBody(c, defectStatusSchema)
-    const to = body.status_code
-
-    await withTransaction(pool, async (conn) => {
-      const row = await lockDefect(conn, project.id, defectId)
-      const from = row.status_code
-      if (body.expected_status && body.expected_status !== from) {
-        throw new AppError(
-          409,
-          'CONFLICT',
-          `The bug is already ${from}. Reload to see the latest status.`,
-          [{ field: 'status_code', message: `Current status is ${from}` }],
-        )
-      }
-      // TB-BUG-004: the backend rejects transitions outside the workflow.
-      if (!canTransitionDefect(from, to)) {
-        throw new AppError(409, 'CONFLICT', `A ${from} bug cannot become ${to}.`, [
-          { field: 'status_code', message: `Invalid transition ${from} -> ${to}` },
-        ])
-      }
-      if (!canTransitionDefect(from, to, actorFor(c, row))) {
-        throw new AppError(403, 'FORBIDDEN', 'Your role cannot move this bug to that status.')
-      }
-      const fixVersion =
-        (to === 'FIXED' || to === 'READY_FOR_RETEST') && body.fixed_in_version
-          ? body.fixed_in_version
-          : null
-      await execute(
-        conn,
-        `UPDATE defects
-            SET status_code = ?,
-                fixed_in_version = COALESCE(?, fixed_in_version),
-                resolved_at = CASE WHEN ? = 'FIXED' THEN UTC_TIMESTAMP(3)
-                                   WHEN ? = 'REOPENED' THEN NULL ELSE resolved_at END,
-                closed_at = CASE WHEN ? IN ('CLOSED', 'WONT_FIX') THEN UTC_TIMESTAMP(3)
-                                 WHEN ? = 'REOPENED' THEN NULL ELSE closed_at END
-          WHERE id = ?`,
-        [to, fixVersion, to, to, to, to, defectId],
-      )
-      await execute(
-        conn,
-        `INSERT INTO defect_status_history (defect_id, from_status, to_status, changed_by, change_comment)
-         VALUES (?, ?, ?, ?, ?)`,
-        [defectId, from, to, c.get('auth')?.userId ?? null, body.comment ?? null],
-      )
-      await writeAudit(conn, c, {
-        projectId: project.id,
-        entityType: 'defect',
-        entityId: defectId,
-        action: 'STATUS_CHANGE',
-        oldValues: { status_code: from },
-        newValues: { status_code: to, comment: body.comment ?? null, fixed_in_version: fixVersion },
-      })
-    })
+    await withTransaction(pool, (conn) => applyDefectStatus(conn, c, defectId, body))
     return c.json(await loadDefectDetail(pool, project.id, defectId))
+  })
+
+  /**
+   * Bulk edit / status change (ADR 0013). Each bug goes through the single-bug rules;
+   * a bug the rules refuse is skipped and reported, the others are saved together.
+   */
+  routes.post('/bulk', requirePermission('defect.update'), async (c) => {
+    const project = c.get('project')
+    const body = await parseBody(c, defectBulkSchema)
+    if (
+      body.action === 'status' &&
+      DEFECT_REASON_REQUIRED.includes(body.status_code) &&
+      !body.comment
+    ) {
+      throw invalid('comment', 'A reason is required')
+    }
+    const ids = [...new Set(body.defect_ids)]
+    const result: BulkResult = { updated: 0, unchanged: 0, skipped: [] }
+    await withTransaction(pool, async (conn) => {
+      // Shared targets are checked once: a wrong module fails the request, not every bug.
+      if (body.action === 'update') {
+        await assertModule(conn, project.id, body.changes.module_id)
+        await assertCycle(conn, project.id, body.changes.cycle_id)
+        await assertAssignee(conn, project.id, body.changes.assigned_to)
+      }
+      const found = await select<{ id: string; bug_code: string }>(
+        conn,
+        `SELECT id, bug_code FROM defects
+          WHERE project_id = ? AND id IN (${ids.map(() => '?').join(', ')})`,
+        [project.id, ...ids],
+      )
+      const codes = new Map(found.map((row) => [String(row.id), row.bug_code]))
+      for (const id of ids) {
+        const code = codes.get(id)
+        if (!code) {
+          result.skipped.push({ id, code: '', reason: 'NOT_FOUND' })
+          continue
+        }
+        try {
+          const changed =
+            body.action === 'update'
+              ? await applyDefectUpdate(conn, c, id, body.changes)
+              : await applyDefectStatus(conn, c, id, {
+                  status_code: body.status_code,
+                  comment: body.comment ?? null,
+                })
+          if (changed) result.updated += 1
+          else result.unchanged += 1
+        } catch (error) {
+          if (!(error instanceof AppError)) throw error
+          result.skipped.push({ id, code, reason: bulkReason(error) })
+        }
+      }
+    })
+    return c.json(result)
   })
 
   routes.post('/:defectId/comments', requirePermission('defect.comment'), async (c) => {

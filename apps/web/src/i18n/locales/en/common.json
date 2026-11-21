@@ -100,7 +100,8 @@
     "all": "All",
     "allRuns": "All runs",
     "openOnly": "Not done yet",
-    "fileStatus": "File status"
+    "fileStatus": "File status",
+    "cycle": "Cycle"
   },
   "codes": {
     "execution": {
@@ -465,7 +466,8 @@
       "newBug": "Report a bug",
       "assigneeFilter": "Assignment",
       "mine": "Assigned to me",
-      "unassigned": "Unassigned"
+      "unassigned": "Unassigned",
+      "noCycle": "No cycle"
     },
     "bugDetail": {
       "details": "Details",
@@ -502,7 +504,10 @@
       "unlinkTitle": "Unlink {{case}} attempt #{{n}}?",
       "unlinkBody": "The test result is not deleted; only its link to this bug is removed.",
       "unlinked": "Link removed.",
-      "files": "Attachments"
+      "files": "Attachments",
+      "legacyReporter": "{{name}} (from an imported file)",
+      "importedFrom": "Imported from",
+      "reportedAt": "Reported on"
     },
     "comingSoon": {
       "title": "Coming soon",
@@ -685,7 +690,9 @@
       "created": "Bug {{code}} created.",
       "saved": "Bug changes saved.",
       "attemptFiles": "Include the evidence of attempt #{{n}}",
-      "newFiles": "More evidence"
+      "newFiles": "More evidence",
+      "noCycle": "No cycle",
+      "cycleFromRun": "Leave empty to use the cycle of the run where this bug was found."
     },
     "evidence": {
       "title": "Evidence Center",
@@ -1266,5 +1273,49 @@
       "emptyOpen": "No requests are waiting.",
       "empty": "No requests for this filter."
     }
+  },
+  "bulk": {
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected",
+    "clear": "Clear selection",
+    "selectRow": "Select {{code}}",
+    "selectPage": "Select everything on this page",
+    "report": "{{updated}} changed · {{unchanged}} already so · {{skipped}} skipped",
+    "reasons": {
+      "NOT_FOUND": "not found",
+      "FORBIDDEN": "your role cannot change it",
+      "INVALID_TRANSITION": "its current status cannot move straight to that status",
+      "ARCHIVED": "already archived",
+      "NOT_READY": "not Ready yet",
+      "CONFLICT": "conflicts with the latest state",
+      "VALIDATION_ERROR": "invalid data"
+    },
+    "property": "Change",
+    "action": "Action",
+    "newValue": "New value",
+    "chooseValue": "Choose…",
+    "reason": "Reason (required)",
+    "apply_one": "Apply to {{count}}",
+    "apply_other": "Apply to {{count}}",
+    "bugFields": {
+      "status": "Status",
+      "severity_code": "Severity",
+      "priority_code": "Priority",
+      "module_id": "Module",
+      "cycle_id": "Cycle",
+      "assigned_to": "Assignee"
+    },
+    "caseActions": {
+      "ready": "Mark ready",
+      "draft": "Make draft",
+      "set_module": "Move to module",
+      "set_priority": "Change priority",
+      "add_to_run": "Add to run",
+      "archive": "Archive"
+    },
+    "noOpenRun": "No planned or active run yet",
+    "archiveTitle_one": "Archive {{count}} test case?",
+    "archiveTitle_other": "Archive {{count}} test cases?",
+    "archiveBody": "Archived test cases cannot be used in new runs. Old results stay, and a test case can be restored at any time."
   }
 }

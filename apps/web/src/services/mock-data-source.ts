@@ -1,5 +1,9 @@
 import {
   adminProjectUpdateSchema,
+  caseBulkSchema,
+  DEFECT_REASON_REQUIRED,
+  defectBulkSchema,
+  type BulkResult,
   defaultSiteSettings,
   projectCreateSchema,
   PUBLIC_SITE_SETTING_KEYS,
@@ -178,15 +182,20 @@ export function createMockDataSource(
   const db = options.db ?? createMockDb()
   /** Demo-session audit entries (exports); the rest of the log is derived from the data. */
   const sessionAudit: MockAuditEntry[] = []
+  /** > 0 while a bulk action runs: its inner single-item calls skip the demo latency. */
+  let bulkDepth = 0
   const delay = <T>(value: () => T): Promise<T> =>
     new Promise((resolve, reject) =>
-      setTimeout(() => {
-        try {
-          resolve(value())
-        } catch (error) {
-          reject(error)
-        }
-      }, latencyMs),
+      setTimeout(
+        () => {
+          try {
+            resolve(value())
+          } catch (error) {
+            reject(error)
+          }
+        },
+        bulkDepth > 0 ? 0 : latencyMs,
+      ),
     )
 
   const userRef = (userId: string | null): UserRef | null => {
@@ -278,6 +287,10 @@ export function createMockDataSource(
     severity_code: d.severity_code,
     priority_code: d.priority_code,
     module: moduleDto(d.moduleId),
+    cycle: (() => {
+      const cy = db.cycles.find((x) => x.id === d.cycleId)
+      return cy ? { id: cy.id, cycle_code: cy.cycle_code, title: cy.title } : null
+    })(),
     reported_by: userRef(d.reportedBy),
     assigned_to: userRef(d.assignedTo),
     created_at: d.created_at,
@@ -925,6 +938,11 @@ export function createMockDataSource(
       fail(422, 'VALIDATION_ERROR', 'module_id', 'Module not found in this project')
     }
   }
+  const assertDefectCycle = (projectId: string, cycleId: string | null | undefined) => {
+    if (cycleId && !db.cycles.some((cy) => cy.id === cycleId && cy.projectId === projectId)) {
+      fail(422, 'VALIDATION_ERROR', 'cycle_id', 'Cycle not found in this project')
+    }
+  }
   const executionInProject = (projectId: string, executionId: string) => {
     const exec = db.executions.find((e) => e.id === executionId)
     const rc = db.runCases.find((x) => x.id === exec?.runCaseId)
@@ -953,6 +971,7 @@ export function createMockDataSource(
     expected_behavior: 'expected_behavior',
     actual_behavior: 'actual_behavior',
     module_id: 'moduleId',
+    cycle_id: 'cycleId',
     severity_code: 'severity_code',
     priority_code: 'priority_code',
     environment_name: 'environment_name',
@@ -961,7 +980,12 @@ export function createMockDataSource(
     assigned_to: 'assignedTo',
     fixed_in_version: 'fixed_in_version',
   }
-  const NULLABLE_PROPS = new Set<keyof MockDefect>(['moduleId', 'assignedTo', 'fixed_in_version'])
+  const NULLABLE_PROPS = new Set<keyof MockDefect>([
+    'moduleId',
+    'cycleId',
+    'assignedTo',
+    'fixed_in_version',
+  ])
   const defectDetail = (d: MockDefect): DefectDetail => ({
     ...defectListItem(d),
     description: d.description || null,
@@ -973,6 +997,9 @@ export function createMockDataSource(
     build_version: d.build_version || null,
     browser_name: d.browser_name || null,
     fixed_in_version: d.fixed_in_version,
+    legacy_reporter_name: d.legacyReporterName ?? null,
+    reported_at: d.reportedAt ?? null,
+    source_reference: d.sourceReference ?? null,
     linked_executions: d.executionIds.flatMap((eid) => {
       const exec = db.executions.find((e) => e.id === eid)
       const rc = db.runCases.find((x) => x.id === exec?.runCaseId)
@@ -1080,7 +1107,7 @@ export function createMockDataSource(
   }
   const replays = new Map<string, ExecutionDto>()
 
-  return {
+  const api: DataSource = {
     kind: 'mock',
 
     getHealth: () =>
@@ -1763,6 +1790,10 @@ export function createMockDataSource(
                 : d.assignedTo === query.assigned_to),
           )
           .filter(
+            (d) =>
+              !query.cycle || (query.cycle === 'none' ? !d.cycleId : d.cycleId === query.cycle),
+          )
+          .filter(
             (d) => !q || d.bug_code.toLowerCase().includes(q) || d.title.toLowerCase().includes(q),
           )
           .map(defectListItem)
@@ -1786,6 +1817,7 @@ export function createMockDataSource(
           forbidden('Only an ADMIN or QA_LEAD can assign a bug.', ['assigned_to'])
         }
         assertDefectModule(p.id, data.module_id)
+        assertDefectCycle(p.id, data.cycle_id)
         assertDefectAssignee(p.id, data.assigned_to)
         const executionIds = [...new Set(data.execution_ids ?? [])]
         if (executionIds.some((id) => !executionInProject(p.id, id))) {
@@ -1801,6 +1833,14 @@ export function createMockDataSource(
           id: newId(),
           projectId: p.id,
           moduleId: data.module_id ?? null,
+          // Found in a test attempt and no cycle chosen: follow the run's cycle.
+          cycleId:
+            data.cycle_id ??
+            (() => {
+              const exec = db.executions.find((e) => e.id === executionIds[0])
+              const rc = db.runCases.find((x) => x.id === exec?.runCaseId)
+              return db.runs.find((r) => r.id === rc?.runId)?.cycleId ?? null
+            })(),
           bug_code: bugCode,
           title: data.title,
           description: data.description ?? '',
@@ -1853,6 +1893,7 @@ export function createMockDataSource(
         )
         if (changed.length === 0) return defectDetail(d)
         if (changed.includes('module_id')) assertDefectModule(p.id, data.module_id)
+        if (changed.includes('cycle_id')) assertDefectCycle(p.id, data.cycle_id)
         if (changed.includes('assigned_to')) assertDefectAssignee(p.id, data.assigned_to)
         const target = d as unknown as Record<string, unknown>
         for (const field of changed) {
@@ -2478,5 +2519,122 @@ export function createMockDataSource(
       }),
 
     ...recovery.methods,
+
+    // ---- Bulk actions (ADR 0013): each item through the single-item rules -----------
+    bulkDefects: async (code, input) => {
+      const parsed = defectBulkSchema.safeParse(input)
+      if (!parsed.success) return validationError(parsed.error.issues)
+      const body = parsed.data
+      const p = project(code)
+      requireRole(p.id, 'defect.update')
+      if (
+        body.action === 'status' &&
+        DEFECT_REASON_REQUIRED.includes(body.status_code) &&
+        !body.comment
+      ) {
+        fail(422, 'VALIDATION_ERROR', 'comment', 'A reason is required')
+      }
+      if (body.action === 'update') {
+        assertDefectModule(p.id, body.changes.module_id)
+        assertDefectCycle(p.id, body.changes.cycle_id)
+        assertDefectAssignee(p.id, body.changes.assigned_to)
+      }
+      return runBulk(body.defect_ids, async (id) => {
+        const d = db.defects.find((x) => x.id === id && x.projectId === p.id)
+        if (!d) return { code: '', outcome: 'NOT_FOUND' }
+        const before = JSON.stringify(defectListItem(d))
+        if (body.action === 'status' && d.status_code === body.status_code) {
+          return { code: d.bug_code, outcome: 'unchanged' }
+        }
+        if (body.action === 'update') await api.updateDefect(code, id, body.changes)
+        else {
+          await api.changeDefectStatus(code, id, {
+            status_code: body.status_code,
+            comment: body.comment ?? undefined,
+          })
+        }
+        return {
+          code: d.bug_code,
+          outcome: JSON.stringify(defectListItem(d)) === before ? 'unchanged' : 'updated',
+        }
+      })
+    },
+
+    bulkTestCases: async (code, input) => {
+      const parsed = caseBulkSchema.safeParse(input)
+      if (!parsed.success) return validationError(parsed.error.issues)
+      const body = parsed.data
+      const p = project(code)
+      requireRole(p.id, body.action === 'archive' ? 'case.archive' : 'case.write')
+      if (body.action === 'set_module' && moduleIdByCode(p.id, body.module_code) === undefined) {
+        fail(422, 'VALIDATION_ERROR', 'module_code', 'Module not found in this project')
+      }
+      return runBulk(body.case_ids, async (id) => {
+        const c = db.cases.find((x) => x.id === id && x.projectId === p.id)
+        if (!c) return { code: '', outcome: 'NOT_FOUND' }
+        const before = c.current_version
+        if (body.action === 'archive') await api.archiveTestCase(code, id)
+        else {
+          const change =
+            body.action === 'set_status'
+              ? { case_status: body.case_status }
+              : body.action === 'set_module'
+                ? { module_code: body.module_code }
+                : { priority_code: body.priority_code }
+          const same =
+            (body.action === 'set_status' && c.case_status === body.case_status) ||
+            (body.action === 'set_priority' && c.priority_code === body.priority_code) ||
+            (body.action === 'set_module' &&
+              moduleDto(c.moduleId)?.module_code === body.module_code)
+          if (same) return { code: c.case_code, outcome: 'unchanged' }
+          await api.updateTestCase(code, id, change)
+        }
+        return { code: c.case_code, outcome: c.current_version > before ? 'updated' : 'unchanged' }
+      })
+    },
   }
+
+  /** Runs items one by one without demo latency; refused items become "skipped". */
+  async function runBulk(
+    ids: string[],
+    apply: (id: string) => Promise<{ code: string; outcome: string }>,
+  ): Promise<BulkResult> {
+    const result: BulkResult = { updated: 0, unchanged: 0, skipped: [] }
+    bulkDepth += 1
+    try {
+      for (const id of [...new Set(ids)]) {
+        let code = ''
+        try {
+          const done = await apply(id)
+          code = done.code
+          if (done.outcome === 'updated') result.updated += 1
+          else if (done.outcome === 'unchanged') result.unchanged += 1
+          else result.skipped.push({ id, code, reason: done.outcome })
+        } catch (error) {
+          if (!(error instanceof ApiClientError)) throw error
+          const detail = error.details[0]?.message ?? ''
+          result.skipped.push({
+            id,
+            code:
+              code ||
+              (db.defects.find((d) => d.id === id)?.bug_code ??
+                db.cases.find((c) => c.id === id)?.case_code ??
+                ''),
+            reason:
+              error.status === 403
+                ? 'FORBIDDEN'
+                : detail.startsWith('Invalid transition')
+                  ? 'INVALID_TRANSITION'
+                  : error.status === 409
+                    ? 'ARCHIVED'
+                    : error.code,
+          })
+        }
+      }
+    } finally {
+      bulkDepth -= 1
+    }
+    return result
+  }
+  return api
 }

@@ -170,6 +170,10 @@ export interface MockDefect {
   id: string
   projectId: string
   moduleId: string | null
+  cycleId?: string | null
+  legacyReporterName?: string | null
+  reportedAt?: string | null
+  sourceReference?: string | null
   bug_code: string
   title: string
   description: string

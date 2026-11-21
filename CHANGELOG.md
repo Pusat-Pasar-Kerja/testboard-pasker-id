@@ -2,6 +2,20 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.11.1] - 2026-11-21
+
+Perubahan v1 tahap 4, bagian 1: siklus pada bug dan aksi massal (ADR 0013).
+
+### Ditambahkan
+
+- **Siklus (fase) pada bug**: pilih di formulir bug, tampil di detail, kolom dan filter "Siklus" di Daftar Bug. Bug yang dilaporkan dari hasil uji otomatis mengikuti siklus run-nya bila siklus tidak dipilih.
+- **Pilih banyak + aksi massal**:
+  - _Daftar Bug_: ubah status, severity, prioritas, modul, siklus, atau penanggung jawab sekaligus.
+  - _Test Case_: tandai Siap / jadikan Draf, pindahkan ke modul, ubah prioritas, tambahkan ke run, atau arsipkan sekaligus.
+  - Setiap item mengikuti aturan yang sama seperti diubah satu per satu (hak peran, alur status, versi baru, log aktivitas). Item yang ditolak dilewati dan dilaporkan beserta alasannya.
+- Detail bug menampilkan pelapor, tanggal, dan asal baris untuk bug hasil impor (persiapan impor Tracker).
+- Migration `0009_data_tools.sql`: hanya menambah 5 kolom NULL.
+
 ## [0.11.0] - 2026-11-21
 
 Perubahan v1 tahap 3: tema pastel dan logo baru, sesuai pilihan pemilik proyek (palet A "Langit lembut", logo 2 "Papan centang").

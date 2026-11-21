@@ -2,11 +2,15 @@ import {
   DEFECT_PRIORITIES,
   DEFECT_SEVERITIES,
   DEFECT_STATUSES,
+  type BulkResult,
   type DefectListItem,
   type DefectStatus,
 } from '@testboard/shared'
 import { Plus } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { BugBulkActions } from '../components/bulk/BugBulkActions'
+import { BulkBar, BulkReport } from '../components/ui/BulkBar'
 import {
   DefectPriorityBadge,
   DefectStatusBadge,
@@ -20,11 +24,12 @@ import { ResponsiveTable } from '../components/ui/ResponsiveTable'
 import { Section } from '../components/ui/Section'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
 import { useCan } from '../hooks/permissions'
-import { useCurrentUser, useDefects, useMembers } from '../hooks/queries'
+import { useCurrentUser, useCycles, useDefects, useMembers } from '../hooks/queries'
+import { useRowSelection } from '../hooks/use-row-selection'
 import { oneOf, projectPath, useProjectCode, useUrlFilters } from '../hooks/route-state'
 import { formatShortDateTime, toLocale } from '../lib/format'
 
-const FILTER_KEYS = ['q', 'status', 'severity', 'priority', 'assignee'] as const
+const FILTER_KEYS = ['q', 'status', 'severity', 'priority', 'assignee', 'cycle'] as const
 const STATUS_FILTERS: readonly (DefectStatus | 'open')[] = ['open', ...DEFECT_STATUSES]
 
 export function BugsPage() {
@@ -35,6 +40,8 @@ export function BugsPage() {
   const can = useCan(code)
   const me = useCurrentUser()
   const members = useMembers(code)
+  const cycles = useCycles(code)
+  const [report, setReport] = useState<BulkResult | null>(null)
   const assignee = values.assignee === 'me' ? me.data?.id : values.assignee || undefined
   const defects = useDefects(code, {
     q: values.q || undefined,
@@ -42,8 +49,19 @@ export function BugsPage() {
     severity: oneOf(DEFECT_SEVERITIES, values.severity),
     priority: oneOf(DEFECT_PRIORITIES, values.priority),
     assigned_to: assignee,
+    cycle: values.cycle || undefined,
     page,
   })
+  const canBulk = can('defect.update')
+  const selected = useRowSelection<DefectListItem>(
+    defects.data?.data ?? [],
+    (row) => row.id,
+    {
+      row: (row) => t('bulk.selectRow', { code: row.bug_code }),
+      all: t('bulk.selectPage'),
+    },
+    JSON.stringify(values),
+  )
 
   return (
     <>
@@ -103,6 +121,18 @@ export function BugsPage() {
               .map((m) => ({ value: m.user.id, label: m.user.display_name })),
           ]}
         />
+        <SelectFilter
+          label={t('filters.cycle')}
+          value={values.cycle}
+          onChange={(value) => setFilter('cycle', value)}
+          options={[
+            { value: 'none', label: t('pages.bugs.noCycle') },
+            ...(cycles.data ?? []).map((cy) => ({
+              value: cy.id,
+              label: `${cy.cycle_code} - ${cy.title}`,
+            })),
+          ]}
+        />
       </FilterBar>
 
       <Section>
@@ -116,9 +146,24 @@ export function BugsPage() {
             description={active ? t('pages.bugs.emptyFiltered') : t('pages.bugs.empty')}
           />
         )}
+        {report && <BulkReport result={report} onClose={() => setReport(null)} />}
+        {canBulk && (
+          <BulkBar count={selected.ids.length} onClear={selected.clear}>
+            <BugBulkActions
+              code={code}
+              ids={selected.ids}
+              isLead={can('run.assign')}
+              onDone={(result) => {
+                setReport(result)
+                selected.clear()
+              }}
+            />
+          </BulkBar>
+        )}
         {defects.isSuccess && defects.data.total > 0 && (
           <div className={defects.isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
             <ResponsiveTable<DefectListItem>
+              selection={canBulk ? selected.selection : undefined}
               caption={t('pages.bugs.title')}
               rows={defects.data.data}
               rowKey={(row) => row.id}
@@ -153,6 +198,13 @@ export function BugsPage() {
                   header: t('fields.priority'),
                   render: (row) => <DefectPriorityBadge priority={row.priority_code} />,
                   hideBelow: 'lg',
+                },
+                {
+                  key: 'cycle',
+                  header: t('fields.cycle'),
+                  render: (row) => row.cycle?.cycle_code ?? t('fields.none'),
+                  className: 'whitespace-nowrap',
+                  hideBelow: 'xl',
                 },
                 {
                   key: 'assignee',

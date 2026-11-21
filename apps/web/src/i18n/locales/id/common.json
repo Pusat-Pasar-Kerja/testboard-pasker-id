@@ -100,7 +100,8 @@
     "all": "Semua",
     "allRuns": "Semua run",
     "openOnly": "Belum selesai",
-    "fileStatus": "Status file"
+    "fileStatus": "Status file",
+    "cycle": "Siklus"
   },
   "codes": {
     "execution": {
@@ -465,7 +466,8 @@
       "newBug": "Laporkan bug",
       "assigneeFilter": "Penugasan",
       "mine": "Ditugaskan ke saya",
-      "unassigned": "Belum ditugaskan"
+      "unassigned": "Belum ditugaskan",
+      "noCycle": "Tanpa siklus"
     },
     "bugDetail": {
       "details": "Detail",
@@ -502,7 +504,10 @@
       "unlinkTitle": "Lepas tautan ke {{case}} percobaan #{{n}}?",
       "unlinkBody": "Hasil uji tidak terhapus; hanya tautannya ke bug ini yang dilepas.",
       "unlinked": "Tautan dilepas.",
-      "files": "Lampiran"
+      "files": "Lampiran",
+      "legacyReporter": "{{name}} (dari file impor)",
+      "importedFrom": "Asal impor",
+      "reportedAt": "Dilaporkan pada"
     },
     "comingSoon": {
       "title": "Segera hadir",
@@ -685,7 +690,9 @@
       "created": "Bug {{code}} dibuat.",
       "saved": "Perubahan bug disimpan.",
       "attemptFiles": "Sertakan bukti dari percobaan #{{n}}",
-      "newFiles": "Bukti tambahan"
+      "newFiles": "Bukti tambahan",
+      "noCycle": "Tanpa siklus",
+      "cycleFromRun": "Kosongkan untuk mengikuti siklus run tempat bug ini ditemukan."
     },
     "evidence": {
       "title": "Pusat Bukti",
@@ -1266,5 +1273,49 @@
       "emptyOpen": "Tidak ada permintaan yang menunggu.",
       "empty": "Tidak ada permintaan untuk filter ini."
     }
+  },
+  "bulk": {
+    "selected_one": "{{count}} dipilih",
+    "selected_other": "{{count}} dipilih",
+    "clear": "Batal pilih",
+    "selectRow": "Pilih {{code}}",
+    "selectPage": "Pilih semua di halaman ini",
+    "report": "{{updated}} diubah · {{unchanged}} sudah sesuai · {{skipped}} dilewati",
+    "reasons": {
+      "NOT_FOUND": "tidak ditemukan",
+      "FORBIDDEN": "peran Anda tidak boleh mengubahnya",
+      "INVALID_TRANSITION": "status sekarang tidak bisa langsung pindah ke status itu",
+      "ARCHIVED": "sudah diarsipkan",
+      "NOT_READY": "belum berstatus Siap",
+      "CONFLICT": "bertentangan dengan kondisi terbaru",
+      "VALIDATION_ERROR": "data tidak valid"
+    },
+    "property": "Yang diubah",
+    "action": "Aksi",
+    "newValue": "Nilai baru",
+    "chooseValue": "Pilih…",
+    "reason": "Alasan (wajib)",
+    "apply_one": "Terapkan ke {{count}}",
+    "apply_other": "Terapkan ke {{count}}",
+    "bugFields": {
+      "status": "Status",
+      "severity_code": "Severity",
+      "priority_code": "Prioritas",
+      "module_id": "Modul",
+      "cycle_id": "Siklus",
+      "assigned_to": "Penanggung jawab"
+    },
+    "caseActions": {
+      "ready": "Tandai Siap",
+      "draft": "Jadikan Draf",
+      "set_module": "Pindahkan ke modul",
+      "set_priority": "Ubah prioritas",
+      "add_to_run": "Tambahkan ke run",
+      "archive": "Arsipkan"
+    },
+    "noOpenRun": "Belum ada run yang direncanakan atau aktif",
+    "archiveTitle_one": "Arsipkan {{count}} test case?",
+    "archiveTitle_other": "Arsipkan {{count}} test case?",
+    "archiveBody": "Test case yang diarsipkan tidak bisa dipakai di run baru. Hasil uji lama tetap tersimpan, dan test case bisa diaktifkan lagi kapan saja."
   }
 }
