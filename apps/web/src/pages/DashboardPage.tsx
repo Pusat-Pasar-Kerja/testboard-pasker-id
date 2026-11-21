@@ -58,16 +58,19 @@ export function DashboardPage() {
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
             <StatTile
               icon={ClipboardList}
+              tone="lavender"
               label={t('pages.dashboard.kpiPlanned')}
               value={formatNumber(data.total_run_cases, locale)}
             />
             <StatTile
               icon={CircleCheck}
+              tone="mint"
               label={t('pages.dashboard.kpiExecuted')}
               value={formatNumber(executedOf(data.counts), locale)}
             />
             <StatTile
               icon={Percent}
+              tone="sky"
               label={t('pages.dashboard.kpiPassRate')}
               value={(() => {
                 const rate = passRate(data.counts)
@@ -76,12 +79,14 @@ export function DashboardPage() {
             />
             <StatTile
               icon={Bug}
+              tone="peach"
               label={t('pages.dashboard.kpiOpenBugs')}
               value={formatNumber(data.open_defects, locale)}
               to={bugs('status=open')}
             />
             <StatTile
               icon={TriangleAlert}
+              tone="butter"
               label={t('pages.dashboard.kpiCriticalHigh')}
               value={formatNumber(data.critical_high_open_defects, locale)}
               to={bugs('status=open')}

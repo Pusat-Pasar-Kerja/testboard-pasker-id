@@ -70,7 +70,7 @@ export function SidebarNav({
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition-colors ${
       isActive
-        ? 'bg-brand-50 font-semibold text-brand-700 shadow-[inset_3px_0_0_var(--color-brand-600)]'
+        ? 'bg-brand-100 font-semibold text-brand-800 shadow-[inset_3px_0_0_var(--color-brand-600)]'
         : 'text-ink hover:bg-neutral-soft'
     }`
 

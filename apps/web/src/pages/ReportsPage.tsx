@@ -33,6 +33,7 @@ import {
 } from '../components/audit/audit-labels'
 import { SeverityBars } from '../components/charts/SeverityBars'
 import { StatTile } from '../components/charts/StatTile'
+import type { Pastel } from '../components/ui/pastel'
 import { StatusBar } from '../components/charts/StatusBar'
 import { RunStatusBadge } from '../components/status/StatusBadges'
 import { Badge } from '../components/ui/Badge'
@@ -142,19 +143,29 @@ function OverviewBody({ code, data }: { code: string; data: ReportOverview }) {
   const severityOpen = Object.fromEntries(
     DEFECT_SEVERITIES.map((s) => [s, data.defects.by_severity[s].open]),
   ) as Record<DefectSeverity, number>
-  const tiles: { icon: LucideIcon; label: string; value: string; hint?: string; to?: string }[] = [
+  const tiles: {
+    icon: LucideIcon
+    tone: Pastel
+    label: string
+    value: string
+    hint?: string
+    to?: string
+  }[] = [
     {
       icon: ClipboardList,
+      tone: 'lavender',
       label: t('pages.reports.kpi.runCases'),
       value: formatNumber(data.totals.run_cases, locale),
     },
     {
       icon: CircleCheck,
+      tone: 'mint',
       label: t('pages.reports.kpi.executed'),
       value: formatNumber(data.totals.executed, locale),
     },
     {
       icon: Percent,
+      tone: 'sky',
       label: t('pages.reports.kpi.passRate'),
       value:
         data.totals.pass_rate === null
@@ -163,12 +174,14 @@ function OverviewBody({ code, data }: { code: string; data: ReportOverview }) {
     },
     {
       icon: RotateCcw,
+      tone: 'butter',
       label: t('pages.reports.kpi.attempts'),
       value: formatNumber(data.totals.attempts, locale),
       hint: t('pages.reports.kpi.retests', { count: data.totals.retests }),
     },
     {
       icon: Bug,
+      tone: 'peach',
       label: t('pages.reports.kpi.openBugs'),
       value: formatNumber(data.defects.open, locale),
       hint: t('pages.reports.kpi.ofBugs', { count: data.defects.total }),

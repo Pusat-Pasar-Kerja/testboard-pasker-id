@@ -1,9 +1,10 @@
-import { Bug, FolderPlus, ListChecks, PlayCircle } from 'lucide-react'
+import { Bug, FolderKanban, FolderPlus, ListChecks, PlayCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { ProjectFormDialog } from '../components/admin/ProjectFormDialog'
 import { Badge } from '../components/ui/Badge'
+import { PASTEL_CHIP, pastelFor } from '../components/ui/pastel'
 import { Button } from '../components/ui/Button'
 import { PageHeader } from '../components/ui/PageHeader'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
@@ -53,8 +54,15 @@ export function ProjectsPage() {
                 className="flex h-full flex-col gap-3 rounded-xl border border-line bg-surface p-5 shadow-xs hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-sm"
               >
                 <span className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold tracking-wide text-brand-700">
-                    {project.project_code}
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span
+                      className={`inline-flex size-9 shrink-0 items-center justify-center rounded-xl ${PASTEL_CHIP[pastelFor(project.project_code)]}`}
+                    >
+                      <FolderKanban aria-hidden="true" className="size-5" />
+                    </span>
+                    <span className="truncate text-xs font-semibold tracking-wide text-brand-700">
+                      {project.project_code}
+                    </span>
                   </span>
                   {project.is_archived && (
                     <Badge tone="muted" label={t('pages.projects.archived')} />

@@ -60,9 +60,9 @@ function AnnouncementBanner({ text }: { text: string }) {
   return (
     <div
       role="status"
-      className="flex items-start gap-3 border-b border-line bg-brand-50 px-4 py-2 text-sm text-ink sm:px-6 lg:px-8"
+      className="flex items-start gap-3 border-b border-line bg-pastel-butter px-4 py-2 text-sm text-ink sm:px-6 lg:px-8"
     >
-      <Megaphone aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-brand-700" />
+      <Megaphone aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-pastel-butter-ink" />
       <p className="min-w-0 flex-1 whitespace-pre-line">
         <span className="sr-only">{t('shell.announcement')}: </span>
         {text}
@@ -77,7 +77,7 @@ function AnnouncementBanner({ text }: { text: string }) {
             // private mode: dismissed for this view only
           }
         }}
-        className="-my-1 inline-flex size-8 shrink-0 items-center justify-center rounded-lg hover:bg-brand-100"
+        className="-my-1 inline-flex size-8 shrink-0 items-center justify-center rounded-lg hover:bg-ink/5"
       >
         <X aria-hidden="true" className="size-4" />
         <span className="sr-only">{t('shell.dismiss')}</span>

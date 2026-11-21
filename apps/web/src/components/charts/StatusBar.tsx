@@ -25,13 +25,14 @@ const FILL: Record<ExecutionStatus, string> = {
   NOT_RUN: 'bg-chart-track',
 }
 
-// Inside-label ink per fill: white, except near-black on warning and the light track.
+// Inside-label ink per fill, each >= 4.5:1: near-black on the lighter fills (passed,
+// blocked, skipped, track), white on the darker ones (failed, in progress).
 const INK: Record<ExecutionStatus, string> = {
-  PASSED: 'text-white',
+  PASSED: 'text-ink',
   BLOCKED: 'text-[#0b0b0b]',
   FAILED: 'text-white',
   IN_PROGRESS: 'text-white',
-  SKIPPED: 'text-white',
+  SKIPPED: 'text-ink',
   NOT_RUN: 'text-[#0b0b0b]',
 }
 

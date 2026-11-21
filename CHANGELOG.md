@@ -2,6 +2,23 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.11.0] - 2026-11-21
+
+Perubahan v1 tahap 3: tema pastel dan logo baru, sesuai pilihan pemilik proyek (palet A "Langit lembut", logo 2 "Papan centang").
+
+### Diubah
+
+- **Logo baru "Papan centang"**: papan bersudut bulat berisi centang, dengan pin persik di atasnya. Tetap mengikuti gaya logo hub Kemnaker (garis tebal membulat dan satu titik). Ikut diganti: favicon dan `docs/brand/testboard-mark.svg`.
+- **Tema "Langit lembut"**: warna utama biru periwinkle (`#4F5FCF`, tombol `#4352BA`) dan latar lavender sangat muda. Aksen pastel lavender, mint, persik, mentega, dan langit:
+  - chip ikon berwarna di kartu angka dasbor, laporan, dan detail run;
+  - chip warna per proyek di halaman Proyek (warnanya tetap untuk kode proyek yang sama);
+  - pita pengumuman berwarna mentega;
+  - bentuk pastel lembut di belakang halaman masuk, pemulihan akun, dan reset kata sandi;
+  - menu aktif di sidebar lebih jelas.
+- Warna latar status (lulus, terhambat, gagal, info) menjadi versi pastel. Teksnya tetap kontras minimal 4,5:1.
+- Warna grafik status sedikit dilembutkan. Angka persen di dalam batang kini selalu terbaca (kontras minimal 4,5:1; sebelumnya teks putih di atas hijau kurang kontras).
+- Panduan brand (`docs/brand/README.md`) diperbarui: spesifikasi simbol, tabel warna, dan aturan pemakaian aksen pastel.
+
 ## [0.10.0] - 2026-11-21
 
 Perubahan v1 tahap 2: pemulihan akun lewat Super Admin (ADR 0012).

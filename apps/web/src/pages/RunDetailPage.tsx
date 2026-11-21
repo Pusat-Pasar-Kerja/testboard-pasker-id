@@ -11,9 +11,13 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CheckCheck,
+  CircleCheck,
+  CircleX,
+  ClipboardList,
   Info,
   Lock,
   Pencil,
+  Percent,
   Play,
   Plus,
   RotateCcw,
@@ -535,18 +539,26 @@ export function RunDetailPage() {
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <StatTile
+            icon={ClipboardList}
+            tone="lavender"
             label={t('pages.dashboard.kpiPlanned')}
             value={formatNumber(r.total_cases, locale)}
           />
           <StatTile
+            icon={CircleCheck}
+            tone="mint"
             label={t('pages.dashboard.kpiExecuted')}
             value={formatNumber(executedOf(r.counts), locale)}
           />
           <StatTile
+            icon={Percent}
+            tone="sky"
             label={t('pages.dashboard.kpiPassRate')}
             value={rate === null ? none : formatPercent(rate, locale)}
           />
           <StatTile
+            icon={CircleX}
+            tone="peach"
             label={t('codes.execution.FAILED')}
             value={formatNumber(r.counts.FAILED, locale)}
           />

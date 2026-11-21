@@ -1,10 +1,16 @@
-import { MARK_CHECK_PATH, MARK_DOT, MARK_STROKE_WIDTH, MARK_VIEWBOX } from './mark-geometry'
+import {
+  MARK_BOARD,
+  MARK_CHECK_PATH,
+  MARK_DOT,
+  MARK_STROKE_WIDTH,
+  MARK_VIEWBOX,
+} from './mark-geometry'
 
 /**
- * TestBoard symbol. Follows the Kemnaker hub logo grammar (Karirhub, Skillhub, Maganghub):
- * one thick, round-capped glyph of uniform stroke + one solid dot, single colour.
- * Glyph = check mark (a passed test); dot sits top-left (Karirhub: top-right,
- * Skillhub: left-middle, Maganghub: centre) so the family stays distinguishable.
+ * TestBoard symbol "papan centang": a board with a check mark, held by a pin. Follows the
+ * Kemnaker hub logo grammar (Karirhub, Skillhub, Maganghub): thick round-capped strokes of
+ * uniform weight + one solid dot. Board and check take the brand colour (currentColor);
+ * the pin is the warm pastel accent.
  */
 export function TestBoardMark({ className, title }: { className?: string; title?: string }) {
   return (
@@ -17,7 +23,12 @@ export function TestBoardMark({ className, title }: { className?: string; title?
       focusable="false"
     >
       {title && <title>{title}</title>}
-      <circle {...MARK_DOT} fill="currentColor" />
+      <rect
+        {...MARK_BOARD}
+        stroke="currentColor"
+        strokeWidth={MARK_STROKE_WIDTH}
+        strokeLinejoin="round"
+      />
       <path
         d={MARK_CHECK_PATH}
         stroke="currentColor"
@@ -25,6 +36,7 @@ export function TestBoardMark({ className, title }: { className?: string; title?
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      <circle {...MARK_DOT} className="fill-brand-accent" />
     </svg>
   )
 }

@@ -7,47 +7,66 @@
  * Status colours stay semantic (green/red/amber) and never rely on colour alone.
  */
 @theme {
-  --color-brand-50: #f3f6fe;
-  --color-brand-100: #e6ecfc;
-  --color-brand-200: #ccd6f8;
-  --color-brand-300: #a9b9f2;
-  --color-brand-500: #6680e3;
-  --color-brand-600: #4361d6;
-  --color-brand-700: #3650c0;
-  --color-brand-800: #2e429c;
-  --color-brand-900: #27387e;
-  --color-brand-mark: #4361d6;
+  /* "Langit lembut" (owner's choice, 2026-11-21): soft periwinkle. brand-700 is the button
+     colour (6.7:1 with white text); brand-600 is the logo (5.4:1). */
+  --color-brand-50: #f3f4fe;
+  --color-brand-100: #e7e9fb;
+  --color-brand-200: #cfd4f6;
+  --color-brand-300: #adb5ef;
+  --color-brand-500: #7380e0;
+  --color-brand-600: #4f5fcf;
+  --color-brand-700: #4352ba;
+  --color-brand-800: #38449a;
+  --color-brand-900: #2d377b;
+  --color-brand-mark: #4f5fcf;
+  /* The logo pin; decorative only, never text. */
+  --color-brand-accent: #f29b70;
+
+  /* Pastel accents for decoration (icon chips, banners, cards). Text on a pastel always
+     uses its matching -ink colour (all >= 5:1). Status meaning stays with the semantic
+     colours below. */
+  --color-pastel-lavender: #e7e9fb;
+  --color-pastel-lavender-ink: #4352ba;
+  --color-pastel-mint: #ddf4ea;
+  --color-pastel-mint-ink: #1f6b4e;
+  --color-pastel-peach: #fde6da;
+  --color-pastel-peach-ink: #9a4a22;
+  --color-pastel-butter: #fff3c9;
+  --color-pastel-butter-ink: #7a5a06;
+  --color-pastel-sky: #e1eefc;
+  --color-pastel-sky-ink: #1d5b9e;
 
   --color-logo-ink: #1a1a1a;
   --color-logo-muted: #808080;
 
   --color-ink: #1f2533;
   --color-ink-muted: #5d6575;
-  --color-canvas: #f5f7fb;
+  --color-canvas: #f5f6fd;
   --color-surface: #ffffff;
-  --color-line: #e4e8f0;
-  --color-line-strong: #ccd2de;
+  --color-line: #e3e6f3;
+  --color-line-strong: #cbd0e3;
 
   --color-danger: #b42318;
-  --color-danger-soft: #fdf1ef;
+  --color-danger-soft: #fde7e4;
   --color-warning: #92570a;
-  --color-warning-soft: #fdf6e8;
+  --color-warning-soft: #fff3c9;
   --color-success: #1f7a4d;
-  --color-success-soft: #ecf7f1;
+  --color-success-soft: #ddf4ea;
   --color-info: #0369a1;
-  --color-info-soft: #eaf4fa;
+  --color-info-soft: #e1eefc;
   --color-neutral: #5d6575;
-  --color-neutral-soft: #f0f2f6;
+  --color-neutral-soft: #eef0f7;
 
   /* Chart fills only (never text). Status hues follow the dataviz status palette;
-     NOT_RUN is drawn as the unfilled track. Order PASSED|BLOCKED|FAILED keeps the
+     NOT_RUN is drawn as the unfilled track. Softened for the pastel theme (2026-11-21) but
+     passed/failed/progress keep >= 3:1 against white. Order PASSED|BLOCKED|FAILED keeps the
      green/red pair apart for colour-blind readers; labels+icons always accompany. */
-  --color-chart-passed: #0ca30c;
-  --color-chart-failed: #d03b3b;
-  --color-chart-blocked: #fab219;
-  --color-chart-progress: #2f8fd8;
+  --color-chart-passed: #2fa36b;
+  --color-chart-failed: #c84b4b;
+  --color-chart-blocked: #f0b43c;
+  --color-chart-progress: #4570d4;
   --color-chart-skipped: #8b93a1;
-  --color-chart-track: #e5e8ef;
+  --color-chart-track: #e6e8f4;
 
   --font-sans:
     'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
