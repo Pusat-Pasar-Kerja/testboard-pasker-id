@@ -9,7 +9,8 @@
 import { loadConfig } from '../config/env.js'
 import { loadEnvironment } from '../config/load-env.js'
 import { createPool } from '../db/pool.js'
-import { DEFAULT_RETENTION, runRetention } from './retention.js'
+import { createSettingsService } from '../settings/service.js'
+import { retentionPolicy, runRetention } from './retention.js'
 
 loadEnvironment()
 const config = loadConfig(process.env)
@@ -22,11 +23,7 @@ try {
   const report = await runRetention(
     pool,
     config.storageDir,
-    {
-      ...DEFAULT_RETENTION,
-      unusedFileDays: config.retention.unusedFileDays,
-      importDays: config.retention.importDays,
-    },
+    retentionPolicy(await createSettingsService(pool, config).get()),
     { dryRun: process.argv.includes('--dry-run') },
   )
   console.log(JSON.stringify(report, null, 2))

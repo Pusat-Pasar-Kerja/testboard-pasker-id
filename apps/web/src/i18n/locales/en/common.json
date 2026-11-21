@@ -30,9 +30,14 @@
     "openMenu": "Open navigation menu",
     "closeMenu": "Close navigation menu",
     "profile": "My profile",
-    "adminUsers": "Manage users",
+    "adminUsers": "Administration",
     "settings": "Modules & Suites",
-    "members": "Members"
+    "members": "Members",
+    "adminSection": "Administration",
+    "adminProjects": "Projects",
+    "adminUsersShort": "Users",
+    "adminSettings": "Site settings",
+    "adminAudit": "Activity log"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -43,7 +48,10 @@
     "signOutDemo": "Leave demo",
     "breadcrumb": "Breadcrumb",
     "signOut": "Sign out",
-    "superAdmin": "Super Admin"
+    "superAdmin": "Super Admin",
+    "announcement": "Announcement",
+    "dismiss": "Dismiss announcement",
+    "projectArchived": "This project is archived: everything can still be opened and reported, but nothing can be changed. A Super Admin can reactivate it."
   },
   "actions": {
     "retry": "Retry",
@@ -227,7 +235,9 @@
       "import_job": "Import",
       "report": "Report",
       "project": "Project",
-      "project_member": "Member"
+      "project_member": "Member",
+      "user": "User account",
+      "system_setting": "Site settings"
     },
     "auditAction": {
       "CREATE": "Created",
@@ -237,7 +247,10 @@
       "DELETE": "Deleted",
       "IMPORT": "Imported",
       "EXPORT": "Exported",
-      "DOWNLOAD": "Downloaded"
+      "DOWNLOAD": "Downloaded",
+      "LOGIN": "Signed in",
+      "LOGOUT": "Signed out",
+      "PASSWORD_CHANGE": "Password changed"
     }
   },
   "fields": {
@@ -287,7 +300,7 @@
     "none": "-",
     "email": "Email",
     "password": "Password",
-    "displayName": "Display name",
+    "displayName": "Name",
     "language": "Interface language",
     "testSteps": "Test steps",
     "moduleCode": "Module code",
@@ -315,7 +328,9 @@
       "submit": "Sign in",
       "invalid": "Incorrect email or password.",
       "locked": "Too many failed attempts. Try again in 15 minutes.",
-      "noAccount": "Accounts are created by a Super Admin. Contact an admin if you do not have one."
+      "noAccount": "Accounts are created by a Super Admin. Contact an admin if you do not have one.",
+      "titleSite": "Sign in to {{name}}",
+      "support": "Need help? {{contact}}"
     },
     "projects": {
       "title": "Projects",
@@ -327,7 +342,11 @@
       "openBugs_one": "{{count}} open bug",
       "openBugs_other": "{{count}} open bugs",
       "yourRole": "Your role: {{role}}",
-      "empty": "You are not a member of any project yet."
+      "empty": "You are not a member of any project yet.",
+      "create": "Create project",
+      "emptyAdminTitle": "No projects yet",
+      "emptyAdmin": "Create the first project, then add team members through Team & Settings inside the project.",
+      "archived": "Archived"
     },
     "dashboard": {
       "title": "Dashboard",
@@ -541,7 +560,7 @@
       "currentPassword": "Current password",
       "newPassword": "New password",
       "confirmPassword": "Repeat new password",
-      "passwordHint": "At least 12 characters. A long sentence is safer than a short complex word.",
+      "passwordHint": "At least 8 characters. A long sentence is safer than a short complex word.",
       "mismatch": "The confirmation does not match the new password.",
       "passwordChanged": "Password changed. Other devices have been signed out.",
       "demoNote": "DEMO mode: password changes are not really stored."
@@ -565,7 +584,9 @@
       "deactivateBody": "They are signed out of every device immediately and cannot sign in until reactivated.",
       "updated": "Account {{name}} updated.",
       "forbidden": "This page is for Super Admins only.",
-      "empty": "No matching users."
+      "empty": "No matching users.",
+      "permanent": "Permanent Super Admin",
+      "permanentHint": "Owner account: nobody can revoke or deactivate it from the website."
     },
     "cycles": {
       "title": "Test cycles",
@@ -899,6 +920,70 @@
         "noChanges": "No field details.",
         "empty": "No activity for these filters yet."
       }
+    },
+    "adminProjects": {
+      "title": "Projects",
+      "subtitle": "Every project on the website, archived ones included. The creator automatically becomes the project Admin.",
+      "create": "Create project",
+      "createTitle": "Create a new project",
+      "createHint": "You become the Admin of this project and can add team members afterwards.",
+      "editTitle": "Edit project {{code}}",
+      "code": "Project code",
+      "codeHint": "Capital letters, digits, dot, underscore or hyphen; 2-40 characters, e.g. KARIRHUB. Cannot be changed later.",
+      "name": "Project name",
+      "description": "Description",
+      "created": "Project {{code}} created.",
+      "saved": "Project changes saved.",
+      "open": "Open",
+      "edit": "Edit",
+      "archive": "Archive",
+      "unarchive": "Reactivate",
+      "archiveTitle": "Archive {{code}}?",
+      "archiveBody": "The project can still be opened, reported and exported, but not changed until it is reactivated. Nothing is deleted.",
+      "archivedToast": "{{code}} archived.",
+      "restoredToast": "{{code}} is active again.",
+      "active": "Active",
+      "members_one": "{{count}} member",
+      "members_other": "{{count}} members",
+      "createdBy": "Created {{date}} by {{name}}",
+      "createdAt": "Created {{date}}",
+      "empty": "No projects yet. Create the first one to get started."
+    },
+    "adminSettings": {
+      "title": "Site settings",
+      "subtitle": "Apply to the whole website and every project. Changes take effect within seconds, no restart needed.",
+      "general": "General",
+      "security": "Sign-in security",
+      "retention": "Data retention",
+      "siteName": "Site name",
+      "siteNameHint": "Shown on the sign-in page and in the browser tab.",
+      "announcement": "Announcement",
+      "announcementHint": "Shown as a strip above every page for all signed-in users. Leave empty to hide it.",
+      "defaultLocale": "Default language",
+      "defaultLocaleHint": "For visitors who have not chosen a language yet.",
+      "supportContact": "Support contact",
+      "supportContactHint": "How to reach the administrators, shown on the sign-in page (e.g. team name and office WhatsApp).",
+      "sessionHours": "Sign-in session length (hours)",
+      "sessionHoursHint": "1-72 hours. Applies to the next sign-in.",
+      "idleMinutes": "Sign out when idle (minutes)",
+      "idleMinutesHint": "5-1440 minutes without activity.",
+      "unusedFileDays": "Delete uploads that were never used after (days)",
+      "unusedFileDaysHint": "Evidence used in a result, bug or test case is never deleted automatically.",
+      "importDays": "Delete import work files after (days)",
+      "importDaysHint": "Import history and per-row results are kept.",
+      "save": "Save settings",
+      "saved": "Site settings saved.",
+      "noChanges": "Nothing to save.",
+      "lastChanged": "Changed {{date}} by {{name}}",
+      "isDefault": "Default value"
+    },
+    "adminAudit": {
+      "title": "Site activity log",
+      "subtitle": "Every change across the website: projects, user accounts and site settings. Cannot be edited.",
+      "project": "Project",
+      "allProjects": "All",
+      "siteLevel": "Website level",
+      "empty": "No activity for these filters yet."
     }
   },
   "errors": {
@@ -912,7 +997,9 @@
     "RATE_LIMITED": "Too many requests. Please try again later.",
     "SERVICE_UNAVAILABLE": "The service is temporarily unavailable. Please try again shortly.",
     "INTERNAL_ERROR": "Something went wrong. Please try again.",
-    "reference": "Reference code: {{id}}"
+    "reference": "Reference code: {{id}}",
+    "projectArchived": "This project is archived and read-only.",
+    "permanentSuperAdmin": "The permanent Super Admin cannot be revoked or deactivated."
   },
   "form": {
     "optional": "optional",

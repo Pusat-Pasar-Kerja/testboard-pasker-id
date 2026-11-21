@@ -25,9 +25,10 @@ export function projectAccess(pool: Pool): MiddlewareHandler<AppEnv> {
       project_code: string
       name: string
       role_code: string | null
+      is_archived: number
     }>(
       pool,
-      `SELECT p.id, p.project_code, p.name, m.role_code
+      `SELECT p.id, p.project_code, p.name, p.is_archived, m.role_code
          FROM projects p
          LEFT JOIN project_members m ON m.project_id = p.id AND m.user_id = ?
         WHERE p.project_code = ?`,
@@ -43,6 +44,12 @@ export function projectAccess(pool: Pool): MiddlewareHandler<AppEnv> {
       name: row.name,
       role: auth.isSuperAdmin ? 'ADMIN' : (memberRole as MemberRole),
       viaSuperAdmin: auth.isSuperAdmin && memberRole !== 'ADMIN',
+    }
+    // Archived projects stay readable (history, reports, exports) but accept no changes.
+    if (Number(row.is_archived) === 1 && !['GET', 'HEAD', 'OPTIONS'].includes(c.req.method)) {
+      throw new AppError(409, 'CONFLICT', 'This project is archived and read-only.', [
+        { field: 'project', message: 'PROJECT_ARCHIVED' },
+      ])
     }
     c.set('project', access)
     await next()

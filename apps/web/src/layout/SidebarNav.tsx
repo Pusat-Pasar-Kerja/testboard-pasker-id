@@ -3,17 +3,22 @@ import {
   CalendarRange,
   ChartColumn,
   FileUp,
+  FolderCog,
   FolderKanban,
+  History,
   Images,
   LayoutDashboard,
   ListChecks,
   PlayCircle,
+  Settings2,
   Users,
+  UsersRound,
   type LucideIcon,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router'
 import { TestBoardLogo } from '../components/brand/TestBoardLogo'
+import { useCurrentUser } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
 
 type NavKey =
@@ -40,6 +45,14 @@ const ITEMS: { key: NavKey; path: string; icon: LucideIcon; soon?: boolean }[] =
   { key: 'team', path: 'members', icon: Users },
 ]
 
+/** Super Admin console (ADR 0011): website-wide management. */
+const ADMIN_ITEMS = [
+  { key: 'adminProjects', path: '/admin/projects', icon: FolderCog },
+  { key: 'adminUsersShort', path: '/admin/users', icon: UsersRound },
+  { key: 'adminSettings', path: '/admin/settings', icon: Settings2 },
+  { key: 'adminAudit', path: '/admin/audit', icon: History },
+] as const
+
 export function SidebarNav({
   projectCode,
   onNavigate,
@@ -48,6 +61,7 @@ export function SidebarNav({
   onNavigate?: () => void
 }) {
   const { t } = useTranslation()
+  const me = useCurrentUser()
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition-colors ${
       isActive
@@ -89,6 +103,23 @@ export function SidebarNav({
             <FolderKanban aria-hidden="true" className="size-5 shrink-0" />
             <span>{t('nav.projects')}</span>
           </NavLink>
+          {me.data?.is_super_admin && (
+            <>
+              <p className="mt-5 px-3 pb-1 text-[11px] font-semibold tracking-wide text-ink-muted uppercase">
+                {t('nav.adminSection')}
+              </p>
+              <ul className="space-y-1">
+                {ADMIN_ITEMS.map((item) => (
+                  <li key={item.key}>
+                    <NavLink to={item.path} className={linkClass} onClick={onNavigate}>
+                      <item.icon aria-hidden="true" className="size-5 shrink-0" />
+                      <span>{t(`nav.${item.key}`)}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
       </nav>
     </div>

@@ -4,7 +4,8 @@ import { loadConfig } from './config/env.js'
 import { loadEnvironment } from './config/load-env.js'
 import { createPool, pingDatabase } from './db/pool.js'
 import { createFileService } from './files/pipeline.js'
-import { DEFAULT_RETENTION, scheduleRetention } from './maintenance/retention.js'
+import { retentionPolicy, scheduleRetention } from './maintenance/retention.js'
+import { createSettingsService } from './settings/service.js'
 
 // TESTBOARD_ENV_FILE on the server (outside the web root); apps/api/.env in development.
 loadEnvironment()
@@ -25,20 +26,18 @@ if (pool && files) {
   if (interrupted > 0)
     console.log(`[testboard-api] ${interrupted} interrupted upload(s) marked FAILED`)
 }
+const settings = createSettingsService(pool, config)
 const app = createApp({
   config,
   pool,
   files,
+  settings,
   checkDatabase: pool ? () => pingDatabase(pool) : undefined,
 })
 
 const stopRetention =
   pool && config.retention.enabled
-    ? scheduleRetention(pool, config.storageDir, {
-        ...DEFAULT_RETENTION,
-        unusedFileDays: config.retention.unusedFileDays,
-        importDays: config.retention.importDays,
-      })
+    ? scheduleRetention(pool, config.storageDir, async () => retentionPolicy(await settings.get()))
     : () => {}
 
 const server = serve({ fetch: app.fetch, hostname: config.host, port: config.port }, (info) => {

@@ -38,6 +38,10 @@ export interface MockProject {
   description: string
   bugPrefix: string
   members: { userId: string; role: MemberRole }[]
+  /** Admin console (demo): archived = read-only, plus who created it and when. */
+  archived?: boolean
+  createdAt?: string
+  createdBy?: string | null
 }
 
 export interface MockModule {

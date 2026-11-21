@@ -169,10 +169,9 @@ describe('Super Admin (ADR 0004)', () => {
     expect((await admin.patch(`/admin/users/${target.id}`, { is_active: false })).status).toBe(200)
     expect((await targetClient.get('/auth/me')).status).toBe(401)
 
-    const settings = await admin.request('PUT', '/admin/settings/upload.max_file_mb', { value: 25 })
+    const settings = await admin.request('PUT', '/admin/settings', { 'site.support_contact': 'x' })
     expect(settings.status).toBe(200)
-    expect((await admin.get('/admin/settings')).json).toEqual(
-      expect.arrayContaining([expect.objectContaining({ key: 'upload.max_file_mb', value: 25 })]),
-    )
+    expect((await admin.get('/admin/settings')).json.values['site.support_contact']).toBe('x')
+    await admin.request('PUT', '/admin/settings', { 'site.support_contact': '' })
   })
 })

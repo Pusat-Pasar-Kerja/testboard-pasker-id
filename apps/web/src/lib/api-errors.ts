@@ -7,6 +7,9 @@ import { ApiClientError } from '../services/api-client'
  */
 export function apiErrorText(t: TFunction, error: unknown): string {
   if (error instanceof ApiClientError) {
+    const reason = error.details[0]?.message
+    if (reason === 'PROJECT_ARCHIVED') return t('errors.projectArchived')
+    if (reason === 'PERMANENT_SUPER_ADMIN') return t('errors.permanentSuperAdmin')
     if (error.status === 409 || error.status === 422) {
       return error.details[0]?.message ?? error.message
     }

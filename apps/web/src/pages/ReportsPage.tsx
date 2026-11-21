@@ -3,7 +3,6 @@ import {
   LOCALES,
   REPORT_DATASETS,
   REPORT_FORMATS,
-  type AuditLogEntry,
   type DefectSeverity,
   type Locale,
   type ReportDataset,
@@ -26,6 +25,12 @@ import {
 import { useId, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { AuditEntryList } from '../components/audit/AuditLog'
+import {
+  AUDIT_ACTIONS,
+  PROJECT_AUDIT_ENTITIES,
+  useAuditLabels,
+} from '../components/audit/audit-labels'
 import { SeverityBars } from '../components/charts/SeverityBars'
 import { StatTile } from '../components/charts/StatTile'
 import { StatusBar } from '../components/charts/StatusBar'
@@ -53,7 +58,6 @@ import { projectPath, useProjectCode, useUrlFilters } from '../hooks/route-state
 import { apiErrorText } from '../lib/api-errors'
 import {
   formatDate,
-  formatDateTime,
   formatNumber,
   formatPercent,
   formatShortDateTime,
@@ -61,39 +65,6 @@ import {
 } from '../lib/format'
 import { ApiClientError } from '../services/api-client'
 import { useDataSource } from '../services/use-data-source'
-
-const AUDIT_ENTITIES = [
-  'test_case',
-  'test_run',
-  'test_execution',
-  'test_cycle',
-  'test_suite',
-  'module',
-  'defect',
-  'defect_comment',
-  'file',
-  'import_job',
-  'report',
-  'project',
-  'project_member',
-] as const
-const AUDIT_ACTIONS = [
-  'CREATE',
-  'UPDATE',
-  'STATUS_CHANGE',
-  'ARCHIVE',
-  'DELETE',
-  'IMPORT',
-  'EXPORT',
-  'DOWNLOAD',
-] as const
-
-type AuditEntity = (typeof AUDIT_ENTITIES)[number]
-type AuditAction = (typeof AUDIT_ACTIONS)[number]
-const isAuditEntity = (value: string): value is AuditEntity =>
-  (AUDIT_ENTITIES as readonly string[]).includes(value)
-const isAuditAction = (value: string): value is AuditAction =>
-  (AUDIT_ACTIONS as readonly string[]).includes(value)
 
 /** Small table that scrolls inside its card on narrow screens (never the page). */
 function MiniTable({
@@ -555,49 +526,8 @@ function OverviewTab({ code }: { code: string }) {
   )
 }
 
-function ChangeList({ entry }: { entry: AuditLogEntry }) {
-  const { t } = useTranslation()
-  const show = (value: unknown) =>
-    value === null || value === undefined || value === ''
-      ? t('fields.none')
-      : typeof value === 'string'
-        ? value
-        : JSON.stringify(value)
-  if (entry.changes.length === 0) {
-    return <p className="text-xs text-ink-muted">{t('pages.reports.activity.noChanges')}</p>
-  }
-  return (
-    <details className="text-xs">
-      <summary className="cursor-pointer font-medium text-brand-700">
-        {t('pages.reports.activity.changes', { count: entry.changes.length })}
-      </summary>
-      <dl className="mt-2 space-y-1">
-        {entry.changes.map((change) => (
-          <div key={change.field} className="grid grid-cols-1 gap-1 sm:grid-cols-[10rem_1fr]">
-            <dt>
-              <code className="text-ink-muted">{change.field}</code>
-            </dt>
-            <dd className="break-words">
-              {entry.action_code === 'CREATE' || entry.action_code === 'EXPORT' ? (
-                show(change.new)
-              ) : (
-                <>
-                  <span className="text-ink-muted line-through">{show(change.old)}</span>
-                  {' -> '}
-                  <span>{show(change.new)}</span>
-                </>
-              )}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </details>
-  )
-}
-
 function ActivityTab({ code }: { code: string }) {
-  const { t, i18n } = useTranslation()
-  const locale = toLocale(i18n.resolvedLanguage)
+  const { t } = useTranslation()
   const filters = useUrlFilters(['entity', 'action', 'actor', 'afrom', 'ato'] as const)
   const { entity, action, actor, afrom, ato } = filters.values
   const members = useMembers(code)
@@ -610,10 +540,7 @@ function ActivityTab({ code }: { code: string }) {
     to: rangeInvalid ? undefined : ato || undefined,
     page: filters.page,
   })
-  const entityLabel = (value: string): string =>
-    isAuditEntity(value) ? t(`codes.auditEntity.${value}`) : value
-  const actionLabel = (value: string): string =>
-    isAuditAction(value) ? t(`codes.auditAction.${value}`) : value
+  const { entityLabel, actionLabel } = useAuditLabels()
 
   return (
     <Section
@@ -636,7 +563,7 @@ function ActivityTab({ code }: { code: string }) {
           label={t('pages.reports.activity.entity')}
           value={entity}
           onChange={(value) => filters.setFilter('entity', value)}
-          options={AUDIT_ENTITIES.map((value) => ({ value, label: entityLabel(value) }))}
+          options={PROJECT_AUDIT_ENTITIES.map((value) => ({ value, label: entityLabel(value) }))}
         />
         <SelectFilter
           label={t('pages.reports.activity.action')}
@@ -675,27 +602,7 @@ function ActivityTab({ code }: { code: string }) {
       )}
       {logs.isSuccess && logs.data.total > 0 && (
         <>
-          <ul className="divide-y divide-line" aria-busy={logs.isFetching}>
-            {logs.data.data.map((entry) => (
-              <li key={entry.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:gap-4">
-                <span className="shrink-0 text-xs text-ink-muted tabular-nums sm:w-40">
-                  {formatDateTime(entry.created_at, locale)}
-                </span>
-                <span className="min-w-0 flex-1 space-y-1">
-                  <span className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="font-medium">
-                      {entry.actor?.display_name ?? t('pages.reports.activity.system')}
-                    </span>
-                    <Badge tone="brand" label={actionLabel(entry.action_code)} />
-                    <span className="text-ink-muted">
-                      {entityLabel(entry.entity_type)} #{entry.entity_id}
-                    </span>
-                  </span>
-                  <ChangeList entry={entry} />
-                </span>
-              </li>
-            ))}
-          </ul>
+          <AuditEntryList entries={logs.data.data} busy={logs.isFetching} />
           <Pagination
             page={logs.data.page}
             pageSize={logs.data.page_size}

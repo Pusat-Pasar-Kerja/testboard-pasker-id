@@ -1,3 +1,5 @@
+import { Archive } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router'
 import { ErrorState, LoadingState } from '../components/ui/States'
 import { useProject } from '../hooks/queries'
@@ -11,6 +13,7 @@ import { NotFoundPage } from './NotFoundPage'
  * NOTE: this is UX only - authorization is enforced by the API (Milestone 2).
  */
 export function ProjectGate() {
+  const { t } = useTranslation()
   const code = useProjectCode()
   const project = useProject(code)
 
@@ -25,5 +28,18 @@ export function ProjectGate() {
       <ErrorState error={project.error} onRetry={() => void project.refetch()} />
     )
   }
-  return <Outlet />
+  return (
+    <>
+      {project.data.is_archived && (
+        <p
+          role="status"
+          className="mb-4 flex items-start gap-2 rounded-xl border border-line bg-neutral-soft p-3 text-sm text-ink-muted"
+        >
+          <Archive aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+          {t('shell.projectArchived')}
+        </p>
+      )}
+      <Outlet />
+    </>
+  )
 }

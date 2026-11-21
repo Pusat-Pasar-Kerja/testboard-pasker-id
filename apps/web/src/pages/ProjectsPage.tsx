@@ -1,25 +1,49 @@
-import { Bug, ListChecks, PlayCircle } from 'lucide-react'
+import { Bug, FolderPlus, ListChecks, PlayCircle } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { ProjectFormDialog } from '../components/admin/ProjectFormDialog'
+import { Badge } from '../components/ui/Badge'
+import { Button } from '../components/ui/Button'
 import { PageHeader } from '../components/ui/PageHeader'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
-import { useProjects } from '../hooks/queries'
+import { useCurrentUser, useProjects } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
 
 export function ProjectsPage() {
   const { t } = useTranslation()
   const projects = useProjects()
+  const me = useCurrentUser()
+  const isSuperAdmin = Boolean(me.data?.is_super_admin)
+  const [creating, setCreating] = useState(false)
+  const createButton = isSuperAdmin ? (
+    <Button icon={FolderPlus} onClick={() => setCreating(true)}>
+      {t('pages.projects.create')}
+    </Button>
+  ) : undefined
 
   return (
     <>
-      <PageHeader title={t('pages.projects.title')} subtitle={t('pages.projects.subtitle')} />
+      <PageHeader
+        title={t('pages.projects.title')}
+        subtitle={t('pages.projects.subtitle')}
+        actions={createButton}
+      />
       {projects.isPending && <LoadingState rows={3} />}
       {projects.isError && (
         <ErrorState error={projects.error} onRetry={() => void projects.refetch()} />
       )}
-      {projects.isSuccess && projects.data.length === 0 && (
-        <EmptyState description={t('pages.projects.empty')} />
-      )}
+      {projects.isSuccess &&
+        projects.data.length === 0 &&
+        (isSuperAdmin ? (
+          <EmptyState
+            title={t('pages.projects.emptyAdminTitle')}
+            description={t('pages.projects.emptyAdmin')}
+            action={createButton}
+          />
+        ) : (
+          <EmptyState description={t('pages.projects.empty')} />
+        ))}
       {projects.isSuccess && projects.data.length > 0 && (
         <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {projects.data.map((project) => (
@@ -28,8 +52,13 @@ export function ProjectsPage() {
                 to={projectPath(project.project_code)}
                 className="flex h-full flex-col gap-3 rounded-xl border border-line bg-surface p-5 shadow-xs hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-sm"
               >
-                <span className="text-xs font-semibold tracking-wide text-brand-700">
-                  {project.project_code}
+                <span className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold tracking-wide text-brand-700">
+                    {project.project_code}
+                  </span>
+                  {project.is_archived && (
+                    <Badge tone="muted" label={t('pages.projects.archived')} />
+                  )}
                 </span>
                 <span className="text-lg leading-snug font-semibold">{project.name}</span>
                 {project.description && (
@@ -57,6 +86,7 @@ export function ProjectsPage() {
           ))}
         </ul>
       )}
+      {creating && <ProjectFormDialog onClose={() => setCreating(false)} />}
     </>
   )
 }

@@ -39,7 +39,8 @@ export const emailSchema = z
   .transform((value) => value.toLowerCase())
 
 /** OWASP: length over complexity; 12+ characters, upper bound to cap hashing cost. */
-export const passwordSchema = z.string().min(12).max(128)
+/** Owner decision 2026-11-21: at least 8 characters (login lockout guards guessing). */
+export const passwordSchema = z.string().min(8).max(128)
 
 export const loginSchema = z.object({
   email: emailSchema,
@@ -175,8 +176,19 @@ export const adminUserUpdateSchema = z
   })
   .refine((v) => Object.keys(v).length > 0, 'Nothing to update')
 
-export const systemSettingSchema = z.object({ value: z.json() })
+/** Super Admin edits of a project from the admin console. */
+export const adminProjectUpdateSchema = z
+  .object({
+    name: trimmed(200).min(1).optional(),
+    description: optionalText(5000),
+    /** Archived projects stay readable but no longer accept changes. */
+    is_archived: z.boolean().optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, 'Nothing to update')
 
 export type LoginInput = z.infer<typeof loginSchema>
 export type TestCaseCreateInput = z.infer<typeof testCaseCreateSchema>
 export type TestCaseUpdateInput = z.infer<typeof testCaseUpdateSchema>
+
+export type ProjectCreateInput = z.input<typeof projectCreateSchema>
+export type AdminProjectUpdateInput = z.input<typeof adminProjectUpdateSchema>

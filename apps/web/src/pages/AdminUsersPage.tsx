@@ -1,6 +1,6 @@
 import type { AdminUserDto } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, Copy, ShieldCheck, UserPlus } from 'lucide-react'
+import { Check, Copy, LockKeyhole, ShieldCheck, UserPlus } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '../components/ui/Badge'
@@ -157,8 +157,12 @@ function UserRow({ user, isMe }: { user: AdminUserDto; isMe: boolean }) {
       <div className="min-w-0">
         <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
           {user.display_name}
-          {user.is_super_admin && (
-            <Badge tone="brand" icon={ShieldCheck} label={t('shell.superAdmin')} />
+          {user.is_permanent ? (
+            <Badge tone="brand" icon={LockKeyhole} label={t('pages.adminUsers.permanent')} />
+          ) : (
+            user.is_super_admin && (
+              <Badge tone="brand" icon={ShieldCheck} label={t('shell.superAdmin')} />
+            )
           )}
           <Badge
             tone={user.is_active ? 'success' : 'muted'}
@@ -166,11 +170,14 @@ function UserRow({ user, isMe }: { user: AdminUserDto; isMe: boolean }) {
           />
         </p>
         <p className="truncate text-xs text-ink-muted">{user.email}</p>
+        {user.is_permanent && (
+          <p className="text-xs text-ink-muted">{t('pages.adminUsers.permanentHint')}</p>
+        )}
       </div>
       <div className="flex flex-wrap gap-2">
         <Button
           variant="secondary"
-          disabled={update.isPending}
+          disabled={update.isPending || user.is_permanent}
           onClick={() => update.mutate({ is_super_admin: !user.is_super_admin })}
         >
           {user.is_super_admin
@@ -180,7 +187,7 @@ function UserRow({ user, isMe }: { user: AdminUserDto; isMe: boolean }) {
         {user.is_active ? (
           <Button
             variant="ghost"
-            disabled={update.isPending || isMe}
+            disabled={update.isPending || isMe || user.is_permanent}
             onClick={() => setConfirmDeactivate(true)}
           >
             {t('pages.adminUsers.deactivate')}

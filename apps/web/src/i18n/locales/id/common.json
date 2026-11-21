@@ -30,9 +30,14 @@
     "openMenu": "Buka menu navigasi",
     "closeMenu": "Tutup menu navigasi",
     "profile": "Profil saya",
-    "adminUsers": "Kelola pengguna",
+    "adminUsers": "Administrasi",
     "settings": "Modul & Suite",
-    "members": "Anggota"
+    "members": "Anggota",
+    "adminSection": "Administrasi",
+    "adminProjects": "Proyek",
+    "adminUsersShort": "Pengguna",
+    "adminSettings": "Pengaturan situs",
+    "adminAudit": "Log aktivitas"
   },
   "shell": {
     "skipToContent": "Lewati ke konten utama",
@@ -43,7 +48,10 @@
     "signOutDemo": "Keluar dari demo",
     "breadcrumb": "Lokasi halaman",
     "signOut": "Keluar",
-    "superAdmin": "Super Admin"
+    "superAdmin": "Super Admin",
+    "announcement": "Pengumuman",
+    "dismiss": "Tutup pengumuman",
+    "projectArchived": "Proyek ini diarsipkan: isinya tetap bisa dibuka dan dilaporkan, tetapi tidak bisa diubah. Super Admin bisa mengaktifkannya lagi."
   },
   "actions": {
     "retry": "Coba lagi",
@@ -227,7 +235,9 @@
       "import_job": "Impor",
       "report": "Laporan",
       "project": "Proyek",
-      "project_member": "Anggota"
+      "project_member": "Anggota",
+      "user": "Akun pengguna",
+      "system_setting": "Pengaturan situs"
     },
     "auditAction": {
       "CREATE": "Dibuat",
@@ -237,7 +247,10 @@
       "DELETE": "Dihapus",
       "IMPORT": "Diimpor",
       "EXPORT": "Diekspor",
-      "DOWNLOAD": "Diunduh"
+      "DOWNLOAD": "Diunduh",
+      "LOGIN": "Masuk",
+      "LOGOUT": "Keluar",
+      "PASSWORD_CHANGE": "Ganti kata sandi"
     }
   },
   "fields": {
@@ -287,7 +300,7 @@
     "none": "-",
     "email": "Email",
     "password": "Kata sandi",
-    "displayName": "Nama tampilan",
+    "displayName": "Nama",
     "language": "Bahasa antarmuka",
     "testSteps": "Langkah pengujian",
     "moduleCode": "Kode modul",
@@ -315,7 +328,9 @@
       "submit": "Masuk",
       "invalid": "Email atau kata sandi salah.",
       "locked": "Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.",
-      "noAccount": "Akun dibuat oleh Super Admin. Hubungi admin bila Anda belum punya akun."
+      "noAccount": "Akun dibuat oleh Super Admin. Hubungi admin bila Anda belum punya akun.",
+      "titleSite": "Masuk ke {{name}}",
+      "support": "Butuh bantuan? {{contact}}"
     },
     "projects": {
       "title": "Proyek",
@@ -327,7 +342,11 @@
       "openBugs_one": "{{count}} bug terbuka",
       "openBugs_other": "{{count}} bug terbuka",
       "yourRole": "Peran Anda: {{role}}",
-      "empty": "Anda belum menjadi anggota proyek mana pun."
+      "empty": "Anda belum menjadi anggota proyek mana pun.",
+      "create": "Buat proyek",
+      "emptyAdminTitle": "Belum ada proyek",
+      "emptyAdmin": "Buat proyek pertama, lalu tambahkan anggota tim lewat menu Tim & Pengaturan di dalam proyek.",
+      "archived": "Diarsipkan"
     },
     "dashboard": {
       "title": "Dasbor",
@@ -541,7 +560,7 @@
       "currentPassword": "Kata sandi saat ini",
       "newPassword": "Kata sandi baru",
       "confirmPassword": "Ulangi kata sandi baru",
-      "passwordHint": "Minimal 12 karakter. Kalimat panjang lebih aman daripada kata pendek yang rumit.",
+      "passwordHint": "Minimal 8 karakter. Kalimat panjang lebih aman daripada kata pendek yang rumit.",
       "mismatch": "Konfirmasi tidak sama dengan kata sandi baru.",
       "passwordChanged": "Kata sandi diganti. Perangkat lain sudah dikeluarkan.",
       "demoNote": "Mode DEMO: perubahan kata sandi tidak benar-benar disimpan."
@@ -565,7 +584,9 @@
       "deactivateBody": "Pengguna langsung keluar dari semua perangkat dan tidak bisa masuk sampai diaktifkan lagi.",
       "updated": "Akun {{name}} diperbarui.",
       "forbidden": "Halaman ini hanya untuk Super Admin.",
-      "empty": "Tidak ada pengguna yang cocok."
+      "empty": "Tidak ada pengguna yang cocok.",
+      "permanent": "Super Admin utama",
+      "permanentHint": "Akun pemilik: tidak bisa dicabut atau dinonaktifkan dari website oleh siapa pun."
     },
     "cycles": {
       "title": "Siklus Uji",
@@ -899,6 +920,70 @@
         "noChanges": "Tanpa detail field.",
         "empty": "Belum ada aktivitas untuk filter ini."
       }
+    },
+    "adminProjects": {
+      "title": "Proyek",
+      "subtitle": "Semua proyek di website, termasuk yang diarsipkan. Pembuat proyek otomatis menjadi Admin proyek itu.",
+      "create": "Buat proyek",
+      "createTitle": "Buat proyek baru",
+      "createHint": "Anda otomatis menjadi Admin proyek ini dan bisa menambahkan anggota tim setelahnya.",
+      "editTitle": "Ubah proyek {{code}}",
+      "code": "Kode proyek",
+      "codeHint": "Huruf besar, angka, titik, garis bawah atau tanda hubung; 2-40 karakter, mis. KARIRHUB. Tidak bisa diubah setelah dibuat.",
+      "name": "Nama proyek",
+      "description": "Deskripsi",
+      "created": "Proyek {{code}} dibuat.",
+      "saved": "Perubahan proyek disimpan.",
+      "open": "Buka",
+      "edit": "Ubah",
+      "archive": "Arsipkan",
+      "unarchive": "Aktifkan lagi",
+      "archiveTitle": "Arsipkan {{code}}?",
+      "archiveBody": "Proyek tetap bisa dibuka, dilaporkan dan diekspor, tetapi tidak bisa diubah sampai diaktifkan lagi. Tidak ada data yang dihapus.",
+      "archivedToast": "{{code}} diarsipkan.",
+      "restoredToast": "{{code}} aktif lagi.",
+      "active": "Aktif",
+      "members_one": "{{count}} anggota",
+      "members_other": "{{count}} anggota",
+      "createdBy": "Dibuat {{date}} oleh {{name}}",
+      "createdAt": "Dibuat {{date}}",
+      "empty": "Belum ada proyek. Buat proyek pertama untuk mulai."
+    },
+    "adminSettings": {
+      "title": "Pengaturan situs",
+      "subtitle": "Berlaku untuk seluruh website dan semua proyek. Perubahan aktif dalam beberapa detik, tanpa restart.",
+      "general": "Umum",
+      "security": "Keamanan masuk",
+      "retention": "Retensi data",
+      "siteName": "Nama situs",
+      "siteNameHint": "Tampil di halaman masuk dan judul tab browser.",
+      "announcement": "Pengumuman",
+      "announcementHint": "Tampil sebagai pita di atas semua halaman bagi semua pengguna yang masuk. Kosongkan untuk menyembunyikan.",
+      "defaultLocale": "Bahasa bawaan",
+      "defaultLocaleHint": "Untuk pengunjung yang belum memilih bahasa.",
+      "supportContact": "Kontak bantuan",
+      "supportContactHint": "Cara menghubungi admin, tampil di halaman masuk (mis. nama tim dan nomor WhatsApp kantor).",
+      "sessionHours": "Lama sesi masuk (jam)",
+      "sessionHoursHint": "1-72 jam. Berlaku untuk masuk berikutnya.",
+      "idleMinutes": "Keluar otomatis bila diam (menit)",
+      "idleMinutesHint": "5-1440 menit tanpa aktivitas.",
+      "unusedFileDays": "Hapus unggahan yang tidak dipakai setelah (hari)",
+      "unusedFileDaysHint": "Bukti yang dipakai di hasil uji, bug atau test case tidak pernah dihapus otomatis.",
+      "importDays": "Hapus file kerja impor setelah (hari)",
+      "importDaysHint": "Riwayat impor dan hasil per baris tetap tersimpan.",
+      "save": "Simpan pengaturan",
+      "saved": "Pengaturan situs disimpan.",
+      "noChanges": "Tidak ada perubahan untuk disimpan.",
+      "lastChanged": "Diubah {{date}} oleh {{name}}",
+      "isDefault": "Nilai bawaan"
+    },
+    "adminAudit": {
+      "title": "Log aktivitas situs",
+      "subtitle": "Semua perubahan di seluruh website: proyek, akun pengguna, dan pengaturan situs. Tidak bisa diubah.",
+      "project": "Proyek",
+      "allProjects": "Semua",
+      "siteLevel": "Tingkat situs",
+      "empty": "Belum ada aktivitas untuk filter ini."
     }
   },
   "errors": {
@@ -912,7 +997,9 @@
     "RATE_LIMITED": "Terlalu banyak permintaan. Coba lagi nanti.",
     "SERVICE_UNAVAILABLE": "Layanan sedang tidak tersedia. Coba lagi sebentar lagi.",
     "INTERNAL_ERROR": "Terjadi kesalahan. Silakan coba lagi.",
-    "reference": "Kode referensi: {{id}}"
+    "reference": "Kode referensi: {{id}}",
+    "projectArchived": "Proyek ini diarsipkan sehingga hanya bisa dibaca.",
+    "permanentSuperAdmin": "Super Admin utama tidak bisa dicabut atau dinonaktifkan."
   },
   "form": {
     "optional": "opsional",

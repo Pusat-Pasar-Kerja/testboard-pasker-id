@@ -10,6 +10,7 @@
 #   bash ops/testboard.sh restore <dir> [--production]   default: test restore into a scratch database
 #   bash ops/testboard.sh smoke [url]           public URL checks (TB-OPS-001/002)
 #   bash ops/testboard.sh create-admin --email a@b --name "Nama"
+#   bash ops/testboard.sh protect-admin --email a@b [--release]   permanent Super Admin (server only)
 #   bash ops/testboard.sh maintenance [--dry-run]   retention clean-up now (the API also runs it daily)
 #   bash ops/testboard.sh cron                  (re)install the cron jobs: watchdog, nightly backup, start at boot
 #   bash ops/testboard.sh watchdog              used by cron: restart the API if it stopped
@@ -640,6 +641,11 @@ cmd_maintenance() {
   (cd "$APP_DIR" && TESTBOARD_ENV_FILE="$ENV_FILE" npm run -s maintenance -w @testboard/api -- "$@")
 }
 
+cmd_protect_admin() {
+  [ -f "$ENV_FILE" ] || die "Belum ada $ENV_FILE. Jalankan: bash ops/testboard.sh setup"
+  (cd "$APP_DIR" && TESTBOARD_ENV_FILE="$ENV_FILE" npm run -s admin:protect -w @testboard/api -- "$@")
+}
+
 cmd_create_admin() {
   [ -f "$ENV_FILE" ] || die "Belum ada $ENV_FILE. Jalankan: bash ops/testboard.sh setup"
   (cd "$APP_DIR" && TESTBOARD_ENV_FILE="$ENV_FILE" npm run -s admin:create-super -w @testboard/api -- "$@")
@@ -781,6 +787,7 @@ case "$command" in
   __build) build_all ;;
   cron) cmd_cron ;;
   create-admin) cmd_create_admin "$@" ;;
+  protect-admin) cmd_protect_admin "$@" ;;
   maintenance) cmd_maintenance "$@" ;;
   *) sed -n '2,/^# Secrets/p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' ;;
 esac

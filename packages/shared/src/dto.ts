@@ -48,7 +48,22 @@ export interface AdminUserDto {
   preferred_locale: Locale
   is_active: boolean
   is_super_admin: boolean
+  /** Owner account (set on the server only): cannot be revoked or deactivated. */
+  is_permanent: boolean
   created_at: string
+}
+
+/** Project as listed in the Super Admin console (archived ones included). */
+export interface AdminProjectDto {
+  id: IdString
+  project_code: string
+  name: string
+  description: string | null
+  is_archived: boolean
+  created_at: string
+  created_by: UserRef | null
+  member_count: number
+  counts: { test_cases: number; runs: number; open_defects: number }
 }
 
 export interface SuiteDto {

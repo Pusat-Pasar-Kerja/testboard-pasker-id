@@ -1,4 +1,14 @@
 import {
+  adminProjectUpdateSchema,
+  defaultSiteSettings,
+  projectCreateSchema,
+  PUBLIC_SITE_SETTING_KEYS,
+  siteSettingsUpdateSchema,
+  type AdminProjectDto,
+  type AuditLogEntry,
+  type PublicSiteSettings,
+  type SiteSettingKey,
+  type SiteSettingsDto,
   auditFilterSchema,
   buildXlsx,
   CSV_MIME,
@@ -161,7 +171,7 @@ export function paginate<T>(items: T[], query: PageQuery = {}): Paginated<T> {
 
 /** In-memory implementation of the API contract over fictitious data. */
 export function createMockDataSource(
-  options: { latencyMs?: number; db?: MockDb; superAdmin?: boolean } = {},
+  options: { latencyMs?: number; db?: MockDb; superAdmin?: boolean; permanentAdmin?: string } = {},
 ): DataSource {
   const latencyMs = options.latencyMs ?? 200
   const db = options.db ?? createMockDb()
@@ -284,7 +294,7 @@ export function createMockDataSource(
     name: p.name,
     description: p.description,
     role_code: roleIn(p.id),
-    is_archived: false,
+    is_archived: Boolean(p.archived),
     counts: {
       test_cases: db.cases.filter((c) => c.projectId === p.id && c.case_status !== 'ARCHIVED')
         .length,
@@ -298,7 +308,11 @@ export function createMockDataSource(
   const profile: { locale: Locale } = { locale: 'id' }
   // The demo user is shown as Super Admin so every screen of the prototype can be explored.
   const superAdmins = new Set<string>(options.superAdmin === false ? [] : [db.currentUserId])
+  /** Permanent (owner) Super Admin; on the server only a CLI command can set it. */
+  const permanentAdmins = new Set<string>(options.permanentAdmin ? [options.permanentAdmin] : [])
   const inactive = new Set<string>()
+  let siteSettings = defaultSiteSettings()
+  const settingsChanged: SiteSettingsDto['changed'] = {}
   let sequence = 900_000
   const newId = () => String(++sequence)
   const now = () => new Date().toISOString()
@@ -386,6 +400,7 @@ export function createMockDataSource(
       preferred_locale: 'id',
       is_active: !inactive.has(user.id),
       is_super_admin: superAdmins.has(user.id),
+      is_permanent: permanentAdmins.has(user.id),
       created_at: '2026-10-01T02:00:00.000Z',
     }
   }
@@ -838,6 +853,40 @@ export function createMockDataSource(
       fields.map((field) => ({ field, message: 'Not allowed for your role' })),
     )
   }
+  const requireSuperAdmin = () => {
+    if (!superAdmins.has(db.currentUserId)) forbidden('Super Admin only.')
+  }
+  const siteAudit = (
+    projectId: string,
+    entityType: string,
+    entityId: string,
+    action: string,
+    oldValues?: unknown,
+    newValues?: unknown,
+  ) => {
+    sessionAudit.push({
+      id: `site-${sessionAudit.length + 1}`,
+      projectId,
+      actorId: db.currentUserId,
+      entity_type: entityType,
+      entity_id: entityId,
+      action_code: action,
+      oldValues,
+      newValues,
+      at: now(),
+    })
+  }
+  const adminProject = (p: MockDb['projects'][number]): AdminProjectDto => ({
+    id: p.id,
+    project_code: p.project_code,
+    name: p.name,
+    description: p.description || null,
+    is_archived: Boolean(p.archived),
+    created_at: p.createdAt ?? '2026-10-01T02:00:00.000Z',
+    created_by: userRef(p.createdBy ?? null),
+    member_count: p.members.length,
+    counts: projectSummary(p).counts,
+  })
   const requireRole = (projectId: string, permission: Permission) => {
     if (!roleCan(effectiveRole(projectId), permission)) forbidden('Not allowed.')
   }
@@ -1254,6 +1303,18 @@ export function createMockDataSource(
     updateUser: (userId, input) =>
       delay(() => {
         const user = db.users.find((u) => u.id === userId) ?? notFound()
+        if (
+          permanentAdmins.has(userId) &&
+          (input.is_super_admin === false || input.is_active === false)
+        ) {
+          throw new ApiClientError(
+            403,
+            'FORBIDDEN',
+            'The permanent Super Admin cannot be revoked or deactivated.',
+            'mock-request',
+            [{ field: 'user', message: 'PERMANENT_SUPER_ADMIN' }],
+          )
+        }
         const losesSuperAdmin =
           superAdmins.has(userId) && (input.is_super_admin === false || input.is_active === false)
         const activeAdmins = [...superAdmins].filter((id) => !inactive.has(id))
@@ -2259,6 +2320,146 @@ export function createMockDataSource(
             (!start || e.created_at >= start) &&
             (!end || e.created_at < end),
         )
+        return paginate(entries, { page, page_size })
+      }),
+
+    // ---- Admin console (demo; same rules as the API, ADR 0011) ------------------------
+    createProject: (input) =>
+      delay(() => {
+        requireSuperAdmin()
+        const parsed = projectCreateSchema.safeParse(input)
+        if (!parsed.success) validationError(parsed.error.issues)
+        const value = parsed.data
+        if (db.projects.some((p) => p.project_code === value.project_code)) {
+          fail(409, 'CONFLICT', 'project_code', 'Already used')
+        }
+        const created = {
+          id: newId(),
+          project_code: value.project_code,
+          name: value.name,
+          description: value.description ?? '',
+          bugPrefix: value.project_code.replace(/[^A-Z0-9]/g, '').slice(0, 3) || 'BUG',
+          members: [{ userId: db.currentUserId, role: 'ADMIN' as const }],
+          createdAt: now(),
+          createdBy: db.currentUserId,
+        }
+        db.projects.push(created)
+        siteAudit(created.id, 'project', created.id, 'CREATE', undefined, {
+          project_code: value.project_code,
+          name: value.name,
+        })
+        return projectSummary(created)
+      }),
+
+    listAdminProjects: () =>
+      delay(() => {
+        requireSuperAdmin()
+        return [...db.projects]
+          .sort(
+            (a, b) =>
+              Number(Boolean(a.archived)) - Number(Boolean(b.archived)) ||
+              a.project_code.localeCompare(b.project_code),
+          )
+          .map(adminProject)
+      }),
+
+    updateAdminProject: (projectId, input) =>
+      delay(() => {
+        requireSuperAdmin()
+        const parsed = adminProjectUpdateSchema.safeParse(input)
+        if (!parsed.success) validationError(parsed.error.issues)
+        const target = db.projects.find((p) => p.id === projectId) ?? notFound()
+        const before = {
+          name: target.name,
+          description: target.description,
+          is_archived: Boolean(target.archived),
+        }
+        if (parsed.data.name !== undefined) target.name = parsed.data.name
+        if (parsed.data.description !== undefined)
+          target.description = parsed.data.description ?? ''
+        if (parsed.data.is_archived !== undefined) target.archived = parsed.data.is_archived
+        siteAudit(
+          target.id,
+          'project',
+          target.id,
+          parsed.data.is_archived === true ? 'ARCHIVE' : 'UPDATE',
+          before,
+          parsed.data,
+        )
+        return adminProject(target)
+      }),
+
+    getSiteSettings: () =>
+      delay((): SiteSettingsDto => {
+        requireSuperAdmin()
+        return { values: { ...siteSettings }, changed: { ...settingsChanged } }
+      }),
+
+    updateSiteSettings: (input) =>
+      delay((): SiteSettingsDto => {
+        requireSuperAdmin()
+        const parsed = siteSettingsUpdateSchema.safeParse(input)
+        if (!parsed.success) validationError(parsed.error.issues)
+        const keys = (Object.keys(parsed.data) as SiteSettingKey[]).filter(
+          (key) => JSON.stringify(parsed.data[key]) !== JSON.stringify(siteSettings[key]),
+        )
+        if (keys.length > 0) {
+          const before = Object.fromEntries(keys.map((key) => [key, siteSettings[key]]))
+          siteSettings = { ...siteSettings, ...parsed.data }
+          for (const key of keys) {
+            settingsChanged[key] = { at: now(), by: userRef(db.currentUserId) }
+          }
+          siteAudit(
+            '',
+            'system_setting',
+            '0',
+            'UPDATE',
+            before,
+            Object.fromEntries(keys.map((key) => [key, siteSettings[key]])),
+          )
+        }
+        return { values: { ...siteSettings }, changed: { ...settingsChanged } }
+      }),
+
+    getPublicSettings: () =>
+      delay(
+        (): PublicSiteSettings =>
+          Object.fromEntries(
+            PUBLIC_SITE_SETTING_KEYS.map((key) => [key, siteSettings[key]]),
+          ) as PublicSiteSettings,
+      ),
+
+    listSiteAuditLogs: (query = {}) =>
+      delay(() => {
+        requireSuperAdmin()
+        const { page, page_size, ...rest } = query
+        const parsed = auditFilterSchema.safeParse(rest)
+        if (!parsed.success) validationError(parsed.error.issues)
+        const f = parsed.data
+        const start = f.from ? wibDayStart(f.from).toISOString() : null
+        const end = f.to ? wibDayEnd(f.to).toISOString() : null
+        const projectEntries: AuditLogEntry[] = db.projects.flatMap((p) =>
+          mockAuditLog(db, p.id, sessionAudit).map((entry) => ({
+            ...entry,
+            project: { id: p.id, project_code: p.project_code },
+          })),
+        )
+        const siteEntries: AuditLogEntry[] = mockAuditLog(db, '', sessionAudit).map((entry) => ({
+          ...entry,
+          project: null,
+        }))
+        const entries = [...projectEntries, ...siteEntries]
+          .filter(
+            (e) =>
+              (!f.project ||
+                (f.project === 'site' ? e.project === null : e.project?.id === f.project)) &&
+              (!f.entity_type || e.entity_type === f.entity_type) &&
+              (!f.action || e.action_code === f.action) &&
+              (!f.actor_id || e.actor?.id === f.actor_id) &&
+              (!start || e.created_at >= start) &&
+              (!end || e.created_at < end),
+          )
+          .sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id))
         return paginate(entries, { page, page_size })
       }),
   }

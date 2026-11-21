@@ -120,7 +120,7 @@ describe('team, profile and user administration', () => {
     const user = userEvent.setup()
     renderRoute('/admin/users')
     await user.type(await screen.findByLabelText(/^Email/), 'baru@demo.invalid')
-    await user.type(screen.getByLabelText(/^Nama tampilan/), 'Pengguna Baru')
+    await user.type(screen.getByLabelText(/^Nama/), 'Pengguna Baru')
     await user.click(screen.getByRole('button', { name: 'Buat akun' }))
     expect(
       await screen.findByText('Kata sandi sementara untuk baru@demo.invalid'),

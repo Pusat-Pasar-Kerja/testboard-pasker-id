@@ -13,6 +13,9 @@ export default defineConfig([
     '**/dist.next/**',
     '**/dist.prev/**',
     '**/coverage/**',
+    // Git-ignored local data and scratch files (never part of the app).
+    '.private-storage/**',
+    '.local-db/**',
     'docs/**',
     'database/**',
   ]),

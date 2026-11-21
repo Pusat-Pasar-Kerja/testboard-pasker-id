@@ -126,6 +126,13 @@ bash ops/testboard.sh create-admin --email email-anda@instansi.go.id --name "Nam
 Password sementara tampil **satu kali**. Login di `https://<domain>/testboard/`, lalu ganti
 password dari menu profil.
 
+Jadikan akun itu **Super Admin permanen** (tidak bisa dicabut atau dinonaktifkan oleh siapa pun
+dari website; hanya bisa diubah lagi lewat perintah ini di server, ADR 0011):
+
+```bash
+bash ops/testboard.sh protect-admin --email email-anda@instansi.go.id
+```
+
 ## Langkah 6 - Ganti `update.sh` lama
 
 ```bash

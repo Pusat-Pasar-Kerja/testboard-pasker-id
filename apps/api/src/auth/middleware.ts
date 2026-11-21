@@ -6,13 +6,19 @@ import { safeEqual, sha256Hex } from '../lib/crypto.js'
 import { AppError } from '../lib/errors.js'
 import type { AppEnv, AuthContext } from '../types.js'
 import { cookieNames, loadSession } from './sessions.js'
+import type { SettingsService } from '../settings/service.js'
 
 const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
 /** Attach `auth` (or null) from the session cookie on every request. */
-export function sessionMiddleware(pool: Pool, config: AppConfig): MiddlewareHandler<AppEnv> {
+export function sessionMiddleware(
+  pool: Pool,
+  config: AppConfig,
+  settings: SettingsService,
+): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
-    c.set('auth', await loadSession(pool, c, config))
+    // Idle timeout follows the Super Admin's site setting (ADR 0011).
+    c.set('auth', await loadSession(pool, c, await settings.sessionConfig(config)))
     await next()
   }
 }

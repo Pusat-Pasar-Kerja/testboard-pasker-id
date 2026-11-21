@@ -210,3 +210,35 @@ export function useImportRows(code: string, id: string, query: ImportRowQuery, e
     enabled,
   })
 }
+
+// ---- Admin console (ADR 0011) -------------------------------------------------------
+
+export function useAdminProjects(enabled = true) {
+  const ds = useDataSource()
+  return useQuery({ queryKey: ['admin-projects'], queryFn: () => ds.listAdminProjects(), enabled })
+}
+
+export function useSiteSettings(enabled = true) {
+  const ds = useDataSource()
+  return useQuery({ queryKey: ['site-settings'], queryFn: () => ds.getSiteSettings(), enabled })
+}
+
+/** Site name, banner, default language, support contact: also for signed-out visitors. */
+export function usePublicSettings() {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['public-settings'],
+    queryFn: () => ds.getPublicSettings(),
+    staleTime: 60_000,
+  })
+}
+
+export function useSiteAuditLogs(query: AuditQuery, enabled = true) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['site-audit-logs', query],
+    queryFn: () => ds.listSiteAuditLogs(query),
+    placeholderData: keepPreviousData,
+    enabled,
+  })
+}

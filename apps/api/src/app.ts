@@ -1,4 +1,10 @@
-import { API_BASE_PATH, REQUEST_ID_HEADER } from '@testboard/shared'
+import {
+  API_BASE_PATH,
+  PUBLIC_SITE_SETTING_KEYS,
+  REQUEST_ID_HEADER,
+  type PublicSiteSettings,
+  type SiteSettings,
+} from '@testboard/shared'
 import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { logger } from 'hono/logger'
@@ -18,6 +24,7 @@ import {
 import { createFileService, type FileService } from './files/pipeline.js'
 import { ImportStore } from './imports/analyze.js'
 import { readAppVersion } from './lib/version.js'
+import { createSettingsService, type SettingsService } from './settings/service.js'
 import { adminRoutes } from './routes/admin.js'
 import { authRoutes } from './routes/auth.js'
 import { healthRoutes } from './routes/health.js'
@@ -34,6 +41,14 @@ export interface AppDeps {
   checkDatabase?: () => Promise<DatabaseHealth>
   /** Evidence storage + processing; created from config when omitted. */
   files?: FileService
+  /** Website settings (Super Admin); created from config when omitted. */
+  settings?: SettingsService
+}
+
+function publicSettings(all: SiteSettings): PublicSiteSettings {
+  return Object.fromEntries(
+    PUBLIC_SITE_SETTING_KEYS.map((key) => [key, all[key]]),
+  ) as PublicSiteSettings
 }
 
 const UPLOAD_PATH = /\/projects\/[^/]+\/(files|imports)\/?$/
@@ -45,6 +60,7 @@ export function createApp({
   logError = consoleErrorLogger,
   checkDatabase = async () => 'not_configured',
   files,
+  settings = createSettingsService(pool, config),
 }: AppDeps) {
   const app = new Hono<AppEnv>()
 
@@ -68,16 +84,18 @@ export function createApp({
     api.use('*', (c, next) =>
       c.req.method === 'POST' && UPLOAD_PATH.test(c.req.path) ? next() : jsonLimit(c, next),
     )
-    api.use('*', sessionMiddleware(pool, config))
+    api.use('*', sessionMiddleware(pool, config, settings))
     api.use('*', csrfMiddleware(config))
     api.use('*', async (c, next) => {
       await next()
       // Authenticated API responses are private and must never be cached by proxies.
       c.header('Cache-Control', 'no-store')
     })
-    api.route('/', authRoutes(pool, config))
+    // Public: site name, banner, default language and support contact (login page).
+    api.get('/settings/public', async (c) => c.json(publicSettings(await settings.get())))
+    api.route('/', authRoutes(pool, config, settings))
     api.route('/', projectRoutes(pool, fileService, new ImportStore(config.storageDir)))
-    api.route('/admin', adminRoutes(pool))
+    api.route('/admin', adminRoutes(pool, settings))
   } else {
     api.all('*', () => {
       throw new AppError(503, 'SERVICE_UNAVAILABLE', 'Database is not configured.')

@@ -390,6 +390,8 @@ export interface AuditLogEntry {
   /** Top-level fields that changed (secrets were already redacted when written). */
   changes: AuditChange[]
   request_id: string | null
+  /** Site-wide log only: the project the entry belongs to (null = website level). */
+  project?: { id: IdString; project_code: string } | null
 }
 
 export const auditFilterSchema = z
@@ -403,6 +405,8 @@ export const auditFilterSchema = z
       .regex(/^[A-Z_]{1,100}$/)
       .optional(),
     actor_id: idString.optional(),
+    /** Site-wide log only: a project id, or "site" for website-level entries. */
+    project: z.union([idString, z.literal('site')]).optional(),
     from: dayString.optional(),
     to: dayString.optional(),
   })

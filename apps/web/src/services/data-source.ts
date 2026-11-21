@@ -1,4 +1,10 @@
 import type {
+  AdminProjectDto,
+  AdminProjectUpdateInput,
+  ProjectCreateInput,
+  PublicSiteSettings,
+  SiteSettingsDto,
+  SiteSettingsUpdate,
   AuditFilter,
   AuditLogEntry,
   ReportExportQuery,
@@ -363,6 +369,16 @@ export interface DataSource {
     userId: string,
     input: { display_name?: string; is_active?: boolean; is_super_admin?: boolean },
   ): Promise<AdminUserDto>
+
+  // Admin console (ADR 0011): projects, website settings, site-wide activity
+  createProject(input: ProjectCreateInput): Promise<ProjectSummary>
+  listAdminProjects(): Promise<AdminProjectDto[]>
+  updateAdminProject(projectId: string, input: AdminProjectUpdateInput): Promise<AdminProjectDto>
+  getSiteSettings(): Promise<SiteSettingsDto>
+  updateSiteSettings(input: SiteSettingsUpdate): Promise<SiteSettingsDto>
+  /** Anyone, also signed out: site name, banner, default language, support contact. */
+  getPublicSettings(): Promise<PublicSiteSettings>
+  listSiteAuditLogs(query?: AuditQuery): Promise<Paginated<AuditLogEntry>>
 }
 
 export type AuditQuery = AuditFilter & PageQuery
@@ -512,5 +528,14 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     listUsers: (q) => client.get(`/admin/users${toQueryString({ q })}`),
     createUser: (input) => client.post('/admin/users', input),
     updateUser: (userId, input) => client.patch(`/admin/users/${seg(userId)}`, input),
+
+    createProject: (input) => client.post('/projects', input),
+    listAdminProjects: () => client.get('/admin/projects'),
+    updateAdminProject: (projectId, input) =>
+      client.patch(`/admin/projects/${seg(projectId)}`, input),
+    getSiteSettings: () => client.get('/admin/settings'),
+    updateSiteSettings: (input) => client.put('/admin/settings', input),
+    getPublicSettings: () => client.get('/settings/public'),
+    listSiteAuditLogs: (query = {}) => client.get(`/admin/audit-logs${toQueryString(query)}`),
   }
 }

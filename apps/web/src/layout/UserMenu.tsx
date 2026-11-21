@@ -77,7 +77,7 @@ export function UserMenu() {
           {t('nav.profile')}
         </Link>
         {me.data?.is_super_admin && (
-          <Link to="/admin/users" className={ITEM} onClick={close}>
+          <Link to="/admin/projects" className={ITEM} onClick={close}>
             <UsersRound aria-hidden="true" className="size-4" />
             {t('nav.adminUsers')}
             <ShieldCheck aria-hidden="true" className="ml-auto size-4 text-brand-600" />

@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import { readdir, rm, stat } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
+import type { SiteSettings } from '@testboard/shared'
 import type { Pool } from 'mysql2/promise'
 import { execute, select } from '../db/tx.js'
 import { LocalStorage } from '../files/storage.js'
@@ -226,10 +227,19 @@ export async function runRetention(
 }
 
 /** Daily schedule inside the API process (first run a few minutes after start). */
+/** Retention days chosen by the Super Admin (site settings), on top of the fixed rules. */
+export function retentionPolicy(settings: SiteSettings): RetentionPolicy {
+  return {
+    ...DEFAULT_RETENTION,
+    unusedFileDays: settings['retention.unused_file_days'],
+    importDays: settings['retention.import_days'],
+  }
+}
+
 export function scheduleRetention(
   pool: Pool,
   storageRoot: string,
-  policy: RetentionPolicy,
+  policy: () => Promise<RetentionPolicy>,
   log: (message: string) => void = console.log,
 ): () => void {
   let running = false
@@ -237,7 +247,7 @@ export function scheduleRetention(
     if (running) return
     running = true
     try {
-      const report = await runRetention(pool, storageRoot, policy)
+      const report = await runRetention(pool, storageRoot, await policy())
       log(`[retention] ${JSON.stringify(report)}`)
     } catch (error) {
       console.error('[retention] failed', error)

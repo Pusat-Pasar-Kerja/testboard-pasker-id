@@ -2,6 +2,28 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.9.0] - 2026-11-21
+
+Perubahan v1 tahap 1 (permintaan pemilik proyek setelah go-live pertama): konsol Super Admin (ADR 0011).
+
+### Ditambahkan
+
+- **Buat proyek**: tombol untuk Super Admin di halaman Proyek dan di menu Administrasi. Pembuat proyek otomatis menjadi Admin proyek. Bila belum ada proyek, Super Admin melihat ajakan membuat proyek pertama (bukan "Anda belum menjadi anggota").
+- **Menu Administrasi** (hanya Super Admin):
+  - **Proyek**: semua proyek beserta jumlah anggota dan isi; ubah nama/deskripsi; arsipkan dan aktifkan lagi. Proyek yang diarsipkan hanya bisa dibaca (diperiksa di server).
+  - **Pengguna**.
+  - **Pengaturan situs**: nama situs, pengumuman berupa pita di semua halaman, bahasa bawaan, kontak bantuan di halaman masuk, lama sesi, batas diam, dan retensi data. Berlaku dalam hitungan detik tanpa restart; setiap perubahan tercatat siapa dan kapan.
+  - **Log aktivitas** seluruh situs, dengan filter proyek atau "Tingkat situs".
+- **Super Admin permanen** (migration `0007`): ditetapkan hanya dari server dengan `bash ops/testboard.sh protect-admin --email ...`. Website menolak mencabut atau menonaktifkan akun itu, siapa pun yang meminta. Di daftar pengguna ditandai "Super Admin utama" dan tombolnya terkunci.
+- Endpoint publik `GET /settings/public`; halaman masuk menampilkan nama situs dan kontak bantuan.
+
+### Diubah
+
+- Password minimal **8** karakter (sebelumnya 12).
+- Label "Nama tampilan" menjadi **"Nama"**.
+- Lama sesi dan batas diam kini diambil dari Pengaturan situs; nilai di `api.env` menjadi nilai bawaannya. Retensi harian juga mengikuti pengaturan itu.
+- Log aktivitas proyek dan log seluruh situs memakai komponen yang sama.
+
 ## [0.8.5] - 2026-11-20
 
 ### Diperbaiki

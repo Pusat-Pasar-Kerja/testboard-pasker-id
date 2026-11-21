@@ -22,6 +22,7 @@ import { execute, select, selectOne, withTransaction, type Db } from '../db/tx.j
 import { writeAudit } from '../lib/audit.js'
 import { AppError } from '../lib/errors.js'
 import { parseBody } from '../lib/validation.js'
+import type { SettingsService } from '../settings/service.js'
 import type { AppEnv } from '../types.js'
 
 export async function currentUserDto(db: Db, userId: string): Promise<CurrentUser> {
@@ -59,7 +60,7 @@ export async function currentUserDto(db: Db, userId: string): Promise<CurrentUse
 
 const INVALID_LOGIN = 'Invalid email or password.'
 
-export function authRoutes(pool: Pool, config: AppConfig) {
+export function authRoutes(pool: Pool, config: AppConfig, settings: SettingsService) {
   const routes = new Hono<AppEnv>()
 
   routes.post('/auth/login', async (c) => {
@@ -85,8 +86,9 @@ export function authRoutes(pool: Pool, config: AppConfig) {
     if (!ok || !user) throw new AppError(401, 'UNAUTHENTICATED', INVALID_LOGIN)
 
     const userId = String(user.id)
+    const sessionConfig = await settings.sessionConfig(config)
     await withTransaction(pool, async (conn) => {
-      await createSession(conn, c, config, userId)
+      await createSession(conn, c, sessionConfig, userId)
       await writeAudit(conn, c, {
         projectId: null,
         entityType: 'user',

@@ -7,7 +7,7 @@ import { TestBoardLogo } from '../components/brand/TestBoardLogo'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { Button } from '../components/ui/Button'
 import { FormAlert, TextField } from '../components/ui/Form'
-import { useCurrentUser } from '../hooks/queries'
+import { useCurrentUser, usePublicSettings } from '../hooks/queries'
 import { storeLocale } from '../i18n'
 import { ApiClientError } from '../services/api-client'
 import { useDataSource } from '../services/use-data-source'
@@ -47,6 +47,7 @@ function DemoLogin() {
 
 function PasswordLogin({ next }: { next: string }) {
   const { t, i18n } = useTranslation()
+  const publicSettings = usePublicSettings()
   const ds = useDataSource()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -134,12 +135,18 @@ function PasswordLogin({ next }: { next: string }) {
         {t('pages.login.submit')}
       </Button>
       <p className="text-xs text-ink-muted">{t('pages.login.noAccount')}</p>
+      {publicSettings.data?.['site.support_contact'] && (
+        <p className="text-xs whitespace-pre-line text-ink-muted">
+          {t('pages.login.support', { contact: publicSettings.data['site.support_contact'] })}
+        </p>
+      )}
     </form>
   )
 }
 
 export function LoginPage() {
   const { t } = useTranslation()
+  const publicSettings = usePublicSettings()
   const ds = useDataSource()
   const me = useCurrentUser()
   const [params] = useSearchParams()
@@ -157,7 +164,11 @@ export function LoginPage() {
         <div className="w-full max-w-md animate-page-in space-y-6 rounded-2xl border border-line bg-surface p-6 shadow-sm sm:p-8">
           <TestBoardLogo size="lg" />
           <div className="space-y-2">
-            <h1 className="text-xl font-bold">{t('pages.login.title')}</h1>
+            <h1 className="text-xl font-bold">
+              {publicSettings.data
+                ? t('pages.login.titleSite', { name: publicSettings.data['site.name'] })
+                : t('pages.login.title')}
+            </h1>
             <p className="text-sm text-ink-muted">{t('app.tagline')}</p>
           </div>
           {demo ? <DemoLogin /> : <PasswordLogin next={next} />}

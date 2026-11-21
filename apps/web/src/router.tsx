@@ -1,6 +1,9 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
 import { AppShell } from './layout/AppShell'
 import { RequireAuth } from './layout/RequireAuth'
+import { AdminAuditPage } from './pages/AdminAuditPage'
+import { AdminProjectsPage } from './pages/AdminProjectsPage'
+import { AdminSettingsPage } from './pages/AdminSettingsPage'
 import { AdminUsersPage } from './pages/AdminUsersPage'
 import { BugDetailPage } from './pages/BugDetailPage'
 import { BugFormPage } from './pages/BugFormPage'
@@ -39,7 +42,11 @@ export const routes: RouteObject[] = [
     children: [
       { path: '/projects', element: <ProjectsPage /> },
       { path: '/profile', element: <ProfilePage /> },
+      { path: '/admin', element: <Navigate to="/admin/projects" replace /> },
+      { path: '/admin/projects', element: <AdminProjectsPage /> },
       { path: '/admin/users', element: <AdminUsersPage /> },
+      { path: '/admin/settings', element: <AdminSettingsPage /> },
+      { path: '/admin/audit', element: <AdminAuditPage /> },
       {
         path: '/projects/:projectCode',
         element: <ProjectGate />,
