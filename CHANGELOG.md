@@ -2,6 +2,23 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.12.0] - 2026-11-21
+
+Perubahan v1 tahap 4 selesai: alat kelola data dan impor data Karirhub (ADR 0013).
+
+### Ditambahkan
+
+- **Panduan impor Karirhub** ([`docs/deploy/import-karirhub.md`](docs/deploy/import-karirhub.md)): langkah di website untuk UAT Fase 1, Bug Tracker Fase 1, dan draf Fase 2 (versi ringkas lalu versi lengkap), lengkap dengan angka yang diharapkan.
+- Impor test case dengan migrasi hasil: run baru bisa langsung dimasukkan ke **siklus** (mis. UAT Fase 1).
+
+### Diperbaiki
+
+- Impor Bug: **baris lanjutan** "Aduan user" (ID sama, tanpa status atau detail, hanya screenshot tambahan) tidak lagi dianggap duplikat. Barisnya digabung ke aduan pertama, dan screenshot-nya ikut ke bug itu (pada uji coba: 70 screenshot, sebelumnya 57).
+
+### Diuji
+
+- Uji coba ketiga workbook asli di database lokal sementara (langsung dihapus): 1.122 test case, 1 run dengan 88 hasil uji dan 85 screenshot, 78 bug (19 tertaut ke hasil uji gagal) dengan 70 screenshot. Kode bentrok Fase 2 dan pencarian test case mirip bekerja sesuai rancangan.
+
 ## [0.11.5] - 2026-11-21
 
 Perubahan v1 tahap 4, bagian 4: peninjauan kode bentrok saat impor test case (ADR 0013).

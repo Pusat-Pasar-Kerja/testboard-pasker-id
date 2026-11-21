@@ -30,7 +30,7 @@ import { Section } from '../components/ui/Section'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
 import { useToast } from '../components/ui/toast-context'
 import { useCan } from '../hooks/permissions'
-import { useImport, useImportRows } from '../hooks/queries'
+import { useCycles, useImport, useImportRows } from '../hooks/queries'
 import { projectPath, useProjectCode } from '../hooks/route-state'
 import { apiErrorText } from '../lib/api-errors'
 import { ApiClientError } from '../services/api-client'
@@ -56,7 +56,7 @@ interface Draft {
   import_mode: ImportMode
   case_status: 'DRAFT' | 'READY'
   include_results: boolean
-  run: { name: string; environment_name: string; build_version: string }
+  run: { name: string; environment_name: string; build_version: string; cycle_id: string }
   status_map: Record<string, string>
   image_rows: Record<string, number | null>
   code_conflict: CodeConflictDecision
@@ -96,6 +96,7 @@ function initialDraft(job: ImportJobDto): Draft {
         `Migrasi ${job.original_filename.replace(/\.[^.]+$/, '')}`.slice(0, 255),
       environment_name: config?.run?.environment_name ?? '',
       build_version: config?.run?.build_version ?? '',
+      cycle_id: config?.run?.cycle_id ?? '',
     },
     status_map: { ...(config?.status_map ?? {}) },
     image_rows: { ...(config?.image_rows ?? {}) },
@@ -125,6 +126,7 @@ function toConfig(draft: Draft): ImportConfigInput {
           name: draft.run.name.trim() || 'Migrasi UAT',
           environment_name: draft.run.environment_name.trim() || null,
           build_version: draft.run.build_version.trim() || null,
+          cycle_id: draft.run.cycle_id || null,
         }
       : undefined,
     status_map: Object.fromEntries(
@@ -410,6 +412,7 @@ function ImportJob({ job }: { job: ImportJobDto }) {
   const toast = useToast()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const cycles = useCycles(code)
   const [draft, setDraft] = useState<Draft>(() => initialDraft(job))
   const [stale, setStale] = useState(job.status_code === 'UPLOADED')
   const [error, setError] = useState<string | null>(null)
@@ -687,6 +690,20 @@ function ImportJob({ job }: { job: ImportJobDto }) {
                         onChange={(e) =>
                           update({ run: { ...draft.run, build_version: e.target.value } })
                         }
+                      />
+                      <SelectField
+                        label={t('fields.cycle')}
+                        value={draft.run.cycle_id}
+                        onChange={(e) =>
+                          update({ run: { ...draft.run, cycle_id: e.target.value } })
+                        }
+                        options={[
+                          { value: '', label: t('pages.runForm.noCycle') },
+                          ...(cycles.data ?? []).map((cy) => ({
+                            value: cy.id,
+                            label: `${cy.cycle_code} - ${cy.title}`,
+                          })),
+                        ]}
                       />
                     </div>
                   )}

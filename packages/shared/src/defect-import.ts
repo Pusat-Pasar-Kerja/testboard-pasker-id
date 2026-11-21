@@ -265,6 +265,11 @@ export function planDefectRows(
 ) {
   const rows: PreparedDefectRow[] = []
   const images: ImportImage[] = []
+  /**
+   * Continuation rows: the same bug code again right below, without status or details,
+   * usually just one more screenshot ("Aduan user"). They are folded into the first row.
+   */
+  const mergedInto = new Map<string, PreparedDefectRow>()
   for (const sheetConfig of config.sheets) {
     const sheet = sheets.find((s) => s.name === sheetConfig.name)
     if (!sheet) throw new Error(`SHEET_NOT_FOUND:${sheetConfig.name}`)
@@ -272,6 +277,7 @@ export function planDefectRows(
     const hidden = new Set(sheet.hiddenRows)
     const sheetRows = new Set<number>()
     const moduleCode = sheetConfig.module_code?.trim().toUpperCase() || null
+    const firstByCodeInSheet = new Map<string, PreparedDefectRow>()
     sheet.rows.slice(sheetConfig.header_row).forEach((cells, index) => {
       const rowNumber = sheetConfig.header_row + index + 1
       const raw: Record<string, string> = {}
@@ -282,6 +288,13 @@ export function planDefectRows(
         const field = sheetConfig.mapping[col]
         if (field && text && value[field] === undefined) value[field] = text
       })
+      const ownCode = value.bug_code?.toUpperCase()
+      const earlier = ownCode ? firstByCodeInSheet.get(ownCode) : undefined
+      if (earlier && !value.status && !value.description) {
+        sheetRows.add(rowNumber)
+        mergedInto.set(`${sheet.name}!${rowNumber}`, earlier)
+        return
+      }
       if (!value.title && !value.description) return
       sheetRows.add(rowNumber)
       const issues: PreparedDefectRow['issues'] = []
@@ -395,6 +408,8 @@ export function planDefectRows(
           values.description,
         ]),
       })
+      const added = rows[rows.length - 1] as PreparedDefectRow
+      if (ownCode && !firstByCodeInSheet.has(ownCode)) firstByCodeInSheet.set(ownCode, added)
     })
     for (const image of sheet.images) {
       const override = config.image_rows?.[image.key]
@@ -431,7 +446,10 @@ export function planDefectRows(
   for (const row of rows) if (row.status === 'VALID') row.action = 'CREATE'
   for (const image of images) {
     if (image.row_number === null) continue
-    rows.find((r) => r.sheet === image.sheet && r.row === image.row_number)?.images.push(image.key)
+    const target =
+      mergedInto.get(`${image.sheet}!${image.row_number}`) ??
+      rows.find((r) => r.sheet === image.sheet && r.row === image.row_number)
+    target?.images.push(image.key)
   }
 
   const statusOf = (label: string) =>

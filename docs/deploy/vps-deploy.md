@@ -144,6 +144,9 @@ Pengguna lain yang lupa email atau kata sandi memakai tautan "Lupa kata sandi?" 
 di halaman masuk. Permintaannya muncul di menu **Administrasi > Pemulihan akun** (angka merah),
 tempat Super Admin membuat tautan reset berbatas waktu.
 
+Impor data UAT Karirhub (Fase 1, Bug Tracker Fase 1, draf Fase 2) dilakukan dari website; ikuti
+[`import-karirhub.md`](import-karirhub.md).
+
 ## Langkah 6 - Ganti `update.sh` lama
 
 ```bash

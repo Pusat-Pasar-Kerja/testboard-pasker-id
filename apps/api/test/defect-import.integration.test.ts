@@ -137,6 +137,8 @@ async function tracker() {
           '01/08/2026',
           'Not Done',
         ],
+        // Continuation row: same ID, no status/details, one more screenshot.
+        ['', 'ADU-001', '', 'Unggah logo dinas', '', '', '', '', '', '', ''],
         [
           '2',
           'ADU-002',
@@ -164,6 +166,7 @@ async function tracker() {
           'Info',
         ],
       ],
+      images: [{ col: 4, row: 3, png }],
     },
   ])
 }
@@ -242,7 +245,7 @@ describe('importing bugs from a tracker workbook', () => {
       expect.arrayContaining([{ label: 'Critical', count: 1, mapped: 'CRITICAL' }]),
     )
     expect(p.new_modules.sort()).toEqual(['ADUAN', 'LOKER'])
-    expect(p.images).toMatchObject({ total: 1, auto: 1 })
+    expect(p.images).toMatchObject({ total: 2, auto: 2 })
     expect(preview.json.config).toBeNull()
 
     const done = await commitAndWait(up.json.id)
@@ -250,7 +253,7 @@ describe('importing bugs from a tracker workbook', () => {
     expect(done.defect_result).toMatchObject({
       created_defects: 5,
       linked_results: 1,
-      images_imported: 1,
+      images_imported: 2,
       images_failed: 0,
     })
 
@@ -303,6 +306,8 @@ describe('importing bugs from a tracker workbook', () => {
       await lead.get(`${P()}/defects/${bugs.find((b) => b.bug_code === 'ADU-001')!.id}`)
     ).json
     expect(withNote.comments[0].body).toBe('Catatan dari file: Perlu dicek di peramban lain')
+    // The continuation row's screenshot belongs to the first ADU-001 bug.
+    expect(withNote.files).toHaveLength(1)
     const audit = await selectOne<{ n: number }>(
       h.pool,
       "SELECT COUNT(*) AS n FROM audit_logs WHERE entity_type = 'import_job' AND entity_id = ? AND action_code = 'IMPORT'",

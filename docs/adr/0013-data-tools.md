@@ -1,6 +1,6 @@
 # ADR 0013 - Alat kelola data: siklus pada bug, aksi massal, gabung test case, impor bug
 
-- **Status:** Diterima (perubahan v1, tahap 4), diterapkan bertahap
+- **Status:** Diterima dan diterapkan (perubahan v1, tahap 4, v0.11.1-v0.12.0)
 - **Pemutus:** Pemilik proyek, 21 November 2026
 - **Terkait:** ADR 0006 (run), ADR 0007 (alur bug), ADR 0009 (impor)
 
@@ -24,9 +24,12 @@ Data UAT Karirhub ada di tiga workbook: hasil UAT Fase 1 (30-31 Juli 2026), Trac
    - **Peta nilai** yang bisa diubah: status di file ke status bug, atau "Lewati". Bawaannya: Gagal Diuji = Terbuka; Berhasil, Belum, Terhambat, dan Dilewati Diuji = dilewati; Done = Ditutup; Not Done = Terbuka; Info = Ditutup; sel kosong = dilewati untuk sheet UAT dan Terbuka untuk laporan pengguna. Severity (Critical/High/Medium/Minor/Info) dan prioritas juga dipetakan.
    - Per sheet: modul (dibuat bila belum ada) dan sumber (UAT / laporan pengguna). Per impor: siklus, dan opsi menautkan bug ke hasil uji terakhir test case-nya di siklus itu (hasil gagal diutamakan).
    - Screenshot tertanam mengikuti baris tempatnya berada dan masuk lewat pipeline bukti, lalu dilampirkan ke bug.
+   - **Baris lanjutan** (kode bug sama dengan baris di atasnya, tanpa status dan detail, biasanya hanya screenshot tambahan di "Aduan user") digabung ke baris pertamanya; screenshot-nya ikut ke bug yang sama.
    - Bug yang kodenya sudah ada (mis. aduan yang pernah diimpor) tidak dibuat ulang. Status awal dicatat di riwayat ("Diimpor dari ..."), kategori dan status retest ditambahkan ke detail, dan asal baris disimpan di `source_reference`.
 
 7. **Kode bentrok saat impor test case** (untuk sheet tersembunyi "... 3" Fase 2): bila kode di file sudah dipakai test case dengan **isi berbeda** (di proyek, atau di baris lebih awal di file), baris itu tampil di daftar "Kode bentrok" pada pratinjau, berdampingan dengan judul yang sudah ada. Pilihan per baris atau untuk semua: _Lewati_ (bawaan, perilaku lama) atau _Buat dengan kode baru_ (nomor berikutnya di modul itu, mis. UAT-LPL-125; kode asal dicatat di revisi pertama). Baris dengan isi sama tetap dianggap duplikat. Baris berkode baru dibuat paling akhir agar tidak mengambil kode yang masih dipakai baris lain di file yang sama. Setelah itu "Cari yang mirip" dan "Gabungkan" dipakai untuk merapikan test case yang ternyata sama.
+
+8. **Uji coba dengan ketiga workbook asli** (21 Nov 2026, database lokal sementara yang langsung dihapus; hanya angka yang dicatat): UAT Fase 1 = 162 test case, run dengan 88 hasil (65 berhasil, 23 gagal) dan 85 screenshot; Tracker = 78 bug (21 dari UAT gagal, 57 aduan), 19 tertaut ke hasil uji gagal, 70 screenshot; Fase 2 = 254 test case versi ringkas + 706 versi lengkap (219 kode bentrok diberi kode baru). "Cari yang mirip" menemukan pasangan versi ringkas dan versi lengkap dengan skor 100%. Langkah untuk produksi: [`docs/deploy/import-karirhub.md`](../deploy/import-karirhub.md).
 
 ## Konsekuensi
 
