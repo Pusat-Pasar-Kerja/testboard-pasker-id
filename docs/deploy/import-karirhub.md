@@ -23,8 +23,8 @@ File: `V2_UAT Phase 1 (Pengembangan Karirhub) 30_31 Juli 2026.xlsx`
 1. **Impor Data** > pilih **Test case** > unggah file.
 2. Sheet: biarkan 4 sheet yang tercentang (sheet tersembunyi tidak dicentang). Kode modul
    yang disarankan boleh dipakai apa adanya.
-3. Centang **Migrasi hasil UAT lama**, isi nama run "UAT Fase 1 (30-31 Juli 2026)", lalu
-   pilih siklus **UAT Fase 1**.
+3. Centang **Pindahkan juga hasil UAT lama**, isi **Nama run** "UAT Fase 1 (30-31 Juli
+   2026)", lalu pilih siklus **UAT Fase 1**.
 4. **Periksa**. Yang diharapkan: 162 test case akan dibuat; status Berhasil Diuji = Berhasil,
    Gagal Diuji = Gagal, Belum Diuji = Belum diuji; sekitar 110 screenshot terhubung ke barisnya.
 5. **Terapkan impor**. Hasil: run baru dengan 88 hasil uji (65 berhasil, 23 gagal) dan sekitar
@@ -66,7 +66,7 @@ yang berbeda**, jadi diimpor dua kali.
 3. Kode modul (disarankan mengikuti kode di ID UAT): Lapor Loker `LPL`, Lapor Perusahaan
    `LPP`, Pemberi Kerja Individu `PKI`, Gig Workers `GW`, CDC Campus `CDC`, Calendar
    Service `CHS`.
-4. Status test case: **Draf**. Jangan centang migrasi hasil.
+4. **Status test case baru**: **Draf**. Jangan centang **Pindahkan juga hasil UAT lama**.
 5. **Periksa** (diharapkan 254 akan dibuat, tanpa kode bentrok) > **Terapkan impor**.
 
 ### 3b. Versi lengkap "... 3"

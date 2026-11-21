@@ -2,6 +2,12 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.12.1] - 2026-11-22
+
+### Diperbaiki
+
+- Panduan impor Karirhub: nama pilihan disamakan dengan tampilan website (**Pindahkan juga hasil UAT lama**, **Nama run**, **Status test case baru**).
+
 ## [0.12.0] - 2026-11-21
 
 Perubahan v1 tahap 4 selesai: alat kelola data dan impor data Karirhub (ADR 0013).
