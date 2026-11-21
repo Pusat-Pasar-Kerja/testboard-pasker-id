@@ -257,6 +257,12 @@ export interface DataSource {
     projectCode: string,
     input: { module_code: string; name: string; description?: string | null },
   ): Promise<ModuleDto>
+  /** Code and/or name; existing test case codes keep their old prefix. */
+  updateModule(
+    projectCode: string,
+    moduleId: string,
+    input: { module_code?: string; name?: string; description?: string | null },
+  ): Promise<ModuleDto>
   listSuites(projectCode: string): Promise<SuiteDto[]>
   createSuite(projectCode: string, input: SuiteInput): Promise<SuiteDto>
 
@@ -476,6 +482,7 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     removeMember: (code, userId) => client.delete(`${p(code)}/members/${seg(userId)}`),
     listModules: (code) => client.get(`${p(code)}/modules`),
     createModule: (code, input) => client.post(`${p(code)}/modules`, input),
+    updateModule: (code, id, input) => client.patch(`${p(code)}/modules/${seg(id)}`, input),
     listSuites: (code) => client.get(`${p(code)}/suites`),
     createSuite: (code, input) => client.post(`${p(code)}/suites`, input),
 

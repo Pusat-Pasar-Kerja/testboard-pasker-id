@@ -333,33 +333,48 @@ export function adminRoutes(pool: Pool, settings: SettingsService) {
     const input = await parseBody(c, adminProjectUpdateSchema)
     await withTransaction(pool, async (conn) => {
       const before = await selectOne<{
+        project_code: string
         name: string
         description: string | null
         is_archived: number
-      }>(conn, 'SELECT name, description, is_archived FROM projects WHERE id = ? FOR UPDATE', [
-        projectId,
-      ])
-      if (!before) throw new AppError(404, 'NOT_FOUND', 'Not found.')
-      await execute(
+      }>(
         conn,
-        `UPDATE projects SET name = COALESCE(?, name),
-                description = IF(?, ?, description),
-                is_archived = COALESCE(?, is_archived)
-          WHERE id = ?`,
-        [
-          input.name ?? null,
-          input.description !== undefined ? 1 : 0,
-          input.description ?? null,
-          input.is_archived === undefined ? null : input.is_archived ? 1 : 0,
-          projectId,
-        ],
+        'SELECT project_code, name, description, is_archived FROM projects WHERE id = ? FOR UPDATE',
+        [projectId],
       )
+      if (!before) throw new AppError(404, 'NOT_FOUND', 'Not found.')
+      try {
+        await execute(
+          conn,
+          `UPDATE projects SET project_code = COALESCE(?, project_code),
+                  name = COALESCE(?, name),
+                  description = IF(?, ?, description),
+                  is_archived = COALESCE(?, is_archived)
+            WHERE id = ?`,
+          [
+            input.project_code ?? null,
+            input.name ?? null,
+            input.description !== undefined ? 1 : 0,
+            input.description ?? null,
+            input.is_archived === undefined ? null : input.is_archived ? 1 : 0,
+            projectId,
+          ],
+        )
+      } catch (error) {
+        if (isDuplicateKey(error)) {
+          throw new AppError(409, 'CONFLICT', 'Project code already exists.', [
+            { field: 'project_code', message: 'Already used' },
+          ])
+        }
+        throw error
+      }
       await writeAudit(conn, c, {
         projectId,
         entityType: 'project',
         entityId: projectId,
         action: input.is_archived === true ? 'ARCHIVE' : 'UPDATE',
         oldValues: {
+          project_code: before.project_code,
           name: before.name,
           description: before.description,
           is_archived: Number(before.is_archived) === 1,

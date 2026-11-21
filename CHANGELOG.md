@@ -2,6 +2,17 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.12.2] - 2026-11-22
+
+### Diubah
+
+- **Kode proyek, kode modul, dan kode siklus bisa diubah** setelah dibuat (ADR 0014):
+  - kode proyek di **Administrasi > Proyek > Ubah** (link proyek ikut berubah);
+  - kode modul di **Tim & Pengaturan > Modul & Suite > Ubah** (test case lama tetap memakai kodenya, test case baru memakai kode baru);
+  - kode siklus, judul, keterangan, dan periode di **Siklus Uji > Ubah**.
+
+  Kode yang sudah dipakai ditolak, dan setiap perubahan tercatat di log aktivitas.
+
 ## [0.12.1] - 2026-11-22
 
 ### Diperbaiki

@@ -562,7 +562,11 @@
       "suiteCreated": "Suite {{name}} added.",
       "noModules": "No modules yet.",
       "noSuites": "No suites yet.",
-      "readOnly": "Only ADMINs and QA Leads can add modules and suites."
+      "readOnly": "Only ADMINs and QA Leads can add modules and suites.",
+      "editModule": "Edit",
+      "editModuleTitle": "Edit module {{code}}",
+      "moduleCodeEditHint": "Existing test cases keep their current code (e.g. UAT-LPL-001); new test cases use the new module code. Use the new module code when importing.",
+      "moduleSaved": "Module {{code}} saved."
     },
     "profile": {
       "title": "My profile",
@@ -611,7 +615,10 @@
       "updated": "Cycle {{code}} updated.",
       "statusLabel": "Status of cycle {{code}}",
       "runs": "{{count}} runs",
-      "dateOrder": "The end date must not be before the start date."
+      "dateOrder": "The end date must not be before the start date.",
+      "edit": "Edit",
+      "editTitle": "Edit cycle {{code}}",
+      "editCodeHint": "Letters, numbers, dot, dash or underscore (e.g. PHASE-1). Existing runs and bugs stay linked to this cycle."
     },
     "runForm": {
       "newTitle": "New run",
@@ -971,7 +978,7 @@
       "createHint": "You become the Admin of this project and can add team members afterwards.",
       "editTitle": "Edit project {{code}}",
       "code": "Project code",
-      "codeHint": "Capital letters, digits, dot, underscore or hyphen; 2-40 characters, e.g. KARIRHUB. Cannot be changed later.",
+      "codeHint": "Capital letters, digits, dot, underscore or hyphen; 2-40 characters, e.g. KARIRHUB. Used in the project links; changing it later makes old links stop working.",
       "name": "Project name",
       "description": "Description",
       "created": "Project {{code}} created.",
@@ -989,7 +996,8 @@
       "members_other": "{{count}} members",
       "createdBy": "Created {{date}} by {{name}}",
       "createdAt": "Created {{date}}",
-      "empty": "No projects yet. Create the first one to get started."
+      "empty": "No projects yet. Create the first one to get started.",
+      "codeEditHint": "Changing the code also changes the project's links; old links stop working. Existing bug codes stay as they are."
     },
     "adminSettings": {
       "title": "Site settings",

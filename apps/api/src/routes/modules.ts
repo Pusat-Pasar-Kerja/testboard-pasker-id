@@ -77,22 +77,33 @@ export function moduleRoutes(pool: Pool) {
     await withTransaction(pool, async (conn) => {
       const before = await selectOne(
         conn,
-        'SELECT name, description FROM modules WHERE id = ? AND project_id = ? FOR UPDATE',
+        'SELECT module_code, name, description FROM modules WHERE id = ? AND project_id = ? FOR UPDATE',
         [moduleId, project.id],
       )
       if (!before) throw new AppError(404, 'NOT_FOUND', 'Not found.')
-      await execute(
-        conn,
-        `UPDATE modules SET name = COALESCE(?, name), description = IF(?, ?, description)
-          WHERE id = ? AND project_id = ?`,
-        [
-          input.name ?? null,
-          input.description !== undefined ? 1 : 0,
-          input.description ?? null,
-          moduleId,
-          project.id,
-        ],
-      )
+      try {
+        await execute(
+          conn,
+          `UPDATE modules SET module_code = COALESCE(?, module_code), name = COALESCE(?, name),
+                  description = IF(?, ?, description)
+            WHERE id = ? AND project_id = ?`,
+          [
+            input.module_code?.toUpperCase() ?? null,
+            input.name ?? null,
+            input.description !== undefined ? 1 : 0,
+            input.description ?? null,
+            moduleId,
+            project.id,
+          ],
+        )
+      } catch (error) {
+        if (isDuplicateKey(error)) {
+          throw new AppError(409, 'CONFLICT', 'Module code already exists in this project.', [
+            { field: 'module_code', message: 'Already used' },
+          ])
+        }
+        throw error
+      }
       await writeAudit(conn, c, {
         projectId: project.id,
         entityType: 'module',

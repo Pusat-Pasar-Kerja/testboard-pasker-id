@@ -1,10 +1,11 @@
-import { codeSchema } from '@testboard/shared'
+import { codeSchema, type ModuleDto } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
+import { Pencil, Plus } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../components/ui/Button'
 import { FormAlert, SelectField, TextField } from '../components/ui/Form'
+import { FormDialog } from '../components/ui/FormDialog'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Section } from '../components/ui/Section'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
@@ -25,6 +26,86 @@ function apiMessage(t: TFunction, error: unknown) {
   return t('errors.INTERNAL_ERROR')
 }
 
+/** Rename a module's code and/or name; existing test case codes keep their prefix. */
+function EditModuleDialog({
+  code,
+  module,
+  onClose,
+}: {
+  code: string
+  module: ModuleDto
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const ds = useDataSource()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [moduleCode, setModuleCode] = useState(module.module_code)
+  const [name, setName] = useState(module.name)
+  const [errors, setErrors] = useState<{ module_code?: string; name?: string }>({})
+
+  const save = useMutation({
+    mutationFn: () =>
+      ds.updateModule(code, module.id, { module_code: moduleCode.trim(), name: name.trim() }),
+    onSuccess: async (saved) => {
+      // Test cases, bugs, filters and reports all show the module code.
+      await queryClient.invalidateQueries()
+      toast.show(t('pages.projectSettings.moduleSaved', { code: saved.module_code }))
+      onClose()
+    },
+    onError: (error) => {
+      if (error instanceof ApiClientError && error.status === 409) {
+        setErrors({ module_code: t('form.alreadyUsed') })
+      }
+    },
+  })
+
+  const submit = () => {
+    const next: { module_code?: string; name?: string } = {}
+    if (!codeSchema(40).safeParse(moduleCode).success) next.module_code = t('form.invalid')
+    if (!name.trim()) next.name = t('form.required')
+    setErrors(next)
+    if (!next.module_code && !next.name) save.mutate()
+  }
+
+  return (
+    <FormDialog
+      open
+      title={t('pages.projectSettings.editModuleTitle', { code: module.module_code })}
+      submitLabel={t('actions.save')}
+      busy={save.isPending}
+      onSubmit={submit}
+      onCancel={onClose}
+    >
+      <TextField
+        label={t('fields.moduleCode')}
+        required
+        value={moduleCode}
+        maxLength={40}
+        autoComplete="off"
+        onChange={(e) => setModuleCode(e.target.value.toUpperCase())}
+        hint={t('pages.projectSettings.moduleCodeEditHint')}
+        error={errors.module_code}
+      />
+      <TextField
+        label={t('fields.name')}
+        required
+        value={name}
+        maxLength={200}
+        onChange={(e) => setName(e.target.value)}
+        error={errors.name}
+      />
+      <FormAlert
+        message={
+          save.isError && !(save.error instanceof ApiClientError && save.error.status === 409)
+            ? apiMessage(t, save.error)
+            : null
+        }
+      />
+    </FormDialog>
+  )
+}
+
 function ModulesSection({ code, manage }: { code: string; manage: boolean }) {
   const { t } = useTranslation()
   const ds = useDataSource()
@@ -34,6 +115,7 @@ function ModulesSection({ code, manage }: { code: string; manage: boolean }) {
   const [moduleCode, setModuleCode] = useState('')
   const [name, setName] = useState('')
   const [codeError, setCodeError] = useState<string>()
+  const [editing, setEditing] = useState<ModuleDto | null>(null)
 
   const create = useMutation({
     mutationFn: () => ds.createModule(code, { module_code: moduleCode, name: name.trim() }),
@@ -64,12 +146,27 @@ function ModulesSection({ code, manage }: { code: string; manage: boolean }) {
       {modules.isSuccess && modules.data.length > 0 && (
         <ul className="divide-y divide-line">
           {modules.data.map((m) => (
-            <li key={m.id} className="flex items-baseline gap-3 py-2.5 text-sm">
-              <span className="w-24 shrink-0 font-semibold text-brand-700">{m.module_code}</span>
-              <span>{m.name}</span>
+            <li key={m.id} className="flex items-center gap-3 py-1.5 text-sm">
+              <span className="w-24 shrink-0 font-semibold break-all text-brand-700">
+                {m.module_code}
+              </span>
+              <span className="min-w-0 flex-1 break-words">{m.name}</span>
+              {manage && (
+                <Button
+                  variant="ghost"
+                  icon={Pencil}
+                  aria-label={t('pages.projectSettings.editModuleTitle', { code: m.module_code })}
+                  onClick={() => setEditing(m)}
+                >
+                  {t('pages.projectSettings.editModule')}
+                </Button>
+              )}
             </li>
           ))}
         </ul>
+      )}
+      {editing && (
+        <EditModuleDialog code={code} module={editing} onClose={() => setEditing(null)} />
       )}
       {manage && (
         <form

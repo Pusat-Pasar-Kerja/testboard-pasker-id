@@ -50,6 +50,92 @@ describe('projects from the admin console', () => {
     expect((await other.get('/admin/projects')).status).toBe(403)
   })
 
+  it('changes project, module and cycle codes and refuses codes already in use', async () => {
+    const code = unique('OLD').slice(0, 20)
+    const taken = unique('TKN').slice(0, 20)
+    const project = (await superAdmin.post('/projects', { project_code: code, name: 'Kode lama' }))
+      .json as { id: string }
+    await superAdmin.post('/projects', { project_code: taken, name: 'Sudah ada' })
+
+    const clash = await superAdmin.patch(`/admin/projects/${project.id}`, { project_code: taken })
+    expect(clash.status).toBe(409)
+    expect(clash.json.error.details[0].field).toBe('project_code')
+    expect(
+      (await other.patch(`/admin/projects/${project.id}`, { project_code: 'X1' })).status,
+    ).toBe(403)
+
+    const next = unique('NEW').slice(0, 20)
+    const renamed = await superAdmin.patch(`/admin/projects/${project.id}`, { project_code: next })
+    expect(renamed.status).toBe(200)
+    expect(renamed.json.project_code).toBe(next)
+    expect((await superAdmin.get(`/projects/${code}`)).status).toBe(404)
+    expect((await superAdmin.get(`/projects/${next}`)).status).toBe(200)
+
+    // Module: the code changes, the case keeps its own code and follows the module.
+    const auth = (
+      await superAdmin.post(`/projects/${next}/modules`, {
+        module_code: 'AUTH',
+        name: 'Autentikasi',
+      })
+    ).json as { id: string }
+    await superAdmin.post(`/projects/${next}/modules`, { module_code: 'LOKER', name: 'Loker' })
+    const testCase = (
+      await superAdmin.post(`/projects/${next}/test-cases`, {
+        module_code: 'AUTH',
+        title: 'Login berhasil',
+        expected_result: 'Masuk ke beranda',
+      })
+    ).json as { id: string; case_code: string }
+    expect(testCase.case_code).toBe('UAT-AUTH-001')
+    expect(
+      (await superAdmin.patch(`/projects/${next}/modules/${auth.id}`, { module_code: 'LOKER' }))
+        .status,
+    ).toBe(409)
+    const module = await superAdmin.patch(`/projects/${next}/modules/${auth.id}`, {
+      module_code: 'login',
+      name: 'Masuk',
+    })
+    expect(module.json).toMatchObject({ module_code: 'LOGIN', name: 'Masuk' })
+    const detail = await superAdmin.get(`/projects/${next}/test-cases/${testCase.id}`)
+    expect(detail.json).toMatchObject({
+      case_code: 'UAT-AUTH-001',
+      module: { module_code: 'LOGIN' },
+    })
+    const fresh = await superAdmin.post(`/projects/${next}/test-cases`, {
+      module_code: 'LOGIN',
+      title: 'Login gagal',
+      expected_result: 'Pesan salah sandi',
+    })
+    expect(fresh.json.case_code).toBe('UAT-LOGIN-001')
+
+    // Cycle
+    const cycle = (
+      await superAdmin.post(`/projects/${next}/cycles`, {
+        cycle_code: 'SIKLUS-1',
+        title: 'Siklus 1',
+      })
+    ).json as { id: string }
+    await superAdmin.post(`/projects/${next}/cycles`, { cycle_code: 'FASE-2', title: 'Fase 2' })
+    expect(
+      (await superAdmin.patch(`/projects/${next}/cycles/${cycle.id}`, { cycle_code: 'FASE-2' }))
+        .status,
+    ).toBe(409)
+    const renamedCycle = await superAdmin.patch(`/projects/${next}/cycles/${cycle.id}`, {
+      cycle_code: 'FASE-1',
+      title: 'UAT Fase 1',
+    })
+    expect(renamedCycle.json).toMatchObject({ cycle_code: 'FASE-1', title: 'UAT Fase 1' })
+
+    const log = await superAdmin.get(`/admin/audit-logs?entity_type=project&page_size=100`)
+    const change = (
+      log.json.data as { entity_id: string; changes: { field: string; old: unknown }[] }[]
+    )
+      .filter((e) => e.entity_id === project.id)
+      .flatMap((e) => e.changes)
+      .find((c) => c.field === 'project_code')
+    expect(change).toMatchObject({ old: code, new: next })
+  })
+
   it('archives a project as read-only and restores it', async () => {
     const code = unique('ARC').slice(0, 20)
     const project = (await superAdmin.post('/projects', { project_code: code, name: 'Arsip' }))

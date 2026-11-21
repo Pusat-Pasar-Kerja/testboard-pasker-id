@@ -5,13 +5,15 @@ import {
   type CycleStatus,
 } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
+import type { TFunction } from 'i18next'
+import { Pencil, Plus } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { CycleStatusBadge } from '../components/status/StatusBadges'
 import { Button } from '../components/ui/Button'
 import { FormAlert, SelectField, TextArea, TextField } from '../components/ui/Form'
+import { FormDialog } from '../components/ui/FormDialog'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Section } from '../components/ui/Section'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
@@ -33,6 +35,153 @@ const EMPTY = {
   status_code: 'PLANNED' as CycleStatus,
 }
 type CycleForm = typeof EMPTY
+
+function cycleInput(form: CycleForm) {
+  return {
+    cycle_code: form.cycle_code.trim().toUpperCase(),
+    title: form.title,
+    description: form.description || null,
+    starts_on: form.starts_on || null,
+    ends_on: form.ends_on || null,
+    status_code: form.status_code,
+  }
+}
+
+/** Field messages for an invalid cycle, or null when it is valid. */
+function cycleErrors(
+  t: TFunction,
+  input: ReturnType<typeof cycleInput>,
+): Partial<Record<keyof CycleForm, string>> | null {
+  const result = cycleCreateSchema.safeParse(input)
+  if (result.success) return null
+  const next: Partial<Record<keyof CycleForm, string>> = {}
+  for (const issue of result.error.issues) {
+    const key = String(issue.path[0] ?? '') as keyof CycleForm
+    next[key] =
+      key === 'ends_on'
+        ? t('pages.cycles.dateOrder')
+        : issue.code === 'too_small'
+          ? t('form.required')
+          : key === 'cycle_code'
+            ? t('pages.cycles.codeHint')
+            : issue.message
+  }
+  return next
+}
+
+/** Code, title, description and period of an existing cycle (status is changed on the card). */
+function EditCycleDialog({
+  code,
+  cycle,
+  onClose,
+}: {
+  code: string
+  cycle: CycleDto
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const ds = useDataSource()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const [form, setForm] = useState<CycleForm>({
+    cycle_code: cycle.cycle_code,
+    title: cycle.title,
+    description: cycle.description ?? '',
+    starts_on: cycle.starts_on?.slice(0, 10) ?? '',
+    ends_on: cycle.ends_on?.slice(0, 10) ?? '',
+    status_code: cycle.status_code,
+  })
+  const [errors, setErrors] = useState<Partial<Record<keyof CycleForm, string>>>({})
+  const [formError, setFormError] = useState<string | null>(null)
+  const set = (key: keyof CycleForm) => (value: string) => {
+    setForm((f) => ({ ...f, [key]: value }))
+    setErrors((e) => ({ ...e, [key]: undefined }))
+  }
+
+  const save = useMutation({
+    mutationFn: (input: CycleInput) => ds.updateCycle(code, cycle.id, input),
+    onSuccess: async (updated) => {
+      // Runs, bugs and filters show the cycle code too.
+      await queryClient.invalidateQueries()
+      toast.show(t('pages.cycles.updated', { code: updated.cycle_code }))
+      onClose()
+    },
+    onError: (error) => {
+      const fields = apiFieldErrors(error)
+      if (fields.cycle_code) setErrors({ cycle_code: t('form.alreadyUsed') })
+      setFormError(apiErrorText(t, error))
+    },
+  })
+
+  const submit = () => {
+    setFormError(null)
+    const input = cycleInput(form)
+    const next = cycleErrors(t, input)
+    if (next) {
+      setErrors(next)
+      setFormError(t('form.invalid'))
+      return
+    }
+    save.mutate({
+      cycle_code: input.cycle_code,
+      title: input.title,
+      description: input.description,
+      starts_on: input.starts_on,
+      ends_on: input.ends_on,
+    })
+  }
+
+  return (
+    <FormDialog
+      open
+      title={t('pages.cycles.editTitle', { code: cycle.cycle_code })}
+      submitLabel={t('actions.save')}
+      busy={save.isPending}
+      onSubmit={submit}
+      onCancel={onClose}
+    >
+      <TextField
+        label={t('fields.cycleCode')}
+        required
+        value={form.cycle_code}
+        onChange={(e) => set('cycle_code')(e.target.value.toUpperCase())}
+        hint={t('pages.cycles.editCodeHint')}
+        error={errors.cycle_code}
+        autoComplete="off"
+      />
+      <TextField
+        label={t('fields.title')}
+        required
+        value={form.title}
+        onChange={(e) => set('title')(e.target.value)}
+        error={errors.title}
+      />
+      <TextArea
+        label={t('fields.description')}
+        value={form.description}
+        onChange={(e) => set('description')(e.target.value)}
+        rows={2}
+      />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TextField
+          type="date"
+          label={t('fields.startsOn')}
+          value={form.starts_on}
+          onChange={(e) => set('starts_on')(e.target.value)}
+          error={errors.starts_on}
+        />
+        <TextField
+          type="date"
+          label={t('fields.endsOn')}
+          value={form.ends_on}
+          onChange={(e) => set('ends_on')(e.target.value)}
+          error={errors.ends_on}
+        />
+      </div>
+      <FormAlert message={formError} />
+    </FormDialog>
+  )
+}
 
 function NewCycleForm({ code }: { code: string }) {
   const { t } = useTranslation()
@@ -65,28 +214,9 @@ function NewCycleForm({ code }: { code: string }) {
   function onSubmit(event: FormEvent) {
     event.preventDefault()
     setFormError(null)
-    const input = {
-      cycle_code: form.cycle_code.trim().toUpperCase(),
-      title: form.title,
-      description: form.description || null,
-      starts_on: form.starts_on || null,
-      ends_on: form.ends_on || null,
-      status_code: form.status_code,
-    }
-    const result = cycleCreateSchema.safeParse(input)
-    if (!result.success) {
-      const next: Partial<Record<keyof CycleForm, string>> = {}
-      for (const issue of result.error.issues) {
-        const key = String(issue.path[0] ?? '') as keyof CycleForm
-        next[key] =
-          key === 'ends_on'
-            ? t('pages.cycles.dateOrder')
-            : issue.code === 'too_small'
-              ? t('form.required')
-              : key === 'cycle_code'
-                ? t('pages.cycles.codeHint')
-                : issue.message
-      }
+    const input = cycleInput(form)
+    const next = cycleErrors(t, input)
+    if (next) {
       setErrors(next)
       setFormError(t('form.invalid'))
       return
@@ -157,6 +287,7 @@ function CycleCard({ code, cycle, canEdit }: { code: string; cycle: CycleDto; ca
   const ds = useDataSource()
   const toast = useToast()
   const queryClient = useQueryClient()
+  const [editing, setEditing] = useState(false)
   const update = useMutation({
     mutationFn: (status_code: CycleStatus) => ds.updateCycle(code, cycle.id, { status_code }),
     onSuccess: async (updated) => {
@@ -202,20 +333,31 @@ function CycleCard({ code, cycle, canEdit }: { code: string; cycle: CycleDto; ca
         </div>
       </dl>
       {canEdit && (
-        <div className="mt-4 max-w-56">
-          <SelectField
-            label={t('pages.cycles.statusLabel', { code: cycle.cycle_code })}
-            required
-            value={cycle.status_code}
-            disabled={update.isPending}
-            onChange={(e) => update.mutate(e.target.value as CycleStatus)}
-            options={CYCLE_STATUSES.map((s) => ({
-              value: s,
-              label: t(`codes.cycleStatus.${s}`),
-            }))}
-          />
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <div className="w-56 max-w-full">
+            <SelectField
+              label={t('pages.cycles.statusLabel', { code: cycle.cycle_code })}
+              required
+              value={cycle.status_code}
+              disabled={update.isPending}
+              onChange={(e) => update.mutate(e.target.value as CycleStatus)}
+              options={CYCLE_STATUSES.map((s) => ({
+                value: s,
+                label: t(`codes.cycleStatus.${s}`),
+              }))}
+            />
+          </div>
+          <Button
+            variant="secondary"
+            icon={Pencil}
+            aria-label={t('pages.cycles.editTitle', { code: cycle.cycle_code })}
+            onClick={() => setEditing(true)}
+          >
+            {t('pages.cycles.edit')}
+          </Button>
         </div>
       )}
+      {editing && <EditCycleDialog code={code} cycle={cycle} onClose={() => setEditing(false)} />}
     </li>
   )
 }

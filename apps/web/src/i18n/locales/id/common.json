@@ -562,7 +562,11 @@
       "suiteCreated": "Suite {{name}} ditambahkan.",
       "noModules": "Belum ada modul.",
       "noSuites": "Belum ada suite.",
-      "readOnly": "Hanya ADMIN dan QA Lead yang dapat menambah modul dan suite."
+      "readOnly": "Hanya ADMIN dan QA Lead yang dapat menambah modul dan suite.",
+      "editModule": "Ubah",
+      "editModuleTitle": "Ubah modul {{code}}",
+      "moduleCodeEditHint": "Test case yang sudah ada tetap memakai kodenya sekarang (mis. UAT-LPL-001); test case baru memakai kode modul yang baru. Saat impor, isi kode modul yang baru.",
+      "moduleSaved": "Modul {{code}} disimpan."
     },
     "profile": {
       "title": "Profil saya",
@@ -611,7 +615,10 @@
       "updated": "Siklus {{code}} diperbarui.",
       "statusLabel": "Status siklus {{code}}",
       "runs": "{{count}} run",
-      "dateOrder": "Tanggal selesai tidak boleh sebelum tanggal mulai."
+      "dateOrder": "Tanggal selesai tidak boleh sebelum tanggal mulai.",
+      "edit": "Ubah",
+      "editTitle": "Ubah siklus {{code}}",
+      "editCodeHint": "Huruf, angka, titik, strip, atau garis bawah (mis. FASE-1). Run dan bug yang sudah ada tetap terhubung ke siklus ini."
     },
     "runForm": {
       "newTitle": "Buat run",
@@ -971,7 +978,7 @@
       "createHint": "Anda otomatis menjadi Admin proyek ini dan bisa menambahkan anggota tim setelahnya.",
       "editTitle": "Ubah proyek {{code}}",
       "code": "Kode proyek",
-      "codeHint": "Huruf besar, angka, titik, garis bawah atau tanda hubung; 2-40 karakter, mis. KARIRHUB. Tidak bisa diubah setelah dibuat.",
+      "codeHint": "Huruf besar, angka, titik, garis bawah atau tanda hubung; 2-40 karakter, mis. KARIRHUB. Dipakai di alamat link proyek; bila nanti diubah, link lama tidak bisa dibuka lagi.",
       "name": "Nama proyek",
       "description": "Deskripsi",
       "created": "Proyek {{code}} dibuat.",
@@ -989,7 +996,8 @@
       "members_other": "{{count}} anggota",
       "createdBy": "Dibuat {{date}} oleh {{name}}",
       "createdAt": "Dibuat {{date}}",
-      "empty": "Belum ada proyek. Buat proyek pertama untuk mulai."
+      "empty": "Belum ada proyek. Buat proyek pertama untuk mulai.",
+      "codeEditHint": "Mengubah kode juga mengubah alamat link proyek; link lama tidak bisa dibuka lagi. Kode bug yang sudah ada tidak berubah."
     },
     "adminSettings": {
       "title": "Pengaturan situs",

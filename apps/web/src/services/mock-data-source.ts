@@ -88,6 +88,7 @@ import {
   canTransitionRun,
   cycleCreateSchema,
   cycleUpdateSchema,
+  moduleUpdateSchema,
   executionCreateSchema,
   runCreateSchema,
   runUpdateSchema,
@@ -1341,6 +1342,26 @@ export function createMockDataSource(
           description: input.description ?? null,
         }
       }),
+    updateModule: (code, moduleId, input) =>
+      delay(() => {
+        const p = project(code)
+        const target =
+          db.modules.find((x) => x.id === moduleId && x.projectId === p.id) ?? notFound()
+        const parsed = moduleUpdateSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const nextCode = parsed.data.module_code?.toUpperCase()
+        if (
+          nextCode &&
+          db.modules.some(
+            (x) => x.projectId === p.id && x.id !== target.id && x.module_code === nextCode,
+          )
+        ) {
+          fail(409, 'CONFLICT', 'module_code', 'Already used')
+        }
+        if (nextCode) target.module_code = nextCode
+        if (parsed.data.name !== undefined) target.name = parsed.data.name
+        return { id: target.id, module_code: target.module_code, name: target.name }
+      }),
     listSuites: (code) =>
       delay(() => {
         const p = project(code)
@@ -1755,6 +1776,15 @@ export function createMockDataSource(
           db.cycles.find((cy) => cy.id === cycleId && cy.projectId === p.id) ?? notFound()
         const parsed = cycleUpdateSchema.safeParse(input)
         if (!parsed.success) return validationError(parsed.error.issues)
+        const nextCode = parsed.data.cycle_code
+        if (
+          nextCode &&
+          db.cycles.some(
+            (cy) => cy.projectId === p.id && cy.id !== cycle.id && cy.cycle_code === nextCode,
+          )
+        ) {
+          fail(409, 'CONFLICT', 'cycle_code', 'Already used')
+        }
         Object.assign(
           cycle,
           Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => v !== undefined)),
@@ -2700,10 +2730,19 @@ export function createMockDataSource(
         if (!parsed.success) validationError(parsed.error.issues)
         const target = db.projects.find((p) => p.id === projectId) ?? notFound()
         const before = {
+          project_code: target.project_code,
           name: target.name,
           description: target.description,
           is_archived: Boolean(target.archived),
         }
+        const nextCode = parsed.data.project_code
+        if (
+          nextCode &&
+          db.projects.some((p) => p.id !== target.id && p.project_code === nextCode)
+        ) {
+          fail(409, 'CONFLICT', 'project_code', 'Already used')
+        }
+        if (nextCode) target.project_code = nextCode
         if (parsed.data.name !== undefined) target.name = parsed.data.name
         if (parsed.data.description !== undefined)
           target.description = parsed.data.description ?? ''

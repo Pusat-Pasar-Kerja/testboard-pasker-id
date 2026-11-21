@@ -52,6 +52,7 @@ export const cycleCreateSchema = z
 
 export const cycleUpdateSchema = z
   .object({
+    cycle_code: codeSchema(60).optional(),
     title: z.string().trim().min(1).max(200).optional(),
     description: optionalText(5000),
     starts_on: z.iso.date().nullable().optional(),

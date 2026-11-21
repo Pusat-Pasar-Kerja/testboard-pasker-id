@@ -87,7 +87,12 @@ export const moduleCreateSchema = z.object({
 })
 
 export const moduleUpdateSchema = z
-  .object({ name: trimmed(200).min(1).optional(), description: optionalText(5000) })
+  .object({
+    /** Existing test case codes (UAT-<MODULE>-NNN) keep their prefix; new ones use this. */
+    module_code: codeSchema(40).optional(),
+    name: trimmed(200).min(1).optional(),
+    description: optionalText(5000),
+  })
   .refine((v) => Object.keys(v).length > 0, 'Nothing to update')
 
 export const suiteCreateSchema = z.object({
@@ -179,6 +184,8 @@ export const adminUserUpdateSchema = z
 /** Super Admin edits of a project from the admin console. */
 export const adminProjectUpdateSchema = z
   .object({
+    /** Changes the project's links (/projects/<code>/...); existing bug codes stay as they are. */
+    project_code: codeSchema(40).optional(),
     name: trimmed(200).min(1).optional(),
     description: optionalText(5000),
     /** Archived projects stay readable but no longer accept changes. */

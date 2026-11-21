@@ -1,4 +1,4 @@
-import { projectCreateSchema, type AdminProjectDto } from '@testboard/shared'
+import { codeSchema, projectCreateSchema, type AdminProjectDto } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -13,7 +13,7 @@ import { useToast } from '../ui/toast-context'
 
 /**
  * Create a project (Super Admin; the creator becomes its Admin) or edit an existing one's
- * name and description. Render it only while open so the fields start fresh each time.
+ * code, name and description. Render it only while open so the fields start fresh each time.
  */
 export function ProjectFormDialog({
   project,
@@ -34,11 +34,17 @@ export function ProjectFormDialog({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [alert, setAlert] = useState<string | null>(null)
 
-  const refresh = () =>
-    Promise.all([
+  const codeChanged = Boolean(project) && code.trim() !== project?.project_code
+
+  const refresh = () => {
+    // A new code changes every project URL; drop what was cached under the old one.
+    if (codeChanged && project)
+      queryClient.removeQueries({ queryKey: ['project', project.project_code] })
+    return Promise.all([
       queryClient.invalidateQueries({ queryKey: ['projects'] }),
       queryClient.invalidateQueries({ queryKey: ['admin-projects'] }),
     ])
+  }
 
   const fail = (error: unknown) => {
     const fields = apiFieldErrors(error)
@@ -54,6 +60,7 @@ export function ProjectFormDialog({
     mutationFn: async () => {
       if (project) {
         return ds.updateAdminProject(project.id, {
+          ...(codeChanged ? { project_code: code.trim() } : {}),
           name: name.trim(),
           description: description.trim() || null,
         })
@@ -94,9 +101,16 @@ export function ProjectFormDialog({
         )
         return
       }
-    } else if (!name.trim()) {
-      setErrors({ name: t('form.invalid') })
-      return
+    } else {
+      const next: Record<string, string> = {}
+      if (codeChanged && !codeSchema(40).safeParse(code).success) {
+        next.project_code = t('form.invalid')
+      }
+      if (!name.trim()) next.name = t('form.invalid')
+      if (Object.keys(next).length) {
+        setErrors(next)
+        return
+      }
     }
     setErrors({})
     save.mutate()
@@ -116,18 +130,16 @@ export function ProjectFormDialog({
       onSubmit={submit}
       onCancel={onClose}
     >
-      {!project && (
-        <TextField
-          label={t('pages.adminProjects.code')}
-          hint={t('pages.adminProjects.codeHint')}
-          required
-          value={code}
-          maxLength={40}
-          autoComplete="off"
-          onChange={(e) => setCode(e.target.value.toUpperCase().replace(/\s+/g, '-'))}
-          error={errors.project_code}
-        />
-      )}
+      <TextField
+        label={t('pages.adminProjects.code')}
+        hint={t(project ? 'pages.adminProjects.codeEditHint' : 'pages.adminProjects.codeHint')}
+        required
+        value={code}
+        maxLength={40}
+        autoComplete="off"
+        onChange={(e) => setCode(e.target.value.toUpperCase().replace(/\s+/g, '-'))}
+        error={errors.project_code}
+      />
       <TextField
         label={t('pages.adminProjects.name')}
         required

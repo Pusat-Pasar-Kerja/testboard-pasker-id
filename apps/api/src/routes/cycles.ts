@@ -108,7 +108,7 @@ export function cycleRoutes(pool: Pool) {
     await withTransaction(pool, async (conn) => {
       const before = await selectOne<{ starts_on: Date | null; ends_on: Date | null }>(
         conn,
-        'SELECT title, description, starts_on, ends_on, status_code FROM test_cycles WHERE id = ? AND project_id = ? FOR UPDATE',
+        'SELECT cycle_code, title, description, starts_on, ends_on, status_code FROM test_cycles WHERE id = ? AND project_id = ? FOR UPDATE',
         [cycleId, project.id],
       )
       if (!before) throw new AppError(404, 'NOT_FOUND', 'Not found.')
@@ -119,24 +119,35 @@ export function cycleRoutes(pool: Pool) {
           { field: 'ends_on', message: 'End date must not be before the start date' },
         ])
       }
-      await execute(
-        conn,
-        `UPDATE test_cycles SET title = COALESCE(?, title),
-                description = IF(?, ?, description),
-                starts_on = ?, ends_on = ?,
-                status_code = COALESCE(?, status_code)
-          WHERE id = ? AND project_id = ?`,
-        [
-          input.title ?? null,
-          input.description !== undefined ? 1 : 0,
-          input.description ?? null,
-          startsOn,
-          endsOn,
-          input.status_code ?? null,
-          cycleId,
-          project.id,
-        ],
-      )
+      try {
+        await execute(
+          conn,
+          `UPDATE test_cycles SET cycle_code = COALESCE(?, cycle_code),
+                  title = COALESCE(?, title),
+                  description = IF(?, ?, description),
+                  starts_on = ?, ends_on = ?,
+                  status_code = COALESCE(?, status_code)
+            WHERE id = ? AND project_id = ?`,
+          [
+            input.cycle_code ?? null,
+            input.title ?? null,
+            input.description !== undefined ? 1 : 0,
+            input.description ?? null,
+            startsOn,
+            endsOn,
+            input.status_code ?? null,
+            cycleId,
+            project.id,
+          ],
+        )
+      } catch (error) {
+        if (isDuplicateKey(error)) {
+          throw new AppError(409, 'CONFLICT', 'Cycle code already exists in this project.', [
+            { field: 'cycle_code', message: 'Already used' },
+          ])
+        }
+        throw error
+      }
       await writeAudit(conn, c, {
         projectId: project.id,
         entityType: 'test_cycle',
