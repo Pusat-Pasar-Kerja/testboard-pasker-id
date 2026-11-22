@@ -52,6 +52,8 @@ interface LockedDefect {
   [field: string]: unknown
 }
 
+export type DefectCreateBody = z.infer<typeof defectCreateSchema>
+
 const invalid = (field: string, message: string) =>
   new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [{ field, message }])
 
@@ -233,7 +235,7 @@ async function applyDefectUpdate(
 }
 
 /** Move one bug along the workflow (TB-BUG-004 and the role rules). */
-async function applyDefectStatus(
+export async function applyDefectStatus(
   conn: PoolConnection,
   c: Context<AppEnv>,
   defectId: string,
@@ -305,6 +307,104 @@ function bulkReason(error: AppError): string {
   return error.code
 }
 
+/**
+ * Create a bug inside the caller's transaction: validates module, cycle, assignee, linked
+ * attempts and evidence; numbers it (BUG-<PREFIX>-NNNN); writes history, links and audit.
+ * A bug found in a test attempt without a chosen cycle follows the run's cycle.
+ */
+export async function insertDefect(
+  conn: PoolConnection,
+  c: Context<AppEnv>,
+  project: { id: string; code: string },
+  userId: string,
+  body: DefectCreateBody,
+  extra: { reporterName?: string | null } = {},
+): Promise<string> {
+  const executionIds = [...new Set(body.execution_ids ?? [])]
+  await assertModule(conn, project.id, body.module_id)
+  await assertCycle(conn, project.id, body.cycle_id)
+  await assertAssignee(conn, project.id, body.assigned_to)
+  await assertExecutions(conn, project.id, executionIds)
+  await assertAttachable(conn, project.id, body.evidence ?? [])
+  // Found in a test attempt and no cycle chosen: the bug follows the run's cycle.
+  let cycleId = body.cycle_id ?? null
+  if (!cycleId && executionIds.length > 0) {
+    const run = await selectOne<{ cycle_id: string | null }>(
+      conn,
+      `SELECT r.cycle_id FROM test_executions e
+         JOIN test_run_cases trc ON trc.id = e.run_case_id
+         JOIN test_runs r ON r.id = trc.test_run_id
+        WHERE e.id = ?`,
+      [executionIds[0]],
+    )
+    cycleId = run?.cycle_id === null || run?.cycle_id === undefined ? null : String(run.cycle_id)
+  }
+  const bugCode = body.bug_code ?? (await nextBugCode(conn, project.id, project.code))
+  let id: string
+  try {
+    const result = await execute(
+      conn,
+      `INSERT INTO defects
+         (project_id, module_id, cycle_id, bug_code, title, description, steps_to_reproduce,
+          expected_behavior, actual_behavior, severity_code, priority_code, status_code,
+          source_kind, environment_name, build_version, browser_name, reported_by,
+          legacy_reporter_name, assigned_to, fixed_in_version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        project.id,
+        body.module_id ?? null,
+        cycleId,
+        bugCode,
+        body.title,
+        body.description ?? null,
+        body.steps_to_reproduce ?? null,
+        body.expected_behavior ?? null,
+        body.actual_behavior ?? null,
+        body.severity_code,
+        body.priority_code,
+        body.source_kind,
+        body.environment_name ?? null,
+        body.build_version ?? null,
+        body.browser_name ?? null,
+        userId,
+        extra.reporterName ?? null,
+        body.assigned_to ?? null,
+        body.fixed_in_version ?? null,
+      ],
+    )
+    id = insertedId(result)
+  } catch (error) {
+    if (isDuplicateKey(error)) {
+      throw new AppError(409, 'CONFLICT', 'This bug code is already used.', [
+        { field: 'bug_code', message: 'Already used' },
+      ])
+    }
+    throw error
+  }
+  await execute(
+    conn,
+    `INSERT INTO defect_status_history (defect_id, from_status, to_status, changed_by)
+     VALUES (?, NULL, 'OPEN', ?)`,
+    [id, userId],
+  )
+  for (const executionId of executionIds) {
+    await execute(
+      conn,
+      'INSERT INTO defect_execution_links (defect_id, execution_id) VALUES (?, ?)',
+      [id, executionId],
+    )
+  }
+  if (body.evidence?.length) await linkFiles(conn, 'defect', id, body.evidence)
+  await writeAudit(conn, c, {
+    projectId: project.id,
+    entityType: 'defect',
+    entityId: id,
+    action: 'CREATE',
+    newValues: { ...body, bug_code: bugCode },
+  })
+  return id
+}
+
 export function defectWriteRoutes(pool: Pool) {
   const routes = new Hono<AppEnv>()
   const idempotency = new IdempotencyStore()
@@ -327,92 +427,9 @@ export function defectWriteRoutes(pool: Pool) {
         { field: 'assigned_to', message: 'Only an ADMIN or QA_LEAD can assign a bug' },
       ])
     }
-    const executionIds = [...new Set(body.execution_ids ?? [])]
-
-    const defectId = await withTransaction(pool, async (conn) => {
-      await assertModule(conn, project.id, body.module_id)
-      await assertCycle(conn, project.id, body.cycle_id)
-      await assertAssignee(conn, project.id, body.assigned_to)
-      await assertExecutions(conn, project.id, executionIds)
-      await assertAttachable(conn, project.id, body.evidence ?? [])
-      // Found in a test attempt and no cycle chosen: the bug follows the run's cycle.
-      let cycleId = body.cycle_id ?? null
-      if (!cycleId && executionIds.length > 0) {
-        const run = await selectOne<{ cycle_id: string | null }>(
-          conn,
-          `SELECT r.cycle_id FROM test_executions e
-             JOIN test_run_cases trc ON trc.id = e.run_case_id
-             JOIN test_runs r ON r.id = trc.test_run_id
-            WHERE e.id = ?`,
-          [executionIds[0]],
-        )
-        cycleId =
-          run?.cycle_id === null || run?.cycle_id === undefined ? null : String(run.cycle_id)
-      }
-      const bugCode = body.bug_code ?? (await nextBugCode(conn, project.id, project.code))
-      let id: string
-      try {
-        const result = await execute(
-          conn,
-          `INSERT INTO defects
-             (project_id, module_id, cycle_id, bug_code, title, description, steps_to_reproduce,
-              expected_behavior, actual_behavior, severity_code, priority_code, status_code,
-              source_kind, environment_name, build_version, browser_name, reported_by,
-              assigned_to, fixed_in_version)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            project.id,
-            body.module_id ?? null,
-            cycleId,
-            bugCode,
-            body.title,
-            body.description ?? null,
-            body.steps_to_reproduce ?? null,
-            body.expected_behavior ?? null,
-            body.actual_behavior ?? null,
-            body.severity_code,
-            body.priority_code,
-            body.source_kind,
-            body.environment_name ?? null,
-            body.build_version ?? null,
-            body.browser_name ?? null,
-            userId,
-            body.assigned_to ?? null,
-            body.fixed_in_version ?? null,
-          ],
-        )
-        id = insertedId(result)
-      } catch (error) {
-        if (isDuplicateKey(error)) {
-          throw new AppError(409, 'CONFLICT', 'This bug code is already used.', [
-            { field: 'bug_code', message: 'Already used' },
-          ])
-        }
-        throw error
-      }
-      await execute(
-        conn,
-        `INSERT INTO defect_status_history (defect_id, from_status, to_status, changed_by)
-         VALUES (?, NULL, 'OPEN', ?)`,
-        [id, userId],
-      )
-      for (const executionId of executionIds) {
-        await execute(
-          conn,
-          'INSERT INTO defect_execution_links (defect_id, execution_id) VALUES (?, ?)',
-          [id, executionId],
-        )
-      }
-      if (body.evidence?.length) await linkFiles(conn, 'defect', id, body.evidence)
-      await writeAudit(conn, c, {
-        projectId: project.id,
-        entityType: 'defect',
-        entityId: id,
-        action: 'CREATE',
-        newValues: { ...body, bug_code: bugCode },
-      })
-      return id
-    })
+    const defectId = await withTransaction(pool, (conn) =>
+      insertDefect(conn, c, project, userId, body),
+    )
 
     const created = await loadDefectDetail(pool, project.id, defectId)
     if (idemKey) idempotency.set(idemKey, 201, created)

@@ -4,12 +4,14 @@ import {
   type CaseSnapshot,
   type DefectSeverity,
   type DefectStatus,
+  type ExecutionCreateInput,
   type ExecutionDto,
   type ExecutionKind,
   type ExecutionStatus,
   type RunCaseDetail,
   type RunStatus,
 } from '@testboard/shared'
+import type { Context } from 'hono'
 import { Hono } from 'hono'
 import type { Pool } from 'mysql2/promise'
 import { requirePermission } from '../access/project-access.js'
@@ -158,6 +160,112 @@ export async function listExecutions(db: Db, runCaseId: string): Promise<Executi
   }))
 }
 
+export interface ExecutionActor {
+  userId: string | null
+  /** Leads (and workshop tables for their own features) may record any case of the run. */
+  anyCase: boolean
+  /** Name typed on a workshop table device (text only, never an account). */
+  testerName?: string | null
+}
+
+/**
+ * Record one attempt inside the caller's transaction (TB-EXEC-001..004, TB-RUN-002). The run
+ * case row is locked so two testers saving at the same moment get attempt N and N+1, never the
+ * same number. Tester and time always come from the server, never from the request body.
+ */
+export async function recordExecution(
+  conn: Db,
+  c: Context<AppEnv>,
+  project: { id: string },
+  runCaseId: string,
+  input: ExecutionCreateInput,
+  actor: ExecutionActor,
+): Promise<string> {
+  // Lock only this run case row (a JOIN ... FOR UPDATE would lock the whole run as well).
+  await execute(conn, 'SELECT id FROM test_run_cases WHERE id = ? FOR UPDATE', [runCaseId])
+  const row = await loadRunCase(conn, project.id, runCaseId)
+  if (row.run_status !== 'ACTIVE') {
+    throw new AppError(409, 'CONFLICT', 'Tests can only be recorded while the run is ACTIVE.')
+  }
+  if (!actor.anyCase && String(row.assigned_to) !== actor.userId) {
+    throw new AppError(403, 'FORBIDDEN', 'This test case is assigned to someone else.')
+  }
+  const snapshot = snapshotFor(row)
+  await assertAttachable(conn, project.id, input.evidence ?? [])
+  for (const step of input.step_results ?? []) {
+    if (step.step_number > Math.max(snapshot.steps.length, 1)) {
+      throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+        {
+          field: 'step_results',
+          message: `Step ${step.step_number} does not exist in this run's snapshot`,
+        },
+      ])
+    }
+  }
+  const next = await selectOne<{ n: number }>(
+    conn,
+    'SELECT COALESCE(MAX(attempt_number), 0) + 1 AS n FROM test_executions WHERE run_case_id = ?',
+    [runCaseId],
+  )
+  const attempt = Number(next?.n ?? 1)
+  const kind: ExecutionKind = attempt === 1 ? 'INITIAL' : (input.execution_kind ?? 'RETEST')
+  const result = await execute(
+    conn,
+    `INSERT INTO test_executions (run_case_id, attempt_number, execution_kind, result_status, actual_result,
+                                  notes, tester_id, legacy_tester_name, tested_at, browser_name, device_name, operating_system)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(3), ?, ?, ?)`,
+    [
+      runCaseId,
+      attempt,
+      kind,
+      input.result_status,
+      input.actual_result ?? null,
+      input.notes ?? null,
+      actor.userId,
+      actor.testerName ?? null,
+      input.browser_name ?? null,
+      input.device_name ?? null,
+      input.operating_system ?? null,
+    ],
+  )
+  const id = insertedId(result)
+
+  for (const step of input.step_results ?? []) {
+    // Step rows are anchors keyed by number; meaning comes from the run snapshot (ADR 0006).
+    const anchor = await execute(
+      conn,
+      `INSERT INTO test_case_steps (test_case_id, step_number, instruction) VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)`,
+      [
+        row.test_case_id,
+        step.step_number,
+        snapshot.steps[step.step_number - 1]?.instruction ?? `Step ${step.step_number}`,
+      ],
+    )
+    await execute(
+      conn,
+      'INSERT INTO test_execution_steps (execution_id, test_case_step_id, result_status, actual_result) VALUES (?, ?, ?, ?)',
+      [id, insertedId(anchor), step.result_status, step.actual_result ?? null],
+    )
+  }
+  if (input.evidence?.length) await linkFiles(conn, 'execution', id, input.evidence)
+  await writeAudit(conn, c, {
+    projectId: project.id,
+    entityType: 'test_execution',
+    entityId: id,
+    action: 'CREATE',
+    newValues: {
+      run_case_id: runCaseId,
+      case_code: snapshot.case_code,
+      attempt_number: attempt,
+      execution_kind: kind,
+      result_status: input.result_status,
+      evidence_file_ids: (input.evidence ?? []).map((e) => e.file_id),
+    },
+  })
+  return id
+}
+
 export function runCaseRoutes(pool: Pool) {
   const routes = new Hono<AppEnv>()
   const idempotency = new IdempotencyStore()
@@ -241,95 +349,13 @@ export function runCaseRoutes(pool: Pool) {
     if (replay) return c.json(replay.body as ExecutionDto, replay.status as 201)
 
     const input = await parseBody(c, executionCreateSchema)
-    const executionId = await withTransaction(pool, async (conn) => {
-      // Lock only this run case row (a JOIN ... FOR UPDATE would lock the whole run as well).
-      await execute(conn, 'SELECT id FROM test_run_cases WHERE id = ? FOR UPDATE', [runCaseId])
-      const row = await loadRunCase(conn, project.id, runCaseId)
-      if (row.run_status !== 'ACTIVE') {
-        throw new AppError(409, 'CONFLICT', 'Tests can only be recorded while the run is ACTIVE.')
-      }
-      // TESTER may only execute cases assigned to them; leads may execute any (doc 09).
-      if (
-        !auth?.isSuperAdmin &&
-        !roleCan(project.role, 'run.assign') &&
-        String(row.assigned_to) !== auth?.userId
-      ) {
-        throw new AppError(403, 'FORBIDDEN', 'This test case is assigned to someone else.')
-      }
-      const snapshot = snapshotFor(row)
-      await assertAttachable(conn, project.id, input.evidence ?? [])
-      for (const step of input.step_results ?? []) {
-        if (step.step_number > Math.max(snapshot.steps.length, 1)) {
-          throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
-            {
-              field: 'step_results',
-              message: `Step ${step.step_number} does not exist in this run's snapshot`,
-            },
-          ])
-        }
-      }
-      const next = await selectOne<{ n: number }>(
-        conn,
-        'SELECT COALESCE(MAX(attempt_number), 0) + 1 AS n FROM test_executions WHERE run_case_id = ?',
-        [runCaseId],
-      )
-      const attempt = Number(next?.n ?? 1)
-      const kind: ExecutionKind = attempt === 1 ? 'INITIAL' : (input.execution_kind ?? 'RETEST')
-      const result = await execute(
-        conn,
-        `INSERT INTO test_executions (run_case_id, attempt_number, execution_kind, result_status, actual_result,
-                                      notes, tester_id, tested_at, browser_name, device_name, operating_system)
-         VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(3), ?, ?, ?)`,
-        [
-          runCaseId,
-          attempt,
-          kind,
-          input.result_status,
-          input.actual_result ?? null,
-          input.notes ?? null,
-          auth?.userId ?? null,
-          input.browser_name ?? null,
-          input.device_name ?? null,
-          input.operating_system ?? null,
-        ],
-      )
-      const id = insertedId(result)
-
-      for (const step of input.step_results ?? []) {
-        // Step rows are anchors keyed by number; meaning comes from the run snapshot (ADR 0006).
-        const anchor = await execute(
-          conn,
-          `INSERT INTO test_case_steps (test_case_id, step_number, instruction) VALUES (?, ?, ?)
-           ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)`,
-          [
-            row.test_case_id,
-            step.step_number,
-            snapshot.steps[step.step_number - 1]?.instruction ?? `Step ${step.step_number}`,
-          ],
-        )
-        await execute(
-          conn,
-          'INSERT INTO test_execution_steps (execution_id, test_case_step_id, result_status, actual_result) VALUES (?, ?, ?, ?)',
-          [id, insertedId(anchor), step.result_status, step.actual_result ?? null],
-        )
-      }
-      if (input.evidence?.length) await linkFiles(conn, 'execution', id, input.evidence)
-      await writeAudit(conn, c, {
-        projectId: project.id,
-        entityType: 'test_execution',
-        entityId: id,
-        action: 'CREATE',
-        newValues: {
-          run_case_id: runCaseId,
-          case_code: snapshot.case_code,
-          attempt_number: attempt,
-          execution_kind: kind,
-          result_status: input.result_status,
-          evidence_file_ids: (input.evidence ?? []).map((e) => e.file_id),
-        },
-      })
-      return id
-    })
+    const executionId = await withTransaction(pool, (conn) =>
+      recordExecution(conn, c, project, runCaseId, input, {
+        userId: auth?.userId ?? null,
+        // TESTER may only execute cases assigned to them; leads may execute any (doc 09).
+        anyCase: Boolean(auth?.isSuperAdmin) || roleCan(project.role, 'run.assign'),
+      }),
+    )
     const created = (await listExecutions(pool, runCaseId)).find((e) => e.id === executionId)
     if (idemKey) idempotency.set(idemKey, 201, created)
     return c.json(created, 201)

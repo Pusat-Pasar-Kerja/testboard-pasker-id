@@ -10,6 +10,8 @@ export interface AuthContext {
   isSuperAdmin: boolean
   sessionId: string
   csrfTokenHash: string
+  /** PERSON = normal account; TABLE = a workshop table card (Mode Mudah only, ADR 0016). */
+  accountKind: 'PERSON' | 'TABLE'
 }
 
 /** Project resolved for a project-scoped route, with the caller's effective role. */

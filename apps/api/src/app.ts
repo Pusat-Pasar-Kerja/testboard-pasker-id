@@ -29,7 +29,9 @@ import { adminRoutes } from './routes/admin.js'
 import { authRoutes } from './routes/auth.js'
 import { healthRoutes } from './routes/health.js'
 import { projectRoutes } from './routes/projects.js'
+import { publicRoutes } from './routes/public.js'
 import { recoveryAdminRoutes, recoveryPublicRoutes } from './routes/recovery.js'
+import { workshopRoutes } from './routes/workshop.js'
 import type { AppEnv } from './types.js'
 
 export interface AppDeps {
@@ -52,7 +54,11 @@ function publicSettings(all: SiteSettings): PublicSiteSettings {
   ) as PublicSiteSettings
 }
 
-const UPLOAD_PATH = /\/projects\/[^/]+\/(files|imports)\/?$/
+const UPLOAD_PATH = /(\/projects\/[^/]+\/(files|imports)|\/workshop\/files)\/?$/
+
+/** What a workshop table card may reach: Mode Mudah, the public pages and its own session. */
+const TABLE_ALLOWED =
+  /\/api\/v1\/(workshop|public)(\/|$)|\/api\/v1\/(auth\/(me|logout)|settings\/public|health)$/
 
 export function createApp({
   config,
@@ -87,6 +93,13 @@ export function createApp({
     )
     api.use('*', sessionMiddleware(pool, config, settings))
     api.use('*', csrfMiddleware(config))
+    // A table card (Mode Workshop) is never a project member or a staff account.
+    api.use('*', async (c, next) => {
+      if (c.get('auth')?.accountKind === 'TABLE' && !TABLE_ALLOWED.test(c.req.path)) {
+        throw new AppError(404, 'NOT_FOUND', 'Not found.')
+      }
+      await next()
+    })
     api.use('*', async (c, next) => {
       await next()
       // Authenticated API responses are private and must never be cached by proxies.
@@ -95,6 +108,8 @@ export function createApp({
     // Public: site name, banner, default language and support contact (login page).
     api.get('/settings/public', async (c) => c.json(publicSettings(await settings.get())))
     api.route('/', authRoutes(pool, config, settings))
+    api.route('/public', publicRoutes(pool, fileService))
+    api.route('/workshop', workshopRoutes(pool, config, settings, fileService))
     api.route('/', recoveryPublicRoutes(pool))
     api.route('/', projectRoutes(pool, fileService, new ImportStore(config.storageDir)))
     api.route('/admin', adminRoutes(pool, settings))

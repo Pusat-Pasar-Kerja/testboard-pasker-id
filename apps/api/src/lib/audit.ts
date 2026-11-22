@@ -17,6 +17,8 @@ export type AuditAction =
   | 'PASSWORD_RESET'
   | 'REVOKE'
   | 'EXPORT'
+  | 'CONFIRM'
+  | 'REVIEW'
 
 const SECRET_KEYS = /password|token|secret|cookie|hash/i
 

@@ -20,7 +20,7 @@ export async function isLoginBlocked(
     pool,
     `SELECT
        SUM(email_hash = ?) AS by_email,
-       SUM(? IS NOT NULL AND ip_address = ?) AS by_ip
+       SUM(? IS NOT NULL AND ip_address = ? AND email_hash <> SHA2('workshop-join', 256)) AS by_ip
      FROM auth_login_attempts
      WHERE succeeded = 0 AND attempted_at > UTC_TIMESTAMP(3) - INTERVAL ? MINUTE`,
     [emailHash(email), ip, ip, LOGIN_WINDOW_MINUTES],

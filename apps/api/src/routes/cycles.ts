@@ -32,6 +32,7 @@ async function listCycles(db: Db, projectId: string, cycleId?: string): Promise<
     starts_on: Date | string | null
     ends_on: Date | string | null
     run_count: number
+    is_public: number
   }>(
     db,
     `SELECT c.*, (SELECT COUNT(*) FROM test_runs r WHERE r.cycle_id = c.id) AS run_count
@@ -49,6 +50,7 @@ async function listCycles(db: Db, projectId: string, cycleId?: string): Promise<
     starts_on: isoDate(row.starts_on),
     ends_on: isoDate(row.ends_on),
     run_count: Number(row.run_count),
+    is_public: Number(row.is_public) === 1,
   }))
 }
 

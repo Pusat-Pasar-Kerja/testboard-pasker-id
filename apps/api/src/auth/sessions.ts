@@ -117,6 +117,7 @@ interface SessionRow {
   display_name: string
   preferred_locale: string
   is_super_admin: number
+  auth_provider: string
 }
 
 /** Resolve the session cookie to an active user, enforcing absolute and idle expiry. */
@@ -130,7 +131,7 @@ export async function loadSession(
   const row = await selectOne<SessionRow>(
     pool,
     `SELECT s.id, s.user_id, s.csrf_token_hash, s.last_seen_at,
-            u.email, u.display_name, u.preferred_locale,
+            u.email, u.display_name, u.preferred_locale, u.auth_provider,
             EXISTS (SELECT 1 FROM user_system_roles r
                      WHERE r.user_id = u.id AND r.role_code = 'SUPER_ADMIN') AS is_super_admin
        FROM user_sessions s
@@ -158,6 +159,7 @@ export async function loadSession(
     isSuperAdmin: Boolean(Number(row.is_super_admin)),
     sessionId: row.id,
     csrfTokenHash: row.csrf_token_hash,
+    accountKind: row.auth_provider === 'WORKSHOP' ? 'TABLE' : 'PERSON',
   }
 }
 

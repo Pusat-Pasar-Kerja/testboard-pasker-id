@@ -66,7 +66,8 @@ async function listUsers(db: Db, userId?: string, q?: string): Promise<AdminUser
        FROM users u
        LEFT JOIN password_reset_links l
          ON l.active_user_id = u.id AND l.expires_at > UTC_TIMESTAMP(3)
-      WHERE (? IS NULL OR u.id = ?) AND (? IS NULL OR u.email LIKE ? OR u.display_name LIKE ?)
+      WHERE u.auth_provider <> 'WORKSHOP' AND (? IS NULL OR u.id = ?)
+        AND (? IS NULL OR u.email LIKE ? OR u.display_name LIKE ?)
       ORDER BY u.display_name
       LIMIT 500`,
     [userId ?? null, userId ?? null, like, like, like],

@@ -33,6 +33,8 @@ export interface CurrentUser extends UserRef {
   /** System role (ADR 0004): full access to every project and website settings. */
   is_super_admin: boolean
   projects: { project_code: string; role_code: MemberRole }[]
+  /** TABLE = signed in with a workshop table card: only Mode Mudah (ADR 0016). */
+  account_kind: 'PERSON' | 'TABLE'
 }
 
 /** One signed-in device of the current user (ADR 0015). */
@@ -185,6 +187,8 @@ export interface CycleDto {
   starts_on: string | null
   ends_on: string | null
   run_count?: number
+  /** Shown on the public front page (Mode Workshop, ADR 0016). */
+  is_public?: boolean
 }
 
 export interface TestRunSummary {

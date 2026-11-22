@@ -246,63 +246,152 @@ async function receiveUpload(c: Context<AppEnv>, files: FileService): Promise<In
   return received
 }
 
+export type ServeMode = 'preview' | 'download' | 'thumbnail'
+
+/** Streams a released file. Only READY + CLEAN files are ever served (TB-FILE-005). */
+export async function serveFile(
+  c: Context<AppEnv>,
+  pool: Pool,
+  files: FileService,
+  projectId: string,
+  fileId: string,
+  mode: ServeMode,
+  options: { audit?: boolean } = {},
+) {
+  const project = { id: projectId }
+  const row = await loadFile(pool, project.id, fileId)
+  if (row.processing_status !== 'READY' || row.scan_status !== 'CLEAN') {
+    throw new AppError(409, 'CONFLICT', 'This file is not available.')
+  }
+  const key = mode === 'thumbnail' ? row.thumbnail_object_key : row.object_key
+  if (!key) throw new AppError(404, 'NOT_FOUND', 'Not found.')
+  const gzipped = mode !== 'thumbnail' && row.compression_method === 'GZIP'
+  const isImage = row.stored_mime.startsWith('image/')
+  const isPdf = row.stored_mime === 'application/pdf'
+  const isText = row.evidence_type === 'LOG'
+  const inline = mode === 'thumbnail' || (mode === 'preview' && (isImage || isPdf || isText))
+
+  // Logs are always shown as plain text (never as HTML/JSON a browser might execute).
+  const contentType =
+    mode === 'thumbnail'
+      ? 'image/webp'
+      : isText && inline
+        ? 'text/plain; charset=utf-8'
+        : row.stored_mime
+  c.header('Content-Type', contentType)
+  c.header('Content-Disposition', disposition(inline ? 'inline' : 'attachment', downloadName(row)))
+  c.header(
+    'Content-Security-Policy',
+    "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
+  )
+  c.header('Cross-Origin-Resource-Policy', 'same-origin')
+  c.header('X-Content-Type-Options', 'nosniff')
+
+  if (mode === 'download' && options.audit !== false) {
+    await writeAudit(pool, c, {
+      projectId: project.id,
+      entityType: 'file',
+      entityId: String(row.id),
+      action: 'DOWNLOAD',
+    })
+  }
+
+  if (gzipped) {
+    // Stored compressed; the user always receives the original text.
+    const stream = files.storage.read(key).pipe(createGunzip())
+    return c.body(Readable.toWeb(stream) as ReadableStream)
+  }
+
+  const size = await files.storage.size(key)
+  c.header('Accept-Ranges', 'bytes')
+  const range = /^bytes=(\d*)-(\d*)$/.exec(c.req.header('Range') ?? '')
+  if (range && (range[1] || range[2])) {
+    const start = range[1] ? Number(range[1]) : Math.max(0, size - Number(range[2]))
+    const end = range[1] && range[2] ? Math.min(Number(range[2]), size - 1) : size - 1
+    if (start > end || start >= size) {
+      c.header('Content-Range', `bytes */${size}`)
+      return c.body(null, 416)
+    }
+    c.header('Content-Range', `bytes ${start}-${end}/${size}`)
+    c.header('Content-Length', String(end - start + 1))
+    return c.body(Readable.toWeb(files.storage.read(key, { start, end })) as ReadableStream, 206)
+  }
+  c.header('Content-Length', String(size))
+  return c.body(Readable.toWeb(files.storage.read(key)) as ReadableStream)
+}
+
+/** Receive evidence files (multipart) for a project and queue them for processing. */
+export async function uploadEvidence(
+  c: Context<AppEnv>,
+  pool: Pool,
+  files: FileService,
+  projectId: string,
+  userId: string | null,
+): Promise<{
+  files: FileDto[]
+  rejected: { original_filename: string; failure_reason: FileFailureReason }[]
+}> {
+  const project = { id: projectId }
+  const incoming = await receiveUpload(c, files)
+  const created: FileDto[] = []
+  const rejected: { original_filename: string; failure_reason: FileFailureReason }[] = []
+
+  for (const item of incoming) {
+    const type = evidenceTypeFor(item.filename)
+    if (!type) {
+      rejected.push({ original_filename: item.filename, failure_reason: 'TYPE_NOT_ALLOWED' })
+      continue
+    }
+    const placeholder = files.storage.newKey(project.id, 'part')
+    const mime = MIME_FOR_EXTENSION[item.ext] ?? 'application/octet-stream'
+    const result = await execute(
+      pool,
+      `INSERT INTO file_objects
+         (project_id, storage_backend, bucket_name, object_key, original_filename,
+          original_mime, stored_mime, evidence_type, original_size_bytes, original_sha256,
+          processing_status, scan_status, failure_reason, uploaded_by, processed_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, IF(? IS NULL, NULL, UTC_TIMESTAMP(3)))`,
+      [
+        project.id,
+        STORAGE_BACKEND,
+        BUCKET,
+        placeholder,
+        item.filename,
+        mime,
+        mime,
+        type,
+        item.size,
+        item.reason ? null : item.sha256,
+        item.reason ? 'REJECTED' : 'PROCESSING',
+        item.reason,
+        userId,
+        item.reason,
+      ],
+    )
+    const fileId = insertedId(result)
+    if (item.reason) {
+      await files.storage.removeTemp(item.tempPath)
+    } else {
+      files.enqueue({
+        fileId,
+        projectId: project.id,
+        tempPath: item.tempPath,
+        ext: item.ext,
+        type,
+      })
+    }
+    created.push(toFileDto(await loadFile(pool, project.id, fileId)))
+  }
+  return { files: created, rejected }
+}
+
 export function fileRoutes(pool: Pool, files: FileService) {
   const routes = new Hono<AppEnv>()
 
   routes.post('/', requirePermission('file.upload'), async (c) => {
     const project = c.get('project')
-    const userId = c.get('auth')?.userId ?? null
-    const incoming = await receiveUpload(c, files)
-    const created: FileDto[] = []
-    const rejected: { original_filename: string; failure_reason: FileFailureReason }[] = []
-
-    for (const item of incoming) {
-      const type = evidenceTypeFor(item.filename)
-      if (!type) {
-        rejected.push({ original_filename: item.filename, failure_reason: 'TYPE_NOT_ALLOWED' })
-        continue
-      }
-      const placeholder = files.storage.newKey(project.id, 'part')
-      const mime = MIME_FOR_EXTENSION[item.ext] ?? 'application/octet-stream'
-      const result = await execute(
-        pool,
-        `INSERT INTO file_objects
-           (project_id, storage_backend, bucket_name, object_key, original_filename,
-            original_mime, stored_mime, evidence_type, original_size_bytes, original_sha256,
-            processing_status, scan_status, failure_reason, uploaded_by, processed_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, IF(? IS NULL, NULL, UTC_TIMESTAMP(3)))`,
-        [
-          project.id,
-          STORAGE_BACKEND,
-          BUCKET,
-          placeholder,
-          item.filename,
-          mime,
-          mime,
-          type,
-          item.size,
-          item.reason ? null : item.sha256,
-          item.reason ? 'REJECTED' : 'PROCESSING',
-          item.reason,
-          userId,
-          item.reason,
-        ],
-      )
-      const fileId = insertedId(result)
-      if (item.reason) {
-        await files.storage.removeTemp(item.tempPath)
-      } else {
-        files.enqueue({
-          fileId,
-          projectId: project.id,
-          tempPath: item.tempPath,
-          ext: item.ext,
-          type,
-        })
-      }
-      created.push(toFileDto(await loadFile(pool, project.id, fileId)))
-    }
-    return c.json({ files: created, rejected }, 202)
+    const result = await uploadEvidence(c, pool, files, project.id, c.get('auth')?.userId ?? null)
+    return c.json(result, 202)
   })
 
   routes.get('/', requirePermission('project.read'), async (c) => {
@@ -367,72 +456,8 @@ export function fileRoutes(pool: Pool, files: FileService) {
     return c.json(toFileDto(row))
   })
 
-  /** Streams a released file. Only READY + CLEAN files are ever served (TB-FILE-005). */
-  async function serve(c: Context<AppEnv>, mode: 'preview' | 'download' | 'thumbnail') {
-    const project = c.get('project')
-    const row = await loadFile(pool, project.id, idParam(c, 'fileId'))
-    if (row.processing_status !== 'READY' || row.scan_status !== 'CLEAN') {
-      throw new AppError(409, 'CONFLICT', 'This file is not available.')
-    }
-    const key = mode === 'thumbnail' ? row.thumbnail_object_key : row.object_key
-    if (!key) throw new AppError(404, 'NOT_FOUND', 'Not found.')
-    const gzipped = mode !== 'thumbnail' && row.compression_method === 'GZIP'
-    const isImage = row.stored_mime.startsWith('image/')
-    const isPdf = row.stored_mime === 'application/pdf'
-    const isText = row.evidence_type === 'LOG'
-    const inline = mode === 'thumbnail' || (mode === 'preview' && (isImage || isPdf || isText))
-
-    // Logs are always shown as plain text (never as HTML/JSON a browser might execute).
-    const contentType =
-      mode === 'thumbnail'
-        ? 'image/webp'
-        : isText && inline
-          ? 'text/plain; charset=utf-8'
-          : row.stored_mime
-    c.header('Content-Type', contentType)
-    c.header(
-      'Content-Disposition',
-      disposition(inline ? 'inline' : 'attachment', downloadName(row)),
-    )
-    c.header(
-      'Content-Security-Policy',
-      "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
-    )
-    c.header('Cross-Origin-Resource-Policy', 'same-origin')
-    c.header('X-Content-Type-Options', 'nosniff')
-
-    if (mode === 'download') {
-      await writeAudit(pool, c, {
-        projectId: project.id,
-        entityType: 'file',
-        entityId: String(row.id),
-        action: 'DOWNLOAD',
-      })
-    }
-
-    if (gzipped) {
-      // Stored compressed; the user always receives the original text.
-      const stream = files.storage.read(key).pipe(createGunzip())
-      return c.body(Readable.toWeb(stream) as ReadableStream)
-    }
-
-    const size = await files.storage.size(key)
-    c.header('Accept-Ranges', 'bytes')
-    const range = /^bytes=(\d*)-(\d*)$/.exec(c.req.header('Range') ?? '')
-    if (range && (range[1] || range[2])) {
-      const start = range[1] ? Number(range[1]) : Math.max(0, size - Number(range[2]))
-      const end = range[1] && range[2] ? Math.min(Number(range[2]), size - 1) : size - 1
-      if (start > end || start >= size) {
-        c.header('Content-Range', `bytes */${size}`)
-        return c.body(null, 416)
-      }
-      c.header('Content-Range', `bytes ${start}-${end}/${size}`)
-      c.header('Content-Length', String(end - start + 1))
-      return c.body(Readable.toWeb(files.storage.read(key, { start, end })) as ReadableStream, 206)
-    }
-    c.header('Content-Length', String(size))
-    return c.body(Readable.toWeb(files.storage.read(key)) as ReadableStream)
-  }
+  const serve = (c: Context<AppEnv>, mode: ServeMode) =>
+    serveFile(c, pool, files, c.get('project').id, idParam(c, 'fileId'), mode)
 
   routes.get('/:fileId/preview', requirePermission('project.read'), (c) => serve(c, 'preview'))
   routes.get('/:fileId/thumbnail', requirePermission('project.read'), (c) => serve(c, 'thumbnail'))

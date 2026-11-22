@@ -34,9 +34,10 @@ export async function currentUserDto(db: Db, userId: string): Promise<CurrentUse
     email: string
     preferred_locale: string
     is_super_admin: number
+    auth_provider: string
   }>(
     db,
-    `SELECT u.id, u.display_name, u.email, u.preferred_locale,
+    `SELECT u.id, u.display_name, u.email, u.preferred_locale, u.auth_provider,
             EXISTS (SELECT 1 FROM user_system_roles r
                      WHERE r.user_id = u.id AND r.role_code = 'SUPER_ADMIN') AS is_super_admin
        FROM users u WHERE u.id = ?`,
@@ -57,6 +58,7 @@ export async function currentUserDto(db: Db, userId: string): Promise<CurrentUse
     preferred_locale: user.preferred_locale === 'en' ? 'en' : 'id',
     is_super_admin: Boolean(Number(user.is_super_admin)),
     projects,
+    account_kind: user.auth_provider === 'WORKSHOP' ? 'TABLE' : 'PERSON',
   }
 }
 
