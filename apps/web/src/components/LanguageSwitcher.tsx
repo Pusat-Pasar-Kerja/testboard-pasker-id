@@ -20,7 +20,7 @@ export function LanguageSwitcher() {
     void i18n.changeLanguage(locale)
     storeLocale(locale)
     const me = queryClient.getQueryData<CurrentUser | null>(['me'])
-    if (me && me.preferred_locale !== locale) {
+    if (me && me.account_kind !== 'TABLE' && me.preferred_locale !== locale) {
       ds.updateProfile({ preferred_locale: locale })
         .then((user) => queryClient.setQueryData(['me'], user))
         .catch(() => undefined) // UI already switched; the profile sync is best effort.

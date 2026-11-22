@@ -38,5 +38,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     const next = `${location.pathname}${location.search}`
     return <Navigate to={`/login?next=${encodeURIComponent(next)}`} replace />
   }
+  // A table card only works in Mode Mudah (ADR 0016).
+  if (user.account_kind === 'TABLE') return <Navigate to="/meja/kerja" replace />
   return children
 }

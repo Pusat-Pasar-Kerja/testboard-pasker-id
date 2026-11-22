@@ -29,6 +29,8 @@ export interface MockUser {
   id: string
   display_name: string
   email: string
+  /** Workshop table card account (ADR 0016): never listed as a person. */
+  kind?: 'TABLE'
 }
 
 export interface MockProject {
@@ -106,6 +108,10 @@ export interface MockCycle {
   status_code?: CycleStatus
   starts_on?: string | null
   ends_on?: string | null
+  /** Mode Workshop (ADR 0016): shown on the public front page, field by field. */
+  is_public?: boolean
+  public_fields?: string[]
+  public_intro?: string | null
 }
 
 export interface MockRunCase {
@@ -204,6 +210,10 @@ export interface MockDefect {
   }[]
   comments: { id: string; authorId: string; body: string; created_at: string }[]
   files?: MockFileLink[]
+  /** Closed as the same problem as this bug (Mode Workshop review). */
+  duplicateOf?: string | null
+  /** Reviewed by a facilitator in "Masalah masuk". */
+  reviewedAt?: string | null
 }
 
 export interface MockDb {

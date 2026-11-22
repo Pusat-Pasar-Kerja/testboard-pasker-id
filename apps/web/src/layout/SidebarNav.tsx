@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   ListChecks,
   PlayCircle,
+  Presentation,
   Settings2,
   Users,
   UsersRound,
@@ -26,6 +27,7 @@ type NavKey =
   | 'dashboard'
   | 'testCases'
   | 'cycles'
+  | 'workshop'
   | 'runs'
   | 'bugs'
   | 'evidence'
@@ -38,6 +40,7 @@ const ITEMS: { key: NavKey; path: string; icon: LucideIcon; soon?: boolean }[] =
   { key: 'dashboard', path: 'dashboard', icon: LayoutDashboard },
   { key: 'testCases', path: 'test-cases', icon: ListChecks },
   { key: 'cycles', path: 'cycles', icon: CalendarRange },
+  { key: 'workshop', path: 'workshop', icon: Presentation },
   { key: 'runs', path: 'runs', icon: PlayCircle },
   { key: 'bugs', path: 'bugs', icon: Bug },
   { key: 'evidence', path: 'evidence', icon: Images },

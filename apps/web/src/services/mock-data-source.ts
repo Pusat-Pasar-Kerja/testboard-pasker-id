@@ -137,6 +137,7 @@ import {
   type MockAuditEntry,
 } from './mock-reports'
 import { createMockRecovery } from './mock-recovery'
+import { createMockWorkshop } from './mock-workshop'
 import type {
   AddRunCasesResult,
   DataSource,
@@ -144,6 +145,8 @@ import type {
   FileQuery,
   ImportRowQuery,
   PageQuery,
+  UploadOptions,
+  UploadResult,
   TestCaseInput,
   TestCaseQuery,
 } from './data-source'
@@ -1229,6 +1232,7 @@ export function createMockDataSource(
     starts_on: cy.starts_on ?? null,
     ends_on: cy.ends_on ?? null,
     run_count: db.runs.filter((r) => r.cycleId === cy.id).length,
+    is_public: Boolean(cy.is_public),
   })
   const executionDto = (e: MockDb['executions'][number]): ExecutionDto => ({
     id: e.id,
@@ -1267,6 +1271,73 @@ export function createMockDataSource(
   }
   const replays = new Map<string, ExecutionDto>()
 
+  /** Store an upload for a project (demo pipeline: checks, then "processing"). */
+  const storeUpload = async (
+    projectId: string,
+    file: File,
+    options: UploadOptions,
+    uploadedBy: string,
+  ): Promise<UploadResult> => {
+    const type = evidenceTypeFor(file.name)
+    if (!type) {
+      return delay(() => ({
+        files: [],
+        rejected: [{ original_filename: file.name, failure_reason: 'TYPE_NOT_ALLOWED' as const }],
+      }))
+    }
+    const ext = extensionOf(file.name)
+    const head = await readHead(file)
+    let reason: FileFailureReason | null = null
+    const signature = SIGNATURES[ext]
+    if (file.size === 0) reason = 'EMPTY'
+    else if (file.size > EVIDENCE_RULES[type].maxBytes) reason = 'TOO_LARGE'
+    else if (signature && !signature.every((byte, i) => head[i] === byte)) {
+      reason = 'SIGNATURE_MISMATCH'
+    } else if (!signature && head.includes(0)) reason = 'NOT_TEXT'
+    if (options.signal?.aborted) throw new DOMException('Upload cancelled', 'AbortError')
+    options.onProgress?.(1)
+    const mime = file.type || 'application/octet-stream'
+    const f: MockFile = {
+      id: newId(),
+      projectId,
+      evidence_type: type,
+      original_filename: file.name,
+      original_mime: mime,
+      stored_mime: mime,
+      original_size_bytes: file.size,
+      stored_size_bytes: null,
+      compression_method: null,
+      compression_note: null,
+      processing_status: reason ? 'REJECTED' : 'PROCESSING',
+      scan_status: 'PENDING',
+      scan_engine: null,
+      failure_reason: reason,
+      uploadedBy,
+      uploaded_at: now(),
+      processed_at: reason ? now() : null,
+      deleted: false,
+      url: reason ? null : objectUrl(file),
+    }
+    db.files.push(f)
+    // The answer reflects the moment of upload; checking finishes a little later.
+    const created = fileDto(f)
+    if (!reason) setTimeout(() => finishProcessing(f, ext), Math.max(latencyMs * 3, 60))
+    return delay(() => ({ files: [created], rejected: [] }))
+  }
+
+  const workshop = createMockWorkshop({
+    db,
+    delay,
+    newId,
+    now,
+    project,
+    requireRole,
+    nextBugCode,
+    storeUpload,
+    fileUrl: (fileId) => db.files.find((f) => f.id === fileId)?.url ?? '',
+  })
+  workshop.seedDemo()
+
   const api: DataSource = {
     kind: 'mock',
 
@@ -1279,7 +1350,7 @@ export function createMockDataSource(
         database: 'not_configured' as const,
       })),
 
-    getCurrentUser: () => delay(currentUser),
+    getCurrentUser: () => delay(() => workshop.currentUser() ?? currentUser()),
     login: () => delay(currentUser),
     listMySessions: () =>
       delay((): SessionDeviceDto[] => [
@@ -1294,7 +1365,7 @@ export function createMockDataSource(
         },
       ]),
     revokeOtherSessions: () => delay(() => undefined),
-    logout: () => delay(() => undefined),
+    logout: () => delay(() => workshop.signOut()),
     updateProfile: (input) =>
       delay(() => {
         const user = db.users.find((u) => u.id === db.currentUserId) ?? notFound()
@@ -1521,7 +1592,10 @@ export function createMockDataSource(
         return db.users
           .filter(
             (u) =>
-              !needle || u.email.includes(needle) || u.display_name.toLowerCase().includes(needle),
+              u.kind !== 'TABLE' &&
+              (!needle ||
+                u.email.includes(needle) ||
+                u.display_name.toLowerCase().includes(needle)),
           )
           .map((u) => adminUser(u.id))
       }),
@@ -2238,51 +2312,7 @@ export function createMockDataSource(
     uploadFile: async (code, file, options = {}) => {
       const p = project(code)
       requireRole(p.id, 'file.upload')
-      const type = evidenceTypeFor(file.name)
-      if (!type) {
-        return delay(() => ({
-          files: [],
-          rejected: [{ original_filename: file.name, failure_reason: 'TYPE_NOT_ALLOWED' as const }],
-        }))
-      }
-      const ext = extensionOf(file.name)
-      const head = await readHead(file)
-      let reason: FileFailureReason | null = null
-      const signature = SIGNATURES[ext]
-      if (file.size === 0) reason = 'EMPTY'
-      else if (file.size > EVIDENCE_RULES[type].maxBytes) reason = 'TOO_LARGE'
-      else if (signature && !signature.every((byte, i) => head[i] === byte)) {
-        reason = 'SIGNATURE_MISMATCH'
-      } else if (!signature && head.includes(0)) reason = 'NOT_TEXT'
-      if (options.signal?.aborted) throw new DOMException('Upload cancelled', 'AbortError')
-      options.onProgress?.(1)
-      const mime = file.type || 'application/octet-stream'
-      const f: MockFile = {
-        id: newId(),
-        projectId: p.id,
-        evidence_type: type,
-        original_filename: file.name,
-        original_mime: mime,
-        stored_mime: mime,
-        original_size_bytes: file.size,
-        stored_size_bytes: null,
-        compression_method: null,
-        compression_note: null,
-        processing_status: reason ? 'REJECTED' : 'PROCESSING',
-        scan_status: 'PENDING',
-        scan_engine: null,
-        failure_reason: reason,
-        uploadedBy: db.currentUserId,
-        uploaded_at: now(),
-        processed_at: reason ? now() : null,
-        deleted: false,
-        url: reason ? null : objectUrl(file),
-      }
-      db.files.push(f)
-      // The answer reflects the moment of upload; checking finishes a little later.
-      const created = fileDto(f)
-      if (!reason) setTimeout(() => finishProcessing(f, ext), Math.max(latencyMs * 3, 60))
-      return delay(() => ({ files: [created], rejected: [] }))
+      return storeUpload(p.id, file, options, db.currentUserId)
     },
 
     getFileStatus: (code, fileId) => delay(() => fileDto(fileIn(project(code).id, fileId))),
@@ -2848,6 +2878,7 @@ export function createMockDataSource(
       }),
 
     ...recovery.methods,
+    ...workshop.methods,
 
     // ---- Bulk actions (ADR 0013): each item through the single-item rules -----------
     bulkDefects: async (code, input) => {

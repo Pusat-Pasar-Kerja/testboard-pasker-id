@@ -110,7 +110,8 @@ function AttemptCard({
         <ExecutionStatusBadge status={attempt.result_status} />
       </header>
       <p className="mt-1 text-xs text-ink-muted">
-        {attempt.tester?.display_name ?? attempt.legacy_tester_name ?? t('fields.none')}
+        {[attempt.tester?.display_name, attempt.legacy_tester_name].filter(Boolean).join(' · ') ||
+          t('fields.none')}
         {attempt.tested_at && <> · {formatDateTime(attempt.tested_at, locale)}</>}
         {env && <> · {env}</>}
       </p>

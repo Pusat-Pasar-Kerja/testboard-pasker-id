@@ -39,7 +39,8 @@
     "adminSettings": "Pengaturan situs",
     "adminAudit": "Log aktivitas",
     "adminRecovery": "Pemulihan akun",
-    "openRequests": "permintaan baru"
+    "openRequests": "permintaan baru",
+    "workshop": "Mode Workshop"
   },
   "shell": {
     "skipToContent": "Lewati ke konten utama",
@@ -1445,5 +1446,875 @@
     "applyBody_other": "{{count}} bug akan dibuat beserta screenshot-nya. Bug yang sudah ada tidak dibuat ulang.",
     "summary": "{{created}} bug dibuat · {{skipped}} baris dilewati · {{linked}} ditautkan ke hasil uji · {{images}} screenshot",
     "openBugs": "Buka Daftar Bug"
+  },
+  "fontSize": {
+    "label": "Ukuran huruf",
+    "smaller": "Perkecil huruf",
+    "normal": "Ukuran huruf biasa",
+    "larger": "Perbesar huruf"
+  },
+  "progress": {
+    "summary": "{{tried}} dari {{total}} skenario sudah dicoba",
+    "of": "dari {{total}} skenario sudah dicoba",
+    "passed": "Sesuai",
+    "failed": "Tidak sesuai",
+    "blocked": "Tidak bisa dicoba",
+    "skipped": "Dilewati",
+    "untried": "Belum dicoba",
+    "status": {
+      "PASSED": "Sesuai",
+      "FAILED": "Tidak sesuai",
+      "BLOCKED": "Tidak bisa dicoba",
+      "SKIPPED": "Dilewati",
+      "IN_PROGRESS": "Sedang dicoba",
+      "NOT_RUN": "Belum dicoba"
+    }
+  },
+  "public": {
+    "nav": "Menu utama",
+    "guide": "Panduan",
+    "tableSignIn": "Masuk dengan Kartu Meja",
+    "staffSignIn": "Masuk Petugas",
+    "footer": "{{name}} · Uji bersama layanan Pasar Kerja",
+    "period": "{{from}} - {{to}}",
+    "openCycle": "Lihat fase ini",
+    "eyebrow": "Uji Penerimaan Pengguna (UAT) bersama",
+    "title": "Bersama memastikan layanan Pasar Kerja siap dipakai masyarakat",
+    "subtitle": "Di sini terlihat fase uji yang sedang berjalan, fitur yang sedang dicoba, dan masalah yang ditemukan. Peserta workshop masuk dengan kartu meja, tanpa email dan kata sandi.",
+    "howTo": "Cara ikut menguji",
+    "cyclesTitle": "Fase yang sedang dibuka",
+    "cyclesSubtitle": "Pilih fase untuk melihat fitur yang perlu dikerjakan dan daftar masalahnya.",
+    "noCycles": "Belum ada fase yang dibuka untuk umum. Silakan kembali lagi nanti.",
+    "stepsTitle": "Cara ikut menguji di workshop",
+    "stepNumber": "Langkah {{n}}",
+    "steps": {
+      "gather": {
+        "title": "Duduk di meja kelompok",
+        "body": "Setiap meja mengerjakan fitur yang sudah ditentukan panitia, bersama-sama."
+      },
+      "scan": {
+        "title": "Pindai kartu meja",
+        "body": "Arahkan kamera HP ke kode QR di kartu meja, atau ketik 6 angka di bawahnya."
+      },
+      "answer": {
+        "title": "Coba lalu jawab",
+        "body": "Ikuti langkah di layar, lalu tekan Sesuai, Tidak sesuai, atau Tidak bisa dicoba."
+      },
+      "photo": {
+        "title": "Ceritakan bila ada masalah",
+        "body": "Tulis apa yang terjadi dan foto layarnya. Bila sudah dilaporkan meja lain, cukup tekan \"Sama\"."
+      }
+    },
+    "featureState": {
+      "OPEN": "Perlu dikerjakan",
+      "DONE": "Selesai"
+    },
+    "tablesWorking": "Dikerjakan oleh",
+    "casesToggle_one": "Lihat {{count}} skenario",
+    "casesToggle_other": "Lihat {{count}} skenario",
+    "searchBugs": "Cari masalah",
+    "statusFilter": "Saring status",
+    "status": {
+      "ALL": "Semua",
+      "OPEN": "Belum selesai",
+      "DONE": "Sudah selesai"
+    },
+    "bugFeature": "Fitur",
+    "allFeatures": "Semua fitur",
+    "bugCount_one": "{{count}} masalah",
+    "bugCount_other": "{{count}} masalah",
+    "noBugs": "Tidak ada masalah yang cocok.",
+    "loadMore": "Tampilkan lebih banyak",
+    "bugReporter": "Dilaporkan oleh",
+    "bugDate": "Tanggal",
+    "bugConfirmations_one": "{{count}} juga mengalami",
+    "bugConfirmations_other": "{{count}} juga mengalami",
+    "photoOf": "Foto: {{name}}",
+    "notPublic": "Fase ini tidak dibuka untuk umum, atau sudah ditutup.",
+    "back": "Kembali ke daftar fase",
+    "featuresTab": "Fitur yang dikerjakan",
+    "bugsTab": "Daftar masalah",
+    "noFeatures": "Belum ada fitur yang dibuka di fase ini.",
+    "joinAsTable": "Saya peserta: masuk dengan kartu meja",
+    "nothingShared": "Panitia belum membagikan rincian fase ini untuk umum.",
+    "tabsLabel": "Isi fase"
+  },
+  "easy": {
+    "help": "Bantuan",
+    "leave": "Keluar",
+    "leaveTitle": "Keluar dari {{name}}?",
+    "leaveBody": "Jawaban yang sudah dikirim tetap tersimpan. Untuk masuk lagi, pindai kartu meja atau ketik kodenya.",
+    "cancel": "Batal",
+    "closed": {
+      "NOT_YET": {
+        "title": "Kartu meja belum berlaku",
+        "body": "Kartu ini baru bisa dipakai saat workshop dimulai. Tanyakan kepada panitia."
+      },
+      "EXPIRED": {
+        "title": "Kartu meja sudah tidak berlaku",
+        "body": "Masa berlaku kartu ini sudah habis. Terima kasih sudah ikut menguji."
+      },
+      "REVOKED": {
+        "title": "Kartu meja tidak bisa dipakai lagi",
+        "body": "Panitia menonaktifkan kartu ini atau membuat kode baru. Minta kartu terbaru kepada panitia."
+      },
+      "again": "Masuk dengan kartu meja"
+    },
+    "join": {
+      "title": "Masuk dengan Kartu Meja",
+      "subtitle": "Pindai kode QR di kartu meja dengan kamera HP, atau ketik 6 angka yang tertulis di kartu.",
+      "checking": "Memeriksa kartu meja...",
+      "codeLabel": "Kode meja (6 angka)",
+      "codeHint": "Contoh: 246 810",
+      "staffWarning": "Anda sedang masuk sebagai {{name}}. Bila melanjutkan, akun itu keluar dari perangkat ini.",
+      "error": {
+        "WRONG_CODE": "Kode tidak dikenal. Periksa lagi 6 angka di kartu meja.",
+        "NOT_YET": "Kartu ini belum berlaku. Tunggu sampai workshop dimulai.",
+        "EXPIRED": "Kartu ini sudah tidak berlaku.",
+        "REVOKED": "Kartu ini sudah dinonaktifkan. Minta kartu terbaru kepada panitia.",
+        "RATE_LIMITED": "Terlalu banyak kode yang salah. Tunggu 15 menit atau minta bantuan panitia.",
+        "OTHER": "Tidak bisa masuk sekarang. Periksa internet lalu coba lagi."
+      },
+      "submit": "Masuk",
+      "noCard": "Belum punya kartu meja? Kartu dibagikan panitia di setiap meja workshop."
+    },
+    "members": {
+      "title": "Nama anggota meja",
+      "hint": "Nama dipakai untuk mencatat siapa yang mengisi. Bukan akun, cukup nama panggilan.",
+      "save": "Simpan nama",
+      "remove": "Hapus {{name}}",
+      "newName": "Nama baru, mis. Bu Sri",
+      "add": "Tambah"
+    },
+    "tester": {
+      "title": "Siapa yang sedang mengisi?",
+      "edit": "Ubah nama anggota",
+      "noMembers": "Belum ada nama. Tekan \"Ubah nama anggota\" untuk menambahkan (boleh dilewati)."
+    },
+    "home": {
+      "welcome": "Selamat datang, {{name}}",
+      "intro": "Anda menguji {{cycle}} - {{project}}. Kerjakan fitur di bawah satu per satu.",
+      "validUntil": "Kartu meja berlaku sampai {{date}}",
+      "runClosed": "Lembar uji belum dibuka atau sudah ditutup panitia. Tunggu aba-aba panitia, lalu muat ulang halaman ini.",
+      "noRun": "Meja ini belum mendapat lembar uji. Hubungi panitia.",
+      "featuresTitle": "Fitur yang dikerjakan meja ini",
+      "featuresHint": "Tekan tombol pada fitur untuk mulai. Kemajuan tersimpan otomatis.",
+      "noFeatures": "Panitia belum menentukan fitur untuk meja ini.",
+      "review": "Lihat lagi",
+      "continue": "Lanjutkan",
+      "start": "Mulai menguji",
+      "bugsTitle": "Masalah yang sudah ditemukan",
+      "bugsHint": "Lihat masalah dari semua meja, tambahkan \"Saya juga mengalami\", atau laporkan masalah lain.",
+      "seeBugs": "Lihat daftar masalah",
+      "reportOther": "Laporkan masalah lain"
+    },
+    "photo": {
+      "title": "Foto layar (bila ada)",
+      "hint": "Foto layar komputer atau HP yang menunjukkan masalahnya. Boleh lebih dari satu.",
+      "camera": "Ambil foto",
+      "gallery": "Pilih gambar",
+      "state": {
+        "uploading": "Mengirim...",
+        "checking": "Memeriksa...",
+        "ready": "Siap",
+        "failed": "Gagal, hapus lalu coba lagi"
+      },
+      "remove": "Hapus foto {{name}}",
+      "waiting": "Menunggu foto selesai diperiksa..."
+    },
+    "case": {
+      "actor": "Dicoba sebagai: {{actor}}",
+      "preparation": "Persiapan",
+      "steps": "Langkah-langkah",
+      "expected": "Yang seharusnya terjadi",
+      "answered": "Sudah dijawab: {{result}}",
+      "change": "Ubah jawaban",
+      "whoHint": "Tip: pilih dulu siapa yang mengisi di halaman awal meja, supaya namanya tercatat.",
+      "question": "Setelah mencoba, apakah hasilnya sesuai?"
+    },
+    "result": {
+      "PASSED": "Sesuai",
+      "FAILED": "Tidak sesuai",
+      "BLOCKED": "Tidak bisa dicoba",
+      "SKIPPED": "Dilewati",
+      "IN_PROGRESS": "Sedang dicoba",
+      "NOT_RUN": "Belum dicoba"
+    },
+    "bugs": {
+      "alsoSeen_one": "{{count}} lainnya juga mengalami",
+      "alsoSeen_other": "{{count}} lainnya juga mengalami",
+      "photo": "Foto: {{name}}",
+      "mine": "Meja ini sudah mencatat",
+      "metoo": "Saya juga mengalami",
+      "metooNote": "Catatan tambahan (boleh dikosongkan)",
+      "metooSend": "Kirim",
+      "newTitle": "Laporkan masalah lain",
+      "whichFeature": "Di fitur mana?",
+      "title": "Daftar masalah",
+      "subtitle": "Masalah yang ditemukan semua meja di fase ini.",
+      "search": "Cari masalah",
+      "allFeatures": "Semua fitur",
+      "empty": "Belum ada masalah yang dilaporkan."
+    },
+    "failed": {
+      "title": "Tidak sesuai: ceritakan apa yang terjadi",
+      "what": "Apa yang terjadi?",
+      "whatHint": "Tulis dengan bahasa sehari-hari, mis. \"Setelah tekan Simpan, muncul tulisan error\".",
+      "maybeSame": "Mungkin sudah dilaporkan",
+      "maybeSameHint": "Bila masalahnya sama, tekan \"Ya, sama seperti ini\" supaya tidak tercatat dua kali.",
+      "same": "Ya, sama seperti ini",
+      "notSame": "Bukan, ini masalah lain",
+      "sendSame": "Kirim: sama dengan {{code}}",
+      "send": "Kirim laporan",
+      "noteRequired": "Ceritakan dulu apa yang terjadi, atau pilih masalah yang sama."
+    },
+    "blocked": {
+      "title": "Tidak bisa dicoba",
+      "why": "Kenapa tidak bisa dicoba?",
+      "reason": {
+        "PAGE": "Halaman tidak bisa dibuka",
+        "DATA": "Tidak ada data untuk dicoba",
+        "STEPS": "Langkahnya kurang jelas",
+        "OTHER": "Alasan lain"
+      },
+      "more": "Keterangan tambahan (boleh dikosongkan)",
+      "send": "Kirim"
+    },
+    "saved": {
+      "title": "Tersimpan. Terima kasih!",
+      "newBug": "Masalah dicatat dengan kode {{code}}.",
+      "sameBug": "Ditambahkan ke masalah {{code}} sebagai \"juga mengalami\".",
+      "answer": "Jawaban \"{{result}}\" sudah dicatat.",
+      "next": "Lanjut ke skenario berikutnya",
+      "allDone": "Kembali ke halaman meja"
+    },
+    "grid": {
+      "title": "Semua skenario",
+      "close": "Tutup",
+      "legend": "Hijau = Sesuai, merah = Tidak sesuai, kuning = Tidak bisa dicoba, putih = belum dicoba.",
+      "item": "Skenario {{n}}: {{title}} ({{result}})"
+    },
+    "feature": {
+      "notYours": "Fitur ini bukan bagian meja Anda.",
+      "back": "Kembali ke halaman meja",
+      "all": "Lihat semua skenario",
+      "position": "Skenario {{n}} dari {{total}}",
+      "empty": "Belum ada skenario untuk fitur ini.",
+      "nav": "Pindah skenario",
+      "previous": "Sebelumnya",
+      "nextPlain": "Berikutnya"
+    }
+  },
+  "workshop": {
+    "title": "Mode Workshop: {{cycle}}",
+    "subtitle": "Atur meja peserta, pantau kemajuan, rapikan masalah yang masuk, dan tentukan apa yang boleh dilihat umum.",
+    "publicOn": "Terbuka untuk umum",
+    "publicOff": "Tidak publik",
+    "bigScreen": "Layar besar",
+    "publicPage": "Halaman publik",
+    "tabsLabel": "Bagian Mode Workshop",
+    "tabs": {
+      "board": "Papan",
+      "tables": "Meja",
+      "inbox": "Masalah masuk",
+      "public": "Tampilan publik",
+      "features": "Fitur"
+    },
+    "notFound": "Fase tidak ditemukan.",
+    "indexSubtitle": "Pilih fase (siklus uji) yang dikerjakan dalam forum workshop.",
+    "noCycles": "Belum ada fase. Buat fase dulu di menu Siklus Uji.",
+    "makeCycle": "Buka Siklus Uji",
+    "open": "Buka Mode Workshop",
+    "setup": {
+      "title": "Persiapan workshop",
+      "intro": "Langkah yang belum selesai. Setelah semuanya tercentang, kotak ini hilang.",
+      "cases": "Skenario uji sudah ada (Test Case atau Impor Data)",
+      "run": "Lembar uji (run) untuk fase ini sudah dibuat",
+      "active": "Lembar uji sudah dimulai (status Berjalan)",
+      "tables": "Meja sudah dibuat dan masing-masing punya fitur",
+      "public": "Tampilan publik sudah diatur",
+      "go": "Kerjakan"
+    },
+    "board": {
+      "tried": "Skenario dicoba",
+      "toReview": "Masalah perlu ditinjau",
+      "bugsTotal_one": "dari {{count}} masalah",
+      "bugsTotal_other": "dari {{count}} masalah",
+      "confirmations": "\"Juga mengalami\"",
+      "inboxCta_one": "{{count}} masalah baru dari meja menunggu ditinjau",
+      "inboxCta_other": "{{count}} masalah baru dari meja menunggu ditinjau",
+      "tables": "Kemajuan per meja",
+      "noTables": "Belum ada meja. Buat di tab Meja.",
+      "lastActivity": "Terakhir aktif {{date}}",
+      "noActivity": "Belum ada jawaban",
+      "tableBugs_one": "{{count}} masalah dilaporkan",
+      "tableBugs_other": "{{count}} masalah dilaporkan",
+      "recent": "Kegiatan terbaru",
+      "noRecent": "Belum ada kegiatan dari meja.",
+      "recentResult": "{{result}}: {{title}}",
+      "recentBug": "Melaporkan masalah: {{title}}",
+      "recentConfirm": "Juga mengalami: {{title}}",
+      "features": "Kemajuan per fitur",
+      "noFeatures": "Belum ada fitur. Tambahkan skenario ke lembar uji fase ini."
+    },
+    "tables": {
+      "intro": "Setiap meja mendapat kartu berisi kode QR dan kode 6 angka. Peserta masuk tanpa email dan kata sandi, hanya selama masa berlaku kartu.",
+      "noFeatures": "Belum ada fitur",
+      "saved": "{{name}} disimpan.",
+      "created": "{{name}} dibuat. Cetak kartunya dari tombol Cetak kartu.",
+      "editTitle": "Ubah {{name}}",
+      "createTitle": "Buat meja",
+      "createHint": "Kode kartu dibuat otomatis. Nama anggota boleh diisi nanti oleh meja sendiri.",
+      "name": "Nama meja",
+      "namePlaceholder": "mis. Meja 1",
+      "run": "Lembar uji (run)",
+      "noRuns": "Fase ini belum punya lembar uji. Buat dulu di menu Pelaksanaan UAT.",
+      "runHint": "Skenario yang dikerjakan meja diambil dari lembar uji ini.",
+      "noRun": "Belum dipilih",
+      "features": "Fitur yang dikerjakan",
+      "featuresEmpty": "Pilih lembar uji dulu; fitur diambil dari skenario di dalamnya.",
+      "members": "Anggota",
+      "membersHint": "Satu nama per baris. Hanya teks, tidak membuat akun.",
+      "validFrom": "Berlaku mulai",
+      "validUntil": "Berlaku sampai",
+      "defaultPrefix": "Meja",
+      "bulkDone_one": "{{count}} meja dibuat.",
+      "bulkDone_other": "{{count}} meja dibuat.",
+      "bulkTitle": "Buat beberapa meja sekaligus",
+      "bulkHint": "Meja diberi nama berurutan (mis. Meja 1 sampai Meja 10). Fitur dan anggota diatur sesudahnya per meja.",
+      "bulkSubmit": "Buat meja",
+      "bulkPrefix": "Awalan nama",
+      "bulkCount": "Jumlah meja",
+      "hasActivity": "Meja ini sudah punya jawaban, jadi tidak bisa dihapus. Nonaktifkan saja.",
+      "bulk": "Buat beberapa meja",
+      "create": "Buat meja",
+      "printAll": "Cetak semua kartu",
+      "empty": "Belum ada meja di fase ini.",
+      "state": {
+        "ACTIVE": "Aktif",
+        "NOT_YET": "Belum berlaku",
+        "EXPIRED": "Kedaluwarsa",
+        "REVOKED": "Nonaktif"
+      },
+      "code": "Kode kartu",
+      "devices_one": "{{count}} perangkat masuk",
+      "devices_other": "{{count}} perangkat masuk",
+      "until": "Berlaku sampai {{date}}",
+      "edit": "Ubah",
+      "printCard": "Cetak kartu",
+      "printSheet": "Lembar cadangan",
+      "newCode": "Kode baru",
+      "restore": "Aktifkan lagi",
+      "revoke": "Nonaktifkan",
+      "delete": "Hapus",
+      "done": {
+        "code": "Kode baru untuk {{name}} dibuat. Cetak ulang kartunya.",
+        "revoke": "{{name}} dinonaktifkan dan semua perangkatnya dikeluarkan.",
+        "restore": "{{name}} aktif lagi.",
+        "delete": "{{name}} dihapus."
+      },
+      "confirm": {
+        "code": {
+          "title": "Buat kode baru untuk {{name}}?",
+          "body": "Kartu lama tidak bisa dipakai lagi dan semua perangkat meja ini keluar. Jawaban yang sudah ada tetap tersimpan.",
+          "action": "Buat kode baru"
+        },
+        "revoke": {
+          "title": "Nonaktifkan {{name}}?",
+          "body": "Kartu tidak bisa dipakai dan semua perangkat meja ini keluar. Bisa diaktifkan lagi kapan saja.",
+          "action": "Nonaktifkan"
+        },
+        "restore": {
+          "title": "Aktifkan lagi {{name}}?",
+          "body": "Kartu dengan kode yang sama bisa dipakai lagi selama masa berlakunya.",
+          "action": "Aktifkan"
+        },
+        "delete": {
+          "title": "Hapus {{name}}?",
+          "body": "Hanya meja yang belum pernah menjawab yang bisa dihapus.",
+          "action": "Hapus"
+        }
+      }
+    },
+    "inbox": {
+      "intro": "Masalah yang dikirim meja masuk ke sini. Tentukan tingkat dampaknya, gabungkan bila sama dengan masalah lain, lalu tandai sudah ditinjau.",
+      "empty": "Tidak ada masalah yang menunggu ditinjau.",
+      "markedDuplicate": "{{code}} ditandai sebagai masalah yang sama.",
+      "reviewed": "{{code}} sudah ditinjau.",
+      "scenario": "Skenario: {{code}} - {{title}}",
+      "similar": "Mungkin sama dengan",
+      "sameAs": "Sama dengan {{code}}",
+      "severity": "Tingkat dampak",
+      "markReviewed": "Sudah ditinjau",
+      "openBug": "Buka detail bug"
+    },
+    "public": {
+      "savedOn": "Tampilan publik disimpan. Fase ini terlihat di halaman depan.",
+      "savedOff": "Tampilan publik disimpan. Fase ini tidak terlihat oleh umum.",
+      "mainTitle": "Tampilkan secara publik",
+      "main": "Tampilkan fase ini di halaman depan",
+      "mainOn": "Siapa pun yang membuka alamat situs bisa melihat fase ini dan data yang dicentang di bawah.",
+      "mainOff": "Fase ini tidak terlihat oleh umum. Hanya petugas yang masuk dan peserta meja yang bisa melihatnya.",
+      "intro": "Pengantar untuk umum",
+      "introHint": "Mis. jadwal dan tempat workshop. Selalu tampil bila fase dibuka untuk umum.",
+      "privacy": "Semua data tersembunyi bawaannya. Centang hanya yang memang boleh dilihat umum. Foto layar dan uraian bisa memuat data pribadi pencari kerja (NIK, nama, nomor HP), jadi periksa dulu sebelum membukanya.",
+      "group": {
+        "cycle": "Tentang fase",
+        "features": "Fitur yang dikerjakan",
+        "bugs": "Daftar masalah"
+      },
+      "field": {
+        "cycle": {
+          "description": {
+            "label": "Keterangan fase",
+            "hint": "Keterangan yang diisi di Siklus Uji."
+          },
+          "period": {
+            "label": "Tanggal fase",
+            "hint": "Tanggal mulai dan selesai."
+          },
+          "progress": {
+            "label": "Kemajuan keseluruhan",
+            "hint": "Berapa skenario sudah dicoba, sesuai, dan tidak sesuai."
+          }
+        },
+        "features": {
+          "list": {
+            "label": "Daftar fitur",
+            "hint": "Nama fitur dan status Perlu dikerjakan / Selesai."
+          },
+          "progress": {
+            "label": "Kemajuan per fitur",
+            "hint": "Angka dan grafik kemajuan setiap fitur."
+          },
+          "cases": {
+            "label": "Judul skenario",
+            "hint": "Judul setiap skenario dan hasil terakhirnya."
+          },
+          "tables": {
+            "label": "Meja yang mengerjakan",
+            "hint": "Nama meja per fitur."
+          },
+          "members": {
+            "label": "Nama anggota meja",
+            "hint": "Nama peserta di setiap meja."
+          }
+        },
+        "bugs": {
+          "list": {
+            "label": "Daftar masalah",
+            "hint": "Judul dan status setiap masalah."
+          },
+          "code": {
+            "label": "Kode bug",
+            "hint": "mis. BUG-KAR-0012."
+          },
+          "feature": {
+            "label": "Fitur",
+            "hint": "Fitur tempat masalah ditemukan."
+          },
+          "description": {
+            "label": "Uraian masalah",
+            "hint": "Isi \"apa yang terjadi\" dari pelapor."
+          },
+          "severity": {
+            "label": "Tingkat dampak",
+            "hint": "Kritis, tinggi, sedang, rendah, informasi."
+          },
+          "priority": {
+            "label": "Prioritas",
+            "hint": "Urgensi perbaikan."
+          },
+          "reporter": {
+            "label": "Pelapor",
+            "hint": "Nama meja dan anggota yang melapor."
+          },
+          "date": {
+            "label": "Tanggal lapor",
+            "hint": "Kapan masalah dilaporkan."
+          },
+          "confirmations": {
+            "label": "Jumlah \"juga mengalami\"",
+            "hint": "Berapa meja yang mengalami masalah yang sama."
+          },
+          "evidence": {
+            "label": "Foto layar",
+            "hint": "Gambar yang dilampirkan pada masalah."
+          }
+        }
+      },
+      "sensitive": "Data pribadi?",
+      "needs": "Aktifkan dulu \"{{field}}\".",
+      "preview": "Lihat halaman publik",
+      "save": "Simpan tampilan publik"
+    },
+    "features": {
+      "intro": "Fitur diambil dari skenario di lembar uji fase ini. Tandai Selesai bila sudah tuntas, atau Sembunyikan agar tidak tampil di halaman publik.",
+      "stateFor": "Status fitur {{name}}",
+      "state": {
+        "OPEN": "Dibuka",
+        "DONE": "Selesai",
+        "HIDDEN": "Sembunyikan"
+      }
+    },
+    "screen": {
+      "eyebrow": "Workshop UAT - kemajuan langsung",
+      "fullscreen": "Layar penuh",
+      "tried": "skenario sudah dicoba",
+      "bugs_one": "{{count}} masalah ditemukan",
+      "bugs_other": "{{count}} masalah ditemukan",
+      "confirmations_one": "{{count}} kali \"juga mengalami\"",
+      "confirmations_other": "{{count}} kali \"juga mengalami\"",
+      "tableTried": "{{tried}} dari {{total}} dicoba",
+      "refresh": "Diperbarui otomatis setiap 10 detik."
+    },
+    "print": {
+      "hint": "Gunakan kertas A4. Dua kartu per halaman; gunting di garis putus-putus.",
+      "print": "Cetak",
+      "cardsTitle": "Kartu meja",
+      "cardTitle": "Kartu Meja",
+      "features": "Fitur yang dikerjakan",
+      "members": "Anggota",
+      "step1": "Buka kamera HP, arahkan ke kode QR di kanan.",
+      "step2": "Atau buka {{address}} lalu ketik kode 6 angka.",
+      "step3": "Coba setiap skenario, lalu tekan Sesuai / Tidak sesuai / Tidak bisa dicoba.",
+      "qrLabel": "Kode QR untuk masuk sebagai {{name}}",
+      "orType": "atau ketik kode",
+      "validUntil": "Berlaku sampai {{date}}",
+      "keepSafe": "Kartu ini hanya untuk meja Anda. Jangan dibagikan ke luar ruangan.",
+      "sheetTitle": "Lembar uji cadangan (kertas)",
+      "sheetIntro": "Dipakai bila internet bermasalah. Centang hasilnya; panitia akan memasukkan ke TestBoard.",
+      "filledBy": "Diisi oleh:",
+      "date": "Tanggal:",
+      "no": "No",
+      "scenario": "Skenario",
+      "result": "Hasil",
+      "note": "Catatan"
+    }
+  },
+  "guide": {
+    "eyebrow": "Panduan",
+    "title": "Tata cara penggunaan TestBoard",
+    "subtitle": "Penjelasan sederhana cara kerja TestBoard dan langkah demi langkah untuk peserta workshop, fasilitator, dan admin. Tidak perlu latar belakang teknis.",
+    "toc": "Isi panduan",
+    "faqTitle": "Pertanyaan yang sering muncul",
+    "help": "Masih bingung? Tanyakan kepada panitia atau fasilitator di ruangan.",
+    "backHome": "Kembali ke halaman depan",
+    "sections": {
+      "cara-kerja": "Cara kerja singkat",
+      "peserta": "Untuk peserta meja",
+      "fasilitator": "Untuk fasilitator / panitia",
+      "admin": "Untuk admin",
+      "istilah": "Kamus istilah",
+      "privasi": "Privasi dan keamanan data"
+    },
+    "flow": {
+      "intro": "Bayangkan TestBoard sebagai buku rapor untuk sebuah website yang sedang diuji. Urutannya dari besar ke kecil:",
+      "project": {
+        "title": "Proyek",
+        "menu": "Menu: Proyek",
+        "body": "Website yang diuji, mis. Karirhub."
+      },
+      "cycle": {
+        "title": "Fase",
+        "menu": "Menu: Siklus Uji",
+        "body": "Satu putaran kegiatan uji, mis. Fase 1 (workshop 30-31 Juli)."
+      },
+      "feature": {
+        "title": "Fitur",
+        "menu": "Menu: Modul",
+        "body": "Bagian website, mis. Lapor Loker atau Gig Workers."
+      },
+      "scenario": {
+        "title": "Skenario uji",
+        "menu": "Menu: Test Case",
+        "body": "Satu hal yang dicoba: langkah-langkah dan hasil yang seharusnya terjadi."
+      },
+      "run": {
+        "title": "Lembar uji",
+        "menu": "Menu: Pelaksanaan UAT",
+        "body": "Daftar skenario yang dikerjakan di satu fase. Harus dimulai supaya bisa diisi."
+      },
+      "result": {
+        "title": "Hasil",
+        "menu": "Diisi peserta",
+        "body": "Sesuai, Tidak sesuai, atau Tidak bisa dicoba untuk setiap skenario."
+      },
+      "bug": {
+        "title": "Masalah (bug)",
+        "menu": "Menu: Daftar Bug",
+        "body": "Dicatat bila hasilnya tidak sesuai, lalu diperbaiki developer dan diuji ulang."
+      },
+      "example": "Contoh: proyek Karirhub > Fase 2 > fitur Lapor Loker > skenario \"Simpan laporan lowongan\" di lembar uji Workshop Fase 2 > hasilnya Tidak sesuai > tercatat sebagai bug BUG-KAR-0012 > diperbaiki developer > diuji ulang."
+    },
+    "participant": {
+      "intro": "Peserta tidak perlu akun. Satu meja = satu kelompok yang mengerjakan fitur yang sama.",
+      "steps": [
+        {
+          "title": "Pindai kartu meja",
+          "body": "Buka kamera HP, arahkan ke kode QR di kartu meja, lalu ketuk tautan yang muncul. Bisa juga membuka alamat di kartu lalu mengetik 6 angkanya."
+        },
+        {
+          "title": "Pilih siapa yang mengisi",
+          "body": "Di halaman meja, ketuk nama Anda. Nama ini dicatat di setiap jawaban. Bila belum ada, tekan \"Ubah nama anggota\"."
+        },
+        {
+          "title": "Pilih fitur, lalu tekan Mulai menguji",
+          "body": "Setiap fitur berisi beberapa skenario. Kemajuan tersimpan otomatis."
+        },
+        {
+          "title": "Baca skenario dan coba di website yang diuji",
+          "body": "Ikuti langkah-langkahnya satu per satu. Kotak hijau menjelaskan apa yang seharusnya terjadi."
+        },
+        {
+          "title": "Tekan salah satu dari tiga tombol besar",
+          "body": "Lihat penjelasan tombol di bawah. Setelah tersimpan, tekan \"Lanjut ke skenario berikutnya\"."
+        },
+        {
+          "title": "Bila tidak sesuai: ceritakan dan foto",
+          "body": "Tulis apa yang terjadi dengan bahasa sehari-hari dan foto layarnya. Bila sudah ada laporan yang sama dari meja lain, tekan \"Ya, sama seperti ini\"."
+        }
+      ],
+      "buttons": "Tiga tombol jawaban",
+      "passed": "Sesuai: hasilnya sama dengan kotak hijau \"Yang seharusnya terjadi\".",
+      "failed": "Tidak sesuai: ada yang salah, error, atau berbeda. Anda akan diminta menceritakannya.",
+      "blocked": "Tidak bisa dicoba: halaman tidak terbuka, tidak ada data, atau langkahnya tidak jelas.",
+      "faq": [
+        {
+          "q": "Saya salah menekan tombol. Bagaimana?",
+          "a": "Buka lagi skenarionya lalu tekan \"Ubah jawaban\". Jawaban terbaru yang dipakai; jawaban lama tetap tercatat sebagai riwayat."
+        },
+        {
+          "q": "Hurufnya terlalu kecil.",
+          "a": "Tekan tombol A+ di bagian atas layar. Ukuran huruf diingat di perangkat itu."
+        },
+        {
+          "q": "Internet putus saat mengisi.",
+          "a": "Tunggu sebentar lalu tekan kirim lagi; jawaban tidak akan tercatat dua kali. Bila lama, isi lembar uji kertas dari panitia."
+        },
+        {
+          "q": "Bagaimana membuat foto layar?",
+          "a": "Paling mudah: tekan \"Ambil foto\" lalu foto layar komputer dengan kamera HP. Bisa juga \"Pilih gambar\" untuk screenshot yang sudah ada."
+        },
+        {
+          "q": "Apakah perlu memilih tingkat keparahan?",
+          "a": "Tidak. Fasilitator yang menilainya. Peserta cukup menceritakan apa yang terjadi."
+        },
+        {
+          "q": "Kartu meja tidak bisa dipakai.",
+          "a": "Kartu hanya berlaku pada tanggal workshop dan bisa diganti panitia. Minta kartu terbaru kepada panitia."
+        }
+      ]
+    },
+    "facilitator": {
+      "intro": "Fasilitator menyiapkan meja, memantau kemajuan, dan merapikan masalah yang masuk. Semua ada di menu Mode Workshop di dalam proyek.",
+      "before": "Sebelum hari-H",
+      "beforeSteps": [
+        {
+          "title": "Buat fase",
+          "body": "Menu Siklus Uji > Siklus baru. Isi kode (mis. FASE-2), judul, dan tanggal workshop."
+        },
+        {
+          "title": "Siapkan skenario uji",
+          "body": "Menu Impor Data untuk mengambil skenario dari Excel, atau tambah manual di Test Case. Kelompokkan per fitur (modul)."
+        },
+        {
+          "title": "Buat lembar uji dan mulai",
+          "body": "Menu Pelaksanaan UAT > Run baru, pilih fase tadi, tambahkan skenario, lalu ubah status menjadi Berjalan saat workshop dimulai."
+        },
+        {
+          "title": "Buat meja",
+          "body": "Mode Workshop > tab Meja > Buat beberapa meja. Lalu ubah tiap meja: pilih fitur dan (boleh) nama anggota. Masa berlaku kartu otomatis mengikuti tanggal fase."
+        },
+        {
+          "title": "Cetak kartu dan lembar cadangan",
+          "body": "Tombol Cetak semua kartu (2 kartu per A4). Cetak juga Lembar cadangan per meja untuk berjaga-jaga bila internet bermasalah."
+        },
+        {
+          "title": "Atur tampilan publik",
+          "body": "Tab Tampilan publik. Semua data tersembunyi bawaannya; nyalakan fase lalu centang hanya data yang boleh dilihat umum."
+        },
+        {
+          "title": "Gladi singkat",
+          "body": "Minta 3-5 calon peserta mencoba satu skenario dengan kartu contoh. Perbaiki skenario yang membingungkan."
+        }
+      ],
+      "during": "Saat workshop",
+      "duringSteps": [
+        {
+          "title": "Bagikan kartu ke setiap meja",
+          "body": "Satu kartu per meja. Peserta memindai QR atau mengetik 6 angka."
+        },
+        {
+          "title": "Tampilkan Layar besar di proyektor",
+          "body": "Tombol Layar besar membuka halaman kemajuan semua meja yang diperbarui otomatis."
+        },
+        {
+          "title": "Pantau Papan",
+          "body": "Lihat meja yang tertinggal atau belum aktif, lalu datangi untuk membantu."
+        },
+        {
+          "title": "Rapikan Masalah masuk",
+          "body": "Tentukan tingkat dampak, tekan \"Sama dengan\" bila masalahnya sama, lalu Sudah ditinjau."
+        },
+        {
+          "title": "Bila kartu bocor atau hilang",
+          "body": "Tab Meja > Kode baru (kartu lama mati) atau Nonaktifkan."
+        }
+      ],
+      "after": "Setelah workshop",
+      "afterSteps": [
+        {
+          "title": "Ubah status lembar uji menjadi Selesai",
+          "body": "Jawaban tidak bisa ditambah lagi setelah lembar uji ditutup."
+        },
+        {
+          "title": "Masukkan hasil dari lembar kertas (bila ada)",
+          "body": "Buka lembar uji di menu Pelaksanaan UAT dan isi hasilnya."
+        },
+        {
+          "title": "Lihat laporan dan teruskan bug",
+          "body": "Menu Laporan untuk rekap; menu Daftar Bug untuk menugaskan perbaikan ke developer."
+        },
+        {
+          "title": "Tutup tampilan publik bila perlu",
+          "body": "Matikan tombol Tampilkan secara publik, atau biarkan untuk transparansi."
+        }
+      ],
+      "faq": [
+        {
+          "q": "Peserta melihat \"Lembar uji belum dibuka\".",
+          "a": "Ubah status lembar uji (run) menjadi Berjalan di menu Pelaksanaan UAT."
+        },
+        {
+          "q": "Satu fitur dikerjakan dua meja.",
+          "a": "Boleh. Keduanya melihat jawaban terbaru; riwayat semua jawaban tetap tersimpan."
+        },
+        {
+          "q": "Banyak masalah yang sama dari meja berbeda.",
+          "a": "Peserta biasanya diarahkan menekan \"Sama\". Sisanya rapikan di Masalah masuk dengan tombol \"Sama dengan\"; jumlahnya dihitung sebagai \"juga mengalami\"."
+        }
+      ]
+    },
+    "admin": {
+      "intro": "Admin situs (Super Admin) mengurus proyek, akun, dan pengaturan. Semua di menu Administrasi.",
+      "steps": [
+        {
+          "title": "Proyek",
+          "body": "Administrasi > Proyek: buat proyek, ubah nama atau kode, arsipkan."
+        },
+        {
+          "title": "Pengguna",
+          "body": "Administrasi > Pengguna: buat akun petugas (bukan peserta meja), nonaktifkan, jadikan Super Admin."
+        },
+        {
+          "title": "Anggota proyek",
+          "body": "Di dalam proyek, Tim & Pengaturan: tambahkan akun ke proyek dan pilih perannya."
+        },
+        {
+          "title": "Lupa email / kata sandi",
+          "body": "Administrasi > Pemulihan akun: buat tautan atur ulang kata sandi yang berlaku terbatas."
+        },
+        {
+          "title": "Pengaturan situs",
+          "body": "Nama situs, pengumuman, lama sesi login, dan lama \"Selalu login di perangkat ini\"."
+        },
+        {
+          "title": "Log aktivitas",
+          "body": "Siapa mengubah apa dan kapan, termasuk perubahan tampilan publik dan kartu meja."
+        }
+      ],
+      "roles": "Peran di dalam proyek",
+      "role": "Peran",
+      "can": "Bisa melakukan",
+      "roleRows": [
+        {
+          "role": "Admin proyek",
+          "can": "Semua di proyek itu, termasuk mengatur anggota."
+        },
+        {
+          "role": "QA Lead (fasilitator)",
+          "can": "Menyiapkan skenario, lembar uji, Mode Workshop, meja, tampilan publik, dan meninjau masalah."
+        },
+        {
+          "role": "Tester",
+          "can": "Mengisi hasil uji dan melaporkan masalah dengan akunnya sendiri."
+        },
+        {
+          "role": "Developer",
+          "can": "Melihat dan memperbarui status bug yang ditugaskan."
+        },
+        {
+          "role": "Viewer",
+          "can": "Hanya melihat."
+        },
+        {
+          "role": "Peserta meja",
+          "can": "Tanpa akun; masuk dengan kartu meja dan hanya bisa memakai Mode Mudah."
+        }
+      ]
+    },
+    "glossary": {
+      "intro": "Istilah di menu dan artinya dalam bahasa sehari-hari.",
+      "items": [
+        {
+          "term": "UAT (User Acceptance Testing)",
+          "plain": "Uji oleh calon pengguna untuk memastikan website bisa dipakai sesuai kebutuhan."
+        },
+        {
+          "term": "Siklus Uji / Fase",
+          "plain": "Satu putaran kegiatan uji pada rentang tanggal tertentu."
+        },
+        {
+          "term": "Modul / Fitur",
+          "plain": "Bagian website yang diuji, mis. Lapor Loker."
+        },
+        {
+          "term": "Test Case / Skenario uji",
+          "plain": "Satu hal yang dicoba beserta hasil yang seharusnya."
+        },
+        {
+          "term": "Run / Lembar uji",
+          "plain": "Daftar skenario yang dikerjakan di satu fase, beserta hasilnya."
+        },
+        {
+          "term": "Bug / Masalah",
+          "plain": "Hal yang tidak sesuai dan perlu diperbaiki."
+        },
+        {
+          "term": "Severity / Tingkat dampak",
+          "plain": "Seberapa besar akibat sebuah masalah, dari Kritis sampai Informasi. Ditentukan fasilitator."
+        },
+        {
+          "term": "Retest / Uji ulang",
+          "plain": "Mencoba lagi setelah masalah diperbaiki."
+        },
+        {
+          "term": "Meja",
+          "plain": "Kelompok peserta workshop yang mengerjakan fitur yang sama."
+        },
+        {
+          "term": "Kartu meja",
+          "plain": "Kartu cetak berisi kode QR dan 6 angka untuk masuk tanpa akun."
+        },
+        {
+          "term": "Juga mengalami (+1)",
+          "plain": "Tanda bahwa meja lain menemukan masalah yang sama, supaya tidak dicatat dua kali."
+        },
+        {
+          "term": "Tampilan publik",
+          "plain": "Halaman yang bisa dilihat siapa pun tanpa login; isinya dipilih panitia per data."
+        }
+      ]
+    },
+    "privacy": {
+      "points": [
+        "Semua data fase tersembunyi dari umum sampai panitia menyalakannya, dan hanya data yang dicentang yang terlihat.",
+        "Foto layar Karirhub bisa memuat data pribadi pencari kerja (NIK, nama, nomor HP). Hindari memotret data asli, dan jangan membuka foto ke publik tanpa diperiksa.",
+        "Kartu meja hanya berlaku pada tanggal workshop, bisa diganti atau dinonaktifkan kapan saja, dan tidak bisa membuka halaman petugas.",
+        "Nama anggota meja disimpan sebagai teks, tidak dibuatkan akun. Setiap perubahan oleh petugas tercatat di log aktivitas.",
+        "\"Selalu login di perangkat ini\" jangan dicentang di komputer bersama. Keluarkan perangkat lain dari menu Profil bila perlu."
+      ]
+    }
   }
 }

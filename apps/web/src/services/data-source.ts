@@ -1,4 +1,25 @@
 import type {
+  CyclePublicInput,
+  DefectReviewInput,
+  ModuleRef,
+  PublicBugDto,
+  PublicCycleDetail,
+  PublicCycleSummary,
+  PublicField,
+  WorkshopBoardDto,
+  WorkshopBugDto,
+  WorkshopBugInput,
+  WorkshopCaseDto,
+  WorkshopConfirmInput,
+  WorkshopFeatureDto,
+  WorkshopFeatureState,
+  WorkshopInboxItem,
+  WorkshopResultInput,
+  WorkshopResultSaved,
+  WorkshopSessionDto,
+  WorkshopTableDto,
+  WorkshopTableInput,
+  WorkshopTableUpdate,
   SessionDeviceDto,
   BulkResult,
   CaseBulkInput,
@@ -443,6 +464,77 @@ export interface DataSource {
   /** The returned token is shown once; only its hash is stored. */
   issueResetLink(userId: string, input?: ResetLinkIssueInput): Promise<IssuedResetLink>
   revokeResetLink(userId: string): Promise<void>
+
+  // Mode Workshop (ADR 0016) ------------------------------------------------------------
+  /** Public pages: anyone, signed out; only the fields a lead switched on. */
+  listPublicCycles(): Promise<PublicCycleSummary[]>
+  getPublicCycle(cycleId: string): Promise<PublicCycleDetail>
+  listPublicBugs(cycleId: string, query?: PublicBugQuery): Promise<Paginated<PublicBugDto>>
+  publicFileUrl(cycleId: string, fileId: string, kind: 'thumbnail' | 'preview'): string
+
+  /** Table card (meja): sign in with the 6-digit code, then Mode Mudah only. */
+  joinWorkshop(code: string): Promise<WorkshopSessionDto>
+  getWorkshopSession(): Promise<WorkshopSessionDto>
+  updateWorkshopMembers(memberNames: string[]): Promise<WorkshopSessionDto>
+  listWorkshopCases(moduleId: string): Promise<WorkshopCaseDto[]>
+  saveWorkshopResult(runCaseId: string, input: WorkshopResultInput): Promise<WorkshopResultSaved>
+  listWorkshopBugs(query?: WorkshopBugQuery): Promise<WorkshopBugDto[]>
+  reportWorkshopBug(input: WorkshopBugInput): Promise<{ id: string; bug_code: string }>
+  confirmWorkshopBug(defectId: string, input: WorkshopConfirmInput): Promise<WorkshopBugDto>
+  uploadWorkshopFile(file: File, options?: UploadOptions): Promise<UploadResult>
+  getWorkshopFileStatus(fileId: string): Promise<Pick<FileDto, 'processing_status' | 'scan_status'>>
+  workshopFileUrl(fileId: string, kind: 'thumbnail' | 'preview'): string
+
+  /** Facilitator side, inside a project. */
+  getWorkshopBoard(projectCode: string, cycleId: string): Promise<WorkshopBoardDto>
+  updateCyclePublic(
+    projectCode: string,
+    cycleId: string,
+    input: CyclePublicInput,
+  ): Promise<{ is_public: boolean; public_fields: PublicField[]; public_intro: string | null }>
+  updateWorkshopFeature(
+    projectCode: string,
+    cycleId: string,
+    input: { module_id: string; state_code: WorkshopFeatureState },
+  ): Promise<WorkshopFeatureDto[]>
+  listWorkshopTables(projectCode: string, cycleId: string): Promise<WorkshopTableDto[]>
+  createWorkshopTable(
+    projectCode: string,
+    cycleId: string,
+    input: WorkshopTableInput,
+  ): Promise<WorkshopTableDto>
+  updateWorkshopTable(
+    projectCode: string,
+    cycleId: string,
+    tableId: string,
+    input: WorkshopTableUpdate,
+  ): Promise<WorkshopTableDto>
+  deleteWorkshopTable(projectCode: string, cycleId: string, tableId: string): Promise<void>
+  getWorkshopSheet(projectCode: string, cycleId: string, tableId: string): Promise<WorkshopSheet>
+  listWorkshopInbox(projectCode: string, cycleId: string): Promise<WorkshopInboxItem[]>
+  reviewWorkshopBug(
+    projectCode: string,
+    cycleId: string,
+    defectId: string,
+    input: DefectReviewInput,
+  ): Promise<WorkshopBugDto>
+}
+
+export interface PublicBugQuery extends PageQuery {
+  q?: string
+  feature?: string
+  status?: 'OPEN' | 'DONE' | ''
+}
+
+export interface WorkshopBugQuery {
+  module?: string
+  q?: string
+  run_case?: string
+}
+
+export interface WorkshopSheet {
+  table: WorkshopTableDto
+  features: { module: ModuleRef; cases: WorkshopCaseDto[] }[]
 }
 
 export type AuditQuery = AuditFilter & PageQuery
@@ -627,5 +719,47 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     issueResetLink: (userId, input = {}) =>
       client.post(`/admin/users/${seg(userId)}/reset-link`, input),
     revokeResetLink: (userId) => client.delete(`/admin/users/${seg(userId)}/reset-link`),
+
+    listPublicCycles: () => client.get('/public/cycles'),
+    getPublicCycle: (id) => client.get(`/public/cycles/${seg(id)}`),
+    listPublicBugs: (id, query = {}) =>
+      client.get(`/public/cycles/${seg(id)}/bugs${toQueryString(query)}`),
+    publicFileUrl: (cycleId, fileId, kind) =>
+      client.url(`/public/cycles/${seg(cycleId)}/files/${seg(fileId)}/${kind}`),
+
+    joinWorkshop: (code) => client.post('/workshop/join', { code }),
+    getWorkshopSession: () => client.get('/workshop/session'),
+    updateWorkshopMembers: (names) => client.put('/workshop/members', { member_names: names }),
+    listWorkshopCases: (moduleId) => client.get(`/workshop/features/${seg(moduleId)}/cases`),
+    saveWorkshopResult: (runCaseId, input) =>
+      client.post(`/workshop/cases/${seg(runCaseId)}/result`, input),
+    listWorkshopBugs: (query = {}) => client.get(`/workshop/bugs${toQueryString(query)}`),
+    reportWorkshopBug: (input) => client.post('/workshop/bugs', input),
+    confirmWorkshopBug: (id, input) => client.post(`/workshop/bugs/${seg(id)}/confirm`, input),
+    uploadWorkshopFile: (file, options) => {
+      const form = new FormData()
+      form.append('files', file, file.name)
+      return client.upload('/workshop/files', form, options)
+    },
+    getWorkshopFileStatus: (id) => client.get(`/workshop/files/${seg(id)}/status`),
+    workshopFileUrl: (id, kind) => client.url(`/workshop/files/${seg(id)}/${kind}`),
+
+    getWorkshopBoard: (code, cycleId) => client.get(`${p(code)}/cycles/${seg(cycleId)}/workshop`),
+    updateCyclePublic: (code, cycleId, input) =>
+      client.put(`${p(code)}/cycles/${seg(cycleId)}/public`, input),
+    updateWorkshopFeature: (code, cycleId, input) =>
+      client.put(`${p(code)}/cycles/${seg(cycleId)}/features`, input),
+    listWorkshopTables: (code, cycleId) => client.get(`${p(code)}/cycles/${seg(cycleId)}/tables`),
+    createWorkshopTable: (code, cycleId, input) =>
+      client.post(`${p(code)}/cycles/${seg(cycleId)}/tables`, input),
+    updateWorkshopTable: (code, cycleId, tableId, input) =>
+      client.patch(`${p(code)}/cycles/${seg(cycleId)}/tables/${seg(tableId)}`, input),
+    deleteWorkshopTable: (code, cycleId, tableId) =>
+      client.delete(`${p(code)}/cycles/${seg(cycleId)}/tables/${seg(tableId)}`),
+    getWorkshopSheet: (code, cycleId, tableId) =>
+      client.get(`${p(code)}/cycles/${seg(cycleId)}/tables/${seg(tableId)}/sheet`),
+    listWorkshopInbox: (code, cycleId) => client.get(`${p(code)}/cycles/${seg(cycleId)}/inbox`),
+    reviewWorkshopBug: (code, cycleId, defectId, input) =>
+      client.post(`${p(code)}/cycles/${seg(cycleId)}/inbox/${seg(defectId)}`, input),
   }
 }

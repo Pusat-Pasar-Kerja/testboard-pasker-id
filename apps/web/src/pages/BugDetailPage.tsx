@@ -484,11 +484,14 @@ export function BugDetailPage() {
               items={[
                 {
                   label: t('fields.reporter'),
-                  value:
-                    d.reported_by?.display_name ??
-                    (d.legacy_reporter_name
+                  // A workshop table reports with its card account plus the member's name.
+                  value: d.reported_by
+                    ? [d.reported_by.display_name, d.legacy_reporter_name]
+                        .filter(Boolean)
+                        .join(' · ')
+                    : d.legacy_reporter_name
                       ? t('pages.bugDetail.legacyReporter', { name: d.legacy_reporter_name })
-                      : none),
+                      : none,
                 },
                 { label: t('fields.assignee'), value: d.assigned_to?.display_name ?? none },
                 {

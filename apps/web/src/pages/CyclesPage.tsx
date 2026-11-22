@@ -6,11 +6,12 @@ import {
 } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { TFunction } from 'i18next'
-import { Pencil, Plus } from 'lucide-react'
+import { Pencil, Plus, Presentation } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { CycleStatusBadge } from '../components/status/StatusBadges'
+import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { FormAlert, SelectField, TextArea, TextField } from '../components/ui/Form'
 import { FormDialog } from '../components/ui/FormDialog'
@@ -313,12 +314,27 @@ function CycleCard({ code, cycle, canEdit }: { code: string; cycle: CycleDto; ca
             <p className="mt-1 text-sm whitespace-pre-line text-ink-muted">{cycle.description}</p>
           )}
         </div>
-        <CycleStatusBadge status={cycle.status_code} />
+        <div className="flex flex-wrap items-center gap-2">
+          {cycle.is_public && <Badge tone="success" label={t('workshop.publicOn')} />}
+          <CycleStatusBadge status={cycle.status_code} />
+        </div>
       </div>
       <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
         <div>
           <dt className="text-xs text-ink-muted">{t('fields.period')}</dt>
           <dd className="tabular-nums">{period}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-ink-muted">{t('nav.workshop')}</dt>
+          <dd>
+            <Link
+              to={projectPath(code, `workshop/${cycle.id}`)}
+              className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline"
+            >
+              <Presentation aria-hidden="true" className="size-4" />
+              {t('workshop.open')}
+            </Link>
+          </dd>
         </div>
         <div>
           <dt className="text-xs text-ink-muted">{t('fields.runCount')}</dt>

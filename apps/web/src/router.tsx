@@ -1,5 +1,7 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
 import { AppShell } from './layout/AppShell'
+import { EasyLayout } from './layout/EasyLayout'
+import { HomeGate } from './layout/HomeGate'
 import { RequireAuth } from './layout/RequireAuth'
 import { AdminAuditPage } from './pages/AdminAuditPage'
 import { AdminProjectsPage } from './pages/AdminProjectsPage'
@@ -19,7 +21,14 @@ import { ExecutionPage } from './pages/ExecutionPage'
 import { LoginPage } from './pages/LoginPage'
 import { MembersPage } from './pages/MembersPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { GuidePage } from './pages/GuidePage'
 import { ProfilePage } from './pages/ProfilePage'
+import { PublicCyclePage } from './pages/PublicCyclePage'
+import { PublicHomePage } from './pages/PublicHomePage'
+import { TableBugsPage } from './pages/TableBugsPage'
+import { TableFeaturePage } from './pages/TableFeaturePage'
+import { TableHomePage } from './pages/TableHomePage'
+import { TableJoinPage } from './pages/TableJoinPage'
 import { ProjectGate } from './pages/ProjectGate'
 import { ProjectSettingsPage } from './pages/ProjectSettingsPage'
 import { ProjectsPage } from './pages/ProjectsPage'
@@ -32,14 +41,57 @@ import { RunsPage } from './pages/RunsPage'
 import { TestCaseDetailPage } from './pages/TestCaseDetailPage'
 import { TestCaseFormPage } from './pages/TestCaseFormPage'
 import { TestCasesPage } from './pages/TestCasesPage'
+import { BigScreenPage } from './pages/BigScreenPage'
+import { PrintCardsPage, PrintSheetPage } from './pages/PrintPages'
+import { WorkshopIndexPage, WorkshopPage } from './pages/WorkshopPage'
 
 /** Sitemap from docs/blueprint/docs/04_SITEMAP_AND_SCREEN_SPECS.md. */
 export const routes: RouteObject[] = [
-  { path: '/', element: <Navigate to="/projects" replace /> },
+  // Front page: the public Fases for visitors; staff go to their projects, a table card to
+  // Mode Mudah (ADR 0016).
+  { path: '/', element: <HomeGate /> },
+  { path: '/publik', element: <PublicHomePage /> },
+  { path: '/publik/:cycleId', element: <PublicCyclePage /> },
+  { path: '/panduan', element: <GuidePage /> },
+  { path: '/meja', element: <TableJoinPage /> },
+  {
+    path: '/meja/kerja',
+    element: <EasyLayout />,
+    children: [
+      { index: true, element: <TableHomePage /> },
+      { path: 'fitur/:moduleId', element: <TableFeaturePage /> },
+      { path: 'masalah', element: <TableBugsPage /> },
+    ],
+  },
   { path: '/login', element: <LoginPage /> },
   // Account recovery (ADR 0012): reachable while signed out.
   { path: '/recover', element: <RecoverPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
+  // Full-screen pages for facilitators (projector, printing): signed in, no app shell.
+  {
+    path: '/layar/:projectCode/:cycleId',
+    element: (
+      <RequireAuth>
+        <BigScreenPage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/cetak/kartu/:projectCode/:cycleId',
+    element: (
+      <RequireAuth>
+        <PrintCardsPage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/cetak/lembar/:projectCode/:cycleId/:tableId',
+    element: (
+      <RequireAuth>
+        <PrintSheetPage />
+      </RequireAuth>
+    ),
+  },
   {
     element: (
       <RequireAuth>
@@ -76,6 +128,8 @@ export const routes: RouteObject[] = [
           { path: 'bugs/:bugId', element: <BugDetailPage /> },
           { path: 'bugs/:bugId/edit', element: <BugFormPage mode="edit" /> },
           { path: 'cycles', element: <CyclesPage /> },
+          { path: 'workshop', element: <WorkshopIndexPage /> },
+          { path: 'workshop/:cycleId', element: <WorkshopPage /> },
           { path: 'evidence', element: <EvidencePage /> },
           { path: 'imports', element: <ImportsPage /> },
           { path: 'imports/:jobId', element: <ImportJobPage /> },

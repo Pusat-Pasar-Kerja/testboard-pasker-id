@@ -39,7 +39,8 @@
     "adminSettings": "Site settings",
     "adminAudit": "Activity log",
     "adminRecovery": "Account recovery",
-    "openRequests": "new requests"
+    "openRequests": "new requests",
+    "workshop": "Workshop mode"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -1445,5 +1446,875 @@
     "applyBody_other": "{{count}} bugs will be created with their screenshots. Existing bugs are not created again.",
     "summary": "{{created}} bugs created · {{skipped}} rows skipped · {{linked}} linked to results · {{images}} screenshots",
     "openBugs": "Open the bug list"
+  },
+  "fontSize": {
+    "label": "Text size",
+    "smaller": "Smaller text",
+    "normal": "Normal text size",
+    "larger": "Larger text"
+  },
+  "progress": {
+    "summary": "{{tried}} of {{total}} scenarios tried",
+    "of": "of {{total}} scenarios tried",
+    "passed": "As expected",
+    "failed": "Not as expected",
+    "blocked": "Could not try",
+    "skipped": "Skipped",
+    "untried": "Not tried yet",
+    "status": {
+      "PASSED": "As expected",
+      "FAILED": "Not as expected",
+      "BLOCKED": "Could not try",
+      "SKIPPED": "Skipped",
+      "IN_PROGRESS": "In progress",
+      "NOT_RUN": "Not tried yet"
+    }
+  },
+  "public": {
+    "nav": "Main menu",
+    "guide": "Guide",
+    "tableSignIn": "Sign in with a table card",
+    "staffSignIn": "Staff sign-in",
+    "footer": "{{name}} · Testing the Labour Market services together",
+    "period": "{{from}} - {{to}}",
+    "openCycle": "Open this phase",
+    "eyebrow": "User acceptance testing (UAT) together",
+    "title": "Together we make sure Labour Market services are ready for the public",
+    "subtitle": "See the test phases in progress, the features being tried and the problems found. Workshop participants sign in with a table card, no e-mail or password.",
+    "howTo": "How to take part",
+    "cyclesTitle": "Open phases",
+    "cyclesSubtitle": "Choose a phase to see the features to test and the problem list.",
+    "noCycles": "No phase is open to the public yet. Please come back later.",
+    "stepsTitle": "How to test at the workshop",
+    "stepNumber": "Step {{n}}",
+    "steps": {
+      "gather": {
+        "title": "Sit at your group table",
+        "body": "Each table works together on the features chosen by the organisers."
+      },
+      "scan": {
+        "title": "Scan the table card",
+        "body": "Point your phone camera at the QR code on the card, or type the 6 digits under it."
+      },
+      "answer": {
+        "title": "Try it, then answer",
+        "body": "Follow the steps on screen, then press As expected, Not as expected, or Could not try."
+      },
+      "photo": {
+        "title": "Tell us about problems",
+        "body": "Write what happened and take a photo. If another table already reported it, just press \"Same\"."
+      }
+    },
+    "featureState": {
+      "OPEN": "To do",
+      "DONE": "Done"
+    },
+    "tablesWorking": "Worked on by",
+    "casesToggle_one": "Show {{count}} scenario",
+    "casesToggle_other": "Show {{count}} scenarios",
+    "searchBugs": "Search problems",
+    "statusFilter": "Filter by status",
+    "status": {
+      "ALL": "All",
+      "OPEN": "Not finished",
+      "DONE": "Finished"
+    },
+    "bugFeature": "Feature",
+    "allFeatures": "All features",
+    "bugCount_one": "{{count}} problem",
+    "bugCount_other": "{{count}} problems",
+    "noBugs": "No matching problems.",
+    "loadMore": "Show more",
+    "bugReporter": "Reported by",
+    "bugDate": "Date",
+    "bugConfirmations_one": "{{count}} also saw this",
+    "bugConfirmations_other": "{{count}} also saw this",
+    "photoOf": "Photo: {{name}}",
+    "notPublic": "This phase is not open to the public, or it was closed.",
+    "back": "Back to the phases",
+    "featuresTab": "Features being tested",
+    "bugsTab": "Problem list",
+    "noFeatures": "No feature is open in this phase yet.",
+    "joinAsTable": "I am a participant: sign in with a table card",
+    "nothingShared": "The organisers have not shared details of this phase yet.",
+    "tabsLabel": "Phase content"
+  },
+  "easy": {
+    "help": "Help",
+    "leave": "Sign out",
+    "leaveTitle": "Sign out of {{name}}?",
+    "leaveBody": "Answers already sent stay saved. To come back, scan the table card or type its code.",
+    "cancel": "Cancel",
+    "closed": {
+      "NOT_YET": {
+        "title": "The table card is not valid yet",
+        "body": "This card works once the workshop starts. Please ask the organisers."
+      },
+      "EXPIRED": {
+        "title": "The table card has expired",
+        "body": "This card is no longer valid. Thank you for testing with us."
+      },
+      "REVOKED": {
+        "title": "The table card can no longer be used",
+        "body": "The organisers blocked this card or made a new code. Ask them for the latest card."
+      },
+      "again": "Sign in with a table card"
+    },
+    "join": {
+      "title": "Sign in with a table card",
+      "subtitle": "Scan the QR code on the table card with your phone camera, or type the 6 digits printed on it.",
+      "checking": "Checking the table card...",
+      "codeLabel": "Table code (6 digits)",
+      "codeHint": "For example: 246 810",
+      "staffWarning": "You are signed in as {{name}}. If you continue, that account is signed out on this device.",
+      "error": {
+        "WRONG_CODE": "Unknown code. Check the 6 digits on the table card again.",
+        "NOT_YET": "This card is not valid yet. Wait until the workshop starts.",
+        "EXPIRED": "This card has expired.",
+        "REVOKED": "This card was blocked. Ask the organisers for the latest card.",
+        "RATE_LIMITED": "Too many wrong codes. Wait 15 minutes or ask the organisers.",
+        "OTHER": "Cannot sign in right now. Check the internet and try again."
+      },
+      "submit": "Sign in",
+      "noCard": "No table card yet? The organisers hand one out at every workshop table."
+    },
+    "members": {
+      "title": "Table members",
+      "hint": "Names record who answered. Not accounts, a short name is enough.",
+      "save": "Save names",
+      "remove": "Remove {{name}}",
+      "newName": "New name, e.g. Ms Sri",
+      "add": "Add"
+    },
+    "tester": {
+      "title": "Who is answering?",
+      "edit": "Edit members",
+      "noMembers": "No names yet. Press \"Edit members\" to add some (optional)."
+    },
+    "home": {
+      "welcome": "Welcome, {{name}}",
+      "intro": "You are testing {{cycle}} - {{project}}. Work through the features below one by one.",
+      "validUntil": "Table card valid until {{date}}",
+      "runClosed": "The test sheet is not open yet or was closed. Wait for the organisers, then reload this page.",
+      "noRun": "This table has no test sheet yet. Please contact the organisers.",
+      "featuresTitle": "Features for this table",
+      "featuresHint": "Press the button on a feature to start. Progress is saved automatically.",
+      "noFeatures": "The organisers have not chosen features for this table yet.",
+      "review": "Look again",
+      "continue": "Continue",
+      "start": "Start testing",
+      "bugsTitle": "Problems found so far",
+      "bugsHint": "See problems from all tables, add \"I saw this too\", or report another problem.",
+      "seeBugs": "See the problem list",
+      "reportOther": "Report another problem"
+    },
+    "photo": {
+      "title": "Photo of the screen (if any)",
+      "hint": "Take a photo of the computer or phone screen showing the problem. More than one is fine.",
+      "camera": "Take a photo",
+      "gallery": "Choose a picture",
+      "state": {
+        "uploading": "Sending...",
+        "checking": "Checking...",
+        "ready": "Ready",
+        "failed": "Failed, remove and try again"
+      },
+      "remove": "Remove photo {{name}}",
+      "waiting": "Waiting for the photos to be checked..."
+    },
+    "case": {
+      "actor": "Try it as: {{actor}}",
+      "preparation": "Preparation",
+      "steps": "Steps",
+      "expected": "What should happen",
+      "answered": "Answered: {{result}}",
+      "change": "Change the answer",
+      "whoHint": "Tip: choose who is answering on the table page first, so the name is recorded.",
+      "question": "After trying it, was the result as expected?"
+    },
+    "result": {
+      "PASSED": "As expected",
+      "FAILED": "Not as expected",
+      "BLOCKED": "Could not try",
+      "SKIPPED": "Skipped",
+      "IN_PROGRESS": "In progress",
+      "NOT_RUN": "Not tried yet"
+    },
+    "bugs": {
+      "alsoSeen_one": "{{count}} other also saw this",
+      "alsoSeen_other": "{{count}} others also saw this",
+      "photo": "Photo: {{name}}",
+      "mine": "This table has recorded it",
+      "metoo": "I saw this too",
+      "metooNote": "Extra note (optional)",
+      "metooSend": "Send",
+      "newTitle": "Report another problem",
+      "whichFeature": "Which feature?",
+      "title": "Problem list",
+      "subtitle": "Problems found by all tables in this phase.",
+      "search": "Search problems",
+      "allFeatures": "All features",
+      "empty": "No problems reported yet."
+    },
+    "failed": {
+      "title": "Not as expected: tell us what happened",
+      "what": "What happened?",
+      "whatHint": "Use everyday words, e.g. \"After pressing Save, an error appeared\".",
+      "maybeSame": "Maybe already reported",
+      "maybeSameHint": "If it is the same problem, press \"Yes, the same as this\" so it is not recorded twice.",
+      "same": "Yes, the same as this",
+      "notSame": "No, this is a different problem",
+      "sendSame": "Send: same as {{code}}",
+      "send": "Send the report",
+      "noteRequired": "Please describe what happened, or choose the same problem."
+    },
+    "blocked": {
+      "title": "Could not try",
+      "why": "Why could it not be tried?",
+      "reason": {
+        "PAGE": "The page would not open",
+        "DATA": "No data to try with",
+        "STEPS": "The steps are unclear",
+        "OTHER": "Another reason"
+      },
+      "more": "Extra note (optional)",
+      "send": "Send"
+    },
+    "saved": {
+      "title": "Saved. Thank you!",
+      "newBug": "The problem was recorded as {{code}}.",
+      "sameBug": "Added to problem {{code}} as \"also seen\".",
+      "answer": "Answer \"{{result}}\" recorded.",
+      "next": "Go to the next scenario",
+      "allDone": "Back to the table page"
+    },
+    "grid": {
+      "title": "All scenarios",
+      "close": "Close",
+      "legend": "Green = as expected, red = not as expected, yellow = could not try, white = not tried yet.",
+      "item": "Scenario {{n}}: {{title}} ({{result}})"
+    },
+    "feature": {
+      "notYours": "This feature is not part of your table.",
+      "back": "Back to the table page",
+      "all": "See all scenarios",
+      "position": "Scenario {{n}} of {{total}}",
+      "empty": "No scenarios for this feature yet.",
+      "nav": "Move between scenarios",
+      "previous": "Previous",
+      "nextPlain": "Next"
+    }
+  },
+  "workshop": {
+    "title": "Workshop mode: {{cycle}}",
+    "subtitle": "Set up participant tables, follow progress, tidy incoming problems and decide what the public may see.",
+    "publicOn": "Open to the public",
+    "publicOff": "Not public",
+    "bigScreen": "Big screen",
+    "publicPage": "Public page",
+    "tabsLabel": "Workshop mode sections",
+    "tabs": {
+      "board": "Board",
+      "tables": "Tables",
+      "inbox": "Incoming problems",
+      "public": "Public view",
+      "features": "Features"
+    },
+    "notFound": "Phase not found.",
+    "indexSubtitle": "Choose the phase (test cycle) worked on in the workshop.",
+    "noCycles": "No phase yet. Create one under Test cycles first.",
+    "makeCycle": "Open Test cycles",
+    "open": "Open workshop mode",
+    "setup": {
+      "title": "Workshop preparation",
+      "intro": "Steps not done yet. This box disappears once everything is ticked.",
+      "cases": "Test scenarios exist (Test cases or Data import)",
+      "run": "A test run for this phase exists",
+      "active": "The test run has started (status Active)",
+      "tables": "Tables exist and each has features",
+      "public": "Public view is set",
+      "go": "Do it"
+    },
+    "board": {
+      "tried": "Scenarios tried",
+      "toReview": "Problems to review",
+      "bugsTotal_one": "of {{count}} problem",
+      "bugsTotal_other": "of {{count}} problems",
+      "confirmations": "\"Also seen\"",
+      "inboxCta_one": "{{count}} new problem from tables is waiting for review",
+      "inboxCta_other": "{{count}} new problems from tables are waiting for review",
+      "tables": "Progress per table",
+      "noTables": "No tables yet. Create them in the Tables tab.",
+      "lastActivity": "Last active {{date}}",
+      "noActivity": "No answers yet",
+      "tableBugs_one": "{{count}} problem reported",
+      "tableBugs_other": "{{count}} problems reported",
+      "recent": "Latest activity",
+      "noRecent": "No activity from tables yet.",
+      "recentResult": "{{result}}: {{title}}",
+      "recentBug": "Reported a problem: {{title}}",
+      "recentConfirm": "Also seen: {{title}}",
+      "features": "Progress per feature",
+      "noFeatures": "No features yet. Add scenarios to a test run of this phase."
+    },
+    "tables": {
+      "intro": "Each table gets a card with a QR code and a 6-digit code. Participants sign in without e-mail or password, only while the card is valid.",
+      "noFeatures": "No features yet",
+      "saved": "{{name}} saved.",
+      "created": "{{name}} created. Print its card with Print card.",
+      "editTitle": "Edit {{name}}",
+      "createTitle": "Create a table",
+      "createHint": "The card code is generated. Member names may be filled in later by the table.",
+      "name": "Table name",
+      "namePlaceholder": "e.g. Table 1",
+      "run": "Test run",
+      "noRuns": "This phase has no test run yet. Create one under Test runs first.",
+      "runHint": "The table's scenarios come from this run.",
+      "noRun": "Not chosen",
+      "features": "Features to test",
+      "featuresEmpty": "Choose a test run first; features come from its scenarios.",
+      "members": "Members",
+      "membersHint": "One name per line. Text only, no accounts are created.",
+      "validFrom": "Valid from",
+      "validUntil": "Valid until",
+      "defaultPrefix": "Table",
+      "bulkDone_one": "{{count}} table created.",
+      "bulkDone_other": "{{count}} tables created.",
+      "bulkTitle": "Create several tables",
+      "bulkHint": "Tables are numbered (e.g. Table 1 to Table 10). Set features and members per table afterwards.",
+      "bulkSubmit": "Create tables",
+      "bulkPrefix": "Name prefix",
+      "bulkCount": "Number of tables",
+      "hasActivity": "This table already has answers, so it cannot be deleted. Block it instead.",
+      "bulk": "Create several tables",
+      "create": "Create a table",
+      "printAll": "Print all cards",
+      "empty": "No tables in this phase yet.",
+      "state": {
+        "ACTIVE": "Active",
+        "NOT_YET": "Not valid yet",
+        "EXPIRED": "Expired",
+        "REVOKED": "Blocked"
+      },
+      "code": "Card code",
+      "devices_one": "{{count}} device signed in",
+      "devices_other": "{{count}} devices signed in",
+      "until": "Valid until {{date}}",
+      "edit": "Edit",
+      "printCard": "Print card",
+      "printSheet": "Paper backup",
+      "newCode": "New code",
+      "restore": "Unblock",
+      "revoke": "Block",
+      "delete": "Delete",
+      "done": {
+        "code": "New code for {{name}} created. Print the card again.",
+        "revoke": "{{name}} blocked and all its devices signed out.",
+        "restore": "{{name}} is active again.",
+        "delete": "{{name}} deleted."
+      },
+      "confirm": {
+        "code": {
+          "title": "Create a new code for {{name}}?",
+          "body": "The old card stops working and every device of this table is signed out. Existing answers stay saved.",
+          "action": "Create new code"
+        },
+        "revoke": {
+          "title": "Block {{name}}?",
+          "body": "The card stops working and every device of this table is signed out. It can be unblocked any time.",
+          "action": "Block"
+        },
+        "restore": {
+          "title": "Unblock {{name}}?",
+          "body": "The card with the same code works again while it is valid.",
+          "action": "Unblock"
+        },
+        "delete": {
+          "title": "Delete {{name}}?",
+          "body": "Only a table that never answered can be deleted.",
+          "action": "Delete"
+        }
+      }
+    },
+    "inbox": {
+      "intro": "Problems sent by tables arrive here. Set the impact, merge it when it is the same as another problem, then mark it reviewed.",
+      "empty": "No problems waiting for review.",
+      "markedDuplicate": "{{code}} marked as the same problem.",
+      "reviewed": "{{code}} reviewed.",
+      "scenario": "Scenario: {{code}} - {{title}}",
+      "similar": "Maybe the same as",
+      "sameAs": "Same as {{code}}",
+      "severity": "Impact",
+      "markReviewed": "Reviewed",
+      "openBug": "Open bug details"
+    },
+    "public": {
+      "savedOn": "Public view saved. This phase shows on the front page.",
+      "savedOff": "Public view saved. This phase is not visible to the public.",
+      "mainTitle": "Show publicly",
+      "main": "Show this phase on the front page",
+      "mainOn": "Anyone opening the site can see this phase and the data ticked below.",
+      "mainOff": "This phase is not visible to the public. Only signed-in staff and table participants can see it.",
+      "intro": "Introduction for the public",
+      "introHint": "E.g. the workshop schedule and place. Always shown when the phase is public.",
+      "privacy": "All data is hidden by default. Tick only what the public may see. Screenshots and descriptions can contain job seekers' personal data (ID number, name, phone), so check before opening them.",
+      "group": {
+        "cycle": "About the phase",
+        "features": "Features being tested",
+        "bugs": "Problem list"
+      },
+      "field": {
+        "cycle": {
+          "description": {
+            "label": "Phase description",
+            "hint": "The description entered under Test cycles."
+          },
+          "period": {
+            "label": "Phase dates",
+            "hint": "Start and end dates."
+          },
+          "progress": {
+            "label": "Overall progress",
+            "hint": "How many scenarios were tried, as expected and not."
+          }
+        },
+        "features": {
+          "list": {
+            "label": "Feature list",
+            "hint": "Feature names and To do / Done."
+          },
+          "progress": {
+            "label": "Progress per feature",
+            "hint": "Numbers and chart per feature."
+          },
+          "cases": {
+            "label": "Scenario titles",
+            "hint": "Each scenario's title and latest result."
+          },
+          "tables": {
+            "label": "Tables working on it",
+            "hint": "Table names per feature."
+          },
+          "members": {
+            "label": "Table member names",
+            "hint": "Names of the participants at each table."
+          }
+        },
+        "bugs": {
+          "list": {
+            "label": "Problem list",
+            "hint": "Title and status of each problem."
+          },
+          "code": {
+            "label": "Bug code",
+            "hint": "e.g. BUG-KAR-0012."
+          },
+          "feature": {
+            "label": "Feature",
+            "hint": "Where the problem was found."
+          },
+          "description": {
+            "label": "Problem description",
+            "hint": "\"What happened\" as written by the reporter."
+          },
+          "severity": {
+            "label": "Impact",
+            "hint": "Critical, high, medium, low, info."
+          },
+          "priority": {
+            "label": "Priority",
+            "hint": "How urgent the fix is."
+          },
+          "reporter": {
+            "label": "Reporter",
+            "hint": "Table and member who reported it."
+          },
+          "date": {
+            "label": "Report date",
+            "hint": "When it was reported."
+          },
+          "confirmations": {
+            "label": "\"Also seen\" count",
+            "hint": "How many tables saw the same problem."
+          },
+          "evidence": {
+            "label": "Screen photos",
+            "hint": "Pictures attached to the problem."
+          }
+        }
+      },
+      "sensitive": "Personal data?",
+      "needs": "Turn on \"{{field}}\" first.",
+      "preview": "See the public page",
+      "save": "Save public view"
+    },
+    "features": {
+      "intro": "Features come from the scenarios in this phase's test runs. Mark Done when finished, or Hide to keep it off the public page.",
+      "stateFor": "Status of feature {{name}}",
+      "state": {
+        "OPEN": "Open",
+        "DONE": "Done",
+        "HIDDEN": "Hide"
+      }
+    },
+    "screen": {
+      "eyebrow": "UAT workshop - live progress",
+      "fullscreen": "Full screen",
+      "tried": "scenarios tried",
+      "bugs_one": "{{count}} problem found",
+      "bugs_other": "{{count}} problems found",
+      "confirmations_one": "{{count}} \"also seen\"",
+      "confirmations_other": "{{count}} \"also seen\"",
+      "tableTried": "{{tried}} of {{total}} tried",
+      "refresh": "Refreshes automatically every 10 seconds."
+    },
+    "print": {
+      "hint": "Use A4 paper. Two cards per page; cut along the dashed line.",
+      "print": "Print",
+      "cardsTitle": "Table cards",
+      "cardTitle": "Table card",
+      "features": "Features to test",
+      "members": "Members",
+      "step1": "Open the phone camera and point it at the QR code on the right.",
+      "step2": "Or open {{address}} and type the 6-digit code.",
+      "step3": "Try each scenario, then press As expected / Not as expected / Could not try.",
+      "qrLabel": "QR code to sign in as {{name}}",
+      "orType": "or type the code",
+      "validUntil": "Valid until {{date}}",
+      "keepSafe": "This card is only for your table. Do not share it outside the room.",
+      "sheetTitle": "Paper backup test sheet",
+      "sheetIntro": "Use it when the internet fails. Tick the results; the organisers will enter them into TestBoard.",
+      "filledBy": "Filled in by:",
+      "date": "Date:",
+      "no": "No",
+      "scenario": "Scenario",
+      "result": "Result",
+      "note": "Note"
+    }
+  },
+  "guide": {
+    "eyebrow": "Guide",
+    "title": "How to use TestBoard",
+    "subtitle": "A plain explanation of how TestBoard works and step-by-step use for workshop participants, facilitators and admins. No technical background needed.",
+    "toc": "Contents",
+    "faqTitle": "Frequently asked questions",
+    "help": "Still unsure? Ask the organisers or a facilitator in the room.",
+    "backHome": "Back to the front page",
+    "sections": {
+      "cara-kerja": "How it works",
+      "peserta": "For table participants",
+      "fasilitator": "For facilitators / organisers",
+      "admin": "For admins",
+      "istilah": "Glossary",
+      "privasi": "Privacy and data security"
+    },
+    "flow": {
+      "intro": "Think of TestBoard as a report card for a website being tested. From big to small:",
+      "project": {
+        "title": "Project",
+        "menu": "Menu: Projects",
+        "body": "The website being tested, e.g. Karirhub."
+      },
+      "cycle": {
+        "title": "Phase",
+        "menu": "Menu: Test cycles",
+        "body": "One round of testing, e.g. Phase 1 (workshop on 30-31 July)."
+      },
+      "feature": {
+        "title": "Feature",
+        "menu": "Menu: Modules",
+        "body": "A part of the website, e.g. Job vacancy reports."
+      },
+      "scenario": {
+        "title": "Test scenario",
+        "menu": "Menu: Test cases",
+        "body": "One thing to try: the steps and what should happen."
+      },
+      "run": {
+        "title": "Test sheet",
+        "menu": "Menu: Test runs",
+        "body": "The scenarios worked on in one phase. It must be started before it can be filled in."
+      },
+      "result": {
+        "title": "Result",
+        "menu": "Filled in by participants",
+        "body": "As expected, Not as expected, or Could not try, per scenario."
+      },
+      "bug": {
+        "title": "Problem (bug)",
+        "menu": "Menu: Bugs",
+        "body": "Recorded when a result is not as expected, then fixed by developers and tested again."
+      },
+      "example": "Example: project Karirhub > Phase 2 > feature Job vacancy reports > scenario \"Save a vacancy report\" in the Workshop Phase 2 run > result Not as expected > recorded as bug BUG-KAR-0012 > fixed by a developer > tested again."
+    },
+    "participant": {
+      "intro": "Participants need no account. One table = one group working on the same features.",
+      "steps": [
+        {
+          "title": "Scan the table card",
+          "body": "Open the phone camera, point it at the QR code on the table card and tap the link that appears. Or open the address on the card and type the 6 digits."
+        },
+        {
+          "title": "Choose who is answering",
+          "body": "On the table page, tap your name. It is recorded with every answer. If it is missing, press \"Edit members\"."
+        },
+        {
+          "title": "Choose a feature, then Start testing",
+          "body": "Each feature has a few scenarios. Progress is saved automatically."
+        },
+        {
+          "title": "Read the scenario and try it on the website being tested",
+          "body": "Follow the steps one by one. The green box explains what should happen."
+        },
+        {
+          "title": "Press one of the three big buttons",
+          "body": "See the buttons below. Once saved, press \"Go to the next scenario\"."
+        },
+        {
+          "title": "If not as expected: describe it and take a photo",
+          "body": "Write what happened in everyday words and photograph the screen. If another table already reported the same, press \"Yes, the same as this\"."
+        }
+      ],
+      "buttons": "The three answer buttons",
+      "passed": "As expected: the result matches the green \"What should happen\" box.",
+      "failed": "Not as expected: something is wrong, an error, or different. You will be asked to describe it.",
+      "blocked": "Could not try: the page would not open, there is no data, or the steps are unclear.",
+      "faq": [
+        {
+          "q": "I pressed the wrong button.",
+          "a": "Open the scenario again and press \"Change the answer\". The newest answer counts; the old one stays in the history."
+        },
+        {
+          "q": "The letters are too small.",
+          "a": "Press A+ at the top of the screen. The size is remembered on that device."
+        },
+        {
+          "q": "The internet dropped while answering.",
+          "a": "Wait a moment and send again; the answer is never recorded twice. If it takes long, use the paper test sheet from the organisers."
+        },
+        {
+          "q": "How do I take a screen photo?",
+          "a": "Easiest: press \"Take a photo\" and photograph the computer screen with the phone camera. Or use \"Choose a picture\" for an existing screenshot."
+        },
+        {
+          "q": "Do I choose how severe it is?",
+          "a": "No. Facilitators decide that. Participants just describe what happened."
+        },
+        {
+          "q": "The table card does not work.",
+          "a": "Cards only work on the workshop dates and may be replaced by the organisers. Ask them for the latest card."
+        }
+      ]
+    },
+    "facilitator": {
+      "intro": "Facilitators prepare the tables, follow progress and tidy the incoming problems. Everything is in the Workshop mode menu inside the project.",
+      "before": "Before the day",
+      "beforeSteps": [
+        {
+          "title": "Create a phase",
+          "body": "Test cycles > New cycle. Enter a code (e.g. PHASE-2), a title and the workshop dates."
+        },
+        {
+          "title": "Prepare the scenarios",
+          "body": "Use Data import to bring scenarios from Excel, or add them under Test cases. Group them per feature (module)."
+        },
+        {
+          "title": "Create a test run and start it",
+          "body": "Test runs > New run, choose the phase, add scenarios, then set the status to Active when the workshop starts."
+        },
+        {
+          "title": "Create tables",
+          "body": "Workshop mode > Tables > Create several tables. Then edit each table: choose features and (optionally) member names. Card validity follows the phase dates."
+        },
+        {
+          "title": "Print cards and paper backups",
+          "body": "Print all cards (2 per A4). Also print a Paper backup per table in case the internet fails."
+        },
+        {
+          "title": "Set the public view",
+          "body": "Public view tab. All data is hidden by default; switch the phase on and tick only what the public may see."
+        },
+        {
+          "title": "Short rehearsal",
+          "body": "Ask 3-5 future participants to try one scenario with a sample card. Fix scenarios that confuse them."
+        }
+      ],
+      "during": "During the workshop",
+      "duringSteps": [
+        {
+          "title": "Hand a card to each table",
+          "body": "One card per table. Participants scan the QR or type the 6 digits."
+        },
+        {
+          "title": "Show the Big screen on the projector",
+          "body": "The Big screen button opens a page with every table's progress, refreshed automatically."
+        },
+        {
+          "title": "Watch the Board",
+          "body": "Spot tables that fall behind or have not started, and go and help."
+        },
+        {
+          "title": "Tidy Incoming problems",
+          "body": "Set the impact, press \"Same as\" when it duplicates another, then Reviewed."
+        },
+        {
+          "title": "If a card leaks or is lost",
+          "body": "Tables tab > New code (the old card stops working) or Block."
+        }
+      ],
+      "after": "After the workshop",
+      "afterSteps": [
+        {
+          "title": "Set the test run to Completed",
+          "body": "No more answers can be added once it is closed."
+        },
+        {
+          "title": "Enter results from paper sheets (if any)",
+          "body": "Open the run under Test runs and fill in the results."
+        },
+        {
+          "title": "Read the reports and pass bugs on",
+          "body": "Reports for the summary; Bugs to assign fixes to developers."
+        },
+        {
+          "title": "Close the public view if needed",
+          "body": "Switch off Show publicly, or keep it on for transparency."
+        }
+      ],
+      "faq": [
+        {
+          "q": "Participants see \"The test sheet is not open\".",
+          "a": "Set the test run status to Active under Test runs."
+        },
+        {
+          "q": "Two tables work on the same feature.",
+          "a": "That is fine. Both see the latest answer; every answer stays in the history."
+        },
+        {
+          "q": "Many tables report the same problem.",
+          "a": "Participants are prompted to press \"Same\". Tidy the rest in Incoming problems with \"Same as\"; they count as \"also seen\"."
+        }
+      ]
+    },
+    "admin": {
+      "intro": "Site admins (Super Admin) manage projects, accounts and settings. Everything is under Administration.",
+      "steps": [
+        {
+          "title": "Projects",
+          "body": "Administration > Projects: create projects, change their name or code, archive them."
+        },
+        {
+          "title": "Users",
+          "body": "Administration > Users: create staff accounts (not table participants), deactivate them, make Super Admins."
+        },
+        {
+          "title": "Project members",
+          "body": "Inside a project, Team & settings: add accounts to the project and choose their role."
+        },
+        {
+          "title": "Forgotten e-mail / password",
+          "body": "Administration > Account recovery: create a time-limited password reset link."
+        },
+        {
+          "title": "Site settings",
+          "body": "Site name, announcement, session length and the \"Keep me signed in\" duration."
+        },
+        {
+          "title": "Activity log",
+          "body": "Who changed what and when, including public view and table card changes."
+        }
+      ],
+      "roles": "Roles inside a project",
+      "role": "Role",
+      "can": "Can do",
+      "roleRows": [
+        {
+          "role": "Project admin",
+          "can": "Everything in that project, including members."
+        },
+        {
+          "role": "QA Lead (facilitator)",
+          "can": "Prepares scenarios, test runs, Workshop mode, tables, public view, and reviews problems."
+        },
+        {
+          "role": "Tester",
+          "can": "Records results and reports problems with their own account."
+        },
+        {
+          "role": "Developer",
+          "can": "Sees and updates the status of bugs assigned to them."
+        },
+        {
+          "role": "Viewer",
+          "can": "Read only."
+        },
+        {
+          "role": "Table participant",
+          "can": "No account; signs in with a table card and can only use the easy mode."
+        }
+      ]
+    },
+    "glossary": {
+      "intro": "Words in the menus and what they mean in everyday language.",
+      "items": [
+        {
+          "term": "UAT (User Acceptance Testing)",
+          "plain": "Testing by future users to make sure the website works for what they need."
+        },
+        {
+          "term": "Test cycle / Phase",
+          "plain": "One round of testing over certain dates."
+        },
+        {
+          "term": "Module / Feature",
+          "plain": "A part of the website being tested."
+        },
+        {
+          "term": "Test case / Scenario",
+          "plain": "One thing to try, with what should happen."
+        },
+        {
+          "term": "Run / Test sheet",
+          "plain": "The scenarios worked on in one phase, with their results."
+        },
+        {
+          "term": "Bug / Problem",
+          "plain": "Something not as expected that needs fixing."
+        },
+        {
+          "term": "Severity / Impact",
+          "plain": "How serious a problem is, from Critical to Info. Set by facilitators."
+        },
+        {
+          "term": "Retest",
+          "plain": "Trying again after a problem was fixed."
+        },
+        {
+          "term": "Table",
+          "plain": "A group of workshop participants working on the same features."
+        },
+        {
+          "term": "Table card",
+          "plain": "A printed card with a QR code and 6 digits to sign in without an account."
+        },
+        {
+          "term": "Also seen (+1)",
+          "plain": "A sign that another table found the same problem, so it is not recorded twice."
+        },
+        {
+          "term": "Public view",
+          "plain": "Pages anyone can see without signing in; organisers choose what is shown, field by field."
+        }
+      ]
+    },
+    "privacy": {
+      "points": [
+        "All phase data is hidden from the public until organisers switch it on, and only ticked data is shown.",
+        "Karirhub screen photos can contain job seekers' personal data (ID number, name, phone). Avoid photographing real data, and never publish photos without checking them.",
+        "Table cards only work on the workshop dates, can be replaced or blocked any time, and cannot open staff pages.",
+        "Table member names are stored as text; no accounts are created. Every staff change is recorded in the activity log.",
+        "Do not tick \"Keep me signed in\" on a shared computer. Sign out other devices from the Profile page when needed."
+      ]
+    }
   }
 }
