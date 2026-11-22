@@ -35,6 +35,19 @@ export interface CurrentUser extends UserRef {
   projects: { project_code: string; role_code: MemberRole }[]
 }
 
+/** One signed-in device of the current user (ADR 0015). */
+export interface SessionDeviceDto {
+  /** Short, non-secret handle (prefix of the stored token hash). */
+  key: string
+  current: boolean
+  /** "Selalu login di perangkat ini" was ticked. */
+  remembered: boolean
+  user_agent: string
+  created_at: string
+  last_seen_at: string
+  expires_at: string
+}
+
 export interface MemberDto {
   user: UserRef & { email: string; is_active: boolean }
   role_code: MemberRole

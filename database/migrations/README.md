@@ -16,10 +16,11 @@ Perubahan schema **baru** di atas baseline (27 tabel). Forward-only, bernomor, d
 | `0008_account_recovery.sql`      | 2 tabel: permintaan "Lupa email / kata sandi" dan tautan reset (hash)             | Pemulihan akun lewat Super Admin, 1 tautan aktif per akun (ADR 0012)   | **Diterapkan (lokal)** |
 | `0009_data_tools.sql`            | 5 kolom NULL: siklus + jejak impor di `defects`, `merged_into_id` di `test_cases` | Siklus pada bug, impor bug Tracker, gabung test case (ADR 0013)        | **Diterapkan (lokal)** |
 | `0010_import_target.sql`         | 1 kolom `import_target` (default TEST_CASES) di `import_jobs`                     | Impor Bug dari Tracker (ADR 0013)                                      | **Diterapkan (lokal)** |
+| `0011_remember_device.sql`       | 1 kolom `remember_device` (default 0) di `user_sessions`                          | "Selalu login di perangkat ini" (ADR 0015)                             | **Diterapkan (lokal)** |
 
 Dampak ke database:
 
-- 0001-0005 dan 0008 **hanya menambah tabel baru** (5 + 2). 0006, 0007, 0009, dan 0010 hanya **menambah** kolom (3 kolom NULL di `file_objects`; 1 kolom default 0 di `user_system_roles`), tidak mengubah/menghapus kolom atau data. Tidak ada `DROP`.
+- 0001-0005 dan 0008 **hanya menambah tabel baru** (5 + 2). 0006, 0007, 0009, 0010, dan 0011 hanya **menambah** kolom (3 kolom NULL di `file_objects`; 1 kolom default 0 di `user_system_roles`), tidak mengubah/menghapus kolom atau data. Tidak ada `DROP`.
 - Grant `testboard_app` di VPS (`SELECT, INSERT, UPDATE, DELETE ON testboard.*`) otomatis mencakup tabel baru; tidak perlu grant tambahan.
 - Migration dijalankan dengan akun migrasi/DBA, bukan `testboard_app`.
 

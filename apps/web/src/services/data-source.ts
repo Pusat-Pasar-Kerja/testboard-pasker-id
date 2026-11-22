@@ -1,4 +1,5 @@
 import type {
+  SessionDeviceDto,
   BulkResult,
   CaseBulkInput,
   DefectImportConfigInput,
@@ -237,7 +238,12 @@ export interface DataSource {
   // Auth & profile
   /** Resolves null when nobody is signed in. */
   getCurrentUser(): Promise<CurrentUser | null>
-  login(email: string, password: string): Promise<CurrentUser>
+  /** `remember` = "Selalu login di perangkat ini" (ADR 0015). */
+  login(email: string, password: string, remember?: boolean): Promise<CurrentUser>
+  /** Devices where the current user is signed in. */
+  listMySessions(): Promise<SessionDeviceDto[]>
+  /** Sign out every other device; this one stays signed in. */
+  revokeOtherSessions(): Promise<void>
   logout(): Promise<void>
   updateProfile(input: { display_name?: string; preferred_locale?: Locale }): Promise<CurrentUser>
   changePassword(input: { current_password: string; new_password: string }): Promise<void>
@@ -467,8 +473,10 @@ export function createHttpDataSource(client: ApiClient): DataSource {
         throw error
       }
     },
-    login: async (email, password) =>
-      (await client.post<{ user: CurrentUser }>('/auth/login', { email, password })).user,
+    login: async (email, password, remember = false) =>
+      (await client.post<{ user: CurrentUser }>('/auth/login', { email, password, remember })).user,
+    listMySessions: () => client.get('/profile/sessions'),
+    revokeOtherSessions: () => client.post('/profile/sessions/revoke-others'),
     logout: () => client.post('/auth/logout'),
     updateProfile: (input) => client.patch('/profile', input),
     changePassword: (input) => client.post('/profile/change-password', input),

@@ -171,6 +171,9 @@ export class Client {
   post(path: string, body: unknown = {}) {
     return this.request('POST', path, body)
   }
+  put(path: string, body: unknown) {
+    return this.request('PUT', path, body)
+  }
   patch(path: string, body: unknown) {
     return this.request('PATCH', path, body)
   }

@@ -23,6 +23,8 @@ const EnvSchema = z.object({
   COOKIE_SECURE: booleanFromString.optional(),
   SESSION_HOURS: z.coerce.number().int().min(1).max(72).default(12),
   SESSION_IDLE_MINUTES: z.coerce.number().int().min(5).max(1440).default(120),
+  /** "Selalu login di perangkat ini": days a remembered session lasts; 0 = option off. */
+  SESSION_REMEMBER_DAYS: z.coerce.number().int().min(0).max(90).default(30),
   /** Private evidence storage, outside any web root (doc 07). */
   STORAGE_DIR: z.string().min(1).optional(),
   /** basic = built-in content checks (default, no setup); clamav = clamd antivirus (ADR 0008). */
@@ -47,6 +49,8 @@ export interface AppConfig {
   cookieSecure: boolean
   sessionHours: number
   sessionIdleMinutes: number
+  /** Days a "remember this device" session lasts; 0 = the option is hidden. */
+  rememberDays: number
   storageDir: string
   scan: { engine: 'basic' | 'clamav'; clamdHost: string; clamdPort: number }
   retention: { enabled: boolean; unusedFileDays: number; importDays: number }
@@ -137,6 +141,7 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
     cookieSecure: values.NODE_ENV === 'production' ? true : (values.COOKIE_SECURE ?? false),
     sessionHours: values.SESSION_HOURS,
     sessionIdleMinutes: values.SESSION_IDLE_MINUTES,
+    rememberDays: values.SESSION_REMEMBER_DAYS,
     storageDir,
     scan: {
       engine: values.SCAN_ENGINE,

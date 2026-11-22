@@ -4,7 +4,7 @@ import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { Button } from '../components/ui/Button'
-import { FormAlert, TextField } from '../components/ui/Form'
+import { CheckboxField, FormAlert, TextField } from '../components/ui/Form'
 import { useCurrentUser, usePublicSettings } from '../hooks/queries'
 import { storeLocale } from '../i18n'
 import { PublicLayout } from '../layout/PublicLayout'
@@ -53,10 +53,12 @@ function PasswordLogin({ next }: { next: string }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [remember, setRemember] = useState(false)
+  const rememberDays = publicSettings.data?.['auth.remember_days'] ?? 0
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
 
   const login = useMutation({
-    mutationFn: () => ds.login(email.trim(), password),
+    mutationFn: () => ds.login(email.trim(), password, remember && rememberDays > 0),
     onSuccess: async (user) => {
       queryClient.clear()
       queryClient.setQueryData(['me'], user)
@@ -129,6 +131,14 @@ function PasswordLogin({ next }: { next: string }) {
           <span className="sr-only">{t('fields.password')}</span>
         </button>
       </div>
+      {rememberDays > 0 && (
+        <CheckboxField
+          label={t('pages.login.remember')}
+          hint={t('pages.login.rememberHint', { count: rememberDays })}
+          checked={remember}
+          onChange={(event) => setRemember(event.target.checked)}
+        />
+      )}
       <FormAlert message={message} />
       <Button type="submit" icon={LogIn} loading={login.isPending} className="w-full">
         {t('pages.login.submit')}

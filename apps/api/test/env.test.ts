@@ -34,6 +34,7 @@ describe('loadConfig', () => {
       cookieSecure: false,
       sessionHours: 12,
       sessionIdleMinutes: 120,
+      rememberDays: 30,
       storageDir: expect.stringMatching(/\.private-storage$/),
       scan: { engine: 'basic', clamdHost: '127.0.0.1', clamdPort: 3310 },
       retention: { enabled: true, unusedFileDays: 90, importDays: 90 },

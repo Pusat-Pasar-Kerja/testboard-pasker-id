@@ -338,7 +338,10 @@
       "locked": "Too many failed attempts. Try again in 15 minutes.",
       "noAccount": "Accounts are created by a Super Admin. Contact an admin if you do not have one.",
       "titleSite": "Sign in to {{name}}",
-      "support": "Need help? {{contact}}"
+      "support": "Need help? {{contact}}",
+      "remember": "Keep me signed in on this device",
+      "rememberHint_one": "Stay signed in for {{count}} day, even after closing the browser. Do not tick this on a shared or borrowed computer.",
+      "rememberHint_other": "Stay signed in for {{count}} days, even after closing the browser. Do not tick this on a shared or borrowed computer."
     },
     "projects": {
       "title": "Projects",
@@ -579,7 +582,21 @@
       "passwordHint": "At least 8 characters. A long sentence is safer than a short complex word.",
       "mismatch": "The confirmation does not match the new password.",
       "passwordChanged": "Password changed. Other devices have been signed out.",
-      "demoNote": "DEMO mode: password changes are not really stored."
+      "demoNote": "DEMO mode: password changes are not really stored.",
+      "devices": {
+        "title": "Signed-in devices",
+        "subtitle": "Devices that can still open your account without signing in again. If you do not recognise one, sign out all other devices and change your password.",
+        "unknown": "Unknown device",
+        "current": "This device",
+        "lastSeen": "Last active {{date}}",
+        "rememberedUntil": "Remembered until {{date}}",
+        "notRemembered": "Signs out when the browser closes or after inactivity",
+        "revokeOthers": "Sign out all other devices",
+        "revokeTitle": "Sign out all other devices?",
+        "revokeBody_one": "{{count}} other device will be signed out and must sign in again. This device stays signed in.",
+        "revokeBody_other": "{{count}} other devices will be signed out and must sign in again. This device stays signed in.",
+        "revoked": "All other devices have been signed out."
+      }
     },
     "adminUsers": {
       "title": "Manage users",
@@ -1027,7 +1044,9 @@
       "lastChanged": "Changed {{date}} by {{name}}",
       "isDefault": "Default value",
       "linkHours": "Reset link validity (hours)",
-      "linkHoursHint": "1-168 hours. Applies to links created from now on."
+      "linkHoursHint": "1-168 hours. Applies to links created from now on.",
+      "rememberDays": "\"Keep me signed in\" duration (days)",
+      "rememberDaysHint": "0-90 days. Enter 0 to hide this option on the sign-in page. Remembered sessions do not time out after inactivity."
     },
     "adminAudit": {
       "title": "Site activity log",

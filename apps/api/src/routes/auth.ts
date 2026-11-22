@@ -4,6 +4,7 @@ import {
   profileUpdateSchema,
   type CurrentUser,
   type MemberRole,
+  type SessionDeviceDto,
 } from '@testboard/shared'
 import { Hono } from 'hono'
 import type { Pool } from 'mysql2/promise'
@@ -14,6 +15,7 @@ import {
   clearSessionCookies,
   clientIp,
   createSession,
+  listUserSessions,
   revokeSession,
   revokeUserSessions,
 } from '../auth/sessions.js'
@@ -88,12 +90,15 @@ export function authRoutes(pool: Pool, config: AppConfig, settings: SettingsServ
     const userId = String(user.id)
     const sessionConfig = await settings.sessionConfig(config)
     await withTransaction(pool, async (conn) => {
-      await createSession(conn, c, sessionConfig, userId)
+      const session = await createSession(conn, c, sessionConfig, userId, {
+        remember: input.remember,
+      })
       await writeAudit(conn, c, {
         projectId: null,
         entityType: 'user',
         entityId: userId,
         action: 'LOGIN',
+        newValues: { remember_device: session.remembered },
       })
     })
     return c.json({ user: await currentUserDto(pool, userId) })
@@ -142,6 +147,39 @@ export function authRoutes(pool: Pool, config: AppConfig, settings: SettingsServ
       })
     })
     return c.json(await currentUserDto(pool, auth.userId))
+  })
+
+  // "Perangkat yang sedang masuk" (ADR 0015): own sessions only, never the token or its hash.
+  routes.get('/profile/sessions', async (c) => {
+    const auth = requireAuth(c)
+    c.header('Cache-Control', 'no-store')
+    const sessionConfig = await settings.sessionConfig(config)
+    const rows = await listUserSessions(pool, auth.userId, sessionConfig.sessionIdleMinutes)
+    const items: SessionDeviceDto[] = rows.map((row) => ({
+      key: row.id.slice(0, 16),
+      current: row.id === auth.sessionId,
+      remembered: Number(row.remember_device) === 1,
+      user_agent: row.user_agent ?? '',
+      created_at: row.created_at.toISOString(),
+      last_seen_at: row.last_seen_at.toISOString(),
+      expires_at: row.expires_at.toISOString(),
+    }))
+    return c.json(items)
+  })
+
+  routes.post('/profile/sessions/revoke-others', async (c) => {
+    const auth = requireAuth(c)
+    await withTransaction(pool, async (conn) => {
+      await revokeUserSessions(conn, auth.userId, auth.sessionId)
+      await writeAudit(conn, c, {
+        projectId: null,
+        entityType: 'user',
+        entityId: auth.userId,
+        action: 'LOGOUT',
+        newValues: { scope: 'OTHER_DEVICES' },
+      })
+    })
+    return c.body(null, 204)
   })
 
   routes.post('/profile/change-password', async (c) => {

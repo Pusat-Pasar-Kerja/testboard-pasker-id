@@ -142,6 +142,41 @@ export function SelectField({
   )
 }
 
+/** A checkbox with a large tap target and an optional explanation under the label. */
+export function CheckboxField({
+  label,
+  hint,
+  className = '',
+  ...input
+}: { label: ReactNode; hint?: ReactNode; className?: string } & Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'type'
+>) {
+  const id = useId()
+  const hintId = hint ? `${id}-hint` : undefined
+  return (
+    <div className={`flex items-start gap-3 ${className}`}>
+      <input
+        id={id}
+        type="checkbox"
+        aria-describedby={hintId}
+        className="mt-0.5 size-5 shrink-0 cursor-pointer accent-brand-700"
+        {...input}
+      />
+      <div className="min-w-0">
+        <label htmlFor={id} className="block cursor-pointer text-sm font-medium">
+          {label}
+        </label>
+        {hint && (
+          <p id={hintId} className="mt-0.5 text-xs text-ink-muted">
+            {hint}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /** Announces a form-level error (conflict, network, permission) above the actions. */
 export function FormAlert({ message }: { message: string | null }) {
   if (!message) return null

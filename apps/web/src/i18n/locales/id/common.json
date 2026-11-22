@@ -338,7 +338,10 @@
       "locked": "Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.",
       "noAccount": "Akun dibuat oleh Super Admin. Hubungi admin bila Anda belum punya akun.",
       "titleSite": "Masuk ke {{name}}",
-      "support": "Butuh bantuan? {{contact}}"
+      "support": "Butuh bantuan? {{contact}}",
+      "remember": "Selalu login di perangkat ini",
+      "rememberHint_one": "Tetap masuk selama {{count}} hari, juga setelah browser ditutup. Jangan dicentang di komputer bersama, laptop pinjaman, atau warnet.",
+      "rememberHint_other": "Tetap masuk selama {{count}} hari, juga setelah browser ditutup. Jangan dicentang di komputer bersama, laptop pinjaman, atau warnet."
     },
     "projects": {
       "title": "Proyek",
@@ -579,7 +582,21 @@
       "passwordHint": "Minimal 8 karakter. Kalimat panjang lebih aman daripada kata pendek yang rumit.",
       "mismatch": "Konfirmasi tidak sama dengan kata sandi baru.",
       "passwordChanged": "Kata sandi diganti. Perangkat lain sudah dikeluarkan.",
-      "demoNote": "Mode DEMO: perubahan kata sandi tidak benar-benar disimpan."
+      "demoNote": "Mode DEMO: perubahan kata sandi tidak benar-benar disimpan.",
+      "devices": {
+        "title": "Perangkat yang sedang masuk",
+        "subtitle": "Perangkat yang masih bisa membuka akun Anda tanpa login lagi. Bila ada yang tidak Anda kenali, keluarkan semua perangkat lain lalu ganti kata sandi.",
+        "unknown": "Perangkat tidak dikenal",
+        "current": "Perangkat ini",
+        "lastSeen": "Terakhir aktif {{date}}",
+        "rememberedUntil": "Diingat sampai {{date}}",
+        "notRemembered": "Keluar otomatis saat browser ditutup atau lama tidak dipakai",
+        "revokeOthers": "Keluar dari semua perangkat lain",
+        "revokeTitle": "Keluar dari semua perangkat lain?",
+        "revokeBody_one": "{{count}} perangkat lain akan keluar dan harus login lagi. Perangkat ini tetap masuk.",
+        "revokeBody_other": "{{count}} perangkat lain akan keluar dan harus login lagi. Perangkat ini tetap masuk.",
+        "revoked": "Semua perangkat lain sudah dikeluarkan."
+      }
     },
     "adminUsers": {
       "title": "Kelola pengguna",
@@ -1027,7 +1044,9 @@
       "lastChanged": "Diubah {{date}} oleh {{name}}",
       "isDefault": "Nilai bawaan",
       "linkHours": "Masa berlaku tautan reset (jam)",
-      "linkHoursHint": "1-168 jam. Untuk tautan yang dibuat berikutnya."
+      "linkHoursHint": "1-168 jam. Untuk tautan yang dibuat berikutnya.",
+      "rememberDays": "Lama \"Selalu login di perangkat ini\" (hari)",
+      "rememberDaysHint": "0-90 hari. Isi 0 untuk menyembunyikan pilihan ini di halaman login. Sesi yang diingat tidak keluar walau lama tidak dipakai."
     },
     "adminAudit": {
       "title": "Log aktivitas situs",

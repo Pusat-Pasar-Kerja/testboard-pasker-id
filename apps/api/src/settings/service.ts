@@ -30,6 +30,7 @@ export function createSettingsService(pool: Pool | null, config: AppConfig): Set
     ...defaultSiteSettings(),
     'auth.session_hours': config.sessionHours,
     'auth.idle_minutes': config.sessionIdleMinutes,
+    'auth.remember_days': config.rememberDays,
     'retention.unused_file_days': config.retention.unusedFileDays,
     'retention.import_days': config.retention.importDays,
   })
@@ -66,6 +67,7 @@ export function createSettingsService(pool: Pool | null, config: AppConfig): Set
         ...base,
         sessionHours: s['auth.session_hours'],
         sessionIdleMinutes: s['auth.idle_minutes'],
+        rememberDays: s['auth.remember_days'],
       }
     },
   }

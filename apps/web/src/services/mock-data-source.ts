@@ -23,6 +23,7 @@ import {
   type PublicSiteSettings,
   type SiteSettingKey,
   type SiteSettingsDto,
+  type SessionDeviceDto,
   auditFilterSchema,
   buildXlsx,
   CSV_MIME,
@@ -1279,6 +1280,19 @@ export function createMockDataSource(
 
     getCurrentUser: () => delay(currentUser),
     login: () => delay(currentUser),
+    listMySessions: () =>
+      delay((): SessionDeviceDto[] => [
+        {
+          key: 'demo-device',
+          current: true,
+          remembered: false,
+          user_agent: typeof navigator === 'undefined' ? '' : navigator.userAgent,
+          created_at: now(),
+          last_seen_at: now(),
+          expires_at: new Date(Date.now() + 12 * 3_600_000).toISOString(),
+        },
+      ]),
+    revokeOtherSessions: () => delay(() => undefined),
     logout: () => delay(() => undefined),
     updateProfile: (input) =>
       delay(() => {

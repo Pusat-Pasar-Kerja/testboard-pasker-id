@@ -174,3 +174,82 @@ describe('profile', () => {
     expect(oldLogin.status).toBe(401)
   })
 })
+
+describe('"Selalu login di perangkat ini" (ADR 0015)', () => {
+  const ageSession = (minutes: number, token: string) =>
+    h.pool.query(
+      `UPDATE user_sessions SET last_seen_at = UTC_TIMESTAMP(3) - INTERVAL ? MINUTE
+        WHERE id = SHA2(?, 256)`,
+      [minutes, token],
+    )
+
+  it('keeps a remembered device signed in without an idle limit, in a lasting cookie', async () => {
+    const user = await createUser(h.pool)
+    const client = new Client(h)
+    const res = await client.post('/auth/login', {
+      email: user.email,
+      password: PASSWORD,
+      remember: true,
+    })
+    expect(res.status).toBe(200)
+    const cookie = res.headers.getSetCookie().find((c) => c.startsWith('tb_session=')) ?? ''
+    const maxAge = Number(/Max-Age=(\d+)/i.exec(cookie)?.[1])
+    expect(maxAge).toBeGreaterThan(29 * 24 * 3600)
+    expect(maxAge).toBeLessThanOrEqual(30 * 24 * 3600)
+
+    await ageSession(24 * 60, client.cookies.get('tb_session') ?? '')
+    expect((await client.get('/auth/me')).status).toBe(200)
+  })
+
+  it('without the tick the cookie ends with the browser and the idle limit applies', async () => {
+    const user = await createUser(h.pool)
+    const client = new Client(h)
+    const res = await client.post('/auth/login', { email: user.email, password: PASSWORD })
+    const cookie = res.headers.getSetCookie().find((c) => c.startsWith('tb_session=')) ?? ''
+    expect(cookie).not.toMatch(/Max-Age|Expires/i)
+
+    await ageSession(121, client.cookies.get('tb_session') ?? '')
+    expect((await client.get('/auth/me')).status).toBe(401)
+  })
+
+  it('lists own devices and signs out all the others', async () => {
+    const user = await createUser(h.pool)
+    const laptop = new Client(h)
+    const phone = new Client(h)
+    await laptop.post('/auth/login', { email: user.email, password: PASSWORD, remember: true })
+    await phone.login(user.email)
+
+    const list = await laptop.get('/profile/sessions')
+    expect(list.status).toBe(200)
+    expect(list.json).toHaveLength(2)
+    const current = list.json.find((d: { current: boolean }) => d.current)
+    expect(current).toMatchObject({ remembered: true })
+    expect(current.key).toHaveLength(16)
+    expect(JSON.stringify(list.json)).not.toContain(laptop.cookies.get('tb_session'))
+
+    expect((await laptop.post('/profile/sessions/revoke-others')).status).toBe(204)
+    expect((await phone.get('/auth/me')).status).toBe(401)
+    expect((await laptop.get('/auth/me')).status).toBe(200)
+    expect((await laptop.get('/profile/sessions')).json).toHaveLength(1)
+  })
+
+  it('ignores the tick when the Super Admin turned the option off', async () => {
+    const admin = new Client(h)
+    await admin.login((await createUser(h.pool, { superAdmin: true })).email)
+    expect((await admin.put('/admin/settings', { 'auth.remember_days': 0 })).status).toBe(200)
+    try {
+      const user = await createUser(h.pool)
+      const res = await new Client(h).post('/auth/login', {
+        email: user.email,
+        password: PASSWORD,
+        remember: true,
+      })
+      const cookie = res.headers.getSetCookie().find((c) => c.startsWith('tb_session=')) ?? ''
+      expect(cookie).not.toMatch(/Max-Age/i)
+      const pub = await new Client(h).get('/settings/public')
+      expect(pub.json['auth.remember_days']).toBe(0)
+    } finally {
+      await admin.put('/admin/settings', { 'auth.remember_days': 30 })
+    }
+  })
+})

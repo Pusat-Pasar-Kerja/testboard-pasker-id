@@ -3,7 +3,7 @@ import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import type { Pool } from 'mysql2/promise'
 import type { AppConfig } from '../config/env.js'
-import { execute, selectOne, type Db } from '../db/tx.js'
+import { execute, select, selectOne, type Db } from '../db/tx.js'
 import { randomToken, sha256Hex } from '../lib/crypto.js'
 import type { AppEnv, AuthContext } from '../types.js'
 
@@ -22,24 +22,46 @@ export function cookieNames(secure: boolean) {
 
 const TOUCH_INTERVAL_MS = 5 * 60_000
 
+export interface SessionOptions {
+  /**
+   * "Selalu login di perangkat ini" (ADR 0015): the session lasts `rememberDays` days with no
+   * idle limit, in a cookie that survives closing the browser. Otherwise the session ends
+   * after `sessionHours` or `sessionIdleMinutes` without activity, and the cookie ends with
+   * the browser session.
+   */
+  remember?: boolean
+  /** Fixed end (e.g. a workshop table card); implies a remembered session. */
+  expiresAt?: Date
+}
+
 export async function createSession(
   db: Db,
   c: Context<AppEnv>,
   config: AppConfig,
   userId: string,
-): Promise<{ csrfToken: string }> {
+  options: SessionOptions = {},
+): Promise<{ csrfToken: string; expiresAt: Date; remembered: boolean }> {
   const token = randomToken()
   const csrfToken = randomToken()
-  const expires = new Date(Date.now() + config.sessionHours * 3_600_000)
+  const remembered =
+    Boolean(options.expiresAt) || (options.remember === true && config.rememberDays > 0)
+  const expires =
+    options.expiresAt ??
+    new Date(
+      Date.now() +
+        (remembered ? config.rememberDays * 24 * 3_600_000 : config.sessionHours * 3_600_000),
+    )
   await execute(
     db,
-    `INSERT INTO user_sessions (id, user_id, csrf_token_hash, expires_at, ip_address, user_agent)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO user_sessions
+       (id, user_id, csrf_token_hash, expires_at, remember_device, ip_address, user_agent)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       sha256Hex(token),
       userId,
       sha256Hex(csrfToken),
       expires,
+      remembered ? 1 : 0,
       clientIp(c),
       (c.req.header('User-Agent') ?? '').slice(0, 255) || null,
     ],
@@ -49,11 +71,14 @@ export async function createSession(
     path: '/',
     secure: config.cookieSecure,
     sameSite: 'Lax' as const,
-    maxAge: config.sessionHours * 3600,
+    // No Max-Age = the cookie ends when the browser is closed.
+    ...(remembered
+      ? { maxAge: Math.max(60, Math.floor((expires.getTime() - Date.now()) / 1000)) }
+      : {}),
   }
   setCookie(c, names.session, token, { ...base, httpOnly: true })
   setCookie(c, names.csrf, csrfToken, { ...base, httpOnly: false })
-  return { csrfToken }
+  return { csrfToken, expiresAt: expires, remembered }
 }
 
 export function clearSessionCookies(c: Context<AppEnv>, config: AppConfig): void {
@@ -113,7 +138,8 @@ export async function loadSession(
       WHERE s.id = ?
         AND s.revoked_at IS NULL
         AND s.expires_at > UTC_TIMESTAMP(3)
-        AND s.last_seen_at > UTC_TIMESTAMP(3) - INTERVAL ? MINUTE
+        AND (s.remember_device = 1
+             OR s.last_seen_at > UTC_TIMESTAMP(3) - INTERVAL ? MINUTE)
         AND u.is_active = 1`,
     [sha256Hex(token), config.sessionIdleMinutes],
   )
@@ -150,5 +176,29 @@ export async function revokeUserSessions(db: Db, userId: string, keepSessionId?:
     `UPDATE user_sessions SET revoked_at = UTC_TIMESTAMP(3)
       WHERE user_id = ? AND revoked_at IS NULL AND id <> ?`,
     [userId, keepSessionId ?? ''],
+  )
+}
+
+export interface SessionDevice {
+  id: string
+  created_at: Date
+  last_seen_at: Date
+  expires_at: Date
+  remember_device: number
+  ip_address: string | null
+  user_agent: string | null
+}
+
+/** Active sessions of a user (newest activity first) for "Perangkat yang sedang masuk". */
+export async function listUserSessions(db: Db, userId: string, idleMinutes: number) {
+  return select<SessionDevice>(
+    db,
+    `SELECT id, created_at, last_seen_at, expires_at, remember_device, ip_address, user_agent
+       FROM user_sessions
+      WHERE user_id = ? AND revoked_at IS NULL AND expires_at > UTC_TIMESTAMP(3)
+        AND (remember_device = 1 OR last_seen_at > UTC_TIMESTAMP(3) - INTERVAL ? MINUTE)
+      ORDER BY last_seen_at DESC
+      LIMIT 50`,
+    [userId, idleMinutes],
   )
 }

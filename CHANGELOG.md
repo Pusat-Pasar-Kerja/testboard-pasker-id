@@ -2,6 +2,13 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.12.3] - 2026-11-22
+
+### Ditambahkan
+
+- **"Selalu login di perangkat ini"** di halaman login (ADR 0015, migration `0011`): dicentang = tetap masuk 30 hari tanpa batas diam; tidak dicentang = keluar saat browser ditutup atau 120 menit diam. Lama hari diatur Super Admin (0 = pilihan disembunyikan).
+- **Profil > Perangkat yang sedang masuk**: daftar perangkat yang masih masuk dan tombol "Keluar dari semua perangkat lain".
+
 ## [0.12.2] - 2026-11-22
 
 ### Diubah

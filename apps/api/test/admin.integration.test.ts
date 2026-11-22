@@ -1,3 +1,4 @@
+import type { RowDataPacket } from 'mysql2/promise'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { setPermanentSuperAdmin } from '../src/auth/owner.js'
 import { execute } from '../src/db/tx.js'
@@ -200,12 +201,18 @@ describe('website settings (ADR 0011)', () => {
       'site.announcement': 'UAT Fase 2 dimulai Senin.',
       'site.default_locale': 'id',
       'site.support_contact': 'Hubungi Tim SIPK',
+      'auth.remember_days': 30,
     })
 
     // New sign-ins get the shorter session right away.
     const fresh = new Client(h)
-    const login = await fresh.login(saEmail)
-    expect(login.headers.getSetCookie().join(';')).toMatch(/Max-Age=3600/)
+    await fresh.login(saEmail)
+    const [session] = await h.pool.query<RowDataPacket[]>(
+      `SELECT TIMESTAMPDIFF(SECOND, created_at, expires_at) AS seconds FROM user_sessions
+        WHERE id = SHA2(?, 256)`,
+      [fresh.cookies.get('tb_session') ?? ''],
+    )
+    expect(Math.abs(Number(session[0]?.seconds) - 3600)).toBeLessThan(120)
 
     const log = await superAdmin.get('/admin/audit-logs?project=site&entity_type=system_setting')
     expect(log.json.data[0]).toMatchObject({ action_code: 'UPDATE', project: null })

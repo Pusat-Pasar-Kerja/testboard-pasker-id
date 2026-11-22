@@ -18,6 +18,8 @@ export const SITE_SETTINGS = {
   'site.support_contact': { schema: z.string().trim().max(300), default: '' },
   'auth.session_hours': { schema: z.number().int().min(1).max(72), default: 12 },
   'auth.idle_minutes': { schema: z.number().int().min(5).max(1440), default: 120 },
+  /** 'Selalu login di perangkat ini' lasts this many days; 0 hides the option (ADR 0015). */
+  'auth.remember_days': { schema: z.number().int().min(0).max(90), default: 30 },
   /** How long a password reset link issued by a Super Admin stays valid (ADR 0012). */
   'recovery.link_hours': { schema: z.number().int().min(1).max(168), default: 24 },
   'retention.unused_file_days': { schema: z.number().int().min(7).max(3650), default: 90 },
@@ -35,6 +37,7 @@ export const PUBLIC_SITE_SETTING_KEYS = [
   'site.announcement',
   'site.default_locale',
   'site.support_contact',
+  'auth.remember_days',
 ] as const satisfies readonly SiteSettingKey[]
 
 export type PublicSiteSettings = Pick<SiteSettings, (typeof PUBLIC_SITE_SETTING_KEYS)[number]>
