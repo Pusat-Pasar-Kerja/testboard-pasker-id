@@ -11,6 +11,7 @@ import { useCurrentUser } from '../hooks/queries'
 import { useWorkshopSession } from '../hooks/workshop-queries'
 import { ApiClientError } from '../services/api-client'
 import { useDataSource } from '../services/use-data-source'
+import { OutboxProvider } from './outbox-context'
 import { SessionContext } from './table-session'
 
 /** Shown when the card was blocked, renewed or has expired: a calm way back in. */
@@ -118,7 +119,11 @@ export function EasyLayout({ children }: { children?: ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">{children ?? <Outlet />}</main>
+        <OutboxProvider tableId={data.table.id}>
+          <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">
+            {children ?? <Outlet />}
+          </main>
+        </OutboxProvider>
         <ConfirmDialog
           open={confirmLeave}
           title={t('easy.leaveTitle', { name: data.table.name })}

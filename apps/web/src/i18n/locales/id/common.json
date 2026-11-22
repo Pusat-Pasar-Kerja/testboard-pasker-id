@@ -1630,7 +1630,8 @@
       "answered": "Sudah dijawab: {{result}}",
       "change": "Ubah jawaban",
       "whoHint": "Tip: pilih dulu siapa yang mengisi di halaman awal meja, supaya namanya tercatat.",
-      "question": "Setelah mencoba, apakah hasilnya sesuai?"
+      "question": "Setelah mencoba, apakah hasilnya sesuai?",
+      "queued": "Menunggu dikirim: {{result}}"
     },
     "result": {
       "PASSED": "Sesuai",
@@ -1686,7 +1687,9 @@
       "sameBug": "Ditambahkan ke masalah {{code}} sebagai \"juga mengalami\".",
       "answer": "Jawaban \"{{result}}\" sudah dicatat.",
       "next": "Lanjut ke skenario berikutnya",
-      "allDone": "Kembali ke halaman meja"
+      "allDone": "Kembali ke halaman meja",
+      "queuedTitle": "Disimpan di perangkat ini",
+      "queued": "Internet sedang terputus. Jawaban akan dikirim otomatis saat tersambung lagi; Anda bisa lanjut ke skenario berikutnya."
     },
     "grid": {
       "title": "Semua skenario",
@@ -1703,6 +1706,14 @@
       "nav": "Pindah skenario",
       "previous": "Sebelumnya",
       "nextPlain": "Berikutnya"
+    },
+    "outbox": {
+      "pending_one": "{{count}} jawaban belum terkirim. Akan dikirim otomatis saat internet tersambung.",
+      "pending_other": "{{count}} jawaban belum terkirim. Akan dikirim otomatis saat internet tersambung.",
+      "sendNow": "Kirim sekarang",
+      "rejected_one": "{{count}} jawaban tidak bisa dikirim (lembar uji mungkin sudah ditutup). Sampaikan ke panitia:",
+      "rejected_other": "{{count}} jawaban tidak bisa dikirim (lembar uji mungkin sudah ditutup). Sampaikan ke panitia:",
+      "dismiss": "Tutup"
     }
   },
   "workshop": {

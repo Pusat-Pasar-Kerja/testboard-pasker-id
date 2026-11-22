@@ -29,6 +29,12 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: false,
       rollupOptions: {
+        // zod ships comments Rollup cannot place ("A comment ... contains an annotation");
+        // they are harmless and only alarmed people reading the deploy log.
+        onwarn(warning, warn) {
+          if (warning.code === 'INVALID_ANNOTATION' && warning.id?.includes('node_modules')) return
+          warn(warning)
+        },
         output: {
           // Long-lived vendor chunks cache across app releases.
           manualChunks(id) {

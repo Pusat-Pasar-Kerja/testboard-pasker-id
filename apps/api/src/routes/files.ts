@@ -255,7 +255,7 @@ export async function serveFile(
   files: FileService,
   projectId: string,
   fileId: string,
-  mode: ServeMode,
+  requested: ServeMode,
   options: { audit?: boolean } = {},
 ) {
   const project = { id: projectId }
@@ -263,6 +263,12 @@ export async function serveFile(
   if (row.processing_status !== 'READY' || row.scan_status !== 'CLEAN') {
     throw new AppError(409, 'CONFLICT', 'This file is not available.')
   }
+  // A thumbnail is only stored when it is smaller than the picture (flat screenshots often
+  // are not): then the picture itself is the thumbnail.
+  const mode: ServeMode =
+    requested === 'thumbnail' && !row.thumbnail_object_key && row.stored_mime.startsWith('image/')
+      ? 'preview'
+      : requested
   const key = mode === 'thumbnail' ? row.thumbnail_object_key : row.object_key
   if (!key) throw new AppError(404, 'NOT_FOUND', 'Not found.')
   const gzipped = mode !== 'thumbnail' && row.compression_method === 'GZIP'

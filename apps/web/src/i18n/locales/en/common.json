@@ -1630,7 +1630,8 @@
       "answered": "Answered: {{result}}",
       "change": "Change the answer",
       "whoHint": "Tip: choose who is answering on the table page first, so the name is recorded.",
-      "question": "After trying it, was the result as expected?"
+      "question": "After trying it, was the result as expected?",
+      "queued": "Waiting to be sent: {{result}}"
     },
     "result": {
       "PASSED": "As expected",
@@ -1686,7 +1687,9 @@
       "sameBug": "Added to problem {{code}} as \"also seen\".",
       "answer": "Answer \"{{result}}\" recorded.",
       "next": "Go to the next scenario",
-      "allDone": "Back to the table page"
+      "allDone": "Back to the table page",
+      "queuedTitle": "Kept on this device",
+      "queued": "The internet is down. The answer is sent automatically when it is back; you can go on to the next scenario."
     },
     "grid": {
       "title": "All scenarios",
@@ -1703,6 +1706,14 @@
       "nav": "Move between scenarios",
       "previous": "Previous",
       "nextPlain": "Next"
+    },
+    "outbox": {
+      "pending_one": "{{count}} answer not sent yet. It is sent automatically when the internet is back.",
+      "pending_other": "{{count}} answers not sent yet. They are sent automatically when the internet is back.",
+      "sendNow": "Send now",
+      "rejected_one": "{{count}} answer could not be sent (the test sheet may be closed). Tell the organisers:",
+      "rejected_other": "{{count}} answers could not be sent (the test sheet may be closed). Tell the organisers:",
+      "dismiss": "Close"
     }
   },
   "workshop": {

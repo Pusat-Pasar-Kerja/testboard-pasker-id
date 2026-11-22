@@ -1,4 +1,9 @@
-import type { WorkshopBugDto, WorkshopCaseDto, WorkshopResultSaved } from '@testboard/shared'
+import type {
+  WorkshopBugDto,
+  WorkshopCaseDto,
+  WorkshopResultInput,
+  WorkshopResultSaved,
+} from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
@@ -6,6 +11,7 @@ import {
   CircleCheckBig,
   CircleSlash,
   CircleX,
+  CloudOff,
   Grid3x3,
   LoaderCircle,
   RotateCcw,
@@ -25,7 +31,9 @@ import { useWorkshopBugs, useWorkshopCases } from '../hooks/workshop-queries'
 import { useTableSession } from '../layout/table-session'
 import { apiErrorText } from '../lib/api-errors'
 import { formatShortDateTime, toLocale } from '../lib/format'
+import { isRetryable } from '../lib/outbox'
 import { clientId, isAnswered, type EasyResult } from '../lib/workshop'
+import { useOutbox } from '../layout/outbox-state'
 import { ApiClientError } from '../services/api-client'
 import { useDataSource } from '../services/use-data-source'
 
@@ -366,28 +374,50 @@ function ScenarioScreen({
   const tester = useTesterName(session.table.id)
   const runOpen = session.run?.status_code === 'ACTIVE'
   const [mode, setMode] = useState<Mode>('choose')
-  const [saved, setSaved] = useState<{ status: EasyResult; result: WorkshopResultSaved } | null>(
-    null,
-  )
+  const outbox = useOutbox()
+  const queued = outbox.pending.find((e) => e.run_case_id === scenario.run_case_id)
+  /** result null = kept on this device, waiting to be sent. */
+  const [saved, setSaved] = useState<{
+    status: EasyResult
+    result: WorkshopResultSaved | null
+  } | null>(null)
   const submission = useRef(clientId())
   const answered = isAnswered(scenario.latest?.status)
   const [changing, setChanging] = useState(false)
 
+  type Answer = {
+    status: EasyResult
+    note?: string | null
+    sameAs?: string | null
+    evidence?: { file_id: string }[]
+  }
+  const toInput = (input: Answer): WorkshopResultInput => ({
+    result_status: input.status,
+    note: input.note ?? null,
+    tester_name: tester.name,
+    evidence: input.evidence,
+    same_as_defect_id: input.sameAs ?? null,
+    client_id: submission.current,
+  })
   const save = useMutation({
-    mutationFn: (input: {
-      status: EasyResult
-      note?: string | null
-      sameAs?: string | null
-      evidence?: { file_id: string }[]
-    }) =>
-      ds.saveWorkshopResult(scenario.run_case_id, {
-        result_status: input.status,
-        note: input.note ?? null,
-        tester_name: tester.name,
-        evidence: input.evidence,
-        same_as_defect_id: input.sameAs ?? null,
+    mutationFn: (input: Answer) => ds.saveWorkshopResult(scenario.run_case_id, toInput(input)),
+    onError: (error, input) => {
+      // No connection: keep the answer on this device and send it later (same client id).
+      if (!isRetryable(error)) return
+      outbox.add({
         client_id: submission.current,
-      }),
+        run_case_id: scenario.run_case_id,
+        module_id: moduleId,
+        title: `${scenario.case_code} - ${scenario.title}`,
+        input: toInput(input),
+        queued_at: new Date().toISOString(),
+      })
+      submission.current = clientId()
+      setSaved({ status: input.status, result: null })
+      setMode('choose')
+      setChanging(false)
+      save.reset()
+    },
     onSuccess: async (result, input) => {
       submission.current = clientId()
       setSaved({ status: input.status, result })
@@ -403,7 +433,7 @@ function ScenarioScreen({
   const runClosedError =
     save.error instanceof ApiClientError && save.error.details[0]?.message === 'RUN_NOT_ACTIVE'
 
-  const showButtons = runOpen && mode === 'choose' && !saved && (!answered || changing)
+  const showButtons = runOpen && mode === 'choose' && !saved && (!(answered || queued) || changing)
 
   return (
     <div className="space-y-6">
@@ -411,6 +441,12 @@ function ScenarioScreen({
         <ScenarioBody scenario={scenario} />
       </article>
 
+      {queued && !saved && (
+        <p className="flex items-center gap-2 rounded-2xl bg-warning-soft p-4 text-lg text-warning">
+          <CloudOff aria-hidden="true" className="size-6 shrink-0" />
+          {t('easy.case.queued', { result: t(`easy.result.${queued.input.result_status}`) })}
+        </p>
+      )}
       {answered && !saved && scenario.latest && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4">
           <p className="text-lg">
@@ -504,15 +540,26 @@ function ScenarioScreen({
       )}
 
       {saved && (
-        <div role="status" className="space-y-4 rounded-3xl bg-success-soft p-6 text-center">
-          <CircleCheckBig aria-hidden="true" className="mx-auto size-12 text-success" />
-          <p className="text-2xl font-bold">{t('easy.saved.title')}</p>
+        <div
+          role="status"
+          className={`space-y-4 rounded-3xl p-6 text-center ${saved.result ? 'bg-success-soft' : 'bg-warning-soft'}`}
+        >
+          {saved.result ? (
+            <CircleCheckBig aria-hidden="true" className="mx-auto size-12 text-success" />
+          ) : (
+            <CloudOff aria-hidden="true" className="mx-auto size-12 text-warning" />
+          )}
+          <p className="text-2xl font-bold">
+            {saved.result ? t('easy.saved.title') : t('easy.saved.queuedTitle')}
+          </p>
           <p className="text-lg">
-            {saved.result.defect
-              ? saved.result.defect.created
-                ? t('easy.saved.newBug', { code: saved.result.defect.bug_code })
-                : t('easy.saved.sameBug', { code: saved.result.defect.bug_code })
-              : t('easy.saved.answer', { result: t(`easy.result.${saved.status}`) })}
+            {!saved.result
+              ? t('easy.saved.queued')
+              : saved.result.defect
+                ? saved.result.defect.created
+                  ? t('easy.saved.newBug', { code: saved.result.defect.bug_code })
+                  : t('easy.saved.sameBug', { code: saved.result.defect.bug_code })
+                : t('easy.saved.answer', { result: t(`easy.result.${saved.status}`) })}
           </p>
           {hasNext ? (
             <button
@@ -549,14 +596,17 @@ function ScenarioGrid({
   onClose: () => void
 }) {
   const { t } = useTranslation()
+  const outbox = useOutbox()
   const color = (c: WorkshopCaseDto) =>
-    !c.latest
-      ? 'border border-line-strong bg-surface text-ink'
-      : c.latest.status === 'PASSED'
-        ? 'bg-success text-white'
-        : c.latest.status === 'FAILED'
-          ? 'bg-danger text-white'
-          : 'bg-warning text-white'
+    outbox.pending.some((e) => e.run_case_id === c.run_case_id)
+      ? 'border-2 border-dashed border-warning bg-warning-soft text-warning'
+      : !c.latest
+        ? 'border border-line-strong bg-surface text-ink'
+        : c.latest.status === 'PASSED'
+          ? 'bg-success text-white'
+          : c.latest.status === 'FAILED'
+            ? 'bg-danger text-white'
+            : 'bg-warning text-white'
   return (
     <section
       aria-label={t('easy.grid.title')}
@@ -610,21 +660,20 @@ export function TableFeaturePage() {
   const list = useMemo(() => cases.data ?? [], [cases.data])
   const requested = Number(params.get('n'))
   const firstOpen = list.findIndex((c) => !c.latest)
-  const index =
-    requested >= 1 && requested <= list.length ? requested - 1 : firstOpen >= 0 ? firstOpen : 0
+  // The scenario on screen is remembered by id, so answering it never jumps to the next open
+  // one before the participant has seen "Tersimpan" (the address only changes on purpose).
+  const [pinnedId, setPinnedId] = useState<string | null>(null)
+  const fromAddress = requested >= 1 && requested <= list.length ? requested - 1 : -1
+  const fromPin = pinnedId ? list.findIndex((c) => c.run_case_id === pinnedId) : -1
+  const index = fromAddress >= 0 ? fromAddress : fromPin >= 0 ? fromPin : Math.max(0, firstOpen)
+  const shown = list[index]?.run_case_id ?? null
+  if (shown && shown !== pinnedId) setPinnedId(shown)
   const go = (target: number) => {
+    setPinnedId(list[target]?.run_case_id ?? null)
     setParams({ n: String(target + 1) })
     setGridOpen(false)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-  // Pin the scenario in the address: answering it must not jump to the next open one
-  // before the participant has seen "Tersimpan".
-  const pinned = requested >= 1 && requested <= list.length
-  useEffect(() => {
-    if (cases.isSuccess && list.length > 0 && !pinned) {
-      setParams({ n: String(index + 1) }, { replace: true })
-    }
-  }, [cases.isSuccess, list.length, pinned, index, setParams])
 
   if (!feature) return <EmptyState description={t('easy.feature.notYours')} />
   const scenario = list[index]

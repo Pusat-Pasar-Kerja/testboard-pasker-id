@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { createMockDb } from '../mocks/seed'
+import { ApiClientError } from '../services/api-client'
 import { createMockDataSource } from '../services/mock-data-source'
 import { renderRoute } from '../test/render'
 
@@ -197,5 +198,39 @@ describe('facilitator side', () => {
     expect(await screen.findByRole('heading', { name: cycle.title })).toBeInTheDocument()
     expect(screen.getByText('Meja 1')).toBeInTheDocument()
     expect(screen.getByText('Meja 3')).toBeInTheDocument()
+  })
+})
+
+describe('answers kept on the device when the internet drops', () => {
+  it('keeps an answer, shows it as waiting, and sends it once the connection is back', async () => {
+    window.localStorage.clear()
+    const user = userEvent.setup()
+    const { db, dataSource } = setup()
+    let online = false
+    const flaky = {
+      ...dataSource,
+      saveWorkshopResult: async (...args: Parameters<typeof dataSource.saveWorkshopResult>) => {
+        if (!online) throw new ApiClientError(0, 'INTERNAL_ERROR', 'Network error', null)
+        return dataSource.saveWorkshopResult(...args)
+      },
+    }
+    await dataSource.joinWorkshop('246810')
+    renderRoute('/meja/kerja', { dataSource: flaky })
+    await user.click(
+      (await screen.findAllByRole('link', { name: /Mulai menguji|Lanjutkan|Lihat lagi/ }))[0]!,
+    )
+    const before = db.executions.length
+    await user.click(await screen.findByRole('button', { name: 'Sesuai' }))
+    expect(await screen.findByText('Disimpan di perangkat ini')).toBeInTheDocument()
+    expect(screen.getByText(/1 jawaban belum terkirim/)).toBeInTheDocument()
+    expect(db.executions.length).toBe(before)
+
+    online = true
+    await user.click(screen.getByRole('button', { name: 'Kirim sekarang' }))
+    await waitFor(() =>
+      expect(screen.queryByText(/jawaban belum terkirim/)).not.toBeInTheDocument(),
+    )
+    expect(db.executions.length).toBe(before + 1)
+    expect(db.executions.at(-1)?.result_status).toBe('PASSED')
   })
 })

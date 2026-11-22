@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { uiPng } from './support/fixtures.js'
 import { addMember, Client, createHarness, createProject, createUser } from './support/harness.js'
 
 /** Mode Workshop (ADR 0016): public Fase, table cards, easy answers, "+1", review. */
@@ -353,5 +354,44 @@ describe('table cards and easy answers', () => {
     })
     expect(res.status).toBe(409)
     expect(res.json.error.details[0].message).toBe('RUN_NOT_ACTIVE')
+  })
+})
+
+describe('photos from a table', () => {
+  it('uploads a screen photo, attaches it to the problem and shows it only where allowed', async () => {
+    await lead.post(`${P()}/runs/${runId}/status`, { status_code: 'ACTIVE' })
+    const meja = await joined((await newTable('Meja Foto', ['GIG'])).access_code)
+    const upload = await meja.client.upload('/workshop/files', [
+      { name: 'layar.png', data: await uiPng() },
+    ])
+    expect(upload.status).toBe(202)
+    await h.files.idle()
+    const fileId = upload.json.files[0].id as string
+    expect((await meja.client.get(`/workshop/files/${fileId}/status`)).json).toMatchObject({
+      processing_status: 'READY',
+      scan_status: 'CLEAN',
+    })
+    const failed = await meja.client.post(`/workshop/cases/${runCaseOf('GIG', 1)}/result`, {
+      result_status: 'FAILED',
+      note: 'Gambar profil tidak muncul',
+      evidence: [{ file_id: fileId }],
+    })
+    expect(failed.status).toBe(201)
+    // Flat screenshots may have no smaller thumbnail: the picture itself is served.
+    const thumb = await meja.client.raw(`/workshop/files/${fileId}/thumbnail`)
+    expect(thumb.status).toBe(200)
+    expect(thumb.headers.get('Content-Type')).toMatch(/^image\//)
+
+    const anonymous = new Client(h)
+    const publicPath = `/public/cycles/${cycleId}/files/${fileId}/thumbnail`
+    expect((await anonymous.raw(publicPath)).status).toBe(404)
+    await lead.put(`${W()}/public`, {
+      is_public: true,
+      public_fields: ['bugs.list', 'bugs.evidence'],
+      public_intro: null,
+    })
+    expect((await anonymous.raw(publicPath)).status).toBe(200)
+    const bugs = (await anonymous.get(`/public/cycles/${cycleId}/bugs`)).json
+    expect(bugs.data.find((b: { files?: unknown[] }) => b.files?.length)).toBeTruthy()
   })
 })

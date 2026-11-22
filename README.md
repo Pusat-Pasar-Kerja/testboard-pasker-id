@@ -2,7 +2,7 @@
 
 Platform web multi-project untuk mendokumentasikan test case, merencanakan siklus UAT, menjalankan pengujian, menyimpan bukti uji, melacak bug, dan menyusun laporan. UI dua bahasa: **Indonesia** dan **English**.
 
-> Status: **Milestone 2 selesai** (`v0.3.0`): login asli, Super Admin, hak akses per proyek, kelola test case/anggota/modul/suite. Belum siap produksi (lihat roadmap). Spesifikasi lengkap ada di [`docs/blueprint/`](docs/blueprint/README.md).
+> Status: **v0.13.0**. Milestone M0-M7 dan perubahan v1 selesai: konsol admin, pemulihan akun, tema pastel, alat kelola data, impor Karirhub, "Selalu login di perangkat ini", dan **Mode Workshop** (fase publik per data, kartu meja QR, Mode Mudah untuk peserta, papan fasilitator, layar besar, panduan di `/panduan`). Tag `v1.0.0` setelah checklist produksi. Spesifikasi lengkap ada di [`docs/blueprint/`](docs/blueprint/README.md).
 
 ## Arsitektur
 
@@ -81,13 +81,15 @@ Repo ini **publik**. Jangan commit `.env`, kredensial, workbook UAT asli, screen
 
 ## Roadmap
 
-| Milestone | Isi                                                                       | Status                                           |
-| --------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
-| M0        | Repo, tooling, healthcheck API, adaptor mock, format error                | Selesai (`v0.1.0`)                               |
-| M1        | Design system, AppShell, layar prototype dengan data mock, bilingual      | Selesai (`v0.2.0`)                               |
-| M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi | Selesai (`v0.3.0`)                               |
-| M3        | Cycle, run, execution append-only, dashboard latest status                | Selesai (`v0.4.0`)                               |
-| M4        | Bug tracking + workflow status + riwayat                                  | Selesai (`v0.5.0`)                               |
-| M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             | Selesai (`v0.6.0`)                               |
-| M6        | Import XLSX/CSV/JSON (legacy & AI)                                        | Selesai (`v0.7.0`)                               |
-| M7        | Laporan, hardening, deployment VPS                                        | Selesai di repo (`v0.8.0`); go-live VPS menunggu |
+| Milestone | Isi                                                                       | Status                                       |
+| --------- | ------------------------------------------------------------------------- | -------------------------------------------- |
+| M0        | Repo, tooling, healthcheck API, adaptor mock, format error                | Selesai (`v0.1.0`)                           |
+| M1        | Design system, AppShell, layar prototype dengan data mock, bilingual      | Selesai (`v0.2.0`)                           |
+| M2        | Auth + session (migration), project member, RBAC, test case CRUD + revisi | Selesai (`v0.3.0`)                           |
+| M3        | Cycle, run, execution append-only, dashboard latest status                | Selesai (`v0.4.0`)                           |
+| M4        | Bug tracking + workflow status + riwayat                                  | Selesai (`v0.5.0`)                           |
+| M5        | Pipeline evidence multi-file (scan, optimasi, storage privat)             | Selesai (`v0.6.0`)                           |
+| M6        | Import XLSX/CSV/JSON (legacy & AI)                                        | Selesai (`v0.7.0`)                           |
+| M7        | Laporan, hardening, deployment VPS                                        | Selesai, berjalan di VPS (`v0.8.x`)          |
+| v1 1-4    | Konsol admin, pemulihan akun, tema, alat data + impor Karirhub            | Selesai (`v0.9.0`-`v0.12.x`)                 |
+| Workshop  | Selalu login, fase publik, kartu meja, Mode Mudah, papan, panduan         | Selesai (`v0.12.3`-`v0.13.0`, ADR 0015-0016) |

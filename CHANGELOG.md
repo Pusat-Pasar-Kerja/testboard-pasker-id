@@ -2,6 +2,38 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.13.0] - 2026-11-22
+
+**Mode Workshop** untuk UAT yang dikerjakan berkelompok per meja di forum workshop, dengan peserta yang banyak di antaranya orang tua dan awam (ADR 0016, migration `0012`).
+
+### Ditambahkan
+
+- **Halaman depan publik** (`/`): fase yang dibuka untuk umum, dengan kemajuan, fitur yang dikerjakan, dan daftar masalah. Tombol **Tampilkan secara publik** ada di setiap fase, dan **setiap data punya tombol sendiri** (18 data). Bawaannya semua tersembunyi; data yang bisa memuat data pribadi diberi tanda.
+- **Kartu meja**: tiap meja mendapat kartu cetak (2 per A4) berisi **QR + kode 6 angka**, fitur, dan nama anggota. Peserta masuk tanpa email dan kata sandi, hanya pada masa berlaku kartu. Panitia bisa membuat kode baru atau menonaktifkan kartu kapan saja.
+- **Mode Mudah** untuk peserta: satu skenario per layar, huruf dan tombol besar, tiga jawaban (**Sesuai / Tidak sesuai / Tidak bisa dicoba**), pilih "siapa yang mengisi", foto layar dengan kamera HP, dan saran **"masalah mirip sudah dilaporkan"** dengan tombol **"Saya juga mengalami"** supaya bug tidak dobel.
+- **Kirim saat tersambung**: bila internet putus, jawaban disimpan di perangkat dan dikirim otomatis (tidak pernah tercatat dua kali).
+- **Mode Workshop** untuk fasilitator: papan kemajuan per meja dan per fitur, kegiatan terbaru, buat banyak meja sekaligus, **Masalah masuk** (tingkat dampak, tandai sama dengan bug lain, sudah ditinjau), status fitur, daftar persiapan.
+- **Layar besar** untuk proyektor dan **lembar uji cadangan** berkertas per meja.
+- **Panduan** (`/panduan`): cara kerja singkat, langkah peserta, fasilitator, dan admin, kamus istilah, privasi.
+- Tombol **A- / A / A+** untuk ukuran huruf di seluruh situs.
+
+### Diubah
+
+- Halaman petugas dimuat per halaman, sehingga HP peserta hanya mengunduh halaman publik dan Mode Mudah. Peringatan build (ukuran berkas dan komentar `zod`) tidak muncul lagi saat `update.sh`.
+- Pelapor dan penguji dari meja ditampilkan sebagai "Meja 1 · nama anggota" di halaman bug dan hasil uji.
+
+### Diperbaiki
+
+- Foto tanpa thumbnail yang lebih kecil (screenshot sederhana) kini tetap tampil sebagai thumbnail.
+
+## [0.12.5] - 2026-11-22
+
+Tahap antara Mode Workshop: halaman web (publik, kartu meja, Mode Mudah, fasilitator, cetak, panduan).
+
+## [0.12.4] - 2026-11-22
+
+Tahap antara Mode Workshop: API, migration `0012`, dan tes integrasinya.
+
 ## [0.12.3] - 2026-11-22
 
 ### Ditambahkan
