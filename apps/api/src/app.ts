@@ -24,6 +24,7 @@ import {
 import { createFileService, type FileService } from './files/pipeline.js'
 import { ImportStore } from './imports/analyze.js'
 import { readAppVersion } from './lib/version.js'
+import { taskRoutes } from './routes/tasks.js'
 import { createSettingsService, type SettingsService } from './settings/service.js'
 import { adminRoutes } from './routes/admin.js'
 import { authRoutes } from './routes/auth.js'
@@ -108,10 +109,11 @@ export function createApp({
     // Public: site name, banner, default language and support contact (login page).
     api.get('/settings/public', async (c) => c.json(publicSettings(await settings.get())))
     api.route('/', authRoutes(pool, config, settings))
+    api.route('/', taskRoutes(pool))
     api.route('/public', publicRoutes(pool, fileService))
     api.route('/workshop', workshopRoutes(pool, config, settings, fileService))
     api.route('/', recoveryPublicRoutes(pool))
-    api.route('/', projectRoutes(pool, fileService, new ImportStore(config.storageDir)))
+    api.route('/', projectRoutes(pool, fileService, new ImportStore(config.storageDir), settings))
     api.route('/admin', adminRoutes(pool, settings))
     api.route('/admin', recoveryAdminRoutes(pool, settings))
   } else {

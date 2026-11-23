@@ -59,8 +59,9 @@ describe('local database (mirrors VPS MariaDB 10.4.32)', () => {
          FROM information_schema.tables WHERE table_schema = DATABASE()`,
     )
     // 27 baseline tables + 5 (migrations 0001-0005) + 2 (0008 account recovery)
-    // + 4 (0012 workshop: features, tables, table modules, confirmations).
-    expect(Number(rows[0]?.tables)).toBe(27 + 5 + 2 + 4)
+    // + 4 (0012 workshop: features, tables, table modules, confirmations)
+    // + 1 (0014 people at a table).
+    expect(Number(rows[0]?.tables)).toBe(27 + 5 + 2 + 4 + 1)
     expect(Number(rows[0]?.views)).toBe(1)
   })
 

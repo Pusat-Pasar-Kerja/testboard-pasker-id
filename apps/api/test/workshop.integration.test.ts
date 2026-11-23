@@ -23,7 +23,7 @@ async function newTable(name: string, moduleCodes: string[], members: string[] =
     name,
     run_id: runId,
     module_ids: moduleCodes.map((code) => modules[code]),
-    member_names: members,
+    members: members.map((name) => ({ name })),
     valid_from: new Date(Date.now() - hour).toISOString(),
     valid_until: soon(),
   })
@@ -354,6 +354,125 @@ describe('table cards and easy answers', () => {
     })
     expect(res.status).toBe(409)
     expect(res.json.error.details[0].message).toBe('RUN_NOT_ACTIVE')
+  })
+})
+
+describe('people at a table with their own User account (ADR 0018)', () => {
+  it('turns an e-mail into a Penguji account, activates it at the table and opens "Tugas saya"', async () => {
+    const email = `budi.${Date.now()}@test.invalid`
+    const created = await lead.post(`${W()}/tables`, {
+      name: 'Meja Akun',
+      run_id: runId,
+      module_ids: [modules.LOKER],
+      members: [
+        { name: 'Pak Budi', email },
+        { name: 'Bu Sari', email: '' },
+      ],
+      valid_from: new Date(Date.now() - hour).toISOString(),
+      valid_until: soon(),
+    })
+    expect(created.status).toBe(201)
+    expect(created.json.member_names).toEqual(['Pak Budi', 'Bu Sari'])
+    expect(created.json.members).toMatchObject([
+      { name: 'Pak Budi', email, account: 'NOT_ACTIVATED' },
+      { name: 'Bu Sari', email: null, account: 'NONE', user_id: null },
+    ])
+    const budiId = created.json.members[0].user_id as string
+    // The e-mail made him a Penguji of the project, not activated yet.
+    const members = (await lead.get(`${P()}/members`)).json as {
+      user: { id: string; has_password: boolean }
+      role_code: string
+    }[]
+    expect(members.find((m) => m.user.id === budiId)).toMatchObject({
+      role_code: 'TESTER',
+      user: { has_password: false },
+    })
+
+    // At the table: the table never sees the full e-mail.
+    const table = await joined(created.json.access_code)
+    const listed = table.session.table.members as {
+      id: string
+      name: string
+      account: string
+      email_hint: string | null
+    }[]
+    expect(listed[0]).toMatchObject({ name: 'Pak Budi', account: 'NOT_ACTIVATED' })
+    expect(listed[0]!.email_hint).toMatch(/^b\*\*\*@test\.invalid$/)
+    expect(JSON.stringify(table.session)).not.toContain(email)
+
+    // Names typed at the table never remove or rename someone with an account.
+    const names = await table.client.put('/workshop/members', { member_names: ['Bu Tini'] })
+    expect(names.json.table.member_names).toEqual(['Pak Budi', 'Bu Tini'])
+
+    // "Aktifkan akun saya": once, and only for a listed member without a password.
+    const activate = await table.client.post(`/workshop/members/${listed[0]!.id}/activate`, {
+      password: 'Kata-Sandi-Budi-9',
+    })
+    expect(activate.status).toBe(200)
+    expect(activate.json.table.members[0].account).toBe('ACTIVE')
+    const again = await table.client.post(`/workshop/members/${listed[0]!.id}/activate`, {
+      password: 'Kata-Sandi-Lain-9',
+    })
+    expect(again.status).toBe(409)
+
+    // Budi signs in himself and finds his table under "Tugas saya".
+    const budi = new Client(h)
+    expect((await budi.post('/auth/login', { email, password: 'Kata-Sandi-Budi-9' })).status).toBe(
+      200,
+    )
+    const tasks = await budi.get('/me/tasks')
+    expect(tasks.status).toBe(200)
+    expect(tasks.json.tables).toEqual([
+      expect.objectContaining({
+        table: { id: created.json.id, name: 'Meja Akun' },
+        member: expect.objectContaining({ name: 'Pak Budi' }),
+        state: 'ACTIVE',
+      }),
+    ])
+    // ... and opens it without the card code: the device becomes the table, his name chosen.
+    const opened = await budi.post('/workshop/join-member', { table_id: created.json.id })
+    expect(opened.status).toBe(200)
+    expect(opened.json.member_name).toBe('Pak Budi')
+    expect((await budi.get('/auth/me')).json.account_kind).toBe('TABLE')
+
+    // Someone not listed at that table cannot open it that way.
+    const stranger = await createUser(h.pool)
+    const strangerClient = new Client(h)
+    await strangerClient.login(stranger.email)
+    expect(
+      (await strangerClient.post('/workshop/join-member', { table_id: created.json.id })).status,
+    ).toBe(404)
+  })
+
+  it('gives an Admin a one-time activation link for a member who has no password yet', async () => {
+    // Members and their tasks are managed by the website role Admin (ADR 0017).
+    const siteAdmin = await createUser(h.pool, { siteAdmin: true })
+    const admin = new Client(h)
+    await admin.login(siteAdmin.email)
+    const email = `sari.${Date.now()}@test.invalid`
+    const added = await admin.post(`${P()}/members`, {
+      email,
+      display_name: 'Bu Sari',
+      role_code: 'TESTER',
+    })
+    expect(added.status).toBe(201)
+    const userId = added.json.user.id as string
+    const link = await admin.post(`${P()}/members/${userId}/activation-link`, {})
+    expect(link.status).toBe(201)
+    expect(link.json.token).toMatch(/^[A-Za-z0-9_-]{20,}$/)
+    const anonymous = new Client(h)
+    const check = await anonymous.post('/auth/reset-password/check', { token: link.json.token })
+    expect(check.json).toMatchObject({ email, display_name: 'Bu Sari', activation: true })
+    const set = await anonymous.post('/auth/reset-password', {
+      token: link.json.token,
+      new_password: 'Sari-Punya-Akun-7',
+    })
+    expect(set.status).toBe(204)
+    expect(
+      (await new Client(h).post('/auth/login', { email, password: 'Sari-Punya-Akun-7' })).status,
+    ).toBe(200)
+    // An active account gets no activation link (the Super Admin handles forgotten passwords).
+    expect((await admin.post(`${P()}/members/${userId}/activation-link`, {})).status).toBe(409)
   })
 })
 

@@ -77,8 +77,10 @@ import type {
   DefectStatus,
   HealthResponse,
   Locale,
+  ActivationLinkDto,
   MemberDto,
   MemberTask,
+  MyTasksDto,
   ModuleDto,
   Paginated,
   ProjectSummary,
@@ -284,6 +286,8 @@ export interface DataSource {
   ): Promise<MemberDto>
   updateMember(projectCode: string, userId: string, role: MemberTask): Promise<MemberDto>
   removeMember(projectCode: string, userId: string): Promise<void>
+  /** One-time link for a member who has no password yet (Admin, ADR 0018). */
+  createActivationLink(projectCode: string, userId: string): Promise<ActivationLinkDto>
   listModules(projectCode: string): Promise<ModuleDto[]>
   createModule(
     projectCode: string,
@@ -491,6 +495,14 @@ export interface DataSource {
   joinWorkshop(code: string): Promise<WorkshopSessionDto>
   getWorkshopSession(): Promise<WorkshopSessionDto>
   updateWorkshopMembers(memberNames: string[]): Promise<WorkshopSessionDto>
+  /** "Aktifkan akun saya" at the table (ADR 0018). */
+  activateTableMember(memberId: string, password: string): Promise<WorkshopSessionDto>
+  /** A signed-in User opens the table they are listed at, from "Tugas saya". */
+  joinWorkshopAsMember(
+    tableId: string,
+  ): Promise<{ session: WorkshopSessionDto; member_name: string }>
+  /** "Tugas saya": the signed-in person's own tables, assigned scenarios and reports. */
+  getMyTasks(): Promise<MyTasksDto>
   listWorkshopCases(moduleId: string): Promise<WorkshopCaseDto[]>
   saveWorkshopResult(runCaseId: string, input: WorkshopResultInput): Promise<WorkshopResultSaved>
   listWorkshopBugs(query?: WorkshopBugQuery): Promise<WorkshopBugDto[]>
@@ -599,6 +611,8 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     getProject: (code) => client.get(p(code)),
     listMembers: (code) => client.get(`${p(code)}/members`),
     addMember: (code, input) => client.post(`${p(code)}/members`, input),
+    createActivationLink: (code, userId) =>
+      client.post(`${p(code)}/members/${seg(userId)}/activation-link`, {}),
     updateMember: (code, userId, role) =>
       client.patch(`${p(code)}/members/${seg(userId)}`, { role_code: role }),
     removeMember: (code, userId) => client.delete(`${p(code)}/members/${seg(userId)}`),
@@ -757,6 +771,10 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     joinWorkshop: (code) => client.post('/workshop/join', { code }),
     getWorkshopSession: () => client.get('/workshop/session'),
     updateWorkshopMembers: (names) => client.put('/workshop/members', { member_names: names }),
+    activateTableMember: (memberId, password) =>
+      client.post(`/workshop/members/${seg(memberId)}/activate`, { password }),
+    joinWorkshopAsMember: (tableId) => client.post('/workshop/join-member', { table_id: tableId }),
+    getMyTasks: () => client.get('/me/tasks'),
     listWorkshopCases: (moduleId) => client.get(`/workshop/features/${seg(moduleId)}/cases`),
     saveWorkshopResult: (runCaseId, input) =>
       client.post(`/workshop/cases/${seg(runCaseId)}/result`, input),

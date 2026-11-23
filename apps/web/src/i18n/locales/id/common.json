@@ -42,7 +42,8 @@
     "openRequests": "permintaan baru",
     "workshop": "Mode Workshop",
     "guide": "Panduan",
-    "publicSite": "Halaman publik"
+    "publicSite": "Halaman publik",
+    "myTasks": "Tugas saya"
   },
   "shell": {
     "skipToContent": "Lewati ke konten utama",
@@ -1327,7 +1328,12 @@
         "EXPIRED": "Tautan ini sudah kedaluwarsa.",
         "USED": "Tautan ini sudah dipakai.",
         "REVOKED": "Tautan ini sudah dicabut oleh Administrator."
-      }
+      },
+      "activationTitle": "Aktifkan akun Anda",
+      "activationIntro": "Buat kata sandi untuk akun ini. Setelah itu Anda bisa masuk dengan email dan kata sandi tersebut.",
+      "activationSubmit": "Aktifkan akun",
+      "activationDone": "Akun Anda sudah aktif",
+      "activationDoneBody": "Silakan masuk dengan email dan kata sandi yang baru saja Anda buat."
     },
     "dialog": {
       "title": "Buat tautan reset untuk {{name}}",
@@ -1653,11 +1659,12 @@
     },
     "members": {
       "title": "Nama anggota meja",
-      "hint": "Nama dipakai untuk mencatat siapa yang mengisi. Bukan akun, cukup nama panggilan.",
+      "hint": "Nama dipakai untuk mencatat siapa yang mengisi. Nama yang berakun (diisi panitia) tidak bisa diubah di sini.",
       "save": "Simpan nama",
       "remove": "Hapus {{name}}",
       "newName": "Nama baru, mis. Bu Sri",
-      "add": "Tambah"
+      "add": "Tambah",
+      "hasAccount": "Punya akun"
     },
     "tester": {
       "title": "Siapa yang sedang mengisi?",
@@ -1788,7 +1795,25 @@
       "rejected_other": "{{count}} jawaban tidak bisa dikirim (lembar uji mungkin sudah ditutup). Sampaikan ke panitia:",
       "dismiss": "Tutup"
     },
-    "footer": "TestBoard PASKER ID · Pusat Pasar Kerja, Kementerian Ketenagakerjaan"
+    "footer": "TestBoard PASKER ID · Pusat Pasar Kerja, Kementerian Ketenagakerjaan",
+    "activate": {
+      "offer": "Panitia sudah membuatkan akun untuk sebagian anggota. Aktifkan akun Anda agar bisa masuk sendiri nanti.",
+      "open": "Aktifkan akun saya",
+      "title": "Aktifkan akun saya",
+      "intro": "Pilih nama Anda, lalu buat kata sandi. Cukup sekali; setelah itu Anda bisa masuk dengan email Anda di perangkat mana pun.",
+      "who": "Nama Anda",
+      "password": "Kata sandi baru",
+      "passwordHint": "Minimal 8 karakter. Jangan memakai nama email Anda.",
+      "repeat": "Ulangi kata sandi",
+      "submit": "Aktifkan akun",
+      "chooseFirst": "Pilih nama Anda terlebih dahulu.",
+      "tooShort": "Kata sandi minimal 8 karakter.",
+      "mismatch": "Kedua kata sandi belum sama.",
+      "alreadyActive": "Akun ini sudah aktif. Bila lupa kata sandi, gunakan \"Lupa kata sandi?\" di halaman masuk.",
+      "doneTitle": "Akun Anda sudah aktif",
+      "doneBody": "Sekarang Anda bisa masuk dengan email {{email}} dan kata sandi tadi, lewat pilihan Akun Pengguna di halaman masuk.",
+      "doneNote": "Anda tetap bisa melanjutkan pengujian di meja ini seperti biasa."
+    }
   },
   "workshop": {
     "title": "Mode Workshop: {{cycle}}",
@@ -1849,7 +1874,7 @@
       "created": "{{name}} dibuat. Cetak kartunya dari tombol Cetak kartu.",
       "editTitle": "Ubah {{name}}",
       "createTitle": "Buat meja",
-      "createHint": "Kode kartu dibuat otomatis. Nama anggota boleh diisi nanti oleh meja sendiri.",
+      "createHint": "Kode kartu dibuat otomatis. Nama anggota boleh diisi sekarang atau nanti oleh meja sendiri.",
       "name": "Nama meja",
       "namePlaceholder": "mis. Meja 1",
       "run": "Lembar uji (run)",
@@ -1858,8 +1883,8 @@
       "noRun": "Belum dipilih",
       "features": "Fitur yang dikerjakan",
       "featuresEmpty": "Pilih lembar uji dulu; fitur diambil dari skenario di dalamnya.",
-      "members": "Anggota",
-      "membersHint": "Satu nama per baris. Hanya teks, tidak membuat akun.",
+      "members": "Anggota meja",
+      "membersHint": "Isi nama setiap anggota. Email boleh dikosongkan; bila diisi, orang itu otomatis mendapat akun Pengguna (Penguji) yang ia aktifkan sendiri, dan namanya langsung bisa dipilih di meja.",
       "validFrom": "Berlaku mulai",
       "validUntil": "Berlaku sampai",
       "defaultPrefix": "Meja",
@@ -1919,7 +1944,14 @@
           "body": "Hanya meja yang belum pernah menjawab yang bisa dihapus.",
           "action": "Hapus"
         }
-      }
+      },
+      "memberName": "Nama anggota {{n}}",
+      "memberEmail": "Email (opsional)",
+      "memberEmailPlaceholder": "nama@contoh.go.id",
+      "accountActive": "Akun aktif",
+      "activationLink": "Tautan aktivasi",
+      "removeMember": "Hapus anggota {{name}}",
+      "addMember": "Tambah anggota"
     },
     "inbox": {
       "intro": "Masalah yang dikirim meja masuk ke sini. Tentukan tingkat dampaknya, gabungkan bila sama dengan masalah lain, lalu tandai sudah ditinjau.",
@@ -2470,5 +2502,39 @@
       "body": "Di TestBoard, tim Pusat Pasar Kerja dan para peserta mencoba layanan bersama-sama, mencatat hasilnya, lalu melaporkan masalah sebelum layanan dipakai masyarakat.",
       "guide": "Baca panduan cara masuk"
     }
+  },
+  "activation": {
+    "title": "Tautan aktivasi untuk {{name}}",
+    "intro": "Berikan tautan ini kepada orangnya. Dengan tautan ini ia membuat kata sandi sendiri, lalu bisa masuk dengan emailnya.",
+    "making": "Membuat tautan...",
+    "linkLabel": "Tautan aktivasi (sekali pakai)",
+    "validUntil": "Berlaku sampai {{until}}.",
+    "copy": "Salin tautan",
+    "whatsapp": "Kirim lewat WhatsApp",
+    "whatsappText": "Halo {{name}}, ini tautan untuk mengaktifkan akun TestBoard PASKER ID Anda. Buka tautannya, lalu buat kata sandi sendiri: {{url}} (berlaku sampai {{until}}).",
+    "note": "Tautan hanya tampil di sini. Bila hilang atau kedaluwarsa, buat tautan baru; tautan lama otomatis tidak berlaku."
+  },
+  "tasks": {
+    "title": "Tugas saya",
+    "subtitle": "Semua pekerjaan yang ditugaskan kepada Anda, dari semua proyek tempat Anda menjadi anggota.",
+    "tablesTitle": "Meja saya (Mode Workshop)",
+    "tablesHint": "Meja tempat Anda terdaftar sebagai anggota. Buka meja untuk menguji bersama kelompok.",
+    "tableLine": "Sebagai {{name}} · {{cycle}} · {{project}}",
+    "validUntil": "Kartu meja berlaku sampai {{date}}",
+    "openTable": "Buka meja ini",
+    "openTitle": "Buka {{table}} di perangkat ini?",
+    "openBody": "Perangkat ini beralih ke layar meja dengan nama {{name}} sudah terpilih. Akun Anda keluar dari perangkat ini; masuk lagi kapan saja dengan email dan kata sandi.",
+    "runsTitle": "Lembar uji yang ditugaskan kepada saya",
+    "runsHint": "Skenario uji yang harus Anda coba sendiri, lalu catat hasilnya.",
+    "runLine": "{{project}} · {{done}} dari {{total}} skenario sudah dicoba",
+    "progress": "Kemajuan",
+    "continue": "Lanjutkan",
+    "view": "Lihat",
+    "bugsTitle": "Masalah yang saya laporkan",
+    "bugLine": "{{open}} masih ditangani dari {{total}} laporan",
+    "emptyTitle": "Belum ada tugas",
+    "empty": "Belum ada meja atau skenario yang ditugaskan kepada Anda. Admin akan menambahkan Anda ke meja atau menugaskan skenario uji.",
+    "toProjects": "Lihat proyek saya",
+    "footer": "Tugas di sini hanya milik Anda. Tugas orang lain tidak ditampilkan."
   }
 }

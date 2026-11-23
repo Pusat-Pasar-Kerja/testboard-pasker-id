@@ -42,7 +42,8 @@
     "openRequests": "new requests",
     "workshop": "Workshop mode",
     "guide": "Guide",
-    "publicSite": "Public site"
+    "publicSite": "Public site",
+    "myTasks": "My tasks"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -1327,7 +1328,12 @@
         "EXPIRED": "This link has expired.",
         "USED": "This link has already been used.",
         "REVOKED": "This link was revoked by an administrator."
-      }
+      },
+      "activationTitle": "Activate your account",
+      "activationIntro": "Create a password for this account. Afterwards you can sign in with that e-mail and password.",
+      "activationSubmit": "Activate account",
+      "activationDone": "Your account is active",
+      "activationDoneBody": "Please sign in with your e-mail and the password you just created."
     },
     "dialog": {
       "title": "Create a reset link for {{name}}",
@@ -1653,11 +1659,12 @@
     },
     "members": {
       "title": "Table members",
-      "hint": "Names record who answered. Not accounts, a short name is enough.",
+      "hint": "Names record who is answering. Names with an account (entered by the organisers) cannot be changed here.",
       "save": "Save names",
       "remove": "Remove {{name}}",
       "newName": "New name, e.g. Ms Sri",
-      "add": "Add"
+      "add": "Add",
+      "hasAccount": "Has an account"
     },
     "tester": {
       "title": "Who is answering?",
@@ -1788,7 +1795,25 @@
       "rejected_other": "{{count}} answers could not be sent (the test sheet may be closed). Tell the organisers:",
       "dismiss": "Close"
     },
-    "footer": "TestBoard PASKER ID · Pusat Pasar Kerja, Ministry of Manpower"
+    "footer": "TestBoard PASKER ID · Pusat Pasar Kerja, Ministry of Manpower",
+    "activate": {
+      "offer": "The organisers made accounts for some of you. Activate yours so you can sign in yourself later.",
+      "open": "Activate my account",
+      "title": "Activate my account",
+      "intro": "Choose your name, then create a password. Only once; afterwards you can sign in with your e-mail on any device.",
+      "who": "Your name",
+      "password": "New password",
+      "passwordHint": "At least 8 characters. Do not use your e-mail name.",
+      "repeat": "Repeat the password",
+      "submit": "Activate account",
+      "chooseFirst": "Choose your name first.",
+      "tooShort": "The password needs at least 8 characters.",
+      "mismatch": "The two passwords are not the same.",
+      "alreadyActive": "This account is already active. If you forgot the password, use \"Forgot password?\" on the sign-in page.",
+      "doneTitle": "Your account is active",
+      "doneBody": "You can now sign in with the e-mail {{email}} and that password, through User account on the sign-in page.",
+      "doneNote": "You can keep testing at this table as usual."
+    }
   },
   "workshop": {
     "title": "Workshop mode: {{cycle}}",
@@ -1849,7 +1874,7 @@
       "created": "{{name}} created. Print its card with Print card.",
       "editTitle": "Edit {{name}}",
       "createTitle": "Create a table",
-      "createHint": "The card code is generated. Member names may be filled in later by the table.",
+      "createHint": "The card code is created automatically. Names can be entered now or later by the table itself.",
       "name": "Table name",
       "namePlaceholder": "e.g. Table 1",
       "run": "Test run",
@@ -1858,8 +1883,8 @@
       "noRun": "Not chosen",
       "features": "Features to test",
       "featuresEmpty": "Choose a test run first; features come from its scenarios.",
-      "members": "Members",
-      "membersHint": "One name per line. Text only, no accounts are created.",
+      "members": "People at the table",
+      "membersHint": "Enter each person's name. The e-mail may stay empty; when given, the person gets a User account (Tester) they activate themselves, and their name can be chosen at the table right away.",
       "validFrom": "Valid from",
       "validUntil": "Valid until",
       "defaultPrefix": "Table",
@@ -1919,7 +1944,14 @@
           "body": "Only a table that never answered can be deleted.",
           "action": "Delete"
         }
-      }
+      },
+      "memberName": "Name of person {{n}}",
+      "memberEmail": "E-mail (optional)",
+      "memberEmailPlaceholder": "name@example.go.id",
+      "accountActive": "Account active",
+      "activationLink": "Activation link",
+      "removeMember": "Remove person {{name}}",
+      "addMember": "Add a person"
     },
     "inbox": {
       "intro": "Problems sent by tables arrive here. Set the impact, merge it when it is the same as another problem, then mark it reviewed.",
@@ -2470,5 +2502,39 @@
       "body": "In TestBoard, the Pusat Pasar Kerja team and participants try services together, record the results and report problems before the public uses them.",
       "guide": "Read how to sign in"
     }
+  },
+  "activation": {
+    "title": "Activation link for {{name}}",
+    "intro": "Give this link to the person. With it they choose their own password and can then sign in with their e-mail.",
+    "making": "Creating the link...",
+    "linkLabel": "Activation link (single use)",
+    "validUntil": "Valid until {{until}}.",
+    "copy": "Copy link",
+    "whatsapp": "Send via WhatsApp",
+    "whatsappText": "Hello {{name}}, here is the link to activate your TestBoard PASKER ID account. Open it and choose your own password: {{url}} (valid until {{until}}).",
+    "note": "The link is only shown here. If it is lost or expires, create a new one; the old link stops working."
+  },
+  "tasks": {
+    "title": "My tasks",
+    "subtitle": "Everything assigned to you, across all projects you are a member of.",
+    "tablesTitle": "My tables (Workshop Mode)",
+    "tablesHint": "Tables where you are listed. Open a table to test together with your group.",
+    "tableLine": "As {{name}} · {{cycle}} · {{project}}",
+    "validUntil": "Table card valid until {{date}}",
+    "openTable": "Open this table",
+    "openTitle": "Open {{table}} on this device?",
+    "openBody": "This device switches to the table screen with {{name}} already chosen. Your account signs out of this device; sign in again any time with your e-mail and password.",
+    "runsTitle": "Test sheets assigned to me",
+    "runsHint": "Scenarios you should try yourself and record the results of.",
+    "runLine": "{{project}} · {{done}} of {{total}} scenarios tried",
+    "progress": "Progress",
+    "continue": "Continue",
+    "view": "View",
+    "bugsTitle": "Problems I reported",
+    "bugLine": "{{open}} still being handled out of {{total}} reports",
+    "emptyTitle": "No tasks yet",
+    "empty": "No table or scenario is assigned to you yet. An Admin will add you to a table or assign test scenarios.",
+    "toProjects": "See my projects",
+    "footer": "Only your own tasks are shown here. Other people's tasks are not."
   }
 }

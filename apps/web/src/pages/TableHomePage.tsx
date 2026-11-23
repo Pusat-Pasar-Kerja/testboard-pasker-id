@@ -36,7 +36,7 @@ export function TableHomePage() {
         </p>
       )}
 
-      <TesterPicker members={session.table.member_names} tester={tester} />
+      <TesterPicker members={session.table.members} tester={tester} />
 
       <section aria-labelledby="fitur-meja">
         <h2 id="fitur-meja" className="flex items-center gap-2 text-2xl font-bold">

@@ -23,6 +23,7 @@ import {
 import { writeAudit } from '../lib/audit.js'
 import { AppError } from '../lib/errors.js'
 import { parseBody } from '../lib/validation.js'
+import type { SettingsService } from '../settings/service.js'
 import type { AppEnv } from '../types.js'
 import { cycleRoutes } from './cycles.js'
 import { defectRoutes } from './defects.js'
@@ -90,7 +91,12 @@ async function projectRows(
   }))
 }
 
-export function projectRoutes(pool: Pool, files: FileService, imports: ImportStore) {
+export function projectRoutes(
+  pool: Pool,
+  files: FileService,
+  imports: ImportStore,
+  settings: SettingsService,
+) {
   const routes = new Hono<AppEnv>()
 
   routes.get('/projects', async (c) => {
@@ -178,7 +184,7 @@ export function projectRoutes(pool: Pool, files: FileService, imports: ImportSto
     return c.json({ ...updated, role_code: project.role })
   })
 
-  scoped.route('/members', memberRoutes(pool))
+  scoped.route('/members', memberRoutes(pool, settings))
   scoped.route('/modules', moduleRoutes(pool))
   scoped.route('/suites', suiteRoutes(pool))
   scoped.route('/test-cases', testCaseRoutes(pool))

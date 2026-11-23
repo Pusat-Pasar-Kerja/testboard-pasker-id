@@ -24,9 +24,10 @@ import { useDataSource } from '../../../services/use-data-source'
 import { Badge, type Tone } from '../../ui/Badge'
 import { Button } from '../../ui/Button'
 import { ConfirmDialog } from '../../ui/Dialog'
-import { FormAlert, SelectField, TextArea, TextField } from '../../ui/Form'
+import { FormAlert, SelectField, TextField } from '../../ui/Form'
 import { FormDialog } from '../../ui/FormDialog'
 import { EmptyState, ErrorState, LoadingState } from '../../ui/States'
+import { TableMembersEditor, type MemberRowState } from './TableMembersEditor'
 import { useToast } from '../../ui/toast-context'
 import { ProgressMeter } from '../ProgressMeter'
 
@@ -83,7 +84,12 @@ function TableFormDialog({
     name: table?.name ?? '',
     run_id: table?.run?.id ?? (cycleRuns.length === 1 ? (cycleRuns[0]?.id ?? '') : ''),
     module_ids: table?.modules.map((m) => m.id) ?? [],
-    members: (table?.member_names ?? []).join('\n'),
+    members: (table?.members ?? []).map((m): MemberRowState => ({
+      name: m.name,
+      email: m.email ?? '',
+      account: m.account,
+      userId: m.user_id,
+    })),
     valid_from: table ? toLocalInput(table.valid_from) : window.from,
     valid_until: table ? toLocalInput(table.valid_until) : window.until,
   })
@@ -98,10 +104,9 @@ function TableFormDialog({
         name: form.name.trim(),
         run_id: runId || null,
         module_ids: form.module_ids,
-        member_names: form.members
-          .split('\n')
-          .map((s) => s.trim())
-          .filter(Boolean),
+        members: form.members
+          .filter((m) => m.name.trim())
+          .map((m) => ({ name: m.name.trim(), email: m.email.trim() || null })),
         valid_from: fromLocalInput(form.valid_from),
         valid_until: fromLocalInput(form.valid_until) ?? '',
       }
@@ -207,12 +212,10 @@ function TableFormDialog({
           </div>
         )}
       </fieldset>
-      <TextArea
-        label={t('workshop.tables.members')}
-        hint={t('workshop.tables.membersHint')}
-        rows={3}
-        value={form.members}
-        onChange={(e) => setForm({ ...form, members: e.target.value })}
+      <TableMembersEditor
+        code={code}
+        rows={form.members}
+        onChange={(members) => setForm({ ...form, members })}
       />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <TextField
@@ -270,7 +273,7 @@ function BulkDialog({
           name,
           run_id: (runId || cycleRuns[0]?.id) ?? null,
           module_ids: [],
-          member_names: [],
+          members: [],
           valid_from: fromLocalInput(window.from),
           valid_until: fromLocalInput(until) ?? '',
         })

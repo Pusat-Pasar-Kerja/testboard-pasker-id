@@ -17,10 +17,18 @@ import {
   type WorkshopFeatureDto,
   type WorkshopFeatureState,
   type WorkshopFileRef,
+  type TableMemberAccount,
+  type TableMemberDto,
+  type TableMember,
+  type TableSessionMember,
   type WorkshopTableDto,
 } from '@testboard/shared'
+import type { Context } from 'hono'
+import type { PoolConnection } from 'mysql2/promise'
 import { randomInt } from 'node:crypto'
-import { iso, parseJson, select, selectOne, type Db } from '../db/tx.js'
+import { ensureProjectTask, findOrCreatePerson, maskEmail } from '../access/people.js'
+import { execute, iso, parseJson, select, selectOne, type Db } from '../db/tx.js'
+import type { AppEnv } from '../types.js'
 import { AppError } from '../lib/errors.js'
 
 /**
@@ -56,13 +64,6 @@ export async function loadCycle(db: Db, projectId: string, cycleId: string): Pro
 export function publicFieldsOf(row: Pick<CycleRow, 'public_fields_json'>): PublicField[] {
   const value = parseJson<unknown>(row.public_fields_json)
   return normalizePublicFields(Array.isArray(value) ? value.map(String) : [])
-}
-
-export function memberNames(json: unknown): string[] {
-  const value = parseJson<unknown>(json)
-  return Array.isArray(value)
-    ? value.filter((v): v is string => typeof v === 'string' && v.trim() !== '')
-    : []
 }
 
 const placeholders = (n: number) => Array.from({ length: n }, () => '?').join(', ')
@@ -147,6 +148,129 @@ export interface TableRow {
   valid_until: Date
   revoked_at: Date | null
   created_at: Date
+}
+
+// ---- People at a table (migration 0014, ADR 0018) ------------------------------------------
+
+export interface TableMemberRow {
+  id: string
+  table_id: string
+  sort_order: number
+  display_name: string
+  user_id: string | null
+  email: string | null
+  has_password: number | null
+}
+
+export async function tableMemberRows(
+  db: Db,
+  tableIds: string[],
+): Promise<Map<string, TableMemberRow[]>> {
+  const out = new Map<string, TableMemberRow[]>()
+  if (tableIds.length === 0) return out
+  const rows = await select<TableMemberRow>(
+    db,
+    `SELECT m.id, m.table_id, m.sort_order, m.display_name, m.user_id, u.email,
+            u.password_hash IS NOT NULL AS has_password
+       FROM workshop_table_members m LEFT JOIN users u ON u.id = m.user_id
+      WHERE m.table_id IN (${placeholders(tableIds.length)})
+      ORDER BY m.table_id, m.sort_order, m.id`,
+    tableIds,
+  )
+  for (const row of rows) {
+    const key = String(row.table_id)
+    const list = out.get(key) ?? []
+    list.push(row)
+    out.set(key, list)
+  }
+  return out
+}
+
+export function memberAccount(row: TableMemberRow): TableMemberAccount {
+  if (row.user_id === null) return 'NONE'
+  return Number(row.has_password) === 1 ? 'ACTIVE' : 'NOT_ACTIVATED'
+}
+
+/** For Admins: with the full e-mail. */
+export const adminMemberDto = (row: TableMemberRow): TableMemberDto => ({
+  id: String(row.id),
+  name: row.display_name,
+  email: row.email,
+  user_id: row.user_id === null ? null : String(row.user_id),
+  account: memberAccount(row),
+})
+
+/** For the table itself: only a masked e-mail. */
+export const sessionMemberDto = (row: TableMemberRow): TableSessionMember => ({
+  id: String(row.id),
+  name: row.display_name,
+  account: memberAccount(row),
+  email_hint: row.email ? maskEmail(row.email) : null,
+})
+
+/**
+ * Replace a table's people (Admin). An e-mail becomes the person's User account (created
+ * when new, not activated) and gives them the Penguji task in the project.
+ */
+export async function saveTableMembers(
+  conn: PoolConnection,
+  c: Context<AppEnv>,
+  projectId: string,
+  tableId: string,
+  members: TableMember[],
+): Promise<void> {
+  const resolved: { name: string; userId: string | null }[] = []
+  for (const member of members) {
+    const name = member.name.trim()
+    let userId: string | null = null
+    if (member.email) {
+      const person = await findOrCreatePerson(conn, c, { email: member.email, display_name: name })
+      await ensureProjectTask(conn, c, projectId, person.userId)
+      userId = person.userId
+    }
+    resolved.push({ name, userId })
+  }
+  await execute(conn, 'DELETE FROM workshop_table_members WHERE table_id = ?', [tableId])
+  for (const [index, member] of resolved.entries()) {
+    await execute(
+      conn,
+      `INSERT INTO workshop_table_members (table_id, sort_order, display_name, user_id)
+       VALUES (?, ?, ?, ?)`,
+      [tableId, index, member.name, member.userId],
+    )
+  }
+}
+
+/**
+ * Names typed at the table itself: only people without an account change; people an Admin
+ * listed with an e-mail always stay (participants never change e-mails).
+ */
+export async function saveTableNamesFromTable(
+  conn: PoolConnection,
+  tableId: string,
+  names: string[],
+): Promise<void> {
+  const rows = (await tableMemberRows(conn, [tableId])).get(tableId) ?? []
+  const kept = rows.filter((row) => row.user_id !== null)
+  const taken = new Set(kept.map((row) => row.display_name.toLocaleLowerCase('id')))
+  const fresh: string[] = []
+  for (const name of names) {
+    const key = name.trim().toLocaleLowerCase('id')
+    if (!key || taken.has(key)) continue
+    taken.add(key)
+    fresh.push(name.trim().slice(0, 100))
+  }
+  await execute(conn, 'DELETE FROM workshop_table_members WHERE table_id = ? AND user_id IS NULL', [
+    tableId,
+  ])
+  const start = kept.reduce((max, row) => Math.max(max, Number(row.sort_order) + 1), 0)
+  for (const [index, name] of fresh.entries()) {
+    await execute(
+      conn,
+      'INSERT INTO workshop_table_members (table_id, sort_order, display_name) VALUES (?, ?, ?)',
+      [tableId, start + index, name],
+    )
+  }
 }
 
 export async function tableModules(db: Db, tableIds: string[]): Promise<Map<string, ModuleRef[]>> {
@@ -264,10 +388,11 @@ export async function listTables(
     [projectId, cycleId, tableId ?? null, tableId ?? null],
   )
   const ids = rows.map((r) => String(r.id))
-  const [modules, progress, activity] = await Promise.all([
+  const [modules, progress, activity, members] = await Promise.all([
     tableModules(db, ids),
     tableProgress(db, ids),
     tableActivity(db, rows),
+    tableMemberRows(db, ids),
   ])
   return rows.map((row) => {
     const id = String(row.id)
@@ -289,7 +414,8 @@ export async function listTables(
           }
         : null,
       modules: modules.get(id) ?? [],
-      member_names: memberNames(row.member_names_json),
+      member_names: (members.get(id) ?? []).map((m) => m.display_name),
+      members: (members.get(id) ?? []).map(adminMemberDto),
       access_code: row.access_code,
       ...dates,
       state: tableState(dates),

@@ -19,9 +19,11 @@ Perubahan schema **baru** di atas baseline (27 tabel). Forward-only, bernomor, d
 | `0011_remember_device.sql`       | 1 kolom `remember_device` (default 0) di `user_sessions`                                                                        | "Selalu login di perangkat ini" (ADR 0015)                                    | **Diterapkan (lokal)** |
 | `0012_workshop.sql`              | 4 tabel (fitur fase, meja, fitur per meja, +1 masalah) + 3 kolom di `test_cycles` + 3 kolom NULL di `defects`                   | Mode Workshop: fase publik per data, kartu meja QR, tinjau masalah (ADR 0016) | **Diterapkan (lokal)** |
 | `0013_three_tier_roles.sql`      | Tanpa kolom baru: peran situs `ADMIN` untuk bekas Admin/QA Lead proyek; `ADMIN`/`QA_LEAD` di `project_members` menjadi `TESTER` | Tiga tingkat peran (ADR 0017)                                                 | **Diterapkan (lokal)** |
+| `0014_table_members.sql`         | 1 tabel `workshop_table_members` (nama + akun Pengguna per anggota meja); nama lama dari `member_names_json` disalin            | Anggota meja dengan email (ADR 0018)                                          | **Diterapkan (lokal)** |
 
 Dampak ke database:
 
+- 0014 (ADR 0018) **menambah 1 tabel** (`workshop_table_members`) dan menyalin nama anggota yang sudah ada; kolom `member_names_json` tidak dihapus.
 - 0013 (ADR 0017) **tidak** menambah kolom atau tabel: memberi peran situs Admin kepada akun yang pernah menjadi Admin/QA Lead proyek dan mengubah baris `ADMIN`/`QA_LEAD` di `project_members` menjadi `TESTER`.
 - 0001-0005, 0008, dan 0012 **menambah tabel baru** (5 + 2 + 4). 0006, 0007, 0009, 0010, 0011, dan 0012 hanya **menambah** kolom (3 kolom NULL di `file_objects`; 1 kolom default 0 di `user_system_roles`), tidak mengubah/menghapus kolom atau data. Tidak ada `DROP`.
 - Grant `testboard_app` di VPS (`SELECT, INSERT, UPDATE, DELETE ON testboard.*`) otomatis mencakup tabel baru; tidak perlu grant tambahan.

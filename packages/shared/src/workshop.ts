@@ -3,6 +3,7 @@ import type { IdString } from './api.js'
 import type { DefectSeverity, DefectStatus, ExecutionStatus, RunStatus } from './enums.js'
 import { DEFECT_PRIORITIES, DEFECT_SEVERITIES } from './enums.js'
 import { evidenceRefSchema } from './files.js'
+import { emailSchema, passwordSchema } from './schemas.js'
 import { wordTokens } from './similarity.js'
 
 /**
@@ -104,6 +105,41 @@ export const memberNamesSchema = z
   .max(30)
   .transform((names) => [...new Set(names)])
 
+/**
+ * One person at a table (owner, 2026-11-24): a name, and optionally the e-mail an Admin
+ * entered. An e-mail makes the person a User account (Penguji in the project) that they
+ * activate later; participants at the table never type e-mails.
+ */
+export const tableMemberInputSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  email: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? null : value),
+    emailSchema.nullable().optional(),
+  ),
+})
+export type TableMemberInput = z.input<typeof tableMemberInputSchema>
+export type TableMember = z.output<typeof tableMemberInputSchema>
+
+export const tableMembersSchema = z
+  .array(tableMemberInputSchema)
+  .max(30)
+  .superRefine((members, ctx) => {
+    const names = new Set<string>()
+    const emails = new Set<string>()
+    members.forEach((member, index) => {
+      const name = member.name.toLocaleLowerCase('id')
+      if (names.has(name)) {
+        ctx.addIssue({ code: 'custom', path: [index, 'name'], message: 'DUPLICATE_NAME' })
+      }
+      names.add(name)
+      const email = member.email?.toLowerCase()
+      if (email && emails.has(email)) {
+        ctx.addIssue({ code: 'custom', path: [index, 'email'], message: 'DUPLICATE_EMAIL' })
+      }
+      if (email) emails.add(email)
+    })
+  })
+
 const isoDateTime = z.iso.datetime({ offset: true })
 
 export const workshopTableCreateSchema = z
@@ -111,7 +147,7 @@ export const workshopTableCreateSchema = z
     name: z.string().trim().min(1).max(120),
     run_id: idString.nullable(),
     module_ids: z.array(idString).max(200),
-    member_names: memberNamesSchema.default([]),
+    members: tableMembersSchema.default([]),
     valid_from: isoDateTime.nullable().optional(),
     valid_until: isoDateTime,
   })
@@ -126,7 +162,7 @@ export const workshopTableUpdateSchema = z
     name: z.string().trim().min(1).max(120).optional(),
     run_id: idString.nullable().optional(),
     module_ids: z.array(idString).max(200).optional(),
-    member_names: memberNamesSchema.optional(),
+    members: tableMembersSchema.optional(),
     valid_from: isoDateTime.nullable().optional(),
     valid_until: isoDateTime.optional(),
     /** New 6-digit code; printed cards with the old code stop working. */
@@ -144,7 +180,14 @@ export const workshopJoinSchema = z.object({
     .pipe(z.string().regex(/^\d{6}$/)),
 })
 
+/** From the table itself: the names without an account (members with one stay as they are). */
 export const workshopMembersSchema = z.object({ member_names: memberNamesSchema })
+
+/** "Aktifkan akun saya" at the table: a listed member without a password chooses one. */
+export const workshopActivateSchema = z.object({ password: passwordSchema })
+
+/** A signed-in User opens the Mode Mudah of a table they are listed at ("Tugas saya"). */
+export const workshopJoinAsMemberSchema = z.object({ table_id: idString })
 
 /** Tester name chosen on the device ("Yang mengisi"); text only, never an account. */
 const testerName = z
@@ -255,6 +298,27 @@ export interface ModuleRef {
   name: string
 }
 
+/** NONE = a name only; NOT_ACTIVATED = a User account without a password yet. */
+export type TableMemberAccount = 'NONE' | 'NOT_ACTIVATED' | 'ACTIVE'
+
+/** A table member as Admins see it (with the e-mail). */
+export interface TableMemberDto {
+  id: IdString
+  name: string
+  email: string | null
+  user_id: IdString | null
+  account: TableMemberAccount
+}
+
+/** A table member as the table itself sees it: never the full e-mail. */
+export interface TableSessionMember {
+  id: IdString
+  name: string
+  account: TableMemberAccount
+  /** Masked e-mail ("b***@gmail.com") so a member recognises their own account. */
+  email_hint: string | null
+}
+
 export interface WorkshopTableDto {
   id: IdString
   name: string
@@ -262,6 +326,7 @@ export interface WorkshopTableDto {
   run: { id: IdString; run_code: string; name: string; status_code: RunStatus } | null
   modules: ModuleRef[]
   member_names: string[]
+  members: TableMemberDto[]
   access_code: string
   valid_from: string | null
   valid_until: string
@@ -281,7 +346,7 @@ export interface WorkshopFeatureDto {
 }
 
 export interface WorkshopSessionDto {
-  table: { id: IdString; name: string; member_names: string[] }
+  table: { id: IdString; name: string; member_names: string[]; members: TableSessionMember[] }
   project: { code: string; name: string }
   cycle: { id: IdString; cycle_code: string; title: string }
   run: { id: IdString; name: string; status_code: RunStatus } | null
@@ -448,4 +513,31 @@ export function textCloseness(a: string, b: string): number {
 /** Random 6-digit card code (never starts with 0 so it reads well when printed). */
 export function newAccessCode(random: () => number = Math.random): string {
   return String(100000 + Math.floor(random() * 900000))
+}
+
+// ---- "Tugas saya" (a User's own work, owner 2026-11-24) -----------------------------------
+
+export interface MyTableTask {
+  table: { id: IdString; name: string }
+  member: { id: IdString; name: string }
+  project: { code: string; name: string }
+  cycle: { id: IdString; title: string }
+  valid_from: string | null
+  valid_until: string
+  state: WorkshopTableState
+}
+
+export interface MyRunTask {
+  project: { code: string; name: string }
+  run: { id: IdString; name: string; status_code: RunStatus }
+  assigned: number
+  done: number
+  /** First assigned scenario not tried yet (to continue straight away). */
+  next_run_case_id: IdString | null
+}
+
+export interface MyTasksDto {
+  tables: MyTableTask[]
+  runs: MyRunTask[]
+  bugs: { project: { code: string; name: string }; open: number; total: number }[]
 }

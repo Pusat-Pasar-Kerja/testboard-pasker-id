@@ -2,6 +2,23 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.16.0] - 2026-11-24
+
+Perombakan tahap 3: **anggota meja dengan akun Pengguna**, aktivasi akun, dan **Tugas saya** (ADR 0018, migration `0014`).
+
+### Ditambahkan
+
+- Formulir meja: setiap anggota punya **Nama** dan **Email (opsional)**. Email yang diisi otomatis menjadi **akun Pengguna** (tugas Penguji di proyek) yang belum aktif. Peserta di meja tidak pernah mengetik email: cukup pindai QR / ketik kode, lalu ketuk namanya.
+- **Tautan aktivasi** dari Admin (di Anggota & tugas dan di formulir meja): tautan sekali pakai untuk membuat kata sandi sendiri, bisa **disalin** atau **dikirim lewat WhatsApp**.
+- **"Aktifkan akun saya"** di layar meja, hanya untuk anggota yang didaftarkan Admin dan belum punya kata sandi, dan hanya sekali. Meja hanya melihat email yang disamarkan (mis. `b***@gmail.com`).
+- Halaman **Tugas saya**: meja tempat Anda terdaftar (tombol **Buka meja ini** tanpa kode kartu, nama Anda langsung terpilih), lembar uji yang ditugaskan (tombol **Lanjutkan**), dan masalah yang Anda laporkan.
+- Halaman tautan aktivasi memakai kata "Aktifkan akun Anda".
+
+### Diubah
+
+- **Migration `0014`**: tabel baru `workshop_table_members`; nama anggota meja yang sudah ada disalin otomatis.
+- Nama anggota yang punya akun tidak bisa dihapus atau diganti dari layar meja; nama lain tetap bisa diatur oleh meja.
+
 ## [0.15.0] - 2026-11-24
 
 Perombakan tahap 2: **tiga tingkat peran** yang mudah dijelaskan (ADR 0017, migration `0013`).

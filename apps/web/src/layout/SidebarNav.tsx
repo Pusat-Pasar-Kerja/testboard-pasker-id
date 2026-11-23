@@ -2,6 +2,7 @@ import {
   BookOpen,
   Bug,
   CalendarRange,
+  ClipboardCheck,
   ChartColumn,
   FileUp,
   FolderCog,
@@ -109,6 +110,10 @@ export function SidebarNav({
           </ul>
         )}
         <div className={projectCode ? 'mt-4 border-t border-line pt-4' : ''}>
+          <NavLink to="/tugas" className={linkClass} onClick={onNavigate}>
+            <ClipboardCheck aria-hidden="true" className="size-5 shrink-0" />
+            <span>{t('nav.myTasks')}</span>
+          </NavLink>
           <NavLink to="/projects" end className={linkClass} onClick={onNavigate}>
             <FolderKanban aria-hidden="true" className="size-5 shrink-0" />
             <span>{t('nav.projects')}</span>

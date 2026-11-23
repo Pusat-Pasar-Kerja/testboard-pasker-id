@@ -87,6 +87,7 @@ const pages: RouteObject[] = [
         ...page(async () => (await import('./pages/ProjectsPage')).ProjectsPage),
       },
       { path: '/profile', ...page(async () => (await import('./pages/ProfilePage')).ProfilePage) },
+      { path: '/tugas', ...page(async () => (await import('./pages/MyTasksPage')).MyTasksPage) },
       { path: '/admin', element: <Navigate to="/admin/projects" replace /> },
       {
         path: '/admin/projects',

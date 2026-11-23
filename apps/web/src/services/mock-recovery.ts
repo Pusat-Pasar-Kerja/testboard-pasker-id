@@ -3,6 +3,7 @@ import {
   recoveryRequestUpdateSchema,
   resetLinkIssueSchema,
   resetPasswordSchema,
+  type ActivationLinkDto,
   type IssuedResetLink,
   type RecoveryKind,
   type RecoveryRequestDto,
@@ -68,6 +69,9 @@ interface Context {
   isPermanent: (userId: string) => boolean
   isActive: (userId: string) => boolean
   linkHours: () => number
+  /** false = the account never had a password (made from a name + e-mail). */
+  isActivated: (userId: string) => boolean
+  activate: (userId: string) => void
   audit: (entityType: string, entityId: string, action: string, newValues?: unknown) => void
   newId: () => string
 }
@@ -273,6 +277,7 @@ export function createMockRecovery(ctx: Context) {
           display_name: owner?.display_name ?? '',
           issued_at: link.issuedAt,
           expires_at: link.expiresAt,
+          activation: !ctx.isActivated(link.userId),
         }
       }),
 
@@ -289,6 +294,7 @@ export function createMockRecovery(ctx: Context) {
         }
         link.active = false
         link.usedAt = now().toISOString()
+        ctx.activate(link.userId)
         for (const r of requests) {
           if (r.userId === link.userId && r.status === 'OPEN') {
             r.status = 'RESOLVED'
@@ -426,6 +432,38 @@ export function createMockRecovery(ctx: Context) {
 
   return {
     methods,
+    /** Same rules as the API: only an active account that never had a password. */
+    activationLink(userId: string): ActivationLinkDto {
+      if (!user(userId)) throw error(404, 'NOT_FOUND')
+      if (!ctx.isActive(userId)) {
+        throw new ApiClientError(409, 'CONFLICT', 'Inactive', 'mock-request', [
+          { field: 'user', message: 'ACCOUNT_INACTIVE' },
+        ])
+      }
+      if (ctx.isActivated(userId)) {
+        throw new ApiClientError(409, 'CONFLICT', 'Active', 'mock-request', [
+          { field: 'user', message: 'ALREADY_ACTIVE' },
+        ])
+      }
+      const current = activeLink(userId)
+      if (current) revoke(current)
+      const issued = now()
+      const link: MockLink = {
+        id: ctx.newId(),
+        userId,
+        token: randomToken(),
+        active: true,
+        issuedAt: issued.toISOString(),
+        expiresAt: new Date(issued.getTime() + ctx.linkHours() * HOUR).toISOString(),
+        issuedBy: ctx.currentUserId(),
+        requestId: null,
+        usedAt: null,
+        revokedAt: null,
+      }
+      links.push(link)
+      ctx.audit('reset_link', link.id, 'CREATE', { user_id: userId, activation: true })
+      return { token: link.token, expires_at: link.expiresAt }
+    },
     /** For the users list: the account's active link (validity only). */
     activeLinkOf(userId: string) {
       const link = activeLink(userId)

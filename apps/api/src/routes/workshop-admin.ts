@@ -40,7 +40,8 @@ import {
   freeAccessCode,
   listTables,
   loadCycle,
-  memberNames,
+  saveTableMembers,
+  tableMemberRows,
   publicFieldsOf,
   toWorkshopBugs,
   type TableRow,
@@ -234,16 +235,15 @@ export function workshopAdminRoutes(pool: Pool) {
           const result = await execute(
             conn,
             `INSERT INTO workshop_tables
-               (project_id, cycle_id, run_id, user_id, name, member_names_json, access_code,
+               (project_id, cycle_id, run_id, user_id, name, access_code,
                 valid_from, valid_until, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               project.id,
               cycle.id,
               input.run_id,
               insertedId(user),
               input.name,
-              JSON.stringify(input.member_names),
               await freeAccessCode(conn),
               input.valid_from ? new Date(input.valid_from) : null,
               new Date(input.valid_until),
@@ -263,6 +263,8 @@ export function workshopAdminRoutes(pool: Pool) {
       }
       if (!id) throw new AppError(503, 'SERVICE_UNAVAILABLE', 'Could not create the table card.')
       await setTableModules(conn, id, moduleIds)
+      // People with an e-mail become User accounts (Penguji) right here (ADR 0018).
+      await saveTableMembers(conn, c, project.id, id, input.members)
       await writeAudit(conn, c, {
         projectId: project.id,
         entityType: 'workshop_table',
@@ -272,7 +274,7 @@ export function workshopAdminRoutes(pool: Pool) {
           name: input.name,
           run_id: input.run_id,
           module_ids: moduleIds,
-          member_names: input.member_names,
+          member_names: input.members.map((m) => m.name),
           valid_from: input.valid_from ?? null,
           valid_until: input.valid_until,
         },
@@ -314,7 +316,7 @@ export function workshopAdminRoutes(pool: Pool) {
         await execute(
           conn,
           `UPDATE workshop_tables
-              SET name = ?, run_id = ?, member_names_json = ?, access_code = ?,
+              SET name = ?, run_id = ?, access_code = ?,
                   valid_from = ?, valid_until = ?,
                   revoked_at = CASE WHEN ? = 1 THEN COALESCE(revoked_at, UTC_TIMESTAMP(3))
                                     WHEN ? = 0 THEN NULL ELSE revoked_at END
@@ -322,7 +324,6 @@ export function workshopAdminRoutes(pool: Pool) {
           [
             input.name ?? before.name,
             input.run_id === undefined ? before.run_id : input.run_id,
-            input.member_names ? JSON.stringify(input.member_names) : before.member_names_json,
             code,
             validFrom,
             validUntil,
@@ -342,6 +343,8 @@ export function workshopAdminRoutes(pool: Pool) {
         ])
       }
       if (moduleIds) await setTableModules(conn, tableId, moduleIds)
+      const membersBefore = (await tableMemberRows(conn, [tableId])).get(tableId) ?? []
+      if (input.members) await saveTableMembers(conn, c, project.id, tableId, input.members)
       // A new code or a blocked card signs every device of this table out right away; a
       // shorter validity shortens the open sessions too.
       if (input.regenerate_code || input.revoked === true) {
@@ -362,12 +365,17 @@ export function workshopAdminRoutes(pool: Pool) {
         oldValues: {
           name: before.name,
           run_id: before.run_id === null ? null : String(before.run_id),
-          member_names: memberNames(before.member_names_json),
+          member_names: membersBefore.map((m) => m.display_name),
           valid_from: iso(before.valid_from),
           valid_until: iso(before.valid_until),
           revoked: Boolean(before.revoked_at),
         },
-        newValues: { ...input, module_ids: moduleIds ?? undefined },
+        newValues: {
+          ...input,
+          members: undefined,
+          member_names: input.members?.map((m) => m.name),
+          module_ids: moduleIds ?? undefined,
+        },
       })
     })
     const [updated] = await listTables(pool, project.id, String(cycle.id), tableId)

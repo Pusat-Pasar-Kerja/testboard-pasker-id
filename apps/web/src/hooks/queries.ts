@@ -18,6 +18,12 @@ export function useCurrentUser() {
   return useQuery({ queryKey: ['me'], queryFn: () => ds.getCurrentUser(), staleTime: 60_000 })
 }
 
+/** "Tugas saya": the signed-in person's own tables, scenarios and reports. */
+export function useMyTasks() {
+  const ds = useDataSource()
+  return useQuery({ queryKey: ['my-tasks'], queryFn: () => ds.getMyTasks() })
+}
+
 export function useProjects() {
   const ds = useDataSource()
   return useQuery({ queryKey: ['projects'], queryFn: () => ds.listProjects() })

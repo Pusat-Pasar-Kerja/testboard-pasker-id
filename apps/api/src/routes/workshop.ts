@@ -7,6 +7,8 @@ import {
   textCloseness,
   workshopBugSchema,
   workshopConfirmSchema,
+  workshopActivateSchema,
+  workshopJoinAsMemberSchema,
   workshopJoinSchema,
   workshopMembersSchema,
   workshopResultSchema,
@@ -21,7 +23,8 @@ import type { Context } from 'hono'
 import { Hono } from 'hono'
 import type { Pool, PoolConnection } from 'mysql2/promise'
 import { requireAuth } from '../auth/middleware.js'
-import { clientIp, createSession } from '../auth/sessions.js'
+import { hashPassword } from '../auth/passwords.js'
+import { clientIp, createSession, revokeSession } from '../auth/sessions.js'
 import type { AppConfig } from '../config/env.js'
 import { execute, iso, select, selectOne, withTransaction, type Db } from '../db/tx.js'
 import { linkFiles, assertAttachable } from '../files/attach.js'
@@ -36,7 +39,9 @@ import {
   cycleBugRows,
   caseView,
   featureCases,
-  memberNames,
+  saveTableNamesFromTable,
+  sessionMemberDto,
+  tableMemberRows,
   tableModules,
   toWorkshopBugs,
   type TableRow,
@@ -140,11 +145,14 @@ async function featureProgress(db: Db, ctx: TableContext): Promise<WorkshopFeatu
 }
 
 async function sessionDto(db: Db, ctx: TableContext): Promise<WorkshopSessionDto> {
+  const tableId = String(ctx.table.id)
+  const members = (await tableMemberRows(db, [tableId])).get(tableId) ?? []
   return {
     table: {
-      id: String(ctx.table.id),
+      id: tableId,
       name: ctx.table.name,
-      member_names: memberNames(ctx.table.member_names_json),
+      member_names: members.map((m) => m.display_name),
+      members: members.map(sessionMemberDto),
     },
     project: { code: ctx.project.code, name: ctx.project.name },
     cycle: ctx.cycle,
@@ -278,8 +286,20 @@ export function workshopRoutes(
         { field: 'code', message: state },
       ])
     }
+    return c.json(await openTableSession(c, table))
+  })
+
+  /** Sign this device in as the table (card code, or a listed member from "Tugas saya"). */
+  async function openTableSession(
+    c: Context<AppEnv>,
+    table: TableRow,
+    extra?: { memberName: string },
+  ): Promise<WorkshopSessionDto> {
     const sessionConfig = await settings.sessionConfig(config)
+    const previous = c.get('auth')
     await withTransaction(pool, async (conn) => {
+      // A person's own session on this device ends: the device now belongs to the table.
+      if (previous?.sessionId) await revokeSession(conn, previous.sessionId)
       await createSession(conn, c, sessionConfig, String(table.user_id), {
         expiresAt: table.valid_until,
       })
@@ -288,6 +308,7 @@ export function workshopRoutes(
         entityType: 'workshop_table',
         entityId: String(table.id),
         action: 'LOGIN',
+        ...(extra ? { newValues: { member: extra.memberName } } : {}),
       })
     })
     // The new cookie is not on this request yet: build the answer from the table itself.
@@ -302,7 +323,39 @@ export function workshopRoutes(
       csrfTokenHash: '',
       accountKind: 'TABLE',
     })
-    return c.json(await sessionDto(pool, await tableContext(pool, c)))
+    return sessionDto(pool, await tableContext(pool, c))
+  }
+
+  // ---- A User opens their own table from "Tugas saya" (no card code needed) --------------
+  routes.post('/join-member', async (c) => {
+    const auth = requireAuth(c)
+    if (auth.accountKind !== 'PERSON') throw new AppError(404, 'NOT_FOUND', 'Not found.')
+    const input = await parseBody(c, workshopJoinAsMemberSchema)
+    const table = await selectOne<TableRow & { is_archived: number; member_name: string }>(
+      pool,
+      `SELECT t.*, p.is_archived, m.display_name AS member_name
+         FROM workshop_table_members m
+         JOIN workshop_tables t ON t.id = m.table_id
+         JOIN projects p ON p.id = t.project_id
+        WHERE m.table_id = ? AND m.user_id = ?`,
+      [input.table_id, auth.userId],
+    )
+    if (!table) throw new AppError(404, 'NOT_FOUND', 'Not found.')
+    const state =
+      Number(table.is_archived) === 1
+        ? 'REVOKED'
+        : tableState({
+            valid_from: iso(table.valid_from),
+            valid_until: iso(table.valid_until) ?? '',
+            revoked_at: iso(table.revoked_at),
+          })
+    if (state !== 'ACTIVE') {
+      throw new AppError(409, 'CONFLICT', 'This table card is not valid now.', [
+        { field: 'table', message: state },
+      ])
+    }
+    const session = await openTableSession(c, table, { memberName: table.member_name })
+    return c.json({ session, member_name: table.member_name })
   })
 
   routes.get('/session', async (c) => {
@@ -313,18 +366,62 @@ export function workshopRoutes(
   routes.put('/members', async (c) => {
     const ctx = await tableContext(pool, c)
     const input = await parseBody(c, workshopMembersSchema)
+    const tableId = String(ctx.table.id)
     await withTransaction(pool, async (conn) => {
-      await execute(conn, 'UPDATE workshop_tables SET member_names_json = ? WHERE id = ?', [
-        JSON.stringify(input.member_names),
-        ctx.table.id,
-      ])
+      const before = (await tableMemberRows(conn, [tableId])).get(tableId) ?? []
+      await saveTableNamesFromTable(conn, tableId, input.member_names)
+      const after = (await tableMemberRows(conn, [tableId])).get(tableId) ?? []
       await writeAudit(conn, c, {
         projectId: ctx.project.id,
         entityType: 'workshop_table',
-        entityId: String(ctx.table.id),
+        entityId: tableId,
         action: 'UPDATE',
-        oldValues: { member_names: memberNames(ctx.table.member_names_json) },
-        newValues: { member_names: input.member_names },
+        oldValues: { member_names: before.map((m) => m.display_name) },
+        newValues: { member_names: after.map((m) => m.display_name) },
+      })
+    })
+    return c.json(await sessionDto(pool, await tableContext(pool, c)))
+  })
+
+  // ---- "Aktifkan akun saya": a listed member chooses a password at their table -----------
+  routes.post('/members/:memberId/activate', async (c) => {
+    const ctx = await tableContext(pool, c)
+    const memberId = idParam(c, 'memberId')
+    const input = await parseBody(c, workshopActivateSchema)
+    const member = await selectOne<{ user_id: string | null; email: string | null }>(
+      pool,
+      `SELECT m.user_id, u.email FROM workshop_table_members m
+         LEFT JOIN users u ON u.id = m.user_id
+        WHERE m.id = ? AND m.table_id = ?`,
+      [memberId, ctx.table.id],
+    )
+    if (!member?.user_id || !member.email) throw new AppError(404, 'NOT_FOUND', 'Not found.')
+    if (input.password.toLowerCase().includes(member.email.split('@')[0] ?? '\u0000')) {
+      throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+        { field: 'password', message: 'Password must not contain your e-mail name' },
+      ])
+    }
+    const passwordHash = await hashPassword(input.password)
+    await withTransaction(pool, async (conn) => {
+      // Only once, and only for an account that never had a password (an Admin's link or the
+      // "Lupa kata sandi" request handles everything else).
+      const result = await execute(
+        conn,
+        `UPDATE users SET password_hash = ?
+          WHERE id = ? AND password_hash IS NULL AND auth_provider = 'LOCAL' AND is_active = 1`,
+        [passwordHash, member.user_id],
+      )
+      if (result.affectedRows !== 1) {
+        throw new AppError(409, 'CONFLICT', 'This account is already active.', [
+          { field: 'member', message: 'ALREADY_ACTIVE' },
+        ])
+      }
+      await writeAudit(conn, c, {
+        projectId: ctx.project.id,
+        entityType: 'user',
+        entityId: String(member.user_id),
+        action: 'ACTIVATE',
+        newValues: { via: 'table', table: ctx.table.name },
       })
     })
     return c.json(await sessionDto(pool, await tableContext(pool, c)))

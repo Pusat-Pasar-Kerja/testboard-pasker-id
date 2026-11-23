@@ -13,8 +13,9 @@ import {
   type ResetLinkDto,
   type ResetLinkProblem,
 } from '@testboard/shared'
+import type { Context } from 'hono'
 import { Hono } from 'hono'
-import type { Pool } from 'mysql2/promise'
+import type { Pool, PoolConnection } from 'mysql2/promise'
 import { emailHash } from '../auth/login-attempts.js'
 import { requireSuperAdmin } from '../auth/middleware.js'
 import { hashPassword } from '../auth/passwords.js'
@@ -167,6 +168,67 @@ async function recoveryRequests(
 }
 
 /** Links whose time ran out no longer count as "active" (frees the one-per-account slot). */
+/**
+ * Activation link for an account an Admin made from a name and e-mail (ADR 0018): only for
+ * an active LOCAL account that never had a password and has no website role. An older
+ * link is replaced; the raw token is returned once.
+ */
+export async function issueActivationLink(
+  conn: PoolConnection,
+  c: Context<AppEnv>,
+  input: { userId: string; actorId: string; projectId: string; hours: number },
+): Promise<{ token: string; expiresAt: Date }> {
+  const user = await selectOne<{ is_active: number; auth_provider: string; activation: number }>(
+    conn,
+    `SELECT u.is_active, u.auth_provider, u.password_hash IS NULL AS activation
+       FROM users u
+      WHERE u.id = ?
+        AND NOT EXISTS (SELECT 1 FROM user_system_roles r WHERE r.user_id = u.id)
+      FOR UPDATE`,
+    [input.userId],
+  )
+  if (!user) throw new AppError(404, 'NOT_FOUND', 'Not found.')
+  if (Number(user.is_active) !== 1 || user.auth_provider !== 'LOCAL') {
+    throw new AppError(409, 'CONFLICT', 'Activate the account before issuing a link.', [
+      { field: 'user', message: 'ACCOUNT_INACTIVE' },
+    ])
+  }
+  if (Number(user.activation) !== 1) {
+    throw new AppError(409, 'CONFLICT', 'This account is already active.', [
+      { field: 'user', message: 'ALREADY_ACTIVE' },
+    ])
+  }
+  await releaseExpiredLinks(conn, input.userId)
+  await execute(
+    conn,
+    `UPDATE password_reset_links
+        SET active_user_id = NULL, revoked_at = UTC_TIMESTAMP(3), revoked_by = ?
+      WHERE active_user_id = ?`,
+    [input.actorId, input.userId],
+  )
+  const token = randomToken()
+  const result = await execute(
+    conn,
+    `INSERT INTO password_reset_links (user_id, token_hash, active_user_id, issued_by, expires_at)
+     VALUES (?, ?, ?, ?, UTC_TIMESTAMP(3) + INTERVAL ? HOUR)`,
+    [input.userId, sha256Hex(token), input.userId, input.actorId, input.hours],
+  )
+  const id = insertedId(result)
+  const row = await selectOne<{ expires_at: Date }>(
+    conn,
+    'SELECT expires_at FROM password_reset_links WHERE id = ?',
+    [id],
+  )
+  await writeAudit(conn, c, {
+    projectId: input.projectId,
+    entityType: 'reset_link',
+    entityId: id,
+    action: 'CREATE',
+    newValues: { user_id: input.userId, valid_hours: input.hours, activation: true },
+  })
+  return { token, expiresAt: row?.expires_at ?? new Date() }
+}
+
 async function releaseExpiredLinks(db: Db, userId: string) {
   await execute(
     db,
@@ -194,6 +256,7 @@ interface TokenRow {
   email: string
   display_name: string
   is_active: number
+  activation: number
 }
 
 /** The link behind a token, or a 404 that says why it cannot be used. */
@@ -202,7 +265,7 @@ async function usableLink(db: Db, token: string, forUpdate = false): Promise<Tok
     db,
     `SELECT l.id, l.user_id, l.active_user_id, l.used_at, l.revoked_at,
             l.expires_at <= UTC_TIMESTAMP(3) AS expired, l.issued_at, l.expires_at,
-            u.email, u.display_name, u.is_active
+            u.email, u.display_name, u.is_active, u.password_hash IS NULL AS activation
        FROM password_reset_links l JOIN users u ON u.id = l.user_id
       WHERE l.token_hash = ?${forUpdate ? ' FOR UPDATE' : ''}`,
     [sha256Hex(token)],
@@ -305,6 +368,7 @@ export function recoveryPublicRoutes(pool: Pool) {
       display_name: link.display_name,
       issued_at: iso(link.issued_at) as string,
       expires_at: iso(link.expires_at) as string,
+      activation: Number(link.activation) === 1,
     }
     return c.json(body)
   })

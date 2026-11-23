@@ -370,6 +370,8 @@ export function createMockDataSource(
     isPermanent: (userId) => permanentAdmins.has(userId),
     isActive: (userId) => !inactive.has(userId),
     linkHours: () => siteSettings['recovery.link_hours'],
+    isActivated: (userId) => !unactivated.has(userId),
+    activate: (userId) => unactivated.delete(userId),
     audit: (entityType, entityId, action, newValues) =>
       siteAudit('', entityType, entityId, action, undefined, newValues),
     newId,
@@ -1353,6 +1355,31 @@ export function createMockDataSource(
     nextBugCode,
     storeUpload,
     fileUrl: (fileId) => db.files.find((f) => f.id === fileId)?.url ?? '',
+    people: {
+      // Same as the API: an e-mail becomes a User account (not activated) and a Penguji.
+      ensurePerson: (email, name, projectId) => {
+        const address = email.trim().toLowerCase()
+        let person = db.users.find((u) => u.email === address)
+        if (!person) {
+          person = { id: newId(), display_name: name, email: address }
+          db.users.push(person)
+          unactivated.add(person.id)
+        }
+        const target = db.projects.find((p) => p.id === projectId)
+        if (
+          target &&
+          !managesAll(person.id) &&
+          !target.members.some((m) => m.userId === person.id)
+        ) {
+          target.members.push({ userId: person.id, role: 'TESTER' })
+        }
+        return person.id
+      },
+      isActivated: (userId) => !unactivated.has(userId),
+      activate: (userId) => unactivated.delete(userId),
+      emailOf: (userId) => db.users.find((u) => u.id === userId)?.email ?? null,
+      currentUserId: () => db.currentUserId,
+    },
   })
   workshop.seedDemo()
 
@@ -1424,6 +1451,13 @@ export function createMockDataSource(
         const member = p.members.find((m) => m.userId === userId) ?? notFound()
         member.role = role
         return memberDto(userId, role)
+      }),
+    createActivationLink: (code, userId) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'member.manage')
+        if (!p.members.some((m) => m.userId === userId)) notFound()
+        return recovery.activationLink(userId)
       }),
     removeMember: (code, userId) =>
       delay(() => {

@@ -1,9 +1,19 @@
 import { MEMBER_TASKS, type MemberDto, type MemberRole, type MemberTask } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Eye, FlaskConical, Info, UserMinus, UserPlus, Wrench, type LucideIcon } from 'lucide-react'
+import {
+  Eye,
+  FlaskConical,
+  Info,
+  KeyRound,
+  UserMinus,
+  UserPlus,
+  Wrench,
+  type LucideIcon,
+} from 'lucide-react'
 import { useId, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router'
+import { ActivationLinkDialog } from '../components/members/ActivationLinkDialog'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { ConfirmDialog } from '../components/ui/Dialog'
@@ -186,6 +196,7 @@ function MemberRow({
   const [confirmRemove, setConfirmRemove] = useState(false)
   // A task change is confirmed first (owner audit: nothing changes by accident).
   const [pendingRole, setPendingRole] = useState<MemberTask | null>(null)
+  const [linkOpen, setLinkOpen] = useState(false)
   const name = member.user.display_name
   const onError = (error: unknown) => toast.show(apiErrorText(t, error), 'error')
 
@@ -259,6 +270,11 @@ function MemberRow({
                 </option>
               ))}
             </select>
+            {member.user.is_active && !member.user.has_password && (
+              <Button variant="secondary" icon={KeyRound} onClick={() => setLinkOpen(true)}>
+                <span className="hidden sm:inline">{t('workshop.tables.activationLink')}</span>
+              </Button>
+            )}
             <Button
               variant="ghost"
               icon={UserMinus}
@@ -289,6 +305,14 @@ function MemberRow({
         onConfirm={() => pendingRole && changeRole.mutate(pendingRole)}
         onCancel={() => setPendingRole(null)}
       />
+      {linkOpen && (
+        <ActivationLinkDialog
+          code={code}
+          userId={member.user.id}
+          name={name}
+          onClose={() => setLinkOpen(false)}
+        />
+      )}
       <ConfirmDialog
         open={confirmRemove}
         title={t('pages.members.removeTitle', { name })}

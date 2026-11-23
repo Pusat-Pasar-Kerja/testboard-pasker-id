@@ -133,6 +133,14 @@ export interface ResetLinkCheck {
   display_name: string
   issued_at: string
   expires_at: string
+  /** The account never had a password: this link activates it (ADR 0018). */
+  activation: boolean
+}
+
+/** A one-time activation link an Admin gives a new member (the token is shown once). */
+export interface ActivationLinkDto {
+  token: string
+  expires_at: string
 }
 
 /** Remaining validity of a link at `now` (fraction 0..1 of the whole validity period). */

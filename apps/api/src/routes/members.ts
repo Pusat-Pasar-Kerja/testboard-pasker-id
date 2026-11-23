@@ -5,22 +5,18 @@ import {
   type MemberRole,
 } from '@testboard/shared'
 import { Hono } from 'hono'
-import type { Pool, PoolConnection } from 'mysql2/promise'
+import type { Pool } from 'mysql2/promise'
+import type { ActivationLinkDto } from '@testboard/shared'
+import { findOrCreatePerson } from '../access/people.js'
 import { requirePermission } from '../access/project-access.js'
-import {
-  execute,
-  insertedId,
-  isDuplicateKey,
-  iso,
-  select,
-  selectOne,
-  withTransaction,
-  type Db,
-} from '../db/tx.js'
+import { execute, iso, select, selectOne, withTransaction, type Db } from '../db/tx.js'
 import { writeAudit } from '../lib/audit.js'
 import { AppError } from '../lib/errors.js'
 import { idParam, parseBody } from '../lib/validation.js'
+import { requireAuth } from '../auth/middleware.js'
+import type { SettingsService } from '../settings/service.js'
 import type { AppEnv } from '../types.js'
+import { issueActivationLink } from './recovery.js'
 
 interface MemberRow {
   user_id: string
@@ -56,67 +52,36 @@ async function listMembers(db: Db, projectId: string, userId?: string): Promise<
 }
 
 /**
- * Find the person with this e-mail, or create their account when the Admin gave a name
- * (owner, 2026-11-24). A new account has no password until the person activates it with a
- * link from an Admin or at their table.
- */
-export async function findOrCreatePerson(
-  conn: PoolConnection,
-  c: Parameters<typeof writeAudit>[1],
-  input: { email: string; display_name?: string | undefined },
-): Promise<{ userId: string; created: boolean }> {
-  const user = await selectOne<{ id: string; auth_provider: string }>(
-    conn,
-    'SELECT id, auth_provider FROM users WHERE email = ? FOR UPDATE',
-    [input.email],
-  )
-  if (user) {
-    if (user.auth_provider === 'WORKSHOP') {
-      throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
-        { field: 'email', message: 'NOT_A_PERSON' },
-      ])
-    }
-    return { userId: String(user.id), created: false }
-  }
-  if (!input.display_name) {
-    // The web then asks for the person's name to create the account.
-    throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
-      { field: 'email', message: 'NO_ACCOUNT' },
-    ])
-  }
-  try {
-    const result = await execute(
-      conn,
-      `INSERT INTO users (display_name, email, password_hash, auth_provider, preferred_locale)
-       VALUES (?, ?, NULL, 'LOCAL', 'id')`,
-      [input.display_name, input.email],
-    )
-    const userId = insertedId(result)
-    await writeAudit(conn, c, {
-      projectId: null,
-      entityType: 'user',
-      entityId: userId,
-      action: 'CREATE',
-      newValues: { email: input.email, display_name: input.display_name, activated: false },
-    })
-    return { userId, created: true }
-  } catch (error) {
-    if (isDuplicateKey(error)) {
-      throw new AppError(409, 'CONFLICT', 'An account with this e-mail already exists.', [
-        { field: 'email', message: 'Already used' },
-      ])
-    }
-    throw error
-  }
-}
-
-/**
  * Project members are Users with one task each (ADR 0017): Penguji, Developer or Pemantau.
  * Admins and Super Admins manage every project through their website role, so there is no
  * longer a "keep at least one ADMIN" rule.
  */
-export function memberRoutes(pool: Pool) {
+export function memberRoutes(pool: Pool, settings: SettingsService) {
   const routes = new Hono<AppEnv>()
+
+  // An Admin hands a new member the link to choose their password (copy, or WhatsApp).
+  routes.post('/:userId/activation-link', requirePermission('member.manage'), async (c) => {
+    const project = c.get('project')
+    const actor = requireAuth(c)
+    const userId = idParam(c, 'userId')
+    const hours = (await settings.get())['recovery.link_hours']
+    const link = await withTransaction(pool, async (conn) => {
+      const member = await selectOne(
+        conn,
+        'SELECT 1 FROM project_members WHERE project_id = ? AND user_id = ?',
+        [project.id, userId],
+      )
+      if (!member) throw new AppError(404, 'NOT_FOUND', 'Not found.')
+      return issueActivationLink(conn, c, {
+        userId,
+        actorId: actor.userId,
+        projectId: project.id,
+        hours,
+      })
+    })
+    const body: ActivationLinkDto = { token: link.token, expires_at: iso(link.expiresAt) as string }
+    return c.json(body, 201)
+  })
 
   routes.get('/', requirePermission('member.read'), async (c) =>
     c.json(await listMembers(pool, c.get('project').id)),

@@ -98,10 +98,15 @@ export function ResetPasswordPage() {
 
   const linkProblem = reset.error instanceof ApiClientError && reset.error.status === 404
 
+  // A link for an account that never had a password activates it (ADR 0018).
+  const activation = Boolean(link.data?.activation)
   return (
     <PublicLayout>
       <div className="space-y-2">
-        <h1 className="text-xl font-bold">{t('recovery.reset.title')}</h1>
+        <h1 className="text-xl font-bold">
+          {activation ? t('recovery.reset.activationTitle') : t('recovery.reset.title')}
+        </h1>
+        {activation && <p className="text-ink-muted">{t('recovery.reset.activationIntro')}</p>}
       </div>
       {token === '' && <LinkProblem problem="INVALID" />}
       {token !== '' && link.isPending && <LoadingState rows={2} />}
@@ -111,9 +116,11 @@ export function ResetPasswordPage() {
           <div role="status" className="space-y-2 rounded-xl bg-success-soft p-4 text-sm">
             <p className="flex items-center gap-2 font-semibold text-success">
               <CircleCheck aria-hidden="true" className="size-5" />
-              {t('recovery.reset.doneTitle')}
+              {activation ? t('recovery.reset.activationDone') : t('recovery.reset.doneTitle')}
             </p>
-            <p>{t('recovery.reset.doneBody')}</p>
+            <p>
+              {activation ? t('recovery.reset.activationDoneBody') : t('recovery.reset.doneBody')}
+            </p>
           </div>
           <Link
             to="/login"
@@ -174,7 +181,7 @@ export function ResetPasswordPage() {
             }
           />
           <Button type="submit" icon={KeyRound} loading={reset.isPending} className="w-full">
-            {t('recovery.reset.submit')}
+            {activation ? t('recovery.reset.activationSubmit') : t('recovery.reset.submit')}
           </Button>
         </form>
       )}

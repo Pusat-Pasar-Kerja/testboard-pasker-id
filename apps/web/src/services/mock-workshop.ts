@@ -30,6 +30,10 @@ import {
   type WorkshopFeatureState,
   type WorkshopSessionDto,
   type WorkshopTableDto,
+  type MyTasksDto,
+  type TableMemberAccount,
+  type TableMemberDto,
+  type TableSessionMember,
 } from '@testboard/shared'
 import type { MockCycle, MockDb, MockDefect, MockExecution, MockProject } from '../mocks/seed'
 import { ApiClientError } from './api-client'
@@ -49,6 +53,9 @@ type WorkshopMethods = Pick<
   | 'joinWorkshop'
   | 'getWorkshopSession'
   | 'updateWorkshopMembers'
+  | 'activateTableMember'
+  | 'joinWorkshopAsMember'
+  | 'getMyTasks'
   | 'listWorkshopCases'
   | 'saveWorkshopResult'
   | 'listWorkshopBugs'
@@ -77,6 +84,8 @@ export interface MockTable {
   userId: string
   name: string
   members: string[]
+  /** Member name -> their User account (from the e-mail an Admin entered, ADR 0018). */
+  accounts: Record<string, string>
   moduleIds: string[]
   code: string
   validFrom: string | null
@@ -108,6 +117,18 @@ export interface WorkshopDeps {
     uploadedBy: string,
   ) => Promise<UploadResult>
   fileUrl: (fileId: string) => string
+  people: {
+    ensurePerson: (email: string, name: string, projectId: string) => string
+    isActivated: (userId: string) => boolean
+    activate: (userId: string) => void
+    emailOf: (userId: string) => string | null
+    currentUserId: () => string
+  }
+}
+
+const maskEmail = (email: string) => {
+  const at = email.indexOf('@')
+  return at <= 0 ? '***' : `${email.slice(0, 1)}***${email.slice(at)}`
 }
 
 const notFound = (): never => {
@@ -128,6 +149,39 @@ const invalid = (issues: { path: PropertyKey[]; message: string }[]): never => {
 const DONE_STATUSES = ['CLOSED', 'VERIFIED', 'WONT_FIX']
 
 export function createMockWorkshop(deps: WorkshopDeps) {
+  const memberAccount = (t: MockTable, name: string): TableMemberAccount => {
+    const userId = t.accounts[name]
+    if (!userId) return 'NONE'
+    return deps.people.isActivated(userId) ? 'ACTIVE' : 'NOT_ACTIVATED'
+  }
+  const adminMembers = (t: MockTable): TableMemberDto[] =>
+    t.members.map((name, index) => ({
+      id: `${t.id}-${index}`,
+      name,
+      email: t.accounts[name] ? deps.people.emailOf(t.accounts[name]) : null,
+      user_id: t.accounts[name] ?? null,
+      account: memberAccount(t, name),
+    }))
+  const sessionMembers = (t: MockTable): TableSessionMember[] =>
+    t.members.map((name, index) => {
+      const email = t.accounts[name] ? deps.people.emailOf(t.accounts[name]) : null
+      return {
+        id: `${t.id}-${index}`,
+        name,
+        account: memberAccount(t, name),
+        email_hint: email ? maskEmail(email) : null,
+      }
+    })
+  /** Same as the API: e-mails become User accounts (Penguji) of the project. */
+  const applyMembers = (t: MockTable, members: { name: string; email?: string | null }[]) => {
+    t.members = members.map((m) => m.name.trim())
+    t.accounts = {}
+    for (const m of members) {
+      if (m.email)
+        t.accounts[m.name.trim()] = deps.people.ensurePerson(m.email, m.name.trim(), t.projectId)
+    }
+  }
+
   const { db, delay, newId, now } = deps
   const tables: MockTable[] = []
   const featureStates = new Map<string, WorkshopFeatureState>()
@@ -210,6 +264,7 @@ export function createMockWorkshop(deps: WorkshopDeps) {
         : null,
       modules: t.moduleIds.map((id) => moduleRef(id)).filter((m): m is ModuleRef => m !== null),
       member_names: [...t.members],
+      members: adminMembers(t),
       access_code: t.code,
       valid_from: t.validFrom,
       valid_until: t.validUntil,
@@ -294,7 +349,7 @@ export function createMockWorkshop(deps: WorkshopDeps) {
   const sessionDto = (): WorkshopSessionDto => {
     const { t, project, cycle, run } = ctx()
     return {
-      table: { id: t.id, name: t.name, member_names: [...t.members] },
+      table: { id: t.id, name: t.name, member_names: [...t.members], members: sessionMembers(t) },
       project: { code: project.project_code, name: project.name },
       cycle: { id: cycle.id, cycle_code: cycle.cycle_code, title: cycle.title },
       run: run ? { id: run.id, name: run.name, status_code: run.status_code } : null,
@@ -618,8 +673,104 @@ export function createMockWorkshop(deps: WorkshopDeps) {
         const { t } = ctx()
         const parsed = workshopMembersSchema.safeParse({ member_names: names })
         if (!parsed.success) return invalid(parsed.error.issues)
-        t.members = parsed.data.member_names
+        // People with an account always stay; the table only changes the other names.
+        const kept = t.members.filter((name) => t.accounts[name])
+        const taken = new Set(kept.map((name) => name.toLocaleLowerCase('id')))
+        const fresh = parsed.data.member_names.filter((name) => {
+          const key = name.toLocaleLowerCase('id')
+          if (taken.has(key)) return false
+          taken.add(key)
+          return true
+        })
+        t.members = [...kept, ...fresh]
         return sessionDto()
+      }),
+
+    activateTableMember: (memberId, password) =>
+      delay(() => {
+        const { t } = ctx()
+        const name = t.members.find((_, index) => `${t.id}-${index}` === memberId)
+        const userId = name ? t.accounts[name] : undefined
+        if (!userId) return notFound()
+        const local = deps.people.emailOf(userId)?.split('@')[0] ?? ''
+        if (password.length < 8 || (local && password.toLowerCase().includes(local))) {
+          return problem(
+            422,
+            'VALIDATION_ERROR',
+            'password',
+            'Password must not contain your e-mail name',
+          )
+        }
+        if (deps.people.isActivated(userId)) {
+          return problem(409, 'CONFLICT', 'member', 'ALREADY_ACTIVE')
+        }
+        deps.people.activate(userId)
+        return sessionDto()
+      }),
+
+    joinWorkshopAsMember: (tableId) =>
+      delay(() => {
+        const t = tables.find((x) => x.id === tableId)
+        const me = deps.people.currentUserId()
+        const name = t ? Object.keys(t.accounts).find((n) => t.accounts[n] === me) : undefined
+        if (!t || !name) return notFound()
+        const state = stateOf(t)
+        if (state !== 'ACTIVE') return problem(409, 'CONFLICT', 'table', state)
+        sessionTableId = t.id
+        return { session: sessionDto(), member_name: name }
+      }),
+
+    getMyTasks: () =>
+      delay((): MyTasksDto => {
+        const me = deps.people.currentUserId()
+        const projectOf = (projectId: string) => db.projects.find((p) => p.id === projectId)
+        const myTables = tables.flatMap((t) => {
+          const name = Object.keys(t.accounts).find((n) => t.accounts[n] === me)
+          const project = projectOf(t.projectId)
+          const cycle = db.cycles.find((c) => c.id === t.cycleId)
+          if (!name || !project || !cycle) return []
+          return [
+            {
+              table: { id: t.id, name: t.name },
+              member: { id: `${t.id}-${t.members.indexOf(name)}`, name },
+              project: { code: project.project_code, name: project.name },
+              cycle: { id: cycle.id, title: cycle.title },
+              valid_from: t.validFrom,
+              valid_until: t.validUntil,
+              state: project.archived ? ('REVOKED' as const) : stateOf(t),
+            },
+          ]
+        })
+        const runs = db.runs.flatMap((run) => {
+          const mine = db.runCases.filter((rc) => rc.runId === run.id && rc.assignedTo === me)
+          const project = projectOf(run.projectId)
+          if (!mine.length || !project || !['PLANNED', 'ACTIVE'].includes(run.status_code))
+            return []
+          const open = mine.filter((rc) => !latestOf(rc.id))
+          return [
+            {
+              project: { code: project.project_code, name: project.name },
+              run: { id: run.id, name: run.name, status_code: run.status_code },
+              assigned: mine.length,
+              done: mine.length - open.length,
+              next_run_case_id: open[0]?.id ?? null,
+            },
+          ]
+        })
+        const bugs = db.projects.flatMap((project) => {
+          const reported = db.defects.filter(
+            (d) => d.projectId === project.id && d.reportedBy === me,
+          )
+          if (!reported.length) return []
+          return [
+            {
+              project: { code: project.project_code, name: project.name },
+              open: reported.filter((d) => !DONE_STATUSES.includes(d.status_code)).length,
+              total: reported.length,
+            },
+          ]
+        })
+        return { tables: myTables, runs, bugs }
       }),
 
     listWorkshopCases: (moduleId) =>
@@ -910,7 +1061,8 @@ export function createMockWorkshop(deps: WorkshopDeps) {
           runId: data.run_id,
           userId,
           name: data.name,
-          members: data.member_names,
+          members: [],
+          accounts: {},
           moduleIds: [...new Set(data.module_ids)],
           code: freeCode(),
           validFrom: data.valid_from ?? null,
@@ -918,6 +1070,7 @@ export function createMockWorkshop(deps: WorkshopDeps) {
           revokedAt: null,
         }
         tables.push(t)
+        applyMembers(t, data.members)
         return tableDto(t)
       }),
 
@@ -942,7 +1095,7 @@ export function createMockWorkshop(deps: WorkshopDeps) {
         }
         if (data.run_id !== undefined) t.runId = data.run_id
         if (data.module_ids) t.moduleIds = [...new Set(data.module_ids)]
-        if (data.member_names) t.members = data.member_names
+        if (data.members) applyMembers(t, data.members)
         if (data.valid_from !== undefined) t.validFrom = data.valid_from
         if (data.valid_until) t.validUntil = data.valid_until
         if (data.regenerate_code) {
@@ -1133,6 +1286,7 @@ export function createMockWorkshop(deps: WorkshopDeps) {
           userId,
           name: `Meja ${index + 1}`,
           members: names[index] ?? [],
+          accounts: {},
           moduleIds: ids,
           code: ['246810', '135791', '112233'][index] ?? freeCode(),
           validFrom: null,
