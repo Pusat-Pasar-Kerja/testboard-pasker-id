@@ -124,6 +124,9 @@ export function EasyLayout({ children }: { children?: ReactNode }) {
             {children ?? <Outlet />}
           </main>
         </OutboxProvider>
+        <footer className="bg-brand-800 px-4 py-4 text-center text-sm text-white/80">
+          {t('easy.footer')}
+        </footer>
         <ConfirmDialog
           open={confirmLeave}
           title={t('easy.leaveTitle', { name: data.table.name })}

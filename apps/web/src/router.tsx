@@ -5,16 +5,15 @@ import { EasyLayout } from './layout/EasyLayout'
 import { FirstLoad } from './layout/FirstLoad'
 import { HomeGate } from './layout/HomeGate'
 import { RequireAuth } from './layout/RequireAuth'
-import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { ProjectGate } from './pages/ProjectGate'
 import { PublicHomePage } from './pages/PublicHomePage'
 import { RecoverPage } from './pages/RecoverPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
+import { SignInPage } from './pages/SignInPage'
 import { TableBugsPage } from './pages/TableBugsPage'
 import { TableFeaturePage } from './pages/TableFeaturePage'
 import { TableHomePage } from './pages/TableHomePage'
-import { TableJoinPage } from './pages/TableJoinPage'
 
 /**
  * Pages for signed-in staff are loaded on demand, so a participant's phone on venue Wi-Fi
@@ -48,7 +47,9 @@ const pages: RouteObject[] = [
     ...page(async () => (await import('./pages/PublicCyclePage')).PublicCyclePage),
   },
   { path: '/panduan', ...page(async () => (await import('./pages/GuidePage')).GuidePage) },
-  { path: '/meja', element: <TableJoinPage /> },
+  // One sign-in page with two ways in (owner, 2026-11-24). Printed QR cards point to /meja.
+  { path: '/masuk', element: <SignInPage /> },
+  { path: '/meja', element: <SignInPage way="meja" /> },
   {
     path: '/meja/kerja',
     element: <EasyLayout />,
@@ -58,7 +59,7 @@ const pages: RouteObject[] = [
       { path: 'masalah', element: <TableBugsPage /> },
     ],
   },
-  { path: '/login', element: <LoginPage /> },
+  { path: '/login', element: <SignInPage way="pengguna" /> },
   // Account recovery (ADR 0012): reachable while signed out.
   { path: '/recover', element: <RecoverPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },

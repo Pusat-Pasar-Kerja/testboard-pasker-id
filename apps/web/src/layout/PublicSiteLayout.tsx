@@ -1,4 +1,4 @@
-import { ArrowLeftToLine, BookOpen, LogIn, QrCode } from 'lucide-react'
+import { ArrowRight, BookOpen, House, LogIn, QrCode } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router'
@@ -7,9 +7,32 @@ import { FontSizeControl } from '../components/FontSizeControl'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { useCurrentUser, usePublicSettings } from '../hooks/queries'
 
+/** The main button in the header: sign in, or go back to where this device is signed in. */
+function HeaderAction() {
+  const { t } = useTranslation()
+  const me = useCurrentUser()
+  const kind = me.data?.account_kind
+  const target = !me.data
+    ? { to: '/masuk', label: t('public.signIn'), icon: LogIn }
+    : kind === 'TABLE'
+      ? { to: '/meja/kerja', label: t('public.backToTable'), icon: QrCode }
+      : { to: '/projects', label: t('public.backToApp'), icon: ArrowRight }
+  const Icon = target.icon
+  return (
+    <Link
+      to={target.to}
+      className="inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-700 px-5 text-sm font-semibold text-white shadow-xs hover:bg-brand-800"
+    >
+      <Icon aria-hidden="true" className="size-4" />
+      {target.label}
+    </Link>
+  )
+}
+
 /**
- * Pages anyone may open without signing in (front page, public Fase, guide, table card
- * sign-in): header with the main ways in, text size control and a calm footer.
+ * The frame of every page anyone may open without signing in (front page, public Fase,
+ * guide, the sign-in page, account recovery): the same header, width, colours and navy
+ * footer as the Kemnaker family sites, so the whole website feels like one place.
  */
 export function PublicSiteLayout({
   children,
@@ -20,12 +43,11 @@ export function PublicSiteLayout({
 }) {
   const { t } = useTranslation()
   const settings = usePublicSettings()
-  const me = useCurrentUser()
-  const staff = me.data && me.data.account_kind !== 'TABLE'
   const siteName = settings.data?.['site.name'] ?? 'TestBoard PASKER ID'
+  const width = wide ? 'max-w-7xl' : 'max-w-6xl'
   const navClass = ({ isActive }: { isActive: boolean }) =>
-    `inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold ${
-      isActive ? 'bg-brand-100 text-brand-800' : 'text-ink hover:bg-neutral-soft'
+    `inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold ${
+      isActive ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-100' : 'text-ink hover:bg-brand-50'
     }`
 
   return (
@@ -36,58 +58,65 @@ export function PublicSiteLayout({
       >
         {t('shell.skipToContent')}
       </a>
-      <header className="border-b border-line bg-surface/90 backdrop-blur supports-[backdrop-filter]:bg-surface/75">
-        <div
-          className={`mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${wide ? 'max-w-7xl' : 'max-w-6xl'}`}
-        >
-          <Link to="/publik" aria-label={siteName} className="shrink-0">
+      <header className="sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
+        {/* Phone: logo + main button, then the menu and text size. Wider: one row. */}
+        <div className={`mx-auto flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 ${width}`}>
+          <Link to="/" aria-label={siteName} className="order-1 mr-auto shrink-0">
             <TestBoardLogo size="md" />
           </Link>
-          <nav aria-label={t('public.nav')} className="flex flex-wrap items-center gap-1">
+          <div className="order-2 md:order-4">
+            <HeaderAction />
+          </div>
+          <nav aria-label={t('public.nav')} className="order-3 flex items-center gap-1 md:order-2">
+            <NavLink to="/publik" className={navClass}>
+              <House aria-hidden="true" className="size-4" />
+              {t('public.home')}
+            </NavLink>
             <NavLink to="/panduan" className={navClass}>
               <BookOpen aria-hidden="true" className="size-4" />
               {t('public.guide')}
             </NavLink>
-            <NavLink to="/meja" className={navClass}>
-              <QrCode aria-hidden="true" className="size-4" />
-              {t('public.tableSignIn')}
-            </NavLink>
-            {staff ? (
-              <NavLink to="/projects" className={navClass}>
-                <ArrowLeftToLine aria-hidden="true" className="size-4" />
-                {t('public.backToApp')}
-              </NavLink>
-            ) : (
-              <NavLink to="/login" className={navClass}>
-                <LogIn aria-hidden="true" className="size-4" />
-                {t('public.staffSignIn')}
-              </NavLink>
-            )}
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="order-4 ml-auto flex items-center gap-2 md:order-3 md:ml-0">
             <FontSizeControl />
-            <LanguageSwitcher />
+            <span className="hidden md:inline-flex">
+              <LanguageSwitcher />
+            </span>
           </div>
         </div>
       </header>
-      <main
-        id="isi"
-        className={`mx-auto w-full flex-1 px-4 py-8 ${wide ? 'max-w-7xl' : 'max-w-6xl'}`}
-      >
+      <main id="isi" className={`mx-auto w-full flex-1 px-4 py-8 sm:py-10 ${width}`}>
         {children}
       </main>
-      <footer className="border-t border-line bg-surface">
-        <div
-          className={`mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-6 text-sm text-ink-muted ${wide ? 'max-w-7xl' : 'max-w-6xl'}`}
-        >
-          <p>{t('public.footer', { name: siteName })}</p>
-          <p className="flex gap-4">
-            <Link to="/panduan" className="hover:text-brand-700 hover:underline">
-              {t('public.guide')}
-            </Link>
-            <Link to="/login" className="hover:text-brand-700 hover:underline">
-              {t('public.staffSignIn')}
-            </Link>
+      <footer className="mt-8 bg-brand-800 text-white">
+        <div className={`mx-auto grid gap-6 px-4 py-8 sm:grid-cols-[minmax(0,1fr)_auto] ${width}`}>
+          <div className="space-y-3">
+            <TestBoardLogo size="md" tone="light" />
+            <p className="max-w-xl text-sm text-white/80">
+              {t('public.footerAbout', { name: siteName })}
+            </p>
+          </div>
+          <div className="space-y-4 sm:text-right">
+            <nav
+              aria-label={t('public.footerNav')}
+              className="flex flex-col gap-2 text-sm sm:items-end"
+            >
+              <Link to="/publik" className="text-white/90 hover:text-white hover:underline">
+                {t('public.home')}
+              </Link>
+              <Link to="/panduan" className="text-white/90 hover:text-white hover:underline">
+                {t('public.guide')}
+              </Link>
+              <Link to="/masuk" className="text-white/90 hover:text-white hover:underline">
+                {t('public.signIn')}
+              </Link>
+            </nav>
+            <LanguageSwitcher />
+          </div>
+        </div>
+        <div className="border-t border-white/15">
+          <p className={`mx-auto px-4 py-4 text-xs text-white/70 ${width}`}>
+            {t('public.footer', { name: siteName })}
           </p>
         </div>
       </footer>

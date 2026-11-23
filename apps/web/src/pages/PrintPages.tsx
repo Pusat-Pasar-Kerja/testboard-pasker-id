@@ -34,7 +34,7 @@ function TableCard({ table }: { table: WorkshopTableDto }) {
   const locale = toLocale(i18n.resolvedLanguage)
   return (
     <article className="flex h-[136mm] break-inside-avoid flex-col overflow-hidden rounded-2xl border-2 border-ink/80 bg-white text-[#111827] print:rounded-none print:border-b-2 print:border-dashed">
-      <header className="flex items-center justify-between gap-4 bg-[#4f5fcf] px-6 py-3 text-white">
+      <header className="flex items-center justify-between gap-4 bg-brand-800 px-6 py-3 text-white">
         <p className="text-sm font-semibold tracking-widest uppercase">
           {t('workshop.print.cardTitle')}
         </p>

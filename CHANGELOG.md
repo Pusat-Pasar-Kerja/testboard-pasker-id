@@ -2,6 +2,19 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.14.0] - 2026-11-24
+
+Awal perombakan menyeluruh agar situs mudah dipahami orang awam dan para pimpinan. Tahap ini: **tampilan bernuansa keluarga Kemnaker** dan **satu halaman masuk**.
+
+### Diubah
+
+- **Tema "Biru Pasker"** menggantikan "Langit lembut": biru Kemnaker sebagai warna utama, navy Kemnaker untuk judul dan kaki halaman, toska SIAPkerja / Pasker sebagai warna kedua, latar biru sangat muda seperti paskerid.kemnaker.go.id, kartu putih bergradasi tipis dengan bayangan lembut. Logo ikut berganti warna (papan biru, pin toska).
+- **Satu halaman masuk** (`/masuk`) dengan dua pilihan yang jelas: **Kartu Meja** (peserta di meja: pindai QR atau ketik 6 angka, tanpa email) dan **Akun Pengguna** (email dan kata sandi). Kata "Petugas" tidak dipakai lagi. Alamat lama tetap berfungsi: QR di kartu meja yang sudah dicetak (`/meja`) langsung membuka pilihan Kartu Meja, dan `/login` membuka pilihan Akun Pengguna.
+- **Bingkai yang sama** untuk halaman depan, fase publik, panduan, halaman masuk, dan pemulihan akun: kepala halaman dengan menu **Beranda** dan **Panduan** serta tombol **Masuk** (atau **Buka TestBoard** / **Kembali ke meja** bila sudah masuk), dan kaki halaman navy seperti situs Kemnaker.
+- **Panduan tidak lagi "pindah situs"**: bila sudah masuk, panduan terbuka di dalam aplikasi lengkap dengan menu samping.
+- Mode Mudah (layar peserta meja) memakai kaki halaman yang sama.
+- Pesan "Mode DEMO ... Milestone 2" diganti penjelasan mode contoh yang awam.
+
 ## [0.13.1] - 2026-11-23
 
 Masukan pemilik setelah memakai v0.13.0.

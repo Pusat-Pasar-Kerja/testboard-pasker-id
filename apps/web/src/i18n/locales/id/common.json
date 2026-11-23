@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "TestBoard PASKER ID",
-    "tagline": "Platform dokumentasi test case, pelaksanaan UAT, bukti uji, dan pelacakan bug."
+    "tagline": "Tempat menguji layanan Pusat Pasar Kerja bersama-sama: skenario uji, hasil uji, foto bukti, dan laporan masalah."
   },
   "language": {
     "label": "Bahasa",
@@ -334,12 +334,12 @@
   "pages": {
     "login": {
       "title": "Masuk ke TestBoard",
-      "demoNotice": "Mode DEMO: belum ada autentikasi dan tidak ada data asli. Login dengan akun dan kata sandi dibangun pada Milestone 2.",
+      "demoNotice": "Mode contoh: halaman ini memakai data contoh tanpa server, jadi tidak ada data asli yang tersimpan.",
       "demoUser": "Anda akan masuk sebagai {{name}} ({{role}}) di proyek contoh.",
       "submit": "Masuk",
       "invalid": "Email atau kata sandi salah.",
       "locked": "Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.",
-      "noAccount": "Akun dibuat oleh Super Admin. Hubungi admin bila Anda belum punya akun.",
+      "noAccount": "Belum punya akun? Akun dibuat oleh Admin TestBoard. Hubungi Admin untuk memintanya.",
       "titleSite": "Masuk ke {{name}}",
       "support": "Butuh bantuan? {{contact}}",
       "remember": "Selalu login di perangkat ini"
@@ -1474,8 +1474,7 @@
     "nav": "Menu utama",
     "guide": "Panduan",
     "tableSignIn": "Masuk dengan Kartu Meja",
-    "staffSignIn": "Masuk Petugas",
-    "footer": "{{name}} · Uji bersama layanan Pasar Kerja",
+    "footer": "Pusat Pasar Kerja · Kementerian Ketenagakerjaan Republik Indonesia",
     "period": "{{from}} - {{to}}",
     "openCycle": "Lihat fase ini",
     "eyebrow": "Uji Penerimaan Pengguna (UAT) bersama",
@@ -1538,9 +1537,14 @@
     "joinAsTable": "Saya peserta: masuk dengan kartu meja",
     "nothingShared": "Panitia belum membagikan rincian fase ini untuk umum.",
     "tabsLabel": "Isi fase",
-    "backToApp": "Kembali ke TestBoard",
+    "backToApp": "Buka TestBoard",
     "previewTitle": "Pratinjau.",
-    "previewBody": "Beginilah fase ini terlihat oleh umum dengan pilihan data saat ini. Pengunjung baru bisa melihatnya setelah tampilan publik dinyalakan dan disimpan."
+    "previewBody": "Beginilah fase ini terlihat oleh umum dengan pilihan data saat ini. Pengunjung baru bisa melihatnya setelah tampilan publik dinyalakan dan disimpan.",
+    "home": "Beranda",
+    "signIn": "Masuk",
+    "backToTable": "Kembali ke meja",
+    "footerNav": "Tautan di kaki halaman",
+    "footerAbout": "{{name}} adalah tempat Pusat Pasar Kerja menguji layanan bersama para pengguna sebelum layanan dipakai masyarakat."
   },
   "easy": {
     "help": "Bantuan",
@@ -1717,7 +1721,8 @@
       "rejected_one": "{{count}} jawaban tidak bisa dikirim (lembar uji mungkin sudah ditutup). Sampaikan ke panitia:",
       "rejected_other": "{{count}} jawaban tidak bisa dikirim (lembar uji mungkin sudah ditutup). Sampaikan ke panitia:",
       "dismiss": "Tutup"
-    }
+    },
+    "footer": "TestBoard PASKER ID · Pusat Pasar Kerja, Kementerian Ketenagakerjaan"
   },
   "workshop": {
     "title": "Mode Workshop: {{cycle}}",
@@ -2376,6 +2381,28 @@
         "Tidak ada yang bisa diubah dari halaman publik, dan data yang tidak dicentang tidak pernah dikirim ke browser pengunjung."
       ],
       "open": "Lihat halaman publik"
+    }
+  },
+  "signIn": {
+    "tabsLabel": "Cara masuk",
+    "choose": "Pilih cara masuk yang sesuai dengan Anda.",
+    "meja": {
+      "title": "Kartu Meja",
+      "who": "Untuk peserta uji di meja kelompok. Tanpa email dan kata sandi."
+    },
+    "pengguna": {
+      "title": "Akun Pengguna",
+      "who": "Untuk Admin, Penguji, Developer, dan Pemantau yang sudah punya akun."
+    },
+    "user": {
+      "intro": "Masuk dengan email dan kata sandi akun Anda.",
+      "showPassword": "Tampilkan kata sandi"
+    },
+    "welcome": {
+      "eyebrow": "Uji bersama layanan Pasar Kerja",
+      "title": "Selamat datang",
+      "body": "Di TestBoard, tim Pusat Pasar Kerja dan para peserta mencoba layanan bersama-sama, mencatat hasilnya, lalu melaporkan masalah sebelum layanan dipakai masyarakat.",
+      "guide": "Baca panduan cara masuk"
     }
   }
 }

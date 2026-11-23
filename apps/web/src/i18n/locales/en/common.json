@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "TestBoard PASKER ID",
-    "tagline": "Platform for test case documentation, UAT execution, test evidence and bug tracking."
+    "tagline": "Where Pusat Pasar Kerja tests its services together: test scenarios, results, photo evidence and problem reports."
   },
   "language": {
     "label": "Language",
@@ -334,12 +334,12 @@
   "pages": {
     "login": {
       "title": "Sign in to TestBoard",
-      "demoNotice": "DEMO mode: there is no authentication and no real data yet. Sign-in with an account and password is built in Milestone 2.",
-      "demoUser": "You will enter as {{name}} ({{role}}) in the sample projects.",
+      "demoNotice": "Sample mode: this page uses sample data without a server, so nothing real is saved.",
+      "demoUser": "You will sign in as {{name}} ({{role}}) in the sample project.",
       "submit": "Sign in",
       "invalid": "Incorrect email or password.",
       "locked": "Too many failed attempts. Try again in 15 minutes.",
-      "noAccount": "Accounts are created by a Super Admin. Contact an admin if you do not have one.",
+      "noAccount": "No account yet? Accounts are created by a TestBoard Admin. Ask an Admin for one.",
       "titleSite": "Sign in to {{name}}",
       "support": "Need help? {{contact}}",
       "remember": "Keep me signed in on this device"
@@ -1474,8 +1474,7 @@
     "nav": "Main menu",
     "guide": "Guide",
     "tableSignIn": "Sign in with a table card",
-    "staffSignIn": "Staff sign-in",
-    "footer": "{{name}} · Testing the Labour Market services together",
+    "footer": "Pusat Pasar Kerja · Ministry of Manpower of the Republic of Indonesia",
     "period": "{{from}} - {{to}}",
     "openCycle": "Open this phase",
     "eyebrow": "User acceptance testing (UAT) together",
@@ -1538,9 +1537,14 @@
     "joinAsTable": "I am a participant: sign in with a table card",
     "nothingShared": "The organisers have not shared details of this phase yet.",
     "tabsLabel": "Phase content",
-    "backToApp": "Back to TestBoard",
+    "backToApp": "Open TestBoard",
     "previewTitle": "Preview.",
-    "previewBody": "This is how the public sees this phase with the current data choices. Visitors only see it after the public view is switched on and saved."
+    "previewBody": "This is how the public sees this phase with the current data choices. Visitors only see it after the public view is switched on and saved.",
+    "home": "Home",
+    "signIn": "Sign in",
+    "backToTable": "Back to the table",
+    "footerNav": "Footer links",
+    "footerAbout": "{{name}} is where Pusat Pasar Kerja tests its services with users before the public uses them."
   },
   "easy": {
     "help": "Help",
@@ -1717,7 +1721,8 @@
       "rejected_one": "{{count}} answer could not be sent (the test sheet may be closed). Tell the organisers:",
       "rejected_other": "{{count}} answers could not be sent (the test sheet may be closed). Tell the organisers:",
       "dismiss": "Close"
-    }
+    },
+    "footer": "TestBoard PASKER ID · Pusat Pasar Kerja, Ministry of Manpower"
   },
   "workshop": {
     "title": "Workshop mode: {{cycle}}",
@@ -2376,6 +2381,28 @@
         "Nothing can be changed from the public pages, and unticked data is never sent to a visitor's browser."
       ],
       "open": "See the public site"
+    }
+  },
+  "signIn": {
+    "tabsLabel": "How to sign in",
+    "choose": "Choose the way that fits you.",
+    "meja": {
+      "title": "Table card",
+      "who": "For participants testing at a group table. No e-mail or password."
+    },
+    "pengguna": {
+      "title": "User account",
+      "who": "For Admins, Testers, Developers and Observers who have an account."
+    },
+    "user": {
+      "intro": "Sign in with your account e-mail and password.",
+      "showPassword": "Show password"
+    },
+    "welcome": {
+      "eyebrow": "Testing Pasar Kerja services together",
+      "title": "Welcome",
+      "body": "In TestBoard, the Pusat Pasar Kerja team and participants try services together, record the results and report problems before the public uses them.",
+      "guide": "Read how to sign in"
     }
   }
 }

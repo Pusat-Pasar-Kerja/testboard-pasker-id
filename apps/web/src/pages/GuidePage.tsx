@@ -21,6 +21,9 @@ import {
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { useCurrentUser } from '../hooks/queries'
+import { AppShell } from '../layout/AppShell'
+import { FirstLoad } from '../layout/FirstLoad'
 import { PublicSiteLayout } from '../layout/PublicSiteLayout'
 
 type FlowKey = 'project' | 'cycle' | 'feature' | 'scenario' | 'run' | 'result' | 'bug'
@@ -107,15 +110,37 @@ function Faq({ items }: { items: { q: string; a: string }[] }) {
   )
 }
 
-/** "Panduan": how TestBoard works and step-by-step use for participants, facilitators, admins. */
+/**
+ * "Panduan" opens in the frame the reader is already in: inside the app (sidebar and all)
+ * for signed-in users, in the public frame for visitors and table participants, so the
+ * screen never suddenly looks like another website (owner feedback 2026-11-24).
+ */
 export function GuidePage() {
+  const me = useCurrentUser()
+  if (me.isPending) return <FirstLoad />
+  if (me.data && me.data.account_kind !== 'TABLE') {
+    return (
+      <AppShell>
+        <GuideContent />
+      </AppShell>
+    )
+  }
+  return (
+    <PublicSiteLayout>
+      <GuideContent />
+    </PublicSiteLayout>
+  )
+}
+
+/** How TestBoard works and step-by-step use for participants, facilitators, admins. */
+function GuideContent() {
   const { t } = useTranslation()
   // Arrays of steps / questions live in the translation files (returnObjects).
   const tx = t as unknown as (key: string, options: { returnObjects: true }) => unknown
   const list = <T,>(key: string) => tx(key, { returnObjects: true }) as T[]
 
   return (
-    <PublicSiteLayout>
+    <>
       <header className="max-w-3xl">
         <p className="text-sm font-semibold tracking-wide text-brand-700 uppercase">
           {t('guide.eyebrow')}
@@ -330,6 +355,6 @@ export function GuidePage() {
           </p>
         </div>
       </div>
-    </PublicSiteLayout>
+    </>
   )
 }

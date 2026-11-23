@@ -251,6 +251,6 @@ describe('guide and public preview for staff', () => {
     expect(await screen.findByText('Pratinjau.')).toBeInTheDocument()
     expect(await screen.findByRole('tab', { name: /Fitur yang dikerjakan/ })).toBeInTheDocument()
     expect(screen.queryByRole('tab', { name: /Daftar masalah/ })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Kembali ke TestBoard/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Buka TestBoard/ })).toBeInTheDocument()
   })
 })

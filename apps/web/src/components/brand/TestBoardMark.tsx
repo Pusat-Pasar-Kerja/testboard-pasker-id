@@ -10,7 +10,7 @@ import {
  * TestBoard symbol "papan centang": a board with a check mark, held by a pin. Follows the
  * Kemnaker hub logo grammar (Karirhub, Skillhub, Maganghub): thick round-capped strokes of
  * uniform weight + one solid dot. Board and check take the brand colour (currentColor);
- * the pin is the warm pastel accent.
+ * the pin is the teal accent.
  */
 export function TestBoardMark({ className, title }: { className?: string; title?: string }) {
   return (

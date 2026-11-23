@@ -1,5 +1,5 @@
 import { CircleHelp, Megaphone, Menu, Search, X } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router'
 import { TestBoardLogo } from '../components/brand/TestBoardLogo'
@@ -109,8 +109,12 @@ function AnnouncementBanner({ text }: { text: string }) {
   )
 }
 
-/** Responsive application frame: sidebar (lg+), drawer (< lg), topbar, main landmark. */
-export function AppShell() {
+/**
+ * Responsive application frame: sidebar (lg+), drawer (< lg), topbar, main landmark.
+ * Renders the matched child route, or `children` for a page that picks its frame itself
+ * (the guide).
+ */
+export function AppShell({ children }: { children?: ReactNode }) {
   const { t } = useTranslation()
   const { projectCode } = useParams()
   const { pathname } = useLocation()
@@ -175,7 +179,7 @@ export function AppShell() {
           className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 sm:px-6 lg:px-8"
         >
           <div key={pathname} className="animate-page-in">
-            <Outlet />
+            {children ?? <Outlet />}
           </div>
         </main>
       </div>
