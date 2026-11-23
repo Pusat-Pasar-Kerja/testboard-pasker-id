@@ -40,7 +40,9 @@
     "adminAudit": "Activity log",
     "adminRecovery": "Account recovery",
     "openRequests": "new requests",
-    "workshop": "Workshop mode"
+    "workshop": "Workshop mode",
+    "guide": "Guide",
+    "publicSite": "Public site"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -340,9 +342,7 @@
       "noAccount": "Accounts are created by a Super Admin. Contact an admin if you do not have one.",
       "titleSite": "Sign in to {{name}}",
       "support": "Need help? {{contact}}",
-      "remember": "Keep me signed in on this device",
-      "rememberHint_one": "Stay signed in for {{count}} day, even after closing the browser. Do not tick this on a shared or borrowed computer.",
-      "rememberHint_other": "Stay signed in for {{count}} days, even after closing the browser. Do not tick this on a shared or borrowed computer."
+      "remember": "Keep me signed in on this device"
     },
     "projects": {
       "title": "Projects",
@@ -1537,7 +1537,10 @@
     "noFeatures": "No feature is open in this phase yet.",
     "joinAsTable": "I am a participant: sign in with a table card",
     "nothingShared": "The organisers have not shared details of this phase yet.",
-    "tabsLabel": "Phase content"
+    "tabsLabel": "Phase content",
+    "backToApp": "Back to TestBoard",
+    "previewTitle": "Preview.",
+    "previewBody": "This is how the public sees this phase with the current data choices. Visitors only see it after the public view is switched on and saved."
   },
   "easy": {
     "help": "Help",
@@ -1957,7 +1960,16 @@
       "sensitive": "Personal data?",
       "needs": "Turn on \"{{field}}\" first.",
       "preview": "See the public page",
-      "save": "Save public view"
+      "save": "Save public view",
+      "howTitle": "How to open this phase to the public",
+      "how": {
+        "step1": "Switch on \"Show this phase on the front page\" below.",
+        "step2": "Tick the data the public may see (everything is hidden by default). A safe start: Feature list, Progress per feature, Problem list.",
+        "step3": "Press \"Preview public view\" to see the result first, then press \"Save public view\" at the bottom.",
+        "step4": "Done: anyone opening paskerid.kemnaker.go.id/testboard/ without signing in sees this phase. Signed-in staff can see it through the \"Public site\" menu."
+      },
+      "previewButton": "Preview public view",
+      "guideLink": "Full explanation in the Guide"
     },
     "features": {
       "intro": "Features come from the scenarios in this phase's test runs. Mark Done when finished, or Hide to keep it off the public page.",
@@ -2017,7 +2029,8 @@
       "fasilitator": "For facilitators / organisers",
       "admin": "For admins",
       "istilah": "Glossary",
-      "privasi": "Privacy and data security"
+      "privasi": "Privacy and data security",
+      "publik": "Opening a phase to the public"
     },
     "flow": {
       "intro": "Think of TestBoard as a report card for a website being tested. From big to small:",
@@ -2326,6 +2339,43 @@
         "Table member names are stored as text; no accounts are created. Every staff change is recorded in the activity log.",
         "Do not tick \"Keep me signed in\" on a shared computer. Sign out other devices from the Profile page when needed."
       ]
+    },
+    "publish": {
+      "intro": "A phase can be shown on the site's front page so the public and participants see test progress and the problems found. It is closed by default; you choose which data is shown.",
+      "steps": [
+        {
+          "title": "Open Workshop mode",
+          "body": "Sign in as staff, choose the project (e.g. Karirhub), click Workshop mode on the left and press \"Open workshop mode\" on the phase."
+        },
+        {
+          "title": "Open the Public view tab",
+          "body": "At the top there are tabs Board, Tables, Incoming problems, Public view, Features. Click Public view."
+        },
+        {
+          "title": "Switch on the main switch",
+          "body": "Switch on \"Show this phase on the front page\". You may add an introduction, e.g. the workshop schedule and place."
+        },
+        {
+          "title": "Tick the data that may be seen",
+          "body": "Start with the safe ones: Feature list, Progress per feature, Problem list. Be careful with data marked \"Personal data?\" such as screen photos and names."
+        },
+        {
+          "title": "Preview, then save",
+          "body": "Press \"Preview public view\" to see the result in a new tab. When it looks right, press \"Save public view\"."
+        },
+        {
+          "title": "Check as a visitor",
+          "body": "Open the \"Public site\" menu on the left, or open paskerid.kemnaker.go.id/testboard/ in a private (incognito) window. To close it again, switch the main switch off and save."
+        }
+      ],
+      "seeTitle": "What visitors see",
+      "see": [
+        "Front page: a headline, the \"Sign in with a table card\" button, a card for every open phase with its progress, and 4 steps on how to take part.",
+        "Phase page: the phase name, introduction, overall progress (when ticked), then the tabs \"Features being tested\" and \"Problem list\".",
+        "The problem list can be searched and filtered (not finished / finished / per feature). It only contains ticked data.",
+        "Nothing can be changed from the public pages, and unticked data is never sent to a visitor's browser."
+      ],
+      "open": "See the public site"
     }
   }
 }

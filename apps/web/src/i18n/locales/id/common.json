@@ -40,7 +40,9 @@
     "adminAudit": "Log aktivitas",
     "adminRecovery": "Pemulihan akun",
     "openRequests": "permintaan baru",
-    "workshop": "Mode Workshop"
+    "workshop": "Mode Workshop",
+    "guide": "Panduan",
+    "publicSite": "Halaman publik"
   },
   "shell": {
     "skipToContent": "Lewati ke konten utama",
@@ -340,9 +342,7 @@
       "noAccount": "Akun dibuat oleh Super Admin. Hubungi admin bila Anda belum punya akun.",
       "titleSite": "Masuk ke {{name}}",
       "support": "Butuh bantuan? {{contact}}",
-      "remember": "Selalu login di perangkat ini",
-      "rememberHint_one": "Tetap masuk selama {{count}} hari, juga setelah browser ditutup. Jangan dicentang di komputer bersama, laptop pinjaman, atau warnet.",
-      "rememberHint_other": "Tetap masuk selama {{count}} hari, juga setelah browser ditutup. Jangan dicentang di komputer bersama, laptop pinjaman, atau warnet."
+      "remember": "Selalu login di perangkat ini"
     },
     "projects": {
       "title": "Proyek",
@@ -1537,7 +1537,10 @@
     "noFeatures": "Belum ada fitur yang dibuka di fase ini.",
     "joinAsTable": "Saya peserta: masuk dengan kartu meja",
     "nothingShared": "Panitia belum membagikan rincian fase ini untuk umum.",
-    "tabsLabel": "Isi fase"
+    "tabsLabel": "Isi fase",
+    "backToApp": "Kembali ke TestBoard",
+    "previewTitle": "Pratinjau.",
+    "previewBody": "Beginilah fase ini terlihat oleh umum dengan pilihan data saat ini. Pengunjung baru bisa melihatnya setelah tampilan publik dinyalakan dan disimpan."
   },
   "easy": {
     "help": "Bantuan",
@@ -1957,7 +1960,16 @@
       "sensitive": "Data pribadi?",
       "needs": "Aktifkan dulu \"{{field}}\".",
       "preview": "Lihat halaman publik",
-      "save": "Simpan tampilan publik"
+      "save": "Simpan tampilan publik",
+      "howTitle": "Cara membuka fase ini untuk umum",
+      "how": {
+        "step1": "Nyalakan tombol \"Tampilkan fase ini di halaman depan\" di bawah.",
+        "step2": "Centang data yang boleh dilihat umum (bawaannya semua tersembunyi). Contoh aman untuk awal: Daftar fitur, Kemajuan per fitur, Daftar masalah.",
+        "step3": "Tekan \"Pratinjau tampilan publik\" untuk melihat hasilnya dulu, lalu tekan \"Simpan tampilan publik\" di paling bawah.",
+        "step4": "Selesai: siapa pun yang membuka paskerid.kemnaker.go.id/testboard/ tanpa login melihat fase ini. Petugas yang login bisa melihatnya lewat menu \"Halaman publik\"."
+      },
+      "previewButton": "Pratinjau tampilan publik",
+      "guideLink": "Penjelasan lengkap di Panduan"
     },
     "features": {
       "intro": "Fitur diambil dari skenario di lembar uji fase ini. Tandai Selesai bila sudah tuntas, atau Sembunyikan agar tidak tampil di halaman publik.",
@@ -2017,7 +2029,8 @@
       "fasilitator": "Untuk fasilitator / panitia",
       "admin": "Untuk admin",
       "istilah": "Kamus istilah",
-      "privasi": "Privasi dan keamanan data"
+      "privasi": "Privasi dan keamanan data",
+      "publik": "Membuka fase untuk publik"
     },
     "flow": {
       "intro": "Bayangkan TestBoard sebagai buku rapor untuk sebuah website yang sedang diuji. Urutannya dari besar ke kecil:",
@@ -2326,6 +2339,43 @@
         "Nama anggota meja disimpan sebagai teks, tidak dibuatkan akun. Setiap perubahan oleh petugas tercatat di log aktivitas.",
         "\"Selalu login di perangkat ini\" jangan dicentang di komputer bersama. Keluarkan perangkat lain dari menu Profil bila perlu."
       ]
+    },
+    "publish": {
+      "intro": "Fase bisa ditampilkan di halaman depan situs supaya masyarakat dan peserta melihat kemajuan uji dan masalah yang ditemukan. Bawaannya tertutup; Anda yang memilih data apa saja yang tampil.",
+      "steps": [
+        {
+          "title": "Buka Mode Workshop",
+          "body": "Masuk sebagai petugas, pilih proyek (mis. Karirhub), lalu klik menu Mode Workshop di kiri dan tekan \"Buka Mode Workshop\" pada fase yang diinginkan."
+        },
+        {
+          "title": "Buka tab Tampilan publik",
+          "body": "Di bagian atas halaman ada tab Papan, Meja, Masalah masuk, Tampilan publik, Fitur. Klik Tampilan publik."
+        },
+        {
+          "title": "Nyalakan tombol utama",
+          "body": "Nyalakan \"Tampilkan fase ini di halaman depan\". Boleh tambahkan pengantar, mis. jadwal dan tempat workshop."
+        },
+        {
+          "title": "Centang data yang boleh dilihat",
+          "body": "Mulai dari yang aman: Daftar fitur, Kemajuan per fitur, Daftar masalah. Hati-hati dengan data bertanda \"Data pribadi?\" seperti foto layar dan nama."
+        },
+        {
+          "title": "Pratinjau, lalu simpan",
+          "body": "Tekan \"Pratinjau tampilan publik\" untuk melihat hasilnya di tab baru. Bila sudah sesuai, tekan \"Simpan tampilan publik\"."
+        },
+        {
+          "title": "Cek dari sisi pengunjung",
+          "body": "Buka menu \"Halaman publik\" di kiri, atau buka paskerid.kemnaker.go.id/testboard/ di jendela penyamaran (incognito). Untuk menutup lagi, matikan tombol utama lalu simpan."
+        }
+      ],
+      "seeTitle": "Yang dilihat pengunjung",
+      "see": [
+        "Halaman depan: judul ajakan, tombol \"Masuk dengan Kartu Meja\", kartu setiap fase yang dibuka beserta kemajuannya, dan 4 langkah cara ikut menguji.",
+        "Halaman fase: nama fase, pengantar, kemajuan keseluruhan (bila dicentang), lalu tab \"Fitur yang dikerjakan\" dan \"Daftar masalah\".",
+        "Daftar masalah bisa dicari dan disaring (belum selesai / sudah selesai / per fitur). Isinya hanya data yang dicentang.",
+        "Tidak ada yang bisa diubah dari halaman publik, dan data yang tidak dicentang tidak pernah dikirim ke browser pengunjung."
+      ],
+      "open": "Lihat halaman publik"
     }
   }
 }

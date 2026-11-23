@@ -1,4 +1,8 @@
 import {
+  isOneOf,
+  MEMBER_ROLES,
+  normalizePublicFields,
+  roleCan,
   type ExecutionStatus,
   type Paginated,
   type PublicBugDto,
@@ -7,6 +11,7 @@ import {
   type PublicFeatureDto,
   type PublicField,
 } from '@testboard/shared'
+import type { Context } from 'hono'
 import { Hono } from 'hono'
 import type { Pool } from 'mysql2/promise'
 import { isoDate, select, selectOne, type Db } from '../db/tx.js'
@@ -32,6 +37,8 @@ import { serveFile } from './files.js'
  */
 type PublicCycleRow = CycleRow & { project_code: string; project_name: string }
 
+const isRole = isOneOf(MEMBER_ROLES)
+
 async function publicCycles(db: Db, cycleId?: string): Promise<PublicCycleRow[]> {
   return select<PublicCycleRow>(
     db,
@@ -49,8 +56,46 @@ async function oneCycle(db: Db, cycleId: string): Promise<PublicCycleRow> {
   return row
 }
 
-async function summary(db: Db, row: PublicCycleRow): Promise<PublicCycleSummary> {
-  const fields = publicFieldsOf(row)
+/**
+ * The Fase behind a public page. With "?preview=1" a lead of the project (or a Super Admin)
+ * sees the public page before it is published, optionally with field choices that are not
+ * saved yet ("&fields=a,b"). Everyone else gets 404 for a Fase that is not public.
+ */
+async function resolveCycle(
+  db: Db,
+  c: Context<AppEnv>,
+  cycleId: string,
+): Promise<{ row: PublicCycleRow; fields: PublicField[] }> {
+  if (c.req.query('preview') !== '1') {
+    const row = await oneCycle(db, cycleId)
+    return { row, fields: publicFieldsOf(row) }
+  }
+  const auth = c.get('auth')
+  const row = await selectOne<PublicCycleRow & { role_code: string | null }>(
+    db,
+    `SELECT c.*, p.project_code, p.name AS project_name, m.role_code
+       FROM test_cycles c JOIN projects p ON p.id = c.project_id
+       LEFT JOIN project_members m ON m.project_id = p.id AND m.user_id = ?
+      WHERE c.id = ?`,
+    [auth?.userId ?? null, cycleId],
+  )
+  const lead =
+    auth?.accountKind === 'PERSON' &&
+    row !== null &&
+    (auth.isSuperAdmin || (isRole(row.role_code) && roleCan(row.role_code, 'run.write')))
+  if (!row || !lead) throw new AppError(404, 'NOT_FOUND', 'Not found.')
+  const chosen = c.req.query('fields')
+  return {
+    row,
+    fields: chosen === undefined ? publicFieldsOf(row) : normalizePublicFields(chosen.split(',')),
+  }
+}
+
+async function summary(
+  db: Db,
+  row: PublicCycleRow,
+  fields: PublicField[] = publicFieldsOf(row),
+): Promise<PublicCycleSummary> {
   const has = (f: PublicField) => fields.includes(f)
   return {
     id: String(row.id),
@@ -77,8 +122,8 @@ export function publicRoutes(pool: Pool, files: FileService) {
   })
 
   routes.get('/cycles/:cycleId', async (c) => {
-    const row = await oneCycle(pool, idParam(c, 'cycleId'))
-    const base = await summary(pool, row)
+    const { row, fields: chosen } = await resolveCycle(pool, c, idParam(c, 'cycleId'))
+    const base = await summary(pool, row, chosen)
     const has = (f: PublicField) => base.fields.includes(f)
     const detail: PublicCycleDetail = { ...base }
     const cycleId = String(row.id)
@@ -139,8 +184,7 @@ export function publicRoutes(pool: Pool, files: FileService) {
   })
 
   routes.get('/cycles/:cycleId/bugs', async (c) => {
-    const row = await oneCycle(pool, idParam(c, 'cycleId'))
-    const fields = publicFieldsOf(row)
+    const { row, fields } = await resolveCycle(pool, c, idParam(c, 'cycleId'))
     const has = (f: PublicField) => fields.includes(f)
     if (!has('bugs.list')) throw new AppError(404, 'NOT_FOUND', 'Not found.')
     const { page, pageSize, offset } = pageParams(c)
@@ -208,8 +252,8 @@ export function publicRoutes(pool: Pool, files: FileService) {
   /** Photos of public problems, only while "Screenshot / foto" is switched on. */
   for (const mode of ['thumbnail', 'preview'] as const) {
     routes.get(`/cycles/:cycleId/files/:fileId/${mode}`, async (c) => {
-      const row = await oneCycle(pool, idParam(c, 'cycleId'))
-      if (!publicFieldsOf(row).includes('bugs.evidence')) {
+      const { row, fields } = await resolveCycle(pool, c, idParam(c, 'cycleId'))
+      if (!fields.includes('bugs.evidence')) {
         throw new AppError(404, 'NOT_FOUND', 'Not found.')
       }
       const fileId = idParam(c, 'fileId')

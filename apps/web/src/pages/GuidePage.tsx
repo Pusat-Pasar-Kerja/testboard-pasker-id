@@ -8,6 +8,7 @@ import {
   CircleX,
   ClipboardList,
   FolderKanban,
+  Globe,
   LayoutGrid,
   ListChecks,
   Presentation,
@@ -37,6 +38,7 @@ const SECTIONS = [
   { id: 'cara-kerja', icon: BookOpen },
   { id: 'peserta', icon: QrCode },
   { id: 'fasilitator', icon: Presentation },
+  { id: 'publik', icon: Globe },
   { id: 'admin', icon: UserCog },
   { id: 'istilah', icon: ListChecks },
   { id: 'privasi', icon: ShieldCheck },
@@ -237,6 +239,28 @@ export function GuidePage() {
             <div className="mt-3">
               <Faq items={list<{ q: string; a: string }>('guide.facilitator.faq')} />
             </div>
+          </Section>
+
+          <Section
+            id="publik"
+            icon={Globe}
+            title={t('guide.sections.publik')}
+            intro={t('guide.publish.intro')}
+          >
+            <Steps items={list<{ title: string; body: string }>('guide.publish.steps')} />
+            <h3 className="mt-8 text-xl font-semibold">{t('guide.publish.seeTitle')}</h3>
+            <ul className="mt-3 list-disc space-y-2 pl-6 text-lg">
+              {list<string>('guide.publish.see').map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ul>
+            <Link
+              to="/publik"
+              className="mt-6 inline-flex min-h-14 items-center gap-2 rounded-xl bg-brand-700 px-6 text-lg font-semibold text-white hover:bg-brand-800"
+            >
+              <Globe aria-hidden="true" className="size-6" />
+              {t('guide.publish.open')}
+            </Link>
           </Section>
 
           <Section

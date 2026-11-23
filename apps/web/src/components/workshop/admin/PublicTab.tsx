@@ -6,7 +6,7 @@ import {
   type WorkshopBoardDto,
 } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ExternalLink, Globe, Lock, Save, ShieldAlert } from 'lucide-react'
+import { CircleHelp, ExternalLink, Eye, Globe, Lock, Save, ShieldAlert } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -46,6 +46,8 @@ export function PublicTab({
   const [fields, setFields] = useState<PublicField[]>(board.cycle.public_fields)
   const [intro, setIntro] = useState(board.cycle.public_intro ?? '')
   const effective = normalizePublicFields(fields)
+  // Opens the public page as visitors would see it, with the choices on screen (even unsaved).
+  const previewUrl = `/publik/${board.cycle.id}?pratinjau=1&data=${effective.join(',')}`
   const save = useMutation({
     mutationFn: () =>
       ds.updateCyclePublic(code, board.cycle.id, {
@@ -70,6 +72,42 @@ export function PublicTab({
 
   return (
     <div className="space-y-6">
+      <section
+        aria-labelledby="cara-publik"
+        className="rounded-xl border-2 border-brand-200 bg-brand-50/60 p-5"
+      >
+        <h2 id="cara-publik" className="text-lg font-semibold">
+          {t('workshop.public.howTitle')}
+        </h2>
+        <ol className="mt-3 space-y-2">
+          {(['step1', 'step2', 'step3', 'step4'] as const).map((step, index) => (
+            <li key={step} className="flex gap-3">
+              <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white">
+                {index + 1}
+              </span>
+              <span className="pt-0.5">{t(`workshop.public.how.${step}`)}</span>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link
+            to={previewUrl}
+            target="_blank"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand-700 px-4 text-sm font-semibold text-white hover:bg-brand-800"
+          >
+            <Eye aria-hidden="true" className="size-4" />
+            {t('workshop.public.previewButton')}
+          </Link>
+          <Link
+            to="/panduan#publik"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+          >
+            <CircleHelp aria-hidden="true" className="size-4" />
+            {t('workshop.public.guideLink')}
+          </Link>
+        </div>
+      </section>
+
       <Section title={t('workshop.public.mainTitle')}>
         <label className="flex cursor-pointer items-start gap-4">
           <input
@@ -177,7 +215,14 @@ export function PublicTab({
             {t('workshop.public.preview')}
           </Link>
         ) : (
-          <span />
+          <Link
+            to={previewUrl}
+            target="_blank"
+            className="inline-flex min-h-11 items-center gap-2 font-semibold text-brand-700 hover:underline"
+          >
+            <Eye aria-hidden="true" className="size-4" />
+            {t('workshop.public.previewButton')}
+          </Link>
         )}
         {canManage && (
           <Button

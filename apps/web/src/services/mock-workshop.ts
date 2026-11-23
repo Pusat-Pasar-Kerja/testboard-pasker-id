@@ -443,15 +443,22 @@ export function createMockWorkshop(deps: WorkshopDeps) {
     }
   }
 
-  const publicCycle = (cycleId: string) => {
+  /** A public Fase, or (preview) any Fase of the demo with the chosen fields. */
+  const publicCycle = (cycleId: string, preview?: { fields?: string[] }) => {
     const cycle = db.cycles.find((c) => c.id === cycleId)
     const project = db.projects.find((p) => p.id === cycle?.projectId)
-    if (!cycle || !project || !cycle.is_public || project.archived) return notFound()
-    return { cycle, project }
+    if (!cycle || !project || project.archived || (!cycle.is_public && !preview)) {
+      return notFound()
+    }
+    const shown = preview?.fields ? normalizePublicFields(preview.fields) : fields(cycle)
+    return { cycle, project, shown }
   }
 
-  const summary = (cycle: MockCycle, project: MockProject): PublicCycleSummary => {
-    const f = fields(cycle)
+  const summary = (
+    cycle: MockCycle,
+    project: MockProject,
+    f: PublicField[] = fields(cycle),
+  ): PublicCycleSummary => {
     return {
       id: cycle.id,
       project: { code: project.project_code, name: project.name },
@@ -485,10 +492,10 @@ export function createMockWorkshop(deps: WorkshopDeps) {
           .map(({ c, p }) => summary(c, p)),
       ),
 
-    getPublicCycle: (cycleId) =>
+    getPublicCycle: (cycleId, preview) =>
       delay(() => {
-        const { cycle, project } = publicCycle(cycleId)
-        const base = summary(cycle, project)
+        const { cycle, project, shown } = publicCycle(cycleId, preview)
+        const base = summary(cycle, project, shown)
         const has = (f: PublicField) => base.fields.includes(f)
         const out = { ...base } as ReturnType<typeof summary> & {
           features?: unknown
@@ -532,10 +539,9 @@ export function createMockWorkshop(deps: WorkshopDeps) {
         return out as Awaited<ReturnType<DataSource['getPublicCycle']>>
       }),
 
-    listPublicBugs: (cycleId, query = {}) =>
+    listPublicBugs: (cycleId, query = {}, preview) =>
       delay(() => {
-        const { cycle, project } = publicCycle(cycleId)
-        const f = fields(cycle)
+        const { cycle, project, shown: f } = publicCycle(cycleId, preview)
         const has = (x: PublicField) => f.includes(x)
         if (!has('bugs.list')) notFound()
         const q = query.q?.trim().toLowerCase() ?? ''

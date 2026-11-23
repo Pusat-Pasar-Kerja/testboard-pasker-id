@@ -4,8 +4,8 @@ import type {
   PublicBugDto,
   PublicFeatureDto,
 } from '@testboard/shared'
-import { ArrowLeft, ChevronDown, QrCode, Search, ThumbsUp, UsersRound } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowLeft, ChevronDown, Eye, QrCode, Search, ThumbsUp, UsersRound } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { Badge } from '../components/ui/Badge'
@@ -20,6 +20,7 @@ import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
 import { Tabs } from '../components/ui/Tabs'
 import { ProgressMeter } from '../components/workshop/ProgressMeter'
 import { usePublicBugs, usePublicCycle } from '../hooks/workshop-queries'
+import type { PublicPreview } from '../services/data-source'
 import { PublicSiteLayout } from '../layout/PublicSiteLayout'
 import { formatDate, toLocale } from '../lib/format'
 import { ApiClientError } from '../services/api-client'
@@ -109,7 +110,15 @@ function FeatureCard({ feature }: { feature: PublicFeatureDto }) {
   )
 }
 
-function BugCard({ bug, cycleId }: { bug: PublicBugDto; cycleId: string }) {
+function BugCard({
+  bug,
+  cycleId,
+  preview,
+}: {
+  bug: PublicBugDto
+  cycleId: string
+  preview?: PublicPreview
+}) {
   const { t, i18n } = useTranslation()
   const locale = toLocale(i18n.resolvedLanguage)
   const ds = useDataSource()
@@ -158,13 +167,13 @@ function BugCard({ bug, cycleId }: { bug: PublicBugDto; cycleId: string }) {
           {bug.files.map((file) => (
             <li key={file.id}>
               <a
-                href={ds.publicFileUrl(cycleId, file.id, 'preview')}
+                href={ds.publicFileUrl(cycleId, file.id, 'preview', preview)}
                 target="_blank"
                 rel="noreferrer"
                 className="block overflow-hidden rounded-lg border border-line"
               >
                 <img
-                  src={ds.publicFileUrl(cycleId, file.id, 'thumbnail')}
+                  src={ds.publicFileUrl(cycleId, file.id, 'thumbnail', preview)}
                   alt={t('public.photoOf', { name: file.name })}
                   className="size-24 object-cover"
                   loading="lazy"
@@ -181,16 +190,23 @@ function BugCard({ bug, cycleId }: { bug: PublicBugDto; cycleId: string }) {
 function BugsTab({
   cycleId,
   features,
+  preview,
 }: {
   cycleId: string
   features: { code: string; name: string }[]
+  preview?: PublicPreview
 }) {
   const { t } = useTranslation()
   const [q, setQ] = useState('')
   const [status, setStatus] = useState<'' | 'OPEN' | 'DONE'>('')
   const [feature, setFeature] = useState('')
   const [pageSize, setPageSize] = useState(20)
-  const bugs = usePublicBugs(cycleId, { q, status, feature, page: 1, page_size: pageSize })
+  const bugs = usePublicBugs(
+    cycleId,
+    { q, status, feature, page: 1, page_size: pageSize },
+    true,
+    preview,
+  )
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
@@ -256,7 +272,7 @@ function BugsTab({
           ) : (
             <ul className="space-y-3">
               {bugs.data.data.map((bug) => (
-                <BugCard key={bug.id} bug={bug} cycleId={cycleId} />
+                <BugCard key={bug.id} bug={bug} cycleId={cycleId} preview={preview} />
               ))}
             </ul>
           )}
@@ -279,7 +295,15 @@ export function PublicCyclePage() {
   const locale = toLocale(i18n.resolvedLanguage)
   const { cycleId = '' } = useParams()
   const [params, setParams] = useSearchParams()
-  const cycle = usePublicCycle(cycleId)
+  // "?pratinjau=1&data=a,b": a lead looks at the page before (or without) publishing it.
+  const preview = useMemo<PublicPreview | undefined>(() => {
+    if (params.get('pratinjau') !== '1') return undefined
+    const data = params.get('data')
+    return data === null
+      ? {}
+      : { fields: data.split(',').filter(Boolean) as PublicPreview['fields'] }
+  }, [params])
+  const cycle = usePublicCycle(cycleId, preview)
 
   if (cycle.isPending) {
     return (
@@ -339,6 +363,7 @@ export function PublicCyclePage() {
             content: (
               <BugsTab
                 cycleId={data.id}
+                preview={preview}
                 features={
                   data.fields.includes('bugs.feature')
                     ? (data.features ?? []).map((f) => ({ code: f.module_code, name: f.name }))
@@ -354,6 +379,16 @@ export function PublicCyclePage() {
 
   return (
     <PublicSiteLayout>
+      {preview && (
+        <p
+          role="status"
+          className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border-2 border-warning/40 bg-warning-soft p-4 text-warning"
+        >
+          <Eye aria-hidden="true" className="size-5 shrink-0" />
+          <span className="font-semibold">{t('public.previewTitle')}</span>
+          <span>{t('public.previewBody')}</span>
+        </p>
+      )}
       <Link
         to="/publik"
         className="inline-flex min-h-11 items-center gap-2 font-semibold text-brand-700"
@@ -400,7 +435,11 @@ export function PublicCyclePage() {
             label={t('public.tabsLabel')}
             tabs={tabs}
             active={active}
-            onChange={(id) => setParams({ tab: id }, { replace: true })}
+            onChange={(id) => {
+              const next = new URLSearchParams(params)
+              next.set('tab', id)
+              setParams(next, { replace: true })
+            }}
           />
         )}
       </div>

@@ -134,7 +134,6 @@ function PasswordLogin({ next }: { next: string }) {
       {rememberDays > 0 && (
         <CheckboxField
           label={t('pages.login.remember')}
-          hint={t('pages.login.rememberHint', { count: rememberDays })}
           checked={remember}
           onChange={(event) => setRemember(event.target.checked)}
         />

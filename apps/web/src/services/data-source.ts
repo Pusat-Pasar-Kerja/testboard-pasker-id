@@ -468,9 +468,19 @@ export interface DataSource {
   // Mode Workshop (ADR 0016) ------------------------------------------------------------
   /** Public pages: anyone, signed out; only the fields a lead switched on. */
   listPublicCycles(): Promise<PublicCycleSummary[]>
-  getPublicCycle(cycleId: string): Promise<PublicCycleDetail>
-  listPublicBugs(cycleId: string, query?: PublicBugQuery): Promise<Paginated<PublicBugDto>>
-  publicFileUrl(cycleId: string, fileId: string, kind: 'thumbnail' | 'preview'): string
+  /** `preview`: a lead sees the page before it is published (optionally unsaved fields). */
+  getPublicCycle(cycleId: string, preview?: PublicPreview): Promise<PublicCycleDetail>
+  listPublicBugs(
+    cycleId: string,
+    query?: PublicBugQuery,
+    preview?: PublicPreview,
+  ): Promise<Paginated<PublicBugDto>>
+  publicFileUrl(
+    cycleId: string,
+    fileId: string,
+    kind: 'thumbnail' | 'preview',
+    preview?: PublicPreview,
+  ): string
 
   /** Table card (meja): sign in with the 6-digit code, then Mode Mudah only. */
   joinWorkshop(code: string): Promise<WorkshopSessionDto>
@@ -519,6 +529,13 @@ export interface DataSource {
     input: DefectReviewInput,
   ): Promise<WorkshopBugDto>
 }
+
+export interface PublicPreview {
+  fields?: PublicField[]
+}
+
+const previewQuery = (preview?: PublicPreview) =>
+  preview ? { preview: '1', fields: preview.fields?.join(',') } : {}
 
 export interface PublicBugQuery extends PageQuery {
   q?: string
@@ -721,11 +738,16 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     revokeResetLink: (userId) => client.delete(`/admin/users/${seg(userId)}/reset-link`),
 
     listPublicCycles: () => client.get('/public/cycles'),
-    getPublicCycle: (id) => client.get(`/public/cycles/${seg(id)}`),
-    listPublicBugs: (id, query = {}) =>
-      client.get(`/public/cycles/${seg(id)}/bugs${toQueryString(query)}`),
-    publicFileUrl: (cycleId, fileId, kind) =>
-      client.url(`/public/cycles/${seg(cycleId)}/files/${seg(fileId)}/${kind}`),
+    getPublicCycle: (id, preview) =>
+      client.get(`/public/cycles/${seg(id)}${toQueryString(previewQuery(preview))}`),
+    listPublicBugs: (id, query = {}, preview) =>
+      client.get(
+        `/public/cycles/${seg(id)}/bugs${toQueryString({ ...query, ...previewQuery(preview) })}`,
+      ),
+    publicFileUrl: (cycleId, fileId, kind, preview) =>
+      client.url(
+        `/public/cycles/${seg(cycleId)}/files/${seg(fileId)}/${kind}${toQueryString(previewQuery(preview))}`,
+      ),
 
     joinWorkshop: (code) => client.post('/workshop/join', { code }),
     getWorkshopSession: () => client.get('/workshop/session'),

@@ -2,6 +2,21 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.13.1] - 2026-11-23
+
+Masukan pemilik setelah memakai v0.13.0.
+
+### Ditambahkan
+
+- **Panduan selalu terjangkau** dari halaman petugas: tombol **Panduan** di bagian atas (langsung ke bagian yang sesuai halaman) dan menu **Panduan** serta **Halaman publik** di sisi kiri. Di halaman publik, petugas yang sudah masuk melihat **Kembali ke TestBoard**.
+- **Pratinjau tampilan publik**: di Mode Workshop > Tampilan publik ada langkah 1-2-3-4 dan tombol **Pratinjau tampilan publik**. Tombol ini membuka halaman fase persis seperti yang dilihat umum, dengan pilihan data yang sedang dicentang, termasuk yang belum disimpan dan saat fase belum dibuka. Hanya Admin / QA Lead proyek yang bisa membuka pratinjau.
+- Panduan bagian baru **Membuka fase untuk publik**: langkah demi langkah dan isi yang dilihat pengunjung.
+
+### Diubah
+
+- Panah pada semua pilihan dropdown tidak lagi menempel di tepi kanan.
+- Pilihan login cukup bertuliskan **"Selalu login di perangkat ini"**, tanpa keterangan di bawahnya.
+
 ## [0.13.0] - 2026-11-22
 
 **Mode Workshop** untuk UAT yang dikerjakan berkelompok per meja di forum workshop, dengan peserta yang banyak di antaranya orang tua dan awam (ADR 0016, migration `0012`).

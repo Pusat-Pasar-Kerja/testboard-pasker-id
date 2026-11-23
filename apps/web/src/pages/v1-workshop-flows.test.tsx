@@ -234,3 +234,23 @@ describe('answers kept on the device when the internet drops', () => {
     expect(db.executions.at(-1)?.result_status).toBe('PASSED')
   })
 })
+
+describe('guide and public preview for staff', () => {
+  it('shows the guide and the public site in the staff navigation', async () => {
+    const { dataSource } = setup()
+    renderRoute('/projects/DEMO-KARIR/dashboard', { dataSource })
+    const guideLinks = await screen.findAllByRole('link', { name: 'Panduan' })
+    expect(guideLinks.some((link) => link.getAttribute('href')?.startsWith('/panduan'))).toBe(true)
+    expect(screen.getAllByRole('link', { name: 'Halaman publik' }).length).toBeGreaterThan(0)
+  })
+
+  it('previews a closed Fase with the chosen data before publishing', async () => {
+    const { dataSource, cycle } = setup()
+    cycle.is_public = false
+    renderRoute(`/publik/${cycle.id}?pratinjau=1&data=features.list`, { dataSource })
+    expect(await screen.findByText('Pratinjau.')).toBeInTheDocument()
+    expect(await screen.findByRole('tab', { name: /Fitur yang dikerjakan/ })).toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: /Daftar masalah/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Kembali ke TestBoard/ })).toBeInTheDocument()
+  })
+})

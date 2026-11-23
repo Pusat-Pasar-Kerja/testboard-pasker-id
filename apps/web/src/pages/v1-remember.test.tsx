@@ -32,8 +32,8 @@ describe('"Selalu login di perangkat ini" (ADR 0015)', () => {
 
     const box = await screen.findByRole('checkbox', { name: 'Selalu login di perangkat ini' })
     expect(box).not.toBeChecked()
-    expect(screen.getByText(/Tetap masuk selama 30 hari/)).toBeInTheDocument()
-    expect(screen.getByText(/Jangan dicentang di komputer bersama/)).toBeInTheDocument()
+    // Only the short label (owner request): no explanation under it.
+    expect(screen.queryByText(/Tetap masuk selama/)).toBeNull()
 
     await user.type(screen.getByLabelText(/^Email/), 'admin@demo.invalid')
     await user.type(screen.getByLabelText(/^Kata sandi/), 'benar-sekali-12')

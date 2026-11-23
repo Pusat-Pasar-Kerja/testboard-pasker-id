@@ -1,11 +1,11 @@
-import { BookOpen, LogIn, QrCode } from 'lucide-react'
+import { ArrowLeftToLine, BookOpen, LogIn, QrCode } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router'
 import { TestBoardLogo } from '../components/brand/TestBoardLogo'
 import { FontSizeControl } from '../components/FontSizeControl'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
-import { usePublicSettings } from '../hooks/queries'
+import { useCurrentUser, usePublicSettings } from '../hooks/queries'
 
 /**
  * Pages anyone may open without signing in (front page, public Fase, guide, table card
@@ -20,6 +20,8 @@ export function PublicSiteLayout({
 }) {
   const { t } = useTranslation()
   const settings = usePublicSettings()
+  const me = useCurrentUser()
+  const staff = me.data && me.data.account_kind !== 'TABLE'
   const siteName = settings.data?.['site.name'] ?? 'TestBoard PASKER ID'
   const navClass = ({ isActive }: { isActive: boolean }) =>
     `inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold ${
@@ -50,10 +52,17 @@ export function PublicSiteLayout({
               <QrCode aria-hidden="true" className="size-4" />
               {t('public.tableSignIn')}
             </NavLink>
-            <NavLink to="/login" className={navClass}>
-              <LogIn aria-hidden="true" className="size-4" />
-              {t('public.staffSignIn')}
-            </NavLink>
+            {staff ? (
+              <NavLink to="/projects" className={navClass}>
+                <ArrowLeftToLine aria-hidden="true" className="size-4" />
+                {t('public.backToApp')}
+              </NavLink>
+            ) : (
+              <NavLink to="/login" className={navClass}>
+                <LogIn aria-hidden="true" className="size-4" />
+                {t('public.staffSignIn')}
+              </NavLink>
+            )}
           </nav>
           <div className="flex items-center gap-2">
             <FontSizeControl />

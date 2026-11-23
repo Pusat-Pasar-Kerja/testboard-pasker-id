@@ -395,3 +395,30 @@ describe('photos from a table', () => {
     expect(bugs.data.find((b: { files?: unknown[] }) => b.files?.length)).toBeTruthy()
   })
 })
+
+describe('preview of the public page (before publishing)', () => {
+  it('lets a lead see the public page of a closed Fase, with unsaved field choices', async () => {
+    await lead.put(`${W()}/public`, { is_public: false, public_fields: [], public_intro: null })
+    const anonymous = new Client(h)
+    expect((await anonymous.get(`/public/cycles/${cycleId}`)).status).toBe(404)
+    expect((await anonymous.get(`/public/cycles/${cycleId}?preview=1`)).status).toBe(404)
+
+    const preview = await lead.get(
+      `/public/cycles/${cycleId}?preview=1&fields=features.list,features.progress,bugs.list`,
+    )
+    expect(preview.status).toBe(200)
+    expect(preview.json.fields).toEqual(['features.list', 'features.progress', 'bugs.list'])
+    expect(preview.json.features.length).toBeGreaterThan(0)
+    expect(preview.json.features[0]).toHaveProperty('progress')
+    const bugs = await lead.get(`/public/cycles/${cycleId}/bugs?preview=1&fields=bugs.list`)
+    expect(bugs.status).toBe(200)
+    expect(bugs.json.data[0]).not.toHaveProperty('bug_code')
+
+    // Someone who cannot manage runs gets nothing, not even in preview.
+    const user = await createUser(h.pool)
+    await addMember(h.pool, project.id, user.id, 'TESTER')
+    const tester = new Client(h)
+    await tester.login(user.email)
+    expect((await tester.get(`/public/cycles/${cycleId}?preview=1`)).status).toBe(404)
+  })
+})

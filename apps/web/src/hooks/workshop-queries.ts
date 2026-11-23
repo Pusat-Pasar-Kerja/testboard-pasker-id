@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { ApiClientError } from '../services/api-client'
-import type { PublicBugQuery, WorkshopBugQuery } from '../services/data-source'
+import type { PublicBugQuery, PublicPreview, WorkshopBugQuery } from '../services/data-source'
 import { useDataSource } from '../services/use-data-source'
 
 /** React Query hooks for Mode Workshop (ADR 0016): public pages, table cards, facilitator. */
@@ -17,21 +17,26 @@ export function usePublicCycles() {
   })
 }
 
-export function usePublicCycle(cycleId: string) {
+export function usePublicCycle(cycleId: string, preview?: PublicPreview) {
   const ds = useDataSource()
   return useQuery({
-    queryKey: ['public', 'cycle', cycleId],
-    queryFn: () => ds.getPublicCycle(cycleId),
+    queryKey: ['public', 'cycle', cycleId, preview ?? null],
+    queryFn: () => ds.getPublicCycle(cycleId, preview),
     retry: noRetryOnAuth,
     refetchInterval: 60_000,
   })
 }
 
-export function usePublicBugs(cycleId: string, query: PublicBugQuery, enabled = true) {
+export function usePublicBugs(
+  cycleId: string,
+  query: PublicBugQuery,
+  enabled = true,
+  preview?: PublicPreview,
+) {
   const ds = useDataSource()
   return useQuery({
-    queryKey: ['public', 'bugs', cycleId, query],
-    queryFn: () => ds.listPublicBugs(cycleId, query),
+    queryKey: ['public', 'bugs', cycleId, query, preview ?? null],
+    queryFn: () => ds.listPublicBugs(cycleId, query, preview),
     placeholderData: keepPreviousData,
     retry: noRetryOnAuth,
     enabled,

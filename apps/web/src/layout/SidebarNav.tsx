@@ -1,10 +1,12 @@
 import {
+  BookOpen,
   Bug,
   CalendarRange,
   ChartColumn,
   FileUp,
   FolderCog,
   FolderKanban,
+  Globe,
   History,
   Images,
   KeyRound,
@@ -110,6 +112,14 @@ export function SidebarNav({
           <NavLink to="/projects" end className={linkClass} onClick={onNavigate}>
             <FolderKanban aria-hidden="true" className="size-5 shrink-0" />
             <span>{t('nav.projects')}</span>
+          </NavLink>
+          <NavLink to="/panduan" className={linkClass} onClick={onNavigate}>
+            <BookOpen aria-hidden="true" className="size-5 shrink-0" />
+            <span>{t('nav.guide')}</span>
+          </NavLink>
+          <NavLink to="/publik" className={linkClass} onClick={onNavigate}>
+            <Globe aria-hidden="true" className="size-5 shrink-0" />
+            <span>{t('nav.publicSite')}</span>
           </NavLink>
           {me.data?.is_super_admin && (
             <>
