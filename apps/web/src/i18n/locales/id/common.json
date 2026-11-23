@@ -366,7 +366,9 @@
     "actualResult": "Hasil aktual",
     "executionKind": "Jenis percobaan",
     "tester": "Penguji",
-    "runCount": "Jumlah lembar uji"
+    "runCount": "Jumlah lembar uji",
+    "severityHint": "Seberapa besar akibatnya bagi pengguna. Kritis: layanan tidak bisa dipakai sama sekali.",
+    "priorityHint": "Seberapa cepat perlu diperbaiki. Bisa berbeda dari tingkat dampak."
   },
   "pages": {
     "login": {
@@ -2147,366 +2149,416 @@
     }
   },
   "guide": {
-    "eyebrow": "Panduan",
-    "title": "Tata cara penggunaan TestBoard",
-    "subtitle": "Penjelasan sederhana cara kerja TestBoard dan langkah demi langkah untuk peserta workshop, fasilitator, dan admin. Tidak perlu latar belakang teknis.",
-    "toc": "Isi panduan",
+    "eyebrow": "Panduan penggunaan",
+    "title": "Panduan TestBoard",
+    "subtitle": "Semua yang perlu Anda ketahui untuk memakai TestBoard, disusun menurut peran. Pilih bagian yang sesuai dengan Anda di daftar isi.",
+    "toc": "Daftar isi",
     "faqTitle": "Pertanyaan yang sering muncul",
-    "help": "Masih bingung? Tanyakan kepada panitia atau fasilitator di ruangan.",
-    "backHome": "Kembali ke halaman depan",
+    "help": "Masih bingung? Hubungi Admin proyek Anda.",
+    "backHome": "Kembali ke beranda",
+    "stepNumber": "Langkah {{n}}",
     "sections": {
-      "cara-kerja": "Cara kerja singkat",
-      "peserta": "Untuk peserta meja",
-      "fasilitator": "Untuk fasilitator / panitia",
-      "admin": "Untuk admin",
+      "cara-kerja": "Cara kerja TestBoard",
+      "masuk": "Cara masuk",
+      "peserta": "Untuk peserta di meja",
+      "penguji": "Untuk Penguji",
+      "admin": "Untuk Admin",
+      "developer": "Untuk Developer",
+      "pemantau": "Untuk Pemantau dan pimpinan",
+      "peran": "Peran dan hak akses",
+      "publik": "Membuka fase untuk publik",
+      "super-admin": "Untuk Super Admin",
       "istilah": "Kamus istilah",
-      "privasi": "Privasi dan keamanan data",
-      "publik": "Membuka fase untuk publik"
+      "privasi": "Privasi dan keamanan"
     },
     "flow": {
-      "intro": "Bayangkan TestBoard sebagai buku rapor untuk sebuah website yang sedang diuji. Urutannya dari besar ke kecil:",
-      "project": {
-        "title": "Proyek",
-        "menu": "Menu: Proyek",
-        "body": "Website yang diuji, mis. Karirhub."
-      },
+      "intro": "TestBoard membantu Pusat Pasar Kerja menguji layanan bersama pengguna sebelum layanan dipakai masyarakat. Pekerjaannya selalu mengikuti urutan yang sama, dan menu di sebelah kiri pun disusun menurut urutan ini.",
       "cycle": {
-        "title": "Fase",
-        "menu": "Menu: Fase uji",
-        "body": "Satu putaran kegiatan uji, mis. Fase 1 (workshop 30-31 Juli)."
+        "title": "Fase uji",
+        "menu": "Menu 1. Persiapan › Fase uji",
+        "body": "Satu putaran pengujian dalam periode tertentu, mis. \"UAT Tahap 1, 3-4 Desember\"."
       },
-      "feature": {
-        "title": "Fitur",
-        "menu": "Menu: Fitur",
-        "body": "Bagian website, mis. Lapor Loker atau Gig Workers."
-      },
-      "scenario": {
+      "cases": {
         "title": "Skenario uji",
-        "menu": "Menu: Skenario uji",
-        "body": "Satu hal yang dicoba: langkah-langkah dan hasil yang seharusnya terjadi."
+        "menu": "Menu 1. Persiapan › Skenario uji",
+        "body": "Langkah yang harus dicoba beserta hasil yang diharapkan. Bisa ditulis satu per satu atau diimpor dari Excel."
       },
-      "run": {
-        "title": "Lembar uji",
-        "menu": "Menu: Lembar uji",
-        "body": "Daftar skenario yang dikerjakan di satu fase. Harus dimulai supaya bisa diisi."
+      "plan": {
+        "title": "Cara menguji",
+        "menu": "Menu 2. Pelaksanaan",
+        "body": "Lembar uji untuk penguji perorangan, atau meja workshop untuk pengujian berkelompok dengan kartu QR."
       },
-      "result": {
-        "title": "Hasil",
-        "menu": "Diisi peserta",
-        "body": "Sesuai, Tidak sesuai, atau Tidak bisa dicoba untuk setiap skenario."
+      "test": {
+        "title": "Mencoba",
+        "menu": "Di Lembar uji atau di layar meja",
+        "body": "Penguji mencoba setiap skenario lalu memilih Sesuai, Tidak sesuai, atau Tidak bisa dicoba."
       },
-      "bug": {
+      "bugs": {
         "title": "Masalah",
-        "menu": "Menu: Daftar masalah",
-        "body": "Dicatat bila hasilnya tidak sesuai, lalu diperbaiki developer dan diuji ulang."
+        "menu": "Menu 3. Hasil & laporan › Masalah",
+        "body": "Hasil Tidak sesuai menjadi laporan masalah. Developer memperbaiki, penguji mengecek ulang."
       },
-      "example": "Contoh: proyek Karirhub > Fase 2 > fitur Lapor Loker > skenario \"Simpan laporan lowongan\" di lembar uji Workshop Fase 2 > hasilnya Tidak sesuai > tercatat sebagai masalah BUG-KAR-0012 > diperbaiki developer > diuji ulang."
+      "report": {
+        "title": "Laporan",
+        "menu": "Menu 3. Hasil & laporan › Laporan",
+        "body": "Ringkasan untuk pimpinan yang bisa diunduh sebagai Excel atau CSV."
+      },
+      "example": "Contoh: fase \"UAT Karirhub Tahap 1\" berisi 120 skenario uji. Sepuluh meja workshop mengerjakan fitur yang berbeda. Setiap jawaban Tidak sesuai otomatis menjadi masalah yang ditinjau Admin dan diperbaiki Developer, lalu kemajuannya terlihat di Laporan."
     },
-    "participant": {
-      "intro": "Peserta tidak perlu akun. Satu meja = satu kelompok yang mengerjakan fitur yang sama.",
-      "steps": [
+    "signIn": {
+      "intro": "Halaman masuk punya dua pilihan. Pilih yang sesuai dengan Anda.",
+      "tableTitle": "Kartu Meja: untuk peserta di meja",
+      "tableSteps": [
         {
-          "title": "Pindai kartu meja",
-          "body": "Buka kamera HP, arahkan ke kode QR di kartu meja, lalu ketuk tautan yang muncul. Bisa juga membuka alamat di kartu lalu mengetik 6 angkanya."
+          "title": "Pindai QR di kartu meja",
+          "body": "Buka kamera HP, arahkan ke QR. Halaman masuk terbuka dan Anda langsung masuk ke meja."
         },
         {
-          "title": "Pilih siapa yang mengisi",
-          "body": "Di halaman meja, ketuk nama Anda. Nama ini dicatat di setiap jawaban. Bila belum ada, tekan \"Ubah nama anggota\"."
+          "title": "Atau ketik 6 angka",
+          "body": "Buka halaman Masuk, pilih Kartu Meja, lalu ketik 6 angka yang tertulis di bawah QR."
         },
         {
-          "title": "Pilih fitur, lalu tekan Mulai menguji",
-          "body": "Setiap fitur berisi beberapa skenario. Kemajuan tersimpan otomatis."
-        },
-        {
-          "title": "Baca skenario dan coba di website yang diuji",
-          "body": "Ikuti langkah-langkahnya satu per satu. Kotak hijau menjelaskan apa yang seharusnya terjadi."
-        },
-        {
-          "title": "Tekan salah satu dari tiga tombol besar",
-          "body": "Lihat penjelasan tombol di bawah. Setelah tersimpan, tekan \"Lanjut ke skenario berikutnya\"."
-        },
-        {
-          "title": "Bila tidak sesuai: ceritakan dan foto",
-          "body": "Tulis apa yang terjadi dengan bahasa sehari-hari dan foto layarnya. Bila sudah ada laporan yang sama dari meja lain, tekan \"Ya, sama seperti ini\"."
+          "title": "Ketuk nama Anda",
+          "body": "Di layar meja, ketuk nama Anda agar jawaban tercatat atas nama Anda. Tidak perlu email atau kata sandi."
         }
       ],
-      "buttons": "Tiga tombol jawaban",
-      "passed": "Sesuai: hasilnya sama dengan kotak hijau \"Yang seharusnya terjadi\".",
-      "failed": "Tidak sesuai: ada yang salah, error, atau berbeda. Anda akan diminta menceritakannya.",
-      "blocked": "Tidak bisa dicoba: halaman tidak terbuka, tidak ada data, atau langkahnya tidak jelas.",
-      "faq": [
+      "userTitle": "Akun Pengguna: untuk yang punya akun",
+      "userSteps": [
         {
-          "q": "Saya salah menekan tombol. Bagaimana?",
-          "a": "Buka lagi skenarionya lalu tekan \"Ubah jawaban\". Jawaban terbaru yang dipakai; jawaban lama tetap tercatat sebagai riwayat."
+          "title": "Pilih Akun Pengguna",
+          "body": "Di halaman Masuk, pilih Akun Pengguna."
         },
         {
-          "q": "Hurufnya terlalu kecil.",
-          "a": "Tekan tombol A+ di bagian atas layar. Ukuran huruf diingat di perangkat itu."
+          "title": "Isi email dan kata sandi",
+          "body": "Centang \"Selalu login di perangkat ini\" hanya di perangkat pribadi."
         },
         {
-          "q": "Internet putus saat mengisi.",
-          "a": "Tunggu sebentar lalu tekan kirim lagi; jawaban tidak akan tercatat dua kali. Bila lama, isi lembar uji kertas dari panitia."
+          "title": "Lupa kata sandi?",
+          "body": "Tekan \"Lupa kata sandi?\". Permintaan Anda masuk ke Super Admin, yang akan mengirim tautan untuk membuat kata sandi baru."
+        }
+      ],
+      "activationTitle": "Mengaktifkan akun baru",
+      "activationBody": "Bila Admin mendaftarkan Anda dengan nama dan email, akun Anda sudah ada tetapi belum punya kata sandi. Aktifkan dengan salah satu cara ini:",
+      "activationSteps": [
+        {
+          "title": "Lewat tautan dari Admin",
+          "body": "Admin mengirim tautan aktivasi (mis. lewat WhatsApp). Buka tautannya, buat kata sandi, selesai."
         },
         {
-          "q": "Bagaimana membuat foto layar?",
-          "a": "Paling mudah: tekan \"Ambil foto\" lalu foto layar komputer dengan kamera HP. Bisa juga \"Pilih gambar\" untuk tangkapan layar yang sudah ada."
-        },
-        {
-          "q": "Apakah perlu memilih tingkat keparahan?",
-          "a": "Tidak. Fasilitator yang menilainya. Peserta cukup menceritakan apa yang terjadi."
-        },
-        {
-          "q": "Kartu meja tidak bisa dipakai.",
-          "a": "Kartu hanya berlaku pada tanggal workshop dan bisa diganti panitia. Minta kartu terbaru kepada panitia."
+          "title": "Lewat layar meja",
+          "body": "Saat di meja workshop, tekan \"Aktifkan akun saya\", pilih nama Anda, lalu buat kata sandi. Cukup sekali."
         }
       ]
     },
-    "facilitator": {
-      "intro": "Fasilitator menyiapkan meja, memantau kemajuan, dan merapikan masalah yang masuk. Semua ada di menu Mode Workshop di dalam proyek.",
-      "before": "Sebelum hari-H",
-      "beforeSteps": [
+    "participant": {
+      "intro": "Anda menguji bersama kelompok di meja. Semuanya dikerjakan dari HP atau tablet, dengan huruf dan tombol besar.",
+      "steps": [
         {
-          "title": "Buat fase",
-          "body": "Menu Fase uji > Fase baru. Isi kode (mis. FASE-2), judul, dan tanggal workshop."
+          "title": "Duduk di meja kelompok",
+          "body": "Setiap meja mengerjakan fitur yang sudah ditentukan panitia."
         },
         {
-          "title": "Siapkan skenario uji",
-          "body": "Menu Impor Data untuk mengambil skenario dari Excel, atau tambah manual di Skenario uji. Kelompokkan per fitur."
+          "title": "Pindai kartu meja",
+          "body": "Arahkan kamera HP ke QR di kartu meja, atau ketik 6 angka di bawahnya."
         },
         {
-          "title": "Buat lembar uji dan mulai",
-          "body": "Menu Lembar uji > Lembar uji baru, pilih fase tadi, tambahkan skenario, lalu ubah status menjadi Berjalan saat workshop dimulai."
+          "title": "Ketuk nama Anda",
+          "body": "Pilih siapa yang sedang mengisi. Nama bisa diganti kapan saja."
         },
         {
-          "title": "Buat meja",
-          "body": "Mode Workshop > tab Meja > Buat beberapa meja. Lalu ubah tiap meja: pilih fitur dan (boleh) nama anggota. Masa berlaku kartu otomatis mengikuti tanggal fase."
+          "title": "Pilih fitur, lalu coba satu per satu",
+          "body": "Ikuti langkah di layar, lalu tekan salah satu dari tiga tombol jawaban."
         },
         {
-          "title": "Cetak kartu dan lembar cadangan",
-          "body": "Tombol Cetak semua kartu (2 kartu per A4). Cetak juga Lembar cadangan per meja untuk berjaga-jaga bila internet bermasalah."
-        },
-        {
-          "title": "Atur tampilan publik",
-          "body": "Tab Tampilan publik. Semua data tersembunyi bawaannya; nyalakan fase lalu centang hanya data yang boleh dilihat umum."
-        },
-        {
-          "title": "Gladi singkat",
-          "body": "Minta 3-5 calon peserta mencoba satu skenario dengan kartu contoh. Perbaiki skenario yang membingungkan."
+          "title": "Ceritakan bila ada masalah",
+          "body": "Tulis apa yang terjadi dan foto layarnya. Bila masalah yang sama sudah dilaporkan meja lain, cukup tekan \"Saya juga mengalami\"."
         }
       ],
-      "during": "Saat workshop",
-      "duringSteps": [
-        {
-          "title": "Bagikan kartu ke setiap meja",
-          "body": "Satu kartu per meja. Peserta memindai QR atau mengetik 6 angka."
-        },
-        {
-          "title": "Tampilkan Layar besar di proyektor",
-          "body": "Tombol Layar besar membuka halaman kemajuan semua meja yang diperbarui otomatis."
-        },
-        {
-          "title": "Pantau Papan",
-          "body": "Lihat meja yang tertinggal atau belum aktif, lalu datangi untuk membantu."
-        },
-        {
-          "title": "Rapikan Masalah masuk",
-          "body": "Tentukan tingkat dampak, tekan \"Sama dengan\" bila masalahnya sama, lalu Sudah ditinjau."
-        },
-        {
-          "title": "Bila kartu bocor atau hilang",
-          "body": "Tab Meja > Kode baru (kartu lama mati) atau Nonaktifkan."
-        }
-      ],
-      "after": "Setelah workshop",
-      "afterSteps": [
-        {
-          "title": "Ubah status lembar uji menjadi Selesai",
-          "body": "Jawaban tidak bisa ditambah lagi setelah lembar uji ditutup."
-        },
-        {
-          "title": "Masukkan hasil dari lembar kertas (bila ada)",
-          "body": "Buka lembar uji di menu Lembar uji dan isi hasilnya."
-        },
-        {
-          "title": "Lihat laporan dan teruskan masalah",
-          "body": "Menu Laporan untuk rekap; menu Daftar masalah untuk menugaskan perbaikan ke developer."
-        },
-        {
-          "title": "Tutup tampilan publik bila perlu",
-          "body": "Matikan tombol Tampilkan secara publik, atau biarkan untuk transparansi."
-        }
-      ],
+      "buttons": "Tiga tombol jawaban",
+      "passed": "Sesuai: hasilnya sama dengan yang diharapkan.",
+      "failed": "Tidak sesuai: hasilnya berbeda atau ada yang salah. Anda akan diminta menceritakan masalahnya.",
+      "blocked": "Tidak bisa dicoba: langkahnya tidak bisa dijalankan, mis. halaman tidak terbuka.",
       "faq": [
         {
-          "q": "Peserta melihat \"Lembar uji belum dibuka\".",
-          "a": "Ubah status lembar uji menjadi Berjalan di menu Lembar uji."
+          "q": "Internet putus saat mengisi. Apakah jawaban hilang?",
+          "a": "Tidak. Jawaban disimpan di HP dan dikirim otomatis begitu internet tersambung lagi. Jawaban tidak pernah tercatat dua kali."
         },
         {
-          "q": "Satu fitur dikerjakan dua meja.",
-          "a": "Boleh. Keduanya melihat jawaban terbaru; riwayat semua jawaban tetap tersimpan."
+          "q": "Saya salah memilih jawaban.",
+          "a": "Coba lagi skenario yang sama dan pilih jawaban yang benar. Yang dihitung adalah jawaban terakhir."
         },
         {
-          "q": "Banyak masalah yang sama dari meja berbeda.",
-          "a": "Peserta biasanya diarahkan menekan \"Sama\". Sisanya rapikan di Masalah masuk dengan tombol \"Sama dengan\"; jumlahnya dihitung sebagai \"juga mengalami\"."
+          "q": "Nama saya tidak ada di daftar.",
+          "a": "Tekan \"Ubah nama anggota\" lalu tambahkan nama Anda. Nama yang berakun (didaftarkan panitia) tidak bisa diubah dari meja."
+        },
+        {
+          "q": "Kartu meja tidak bisa dipakai.",
+          "a": "Kartu hanya berlaku pada waktu workshop. Bila sudah lewat atau diblokir, minta kartu baru kepada panitia."
+        }
+      ]
+    },
+    "tester": {
+      "intro": "Sebagai Penguji, Anda mencoba skenario yang ditugaskan kepada Anda dan melaporkan masalah yang ditemukan.",
+      "steps": [
+        {
+          "title": "Buka Tugas saya",
+          "body": "Semua pekerjaan Anda ada di sana: meja tempat Anda terdaftar, lembar uji yang ditugaskan, dan masalah yang Anda laporkan."
+        },
+        {
+          "title": "Lanjutkan lembar uji",
+          "body": "Tekan \"Lanjutkan\" untuk membuka skenario berikutnya yang belum dicoba."
+        },
+        {
+          "title": "Catat hasilnya",
+          "body": "Pilih Sesuai, Tidak sesuai, atau Tidak bisa dicoba. Untuk Tidak sesuai, tulis apa yang terjadi dan lampirkan foto layar."
+        },
+        {
+          "title": "Laporkan masalah",
+          "body": "Dari hasil Tidak sesuai, tekan \"Laporkan masalah\". Isinya terisi otomatis dari percobaan Anda."
+        },
+        {
+          "title": "Cek ulang setelah diperbaiki",
+          "body": "Bila masalah berstatus Siap diuji ulang, coba lagi skenarionya lalu tandai Sudah dicek beres atau Muncul lagi."
         }
       ]
     },
     "admin": {
-      "intro": "Admin situs (Super Admin) mengurus proyek, akun, dan pengaturan. Semua di menu Administrasi.",
+      "intro": "Sebagai Admin, Anda menyiapkan dan mengelola proyek. Ikuti kartu \"Mulai di sini\" di beranda proyek; langkahnya sama dengan di bawah ini.",
       "steps": [
         {
-          "title": "Proyek",
-          "body": "Administrasi > Proyek: buat proyek, ubah nama atau kode, arsipkan."
+          "title": "Buat proyek",
+          "body": "Di halaman Proyek, tekan \"Buat proyek\". Isi kode singkat (mis. KARIRHUB) dan nama."
         },
+        {
+          "title": "Buat fase uji",
+          "body": "Menu 1. Persiapan › Fase uji. Isi nama dan periode, mis. \"UAT Tahap 1\"."
+        },
+        {
+          "title": "Siapkan skenario uji",
+          "body": "Tulis satu per satu di Skenario uji, atau masukkan sekaligus lewat Impor dari Excel. Setiap baris Excel diperiksa dulu sebelum disimpan."
+        },
+        {
+          "title": "Pilih cara menguji",
+          "body": "Buat Lembar uji untuk penguji perorangan, lalu tugaskan skenarionya. Untuk workshop, buka Workshop & meja, buat meja, isi nama (dan bila ada, email) anggota, lalu cetak kartu meja."
+        },
+        {
+          "title": "Tambahkan orang",
+          "body": "Menu 4. Pengaturan › Anggota & tugas. Cukup email; bila belum punya akun, isi namanya dan kirim tautan aktivasi lewat tombol \"Tautan aktivasi\"."
+        },
+        {
+          "title": "Pantau dan tinjau",
+          "body": "Saat pengujian berjalan, pantau papan Workshop & meja, tinjau Masalah yang masuk, lalu bagikan Laporan kepada pimpinan."
+        }
+      ],
+      "tips": [
+        "Kode (proyek, fase, fitur) bisa diubah kapan saja; tautan lama tetap mengarah ke data yang sama.",
+        "Perubahan penting, seperti mengubah tugas seseorang atau mengunci lembar uji, selalu meminta konfirmasi.",
+        "Tombol Bantuan di pojok kanan atas menjelaskan halaman yang sedang dibuka."
+      ]
+    },
+    "developer": {
+      "intro": "Sebagai Developer, Anda menindaklanjuti masalah yang dilaporkan.",
+      "steps": [
+        {
+          "title": "Buka Masalah",
+          "body": "Saring menurut tingkat dampak atau yang ditugaskan kepada Anda."
+        },
+        {
+          "title": "Mulai perbaiki",
+          "body": "Ubah status menjadi Sedang diperbaiki agar tim tahu masalah sedang ditangani."
+        },
+        {
+          "title": "Tandai sudah diperbaiki",
+          "body": "Setelah selesai, ubah menjadi Sudah diperbaiki lalu Siap diuji ulang, dan isi versi perbaikannya."
+        },
+        {
+          "title": "Tunggu hasil cek ulang",
+          "body": "Penguji mengecek ulang. Bila masih terjadi, statusnya menjadi Muncul lagi dan kembali kepada Anda."
+        }
+      ]
+    },
+    "observer": {
+      "intro": "Sebagai Pemantau, Anda melihat semua kemajuan tanpa mengubah apa pun. Cocok untuk pimpinan.",
+      "steps": [
+        {
+          "title": "Beranda proyek",
+          "body": "Ringkasan jumlah skenario yang sudah dicoba, persentase Sesuai, dan masalah terbuka per tingkat dampak."
+        },
+        {
+          "title": "Laporan",
+          "body": "Rincian per fitur, per lembar uji, dan per penguji. Bisa diunduh sebagai Excel atau CSV."
+        },
+        {
+          "title": "Masalah",
+          "body": "Daftar masalah beserta statusnya; buka satu masalah untuk melihat riwayat dan foto buktinya."
+        },
+        {
+          "title": "Halaman publik",
+          "body": "Bila fase dibuka untuk publik, kemajuannya juga bisa dilihat tanpa masuk."
+        }
+      ]
+    },
+    "roles": {
+      "intro": "Ada tiga tingkat peran. Pengunjung halaman publik dan kartu meja bukan pengguna.",
+      "rows": [
+        {
+          "role": "Super Admin",
+          "who": "Pengelola situs",
+          "can": "Semua yang bisa dilakukan Admin, ditambah membuat akun pengguna dan menentukan perannya, pengaturan situs, pemulihan akun, dan log aktivitas situs."
+        },
+        {
+          "role": "Admin",
+          "who": "Tim penyelenggara UAT",
+          "can": "Membuat dan mengelola semua proyek: fase, skenario uji, impor, meja workshop, tampilan publik, tinjauan masalah, serta anggota dan tugasnya."
+        },
+        {
+          "role": "Pengguna - Penguji",
+          "who": "Penguji, peserta workshop yang berakun",
+          "can": "Mencoba skenario yang ditugaskan, mencatat hasil, dan melaporkan masalah di proyek tempat ia menjadi anggota."
+        },
+        {
+          "role": "Pengguna - Developer",
+          "who": "Tim pengembang",
+          "can": "Melihat masalah dan mengubah status perbaikannya."
+        },
+        {
+          "role": "Pengguna - Pemantau",
+          "who": "Pimpinan",
+          "can": "Melihat semua kemajuan, hasil, dan laporan tanpa mengubah apa pun, serta mengunduh laporan."
+        }
+      ],
+      "head": {
+        "role": "Peran",
+        "who": "Untuk siapa",
+        "can": "Yang bisa dilakukan"
+      }
+    },
+    "publish": {
+      "intro": "Setiap fase bisa dibuka untuk umum (tanpa masuk). Bawaannya semua tersembunyi; Admin memilih sendiri data apa saja yang boleh dilihat.",
+      "steps": [
+        {
+          "title": "Buka Workshop & meja",
+          "body": "Pilih fase, lalu buka tab Tampilan publik."
+        },
+        {
+          "title": "Pilih data yang ditampilkan",
+          "body": "Setiap data punya tombol sendiri. Data yang bisa memuat data pribadi diberi tanda."
+        },
+        {
+          "title": "Lihat pratinjau",
+          "body": "Tekan \"Pratinjau tampilan publik\" untuk melihat persis apa yang dilihat umum."
+        },
+        {
+          "title": "Nyalakan dan simpan",
+          "body": "Nyalakan \"Tampilkan secara publik\", lalu simpan. Fase muncul di halaman depan."
+        }
+      ],
+      "sees": "Pengunjung hanya melihat data yang dinyalakan, tidak pernah data lain."
+    },
+    "superAdmin": {
+      "intro": "Super Admin mengelola situs secara keseluruhan.",
+      "steps": [
         {
           "title": "Pengguna",
-          "body": "Administrasi > Pengguna: buat akun pengguna (bukan peserta meja), nonaktifkan, jadikan Super Admin."
+          "body": "Buat akun dan pilih perannya: Pengguna, Admin, atau Super Admin. Perubahan peran selalu meminta konfirmasi."
         },
         {
-          "title": "Anggota proyek",
-          "body": "Di dalam proyek, Tim & Pengaturan: tambahkan akun ke proyek dan pilih perannya."
-        },
-        {
-          "title": "Lupa email / kata sandi",
-          "body": "Administrasi > Pemulihan akun: buat tautan atur ulang kata sandi yang berlaku terbatas."
+          "title": "Pemulihan akun",
+          "body": "Permintaan \"Lupa kata sandi\" dan \"Lupa email\" masuk ke sini. Buat tautan reset setelah memastikan identitas peminta."
         },
         {
           "title": "Pengaturan situs",
-          "body": "Nama situs, pengumuman, lama sesi login, dan lama \"Selalu login di perangkat ini\"."
+          "body": "Nama situs, pengumuman untuk semua halaman, kontak bantuan, dan batas waktu masuk."
         },
         {
           "title": "Log aktivitas",
-          "body": "Siapa mengubah apa dan kapan, termasuk perubahan tampilan publik dan kartu meja."
-        }
-      ],
-      "roles": "Peran di dalam proyek",
-      "role": "Peran",
-      "can": "Bisa melakukan",
-      "roleRows": [
-        {
-          "role": "Admin",
-          "can": "Semua di proyek itu, termasuk mengatur anggota."
-        },
-        {
-          "role": "Admin (fasilitator)",
-          "can": "Menyiapkan skenario, lembar uji, Mode Workshop, meja, tampilan publik, dan meninjau masalah."
-        },
-        {
-          "role": "Penguji",
-          "can": "Mengisi hasil uji dan melaporkan masalah dengan akunnya sendiri."
-        },
-        {
-          "role": "Developer",
-          "can": "Melihat dan memperbarui status masalah yang ditugaskan."
-        },
-        {
-          "role": "Pemantau",
-          "can": "Hanya melihat."
-        },
-        {
-          "role": "Peserta meja",
-          "can": "Tanpa akun; masuk dengan kartu meja dan hanya bisa memakai Mode Mudah."
+          "body": "Catatan siapa melakukan apa dan kapan, di seluruh situs."
         }
       ]
     },
     "glossary": {
-      "intro": "Istilah di menu dan artinya dalam bahasa sehari-hari.",
-      "items": [
+      "intro": "Istilah yang dipakai di TestBoard, dengan istilah aslinya dalam bahasa Inggris.",
+      "head": {
+        "term": "Istilah",
+        "original": "Istilah asli",
+        "meaning": "Artinya"
+      },
+      "rows": [
         {
-          "term": "UAT (User Acceptance Testing)",
-          "plain": "Uji oleh calon pengguna untuk memastikan website bisa dipakai sesuai kebutuhan."
+          "term": "Fase uji",
+          "original": "Test Cycle",
+          "meaning": "Satu putaran pengujian dalam periode tertentu."
         },
         {
-          "term": "Fase uji / Fase",
-          "plain": "Satu putaran kegiatan uji pada rentang tanggal tertentu."
+          "term": "Skenario uji",
+          "original": "Test Case",
+          "meaning": "Langkah yang harus dicoba dan hasil yang diharapkan."
         },
         {
-          "term": "Fitur / Fitur",
-          "plain": "Bagian website yang diuji, mis. Lapor Loker."
+          "term": "Fitur",
+          "original": "Module",
+          "meaning": "Bagian layanan yang diuji, mis. Lapor Loker."
         },
         {
-          "term": "Skenario uji / Skenario uji",
-          "plain": "Satu hal yang dicoba beserta hasil yang seharusnya."
+          "term": "Kelompok skenario",
+          "original": "Suite",
+          "meaning": "Kumpulan skenario dalam satu fitur, mis. per sub-menu."
         },
         {
-          "term": "Lembar uji / Lembar uji",
-          "plain": "Daftar skenario yang dikerjakan di satu fase, beserta hasilnya."
+          "term": "Lembar uji",
+          "original": "Test Run",
+          "meaning": "Daftar skenario yang ditugaskan untuk dicoba dalam satu fase."
         },
         {
-          "term": "Masalah / Masalah",
-          "plain": "Hal yang tidak sesuai dan perlu diperbaiki."
-        },
-        {
-          "term": "Tingkat dampak / Tingkat dampak",
-          "plain": "Seberapa besar akibat sebuah masalah, dari Kritis sampai Informasi. Ditentukan fasilitator."
-        },
-        {
-          "term": "Uji ulang / Uji ulang",
-          "plain": "Mencoba lagi setelah masalah diperbaiki."
-        },
-        {
-          "term": "Meja",
-          "plain": "Kelompok peserta workshop yang mengerjakan fitur yang sama."
+          "term": "Workshop & meja",
+          "original": "UAT Workshop",
+          "meaning": "Pengujian berkelompok per meja dengan kartu QR."
         },
         {
           "term": "Kartu meja",
-          "plain": "Kartu cetak berisi kode QR dan 6 angka untuk masuk tanpa akun."
+          "original": "Table card",
+          "meaning": "Kartu berisi QR dan 6 angka untuk masuk ke layar meja."
         },
         {
-          "term": "Juga mengalami (+1)",
-          "plain": "Tanda bahwa meja lain menemukan masalah yang sama, supaya tidak dicatat dua kali."
+          "term": "Sesuai / Tidak sesuai / Tidak bisa dicoba",
+          "original": "Passed / Failed / Blocked",
+          "meaning": "Tiga jawaban hasil uji."
         },
         {
-          "term": "Tampilan publik",
-          "plain": "Halaman yang bisa dilihat siapa pun tanpa login; isinya dipilih panitia per data."
+          "term": "Masalah",
+          "original": "Bug / Defect",
+          "meaning": "Sesuatu yang tidak berjalan seperti seharusnya."
+        },
+        {
+          "term": "Tingkat dampak",
+          "original": "Severity",
+          "meaning": "Seberapa besar akibat masalah bagi pengguna: Kritis, Berat, Sedang, Ringan."
+        },
+        {
+          "term": "Prioritas",
+          "original": "Priority",
+          "meaning": "Seberapa cepat masalah perlu diperbaiki: Segera, Tinggi, Sedang, Rendah."
+        },
+        {
+          "term": "Uji ulang",
+          "original": "Retest",
+          "meaning": "Mencoba lagi setelah masalah diperbaiki."
+        },
+        {
+          "term": "Foto & bukti",
+          "original": "Evidence",
+          "meaning": "Tangkapan layar, dokumen, atau catatan sebagai bukti hasil uji."
         }
       ]
     },
     "privacy": {
       "points": [
-        "Semua data fase tersembunyi dari umum sampai panitia menyalakannya, dan hanya data yang dicentang yang terlihat.",
-        "Foto layar Karirhub bisa memuat data pribadi pencari kerja (NIK, nama, nomor HP). Hindari memotret data asli, dan jangan membuka foto ke publik tanpa diperiksa.",
-        "Kartu meja hanya berlaku pada tanggal workshop, bisa diganti atau dinonaktifkan kapan saja, dan tidak bisa membuka halaman pengguna.",
-        "Nama anggota meja disimpan sebagai teks, tidak dibuatkan akun. Setiap perubahan oleh pengguna tercatat di log aktivitas.",
-        "\"Selalu login di perangkat ini\" jangan dicentang di komputer bersama. Keluarkan perangkat lain dari menu Profil bila perlu."
+        "Data proyek hanya bisa dibuka anggota proyek. Halaman publik hanya menampilkan data yang dinyalakan Admin.",
+        "Kartu meja hanya bisa membuka layar meja, tidak pernah data lain, dan hanya pada masa berlakunya.",
+        "Layar meja tidak pernah menampilkan email lengkap anggota.",
+        "Kata sandi disimpan dalam bentuk acak (hash). Tidak ada orang, termasuk Admin, yang bisa melihatnya.",
+        "Foto dan file diperiksa dan dikecilkan otomatis, serta hanya bisa dibuka anggota proyek."
       ]
-    },
-    "publish": {
-      "intro": "Fase bisa ditampilkan di halaman depan situs supaya masyarakat dan peserta melihat kemajuan uji dan masalah yang ditemukan. Bawaannya tertutup; Anda yang memilih data apa saja yang tampil.",
-      "steps": [
-        {
-          "title": "Buka Mode Workshop",
-          "body": "Masuk sebagai pengguna, pilih proyek (mis. Karirhub), lalu klik menu Mode Workshop di kiri dan tekan \"Buka Mode Workshop\" pada fase yang diinginkan."
-        },
-        {
-          "title": "Buka tab Tampilan publik",
-          "body": "Di bagian atas halaman ada tab Papan, Meja, Masalah masuk, Tampilan publik, Fitur. Klik Tampilan publik."
-        },
-        {
-          "title": "Nyalakan tombol utama",
-          "body": "Nyalakan \"Tampilkan fase ini di halaman depan\". Boleh tambahkan pengantar, mis. jadwal dan tempat workshop."
-        },
-        {
-          "title": "Centang data yang boleh dilihat",
-          "body": "Mulai dari yang aman: Daftar fitur, Kemajuan per fitur, Daftar masalah. Hati-hati dengan data bertanda \"Data pribadi?\" seperti foto layar dan nama."
-        },
-        {
-          "title": "Pratinjau, lalu simpan",
-          "body": "Tekan \"Pratinjau tampilan publik\" untuk melihat hasilnya di tab baru. Bila sudah sesuai, tekan \"Simpan tampilan publik\"."
-        },
-        {
-          "title": "Cek dari sisi pengunjung",
-          "body": "Buka menu \"Halaman publik\" di kiri, atau buka paskerid.kemnaker.go.id/testboard/ di jendela penyamaran (incognito). Untuk menutup lagi, matikan tombol utama lalu simpan."
-        }
-      ],
-      "seeTitle": "Yang dilihat pengunjung",
-      "see": [
-        "Halaman depan: judul ajakan, tombol \"Masuk dengan Kartu Meja\", kartu setiap fase yang dibuka beserta kemajuannya, dan 4 langkah cara ikut menguji.",
-        "Halaman fase: nama fase, pengantar, kemajuan keseluruhan (bila dicentang), lalu tab \"Fitur yang dikerjakan\" dan \"Daftar masalah\".",
-        "Daftar masalah bisa dicari dan disaring (belum selesai / sudah selesai / per fitur). Isinya hanya data yang dicentang.",
-        "Tidak ada yang bisa diubah dari halaman publik, dan data yang tidak dicentang tidak pernah dikirim ke browser pengunjung."
-      ],
-      "open": "Lihat halaman publik"
     }
   },
   "signIn": {
@@ -2625,6 +2677,225 @@
       "reportBug": "Laporkan masalah",
       "bugs": "Lihat masalah",
       "reports": "Buka laporan"
+    }
+  },
+  "help": {
+    "button": "Bantuan",
+    "eyebrow": "Bantuan halaman ini",
+    "close": "Tutup bantuan",
+    "stepsTitle": "Yang biasa dilakukan di sini",
+    "fullGuide": "Buka panduan lengkap",
+    "tour": "Ulangi tur singkat",
+    "pages": {
+      "projects": {
+        "title": "Proyek",
+        "what": "Daftar proyek yang bisa Anda buka. Satu proyek biasanya satu layanan yang diuji, mis. Karirhub.",
+        "steps": [
+          "Tekan Buka proyek untuk masuk.",
+          "Admin bisa membuat proyek baru dengan tombol Buat proyek.",
+          "Buka Tugas saya untuk melihat semua pekerjaan Anda."
+        ]
+      },
+      "tasks": {
+        "title": "Tugas saya",
+        "what": "Semua yang ditugaskan kepada Anda dari semua proyek: meja workshop, lembar uji, dan masalah yang Anda laporkan.",
+        "steps": [
+          "Tekan Buka meja ini untuk menguji bersama kelompok; nama Anda langsung terpilih.",
+          "Tekan Lanjutkan untuk mencoba skenario berikutnya di lembar uji.",
+          "Tekan Lihat untuk memantau masalah yang Anda laporkan."
+        ]
+      },
+      "profile": {
+        "title": "Profil saya",
+        "what": "Nama, bahasa, kata sandi, dan perangkat yang sedang masuk dengan akun Anda.",
+        "steps": [
+          "Ganti kata sandi secara berkala.",
+          "Keluarkan perangkat lain yang tidak Anda kenal."
+        ]
+      },
+      "dashboard": {
+        "title": "Beranda proyek",
+        "what": "Ringkasan proyek: berapa skenario sudah dicoba, berapa yang sesuai, dan masalah yang masih terbuka.",
+        "steps": [
+          "Admin: ikuti kartu Mulai di sini dari atas ke bawah.",
+          "Saring menurut lembar uji untuk melihat satu putaran saja.",
+          "Tekan angka atau grafik untuk membuka rinciannya."
+        ]
+      },
+      "cycles": {
+        "title": "Fase uji",
+        "what": "Fase adalah satu putaran pengujian dalam periode tertentu. Lembar uji dan meja workshop selalu berada di dalam sebuah fase.",
+        "steps": [
+          "Tekan Buat fase, isi nama dan periodenya.",
+          "Ubah status menjadi Berjalan saat pengujian dimulai.",
+          "Kode fase bisa diubah kapan saja."
+        ]
+      },
+      "testCases": {
+        "title": "Skenario uji",
+        "what": "Daftar langkah yang harus dicoba beserta hasil yang diharapkan. Hasil percobaannya dicatat di Lembar uji atau di meja workshop.",
+        "steps": [
+          "Tekan Buat skenario uji untuk menulis satu skenario.",
+          "Untuk banyak skenario sekaligus, pakai Impor dari Excel.",
+          "Centang beberapa skenario untuk mengubahnya bersama-sama."
+        ]
+      },
+      "imports": {
+        "title": "Impor dari Excel",
+        "what": "Memasukkan banyak skenario uji atau masalah sekaligus dari file Excel. Tidak ada yang tersimpan sebelum Anda menyetujuinya.",
+        "steps": [
+          "Unggah file Excel atau CSV.",
+          "Periksa baris yang ditandai bermasalah dan pilih tindakannya.",
+          "Tekan Terapkan untuk menyimpan."
+        ]
+      },
+      "workshop": {
+        "title": "Workshop & meja",
+        "what": "Pengujian berkelompok per meja dengan kartu QR. Di sini Anda menyiapkan meja, memantau kemajuan, meninjau masalah yang masuk, dan mengatur tampilan publik.",
+        "steps": [
+          "Buat meja, pilih fitur yang dikerjakan, dan isi nama (serta email bila ada) anggotanya.",
+          "Cetak kartu meja dan bagikan ke setiap meja.",
+          "Pantau papan kemajuan dan tinjau Masalah masuk selama workshop."
+        ]
+      },
+      "runs": {
+        "title": "Lembar uji",
+        "what": "Lembar uji berisi skenario yang ditugaskan kepada penguji perorangan untuk dicoba dalam satu fase.",
+        "steps": [
+          "Buat lembar uji, lalu tambahkan skenario uji.",
+          "Tugaskan skenario kepada penguji, lalu tekan Mulai.",
+          "Setelah selesai, kunci lembar uji bila hasilnya sudah disetujui."
+        ]
+      },
+      "execution": {
+        "title": "Mencoba skenario",
+        "what": "Di sini Anda mencoba satu skenario dan mencatat hasilnya.",
+        "steps": [
+          "Ikuti langkahnya di aplikasi yang diuji.",
+          "Pilih Sesuai, Tidak sesuai, atau Tidak bisa dicoba.",
+          "Untuk Tidak sesuai, tulis apa yang terjadi, lampirkan foto layar, lalu laporkan masalahnya."
+        ]
+      },
+      "bugs": {
+        "title": "Masalah",
+        "what": "Semua masalah yang ditemukan, beserta tingkat dampak, prioritas, dan status perbaikannya.",
+        "steps": [
+          "Buka satu masalah untuk melihat rincian, foto, dan riwayatnya.",
+          "Developer mengubah status saat memperbaiki; penguji mengecek ulang.",
+          "Centang beberapa masalah untuk mengubahnya bersama-sama."
+        ]
+      },
+      "evidence": {
+        "title": "Foto & bukti",
+        "what": "Semua tangkapan layar, dokumen, dan catatan yang menjadi bukti hasil uji di proyek ini.",
+        "steps": [
+          "Saring menurut jenis atau kata kunci.",
+          "Buka file untuk melihat di mana file itu dipakai."
+        ]
+      },
+      "reports": {
+        "title": "Laporan",
+        "what": "Ringkasan hasil pengujian dan masalah untuk pimpinan, serta unduhan data.",
+        "steps": [
+          "Pilih filter, mis. fase atau fitur.",
+          "Unduh sebagai Excel atau CSV di bagian Ekspor data.",
+          "Lihat Log aktivitas untuk mengetahui siapa mengubah apa."
+        ]
+      },
+      "members": {
+        "title": "Anggota & tugas",
+        "what": "Siapa saja yang ikut di proyek ini dan apa tugasnya: Penguji, Developer, atau Pemantau.",
+        "steps": [
+          "Tambahkan orang dengan emailnya; bila belum punya akun, isi namanya.",
+          "Kirim tautan aktivasi kepada akun yang belum aktif.",
+          "Ubah tugas seseorang; Anda akan diminta konfirmasi."
+        ]
+      },
+      "settings": {
+        "title": "Fitur & kelompok",
+        "what": "Daftar fitur (bagian layanan yang diuji) dan kelompok skenario di proyek ini.",
+        "steps": [
+          "Tambahkan fitur sebelum menulis skenario uji.",
+          "Kode fitur bisa diubah; kode skenario yang sudah ada tetap."
+        ]
+      },
+      "adminUsers": {
+        "title": "Pengguna",
+        "what": "Semua akun di situs ini. Super Admin membuat akun dan menentukan perannya.",
+        "steps": [
+          "Buat akun dan pilih peran: Pengguna, Admin, atau Super Admin.",
+          "Ubah peran lewat pilihan di setiap baris; Anda akan diminta konfirmasi.",
+          "Buat tautan reset bila seseorang lupa kata sandi."
+        ]
+      },
+      "adminProjects": {
+        "title": "Kelola proyek",
+        "what": "Semua proyek di situs ini, termasuk yang diarsipkan.",
+        "steps": [
+          "Ubah nama, kode, atau deskripsi proyek.",
+          "Arsipkan proyek yang sudah selesai; isinya tetap bisa dibaca."
+        ]
+      },
+      "adminRecovery": {
+        "title": "Pemulihan akun",
+        "what": "Permintaan \"Lupa kata sandi\" dan \"Lupa email\" dari pengguna.",
+        "steps": [
+          "Pastikan identitas peminta lewat kontak yang ia berikan.",
+          "Buat tautan reset dan kirimkan kepadanya.",
+          "Tandai permintaan selesai."
+        ]
+      },
+      "adminSettings": {
+        "title": "Pengaturan situs",
+        "what": "Pengaturan untuk seluruh situs: nama, pengumuman, kontak bantuan, dan batas waktu masuk.",
+        "steps": ["Ubah nilai lalu simpan.", "Pengumuman tampil di bagian atas semua halaman."]
+      },
+      "adminAudit": {
+        "title": "Log aktivitas situs",
+        "what": "Catatan siapa melakukan apa dan kapan, di seluruh situs.",
+        "steps": [
+          "Saring menurut proyek, jenis, atau tanggal.",
+          "Buka satu catatan untuk melihat perubahan rinciannya."
+        ]
+      },
+      "guide": {
+        "title": "Panduan",
+        "what": "Panduan lengkap bergambar, disusun menurut peran.",
+        "steps": ["Pilih bagian yang sesuai dengan peran Anda di daftar isi."]
+      }
+    }
+  },
+  "tour": {
+    "counter": "Tur singkat · {{n}} dari {{total}}",
+    "skip": "Lewati",
+    "back": "Kembali",
+    "next": "Lanjut",
+    "done": "Selesai",
+    "steps": {
+      "myTasks": {
+        "title": "Tugas saya",
+        "body": "Semua pekerjaan yang ditugaskan kepada Anda, dari semua proyek, ada di sini."
+      },
+      "projectMenu": {
+        "title": "Menu sesuai urutan kerja",
+        "body": "1. Persiapan, 2. Pelaksanaan, 3. Hasil & laporan, 4. Pengaturan. Anda hanya melihat bagian yang sesuai dengan tugas Anda."
+      },
+      "startHere": {
+        "title": "Mulai di sini",
+        "body": "Ikuti langkah ini dari atas ke bawah untuk menyiapkan dan menjalankan pengujian."
+      },
+      "pageHelp": {
+        "title": "Bantuan di setiap halaman",
+        "body": "Tekan Bantuan kapan saja untuk penjelasan singkat halaman yang sedang Anda buka."
+      },
+      "guide": {
+        "title": "Panduan lengkap",
+        "body": "Panduan bergambar, disusun menurut peran: peserta, Penguji, Admin, Developer, dan Pemantau."
+      },
+      "fontSize": {
+        "title": "Ukuran huruf",
+        "body": "Tulisan terlalu kecil? Tekan A+ untuk memperbesar huruf di seluruh situs."
+      }
     }
   }
 }

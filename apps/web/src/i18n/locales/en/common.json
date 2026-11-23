@@ -366,7 +366,9 @@
     "actualResult": "Actual result",
     "executionKind": "Attempt type",
     "tester": "Tester",
-    "runCount": "Runs"
+    "runCount": "Runs",
+    "severityHint": "How badly users are affected. Critical: the service cannot be used at all.",
+    "priorityHint": "How soon it must be fixed. It can differ from the severity."
   },
   "pages": {
     "login": {
@@ -2147,366 +2149,416 @@
     }
   },
   "guide": {
-    "eyebrow": "Guide",
-    "title": "How to use TestBoard",
-    "subtitle": "A plain explanation of how TestBoard works and step-by-step use for workshop participants, facilitators and admins. No technical background needed.",
+    "eyebrow": "User guide",
+    "title": "TestBoard guide",
+    "subtitle": "Everything you need to use TestBoard, arranged by role. Choose the part that fits you in the contents.",
     "toc": "Contents",
     "faqTitle": "Frequently asked questions",
-    "help": "Still unsure? Ask the organisers or a facilitator in the room.",
-    "backHome": "Back to the front page",
+    "help": "Still unsure? Ask your project Admin.",
+    "backHome": "Back to the home page",
+    "stepNumber": "Step {{n}}",
     "sections": {
-      "cara-kerja": "How it works",
-      "peserta": "For table participants",
-      "fasilitator": "For facilitators / organisers",
-      "admin": "For admins",
+      "cara-kerja": "How TestBoard works",
+      "masuk": "How to sign in",
+      "peserta": "For participants at a table",
+      "penguji": "For Testers",
+      "admin": "For Admins",
+      "developer": "For Developers",
+      "pemantau": "For Observers and leaders",
+      "peran": "Roles and access",
+      "publik": "Opening a phase to the public",
+      "super-admin": "For the Super Admin",
       "istilah": "Glossary",
-      "privasi": "Privacy and data security",
-      "publik": "Opening a phase to the public"
+      "privasi": "Privacy and security"
     },
     "flow": {
-      "intro": "Think of TestBoard as a report card for a website being tested. From big to small:",
-      "project": {
-        "title": "Project",
-        "menu": "Menu: Projects",
-        "body": "The website being tested, e.g. Karirhub."
-      },
+      "intro": "TestBoard helps Pusat Pasar Kerja test services with users before the public uses them. The work always follows the same order, and the menu on the left follows it too.",
       "cycle": {
-        "title": "Phase",
-        "menu": "Menu: Test cycles",
-        "body": "One round of testing, e.g. Phase 1 (workshop on 30-31 July)."
+        "title": "Test phase",
+        "menu": "Menu 1. Preparation › Test phases",
+        "body": "One round of testing in a given period, e.g. \"UAT Stage 1, 3-4 December\"."
       },
-      "feature": {
-        "title": "Feature",
-        "menu": "Menu: Modules",
-        "body": "A part of the website, e.g. Job vacancy reports."
+      "cases": {
+        "title": "Test scenarios",
+        "menu": "Menu 1. Preparation › Test scenarios",
+        "body": "The steps to try and the expected result. Write them one by one or import them from Excel."
       },
-      "scenario": {
-        "title": "Test scenario",
-        "menu": "Menu: Test cases",
-        "body": "One thing to try: the steps and what should happen."
+      "plan": {
+        "title": "How to test",
+        "menu": "Menu 2. Testing",
+        "body": "A test sheet for individual testers, or workshop tables for group testing with QR cards."
       },
-      "run": {
-        "title": "Test sheet",
-        "menu": "Menu: Test runs",
-        "body": "The scenarios worked on in one phase. It must be started before it can be filled in."
+      "test": {
+        "title": "Trying",
+        "menu": "In a test sheet or on the table screen",
+        "body": "Testers try each scenario and choose As expected, Not as expected, or Could not try."
       },
-      "result": {
-        "title": "Result",
-        "menu": "Filled in by participants",
-        "body": "As expected, Not as expected, or Could not try, per scenario."
+      "bugs": {
+        "title": "Problems",
+        "menu": "Menu 3. Results & reports › Problems",
+        "body": "A Not as expected result becomes a problem report. Developers fix it, testers check again."
       },
-      "bug": {
-        "title": "Problem (bug)",
-        "menu": "Menu: Bugs",
-        "body": "Recorded when a result is not as expected, then fixed by developers and tested again."
+      "report": {
+        "title": "Reports",
+        "menu": "Menu 3. Results & reports › Reports",
+        "body": "A summary for leaders, downloadable as Excel or CSV."
       },
-      "example": "Example: project Karirhub > Phase 2 > feature Job vacancy reports > scenario \"Save a vacancy report\" in the Workshop Phase 2 run > result Not as expected > recorded as bug BUG-KAR-0012 > fixed by a developer > tested again."
+      "example": "Example: the phase \"UAT Karirhub Stage 1\" holds 120 test scenarios. Ten workshop tables work on different features. Every Not as expected answer becomes a problem that an Admin reviews and a Developer fixes, and the progress shows in Reports."
     },
-    "participant": {
-      "intro": "Participants need no account. One table = one group working on the same features.",
-      "steps": [
+    "signIn": {
+      "intro": "The sign-in page has two choices. Pick the one that fits you.",
+      "tableTitle": "Table card: for participants at a table",
+      "tableSteps": [
         {
-          "title": "Scan the table card",
-          "body": "Open the phone camera, point it at the QR code on the table card and tap the link that appears. Or open the address on the card and type the 6 digits."
+          "title": "Scan the QR on the table card",
+          "body": "Open the phone camera and point it at the QR. You are signed in to the table right away."
         },
         {
-          "title": "Choose who is answering",
-          "body": "On the table page, tap your name. It is recorded with every answer. If it is missing, press \"Edit members\"."
+          "title": "Or type the 6 digits",
+          "body": "Open Sign in, choose Table card, then type the 6 digits under the QR."
         },
         {
-          "title": "Choose a feature, then Start testing",
-          "body": "Each feature has a few scenarios. Progress is saved automatically."
-        },
-        {
-          "title": "Read the scenario and try it on the website being tested",
-          "body": "Follow the steps one by one. The green box explains what should happen."
-        },
-        {
-          "title": "Press one of the three big buttons",
-          "body": "See the buttons below. Once saved, press \"Go to the next scenario\"."
-        },
-        {
-          "title": "If not as expected: describe it and take a photo",
-          "body": "Write what happened in everyday words and photograph the screen. If another table already reported the same, press \"Yes, the same as this\"."
+          "title": "Tap your name",
+          "body": "On the table screen, tap your name so answers are recorded under it. No e-mail or password needed."
         }
       ],
-      "buttons": "The three answer buttons",
-      "passed": "As expected: the result matches the green \"What should happen\" box.",
-      "failed": "Not as expected: something is wrong, an error, or different. You will be asked to describe it.",
-      "blocked": "Could not try: the page would not open, there is no data, or the steps are unclear.",
-      "faq": [
+      "userTitle": "User account: for people with an account",
+      "userSteps": [
         {
-          "q": "I pressed the wrong button.",
-          "a": "Open the scenario again and press \"Change the answer\". The newest answer counts; the old one stays in the history."
+          "title": "Choose User account",
+          "body": "On the Sign in page, choose User account."
         },
         {
-          "q": "The letters are too small.",
-          "a": "Press A+ at the top of the screen. The size is remembered on that device."
+          "title": "Enter e-mail and password",
+          "body": "Tick \"Stay signed in on this device\" only on a personal device."
         },
         {
-          "q": "The internet dropped while answering.",
-          "a": "Wait a moment and send again; the answer is never recorded twice. If it takes long, use the paper test sheet from the organisers."
+          "title": "Forgot your password?",
+          "body": "Press \"Forgot password?\". Your request goes to the Super Admin, who sends a link to create a new password."
+        }
+      ],
+      "activationTitle": "Activating a new account",
+      "activationBody": "If an Admin listed you with a name and e-mail, your account exists but has no password yet. Activate it in one of these ways:",
+      "activationSteps": [
+        {
+          "title": "With a link from an Admin",
+          "body": "An Admin sends an activation link (e.g. via WhatsApp). Open it, create a password, done."
         },
         {
-          "q": "How do I take a screen photo?",
-          "a": "Easiest: press \"Take a photo\" and photograph the computer screen with the phone camera. Or use \"Choose a picture\" for an existing screenshot."
-        },
-        {
-          "q": "Do I choose how severe it is?",
-          "a": "No. Facilitators decide that. Participants just describe what happened."
-        },
-        {
-          "q": "The table card does not work.",
-          "a": "Cards only work on the workshop dates and may be replaced by the organisers. Ask them for the latest card."
+          "title": "On the table screen",
+          "body": "At a workshop table, press \"Activate my account\", choose your name and create a password. Only once."
         }
       ]
     },
-    "facilitator": {
-      "intro": "Facilitators prepare the tables, follow progress and tidy the incoming problems. Everything is in the Workshop mode menu inside the project.",
-      "before": "Before the day",
-      "beforeSteps": [
+    "participant": {
+      "intro": "You test together with your group at a table, from a phone or tablet, with large text and buttons.",
+      "steps": [
         {
-          "title": "Create a phase",
-          "body": "Test cycles > New cycle. Enter a code (e.g. PHASE-2), a title and the workshop dates."
+          "title": "Sit at your group's table",
+          "body": "Each table works on the features the organisers chose."
         },
         {
-          "title": "Prepare the scenarios",
-          "body": "Use Data import to bring scenarios from Excel, or add them under Test cases. Group them per feature (module)."
+          "title": "Scan the table card",
+          "body": "Point the phone camera at the QR on the card, or type the 6 digits under it."
         },
         {
-          "title": "Create a test run and start it",
-          "body": "Test runs > New run, choose the phase, add scenarios, then set the status to Active when the workshop starts."
+          "title": "Tap your name",
+          "body": "Choose who is answering. You can change it any time."
         },
         {
-          "title": "Create tables",
-          "body": "Workshop mode > Tables > Create several tables. Then edit each table: choose features and (optionally) member names. Card validity follows the phase dates."
+          "title": "Choose a feature, then try one by one",
+          "body": "Follow the steps on screen, then press one of the three answer buttons."
         },
         {
-          "title": "Print cards and paper backups",
-          "body": "Print all cards (2 per A4). Also print a Paper backup per table in case the internet fails."
-        },
-        {
-          "title": "Set the public view",
-          "body": "Public view tab. All data is hidden by default; switch the phase on and tick only what the public may see."
-        },
-        {
-          "title": "Short rehearsal",
-          "body": "Ask 3-5 future participants to try one scenario with a sample card. Fix scenarios that confuse them."
+          "title": "Tell us about problems",
+          "body": "Write what happened and take a photo of the screen. If another table already reported it, just press \"I have it too\"."
         }
       ],
-      "during": "During the workshop",
-      "duringSteps": [
-        {
-          "title": "Hand a card to each table",
-          "body": "One card per table. Participants scan the QR or type the 6 digits."
-        },
-        {
-          "title": "Show the Big screen on the projector",
-          "body": "The Big screen button opens a page with every table's progress, refreshed automatically."
-        },
-        {
-          "title": "Watch the Board",
-          "body": "Spot tables that fall behind or have not started, and go and help."
-        },
-        {
-          "title": "Tidy Incoming problems",
-          "body": "Set the impact, press \"Same as\" when it duplicates another, then Reviewed."
-        },
-        {
-          "title": "If a card leaks or is lost",
-          "body": "Tables tab > New code (the old card stops working) or Block."
-        }
-      ],
-      "after": "After the workshop",
-      "afterSteps": [
-        {
-          "title": "Set the test run to Completed",
-          "body": "No more answers can be added once it is closed."
-        },
-        {
-          "title": "Enter results from paper sheets (if any)",
-          "body": "Open the run under Test runs and fill in the results."
-        },
-        {
-          "title": "Read the reports and pass bugs on",
-          "body": "Reports for the summary; Bugs to assign fixes to developers."
-        },
-        {
-          "title": "Close the public view if needed",
-          "body": "Switch off Show publicly, or keep it on for transparency."
-        }
-      ],
+      "buttons": "Three answer buttons",
+      "passed": "As expected: the result matches what was expected.",
+      "failed": "Not as expected: the result is different or something is wrong. You will be asked to describe it.",
+      "blocked": "Could not try: the step could not be done, e.g. the page did not open.",
       "faq": [
         {
-          "q": "Participants see \"The test sheet is not open\".",
-          "a": "Set the test run status to Active under Test runs."
+          "q": "The internet dropped while answering. Are my answers lost?",
+          "a": "No. Answers are kept on the phone and sent automatically once the internet is back. An answer is never recorded twice."
         },
         {
-          "q": "Two tables work on the same feature.",
-          "a": "That is fine. Both see the latest answer; every answer stays in the history."
+          "q": "I chose the wrong answer.",
+          "a": "Try the same scenario again and choose the right answer. The latest answer counts."
         },
         {
-          "q": "Many tables report the same problem.",
-          "a": "Participants are prompted to press \"Same\". Tidy the rest in Incoming problems with \"Same as\"; they count as \"also seen\"."
+          "q": "My name is not in the list.",
+          "a": "Press \"Change member names\" and add your name. Names with an account (listed by the organisers) cannot be changed at the table."
+        },
+        {
+          "q": "The table card does not work.",
+          "a": "Cards only work during the workshop. If it has ended or was blocked, ask the organisers for a new card."
+        }
+      ]
+    },
+    "tester": {
+      "intro": "As a Tester you try the scenarios assigned to you and report the problems you find.",
+      "steps": [
+        {
+          "title": "Open My tasks",
+          "body": "All your work is there: the tables you are listed at, the test sheets assigned to you, and the problems you reported."
+        },
+        {
+          "title": "Continue a test sheet",
+          "body": "Press \"Continue\" to open the next scenario not tried yet."
+        },
+        {
+          "title": "Record the result",
+          "body": "Choose As expected, Not as expected, or Could not try. For Not as expected, describe what happened and attach a screenshot."
+        },
+        {
+          "title": "Report a problem",
+          "body": "From a Not as expected result, press \"Report a problem\". It is filled in from your attempt."
+        },
+        {
+          "title": "Check again after a fix",
+          "body": "When a problem is Ready to retest, try the scenario again and mark it Checked, all good or Came back."
         }
       ]
     },
     "admin": {
-      "intro": "Site admins (Super Admin) manage projects, accounts and settings. Everything is under Administration.",
+      "intro": "As an Admin you prepare and manage projects. Follow the \"Start here\" card on the project home; the steps are the same as below.",
       "steps": [
         {
-          "title": "Projects",
-          "body": "Administration > Projects: create projects, change their name or code, archive them."
+          "title": "Create a project",
+          "body": "On the Projects page, press \"Create project\". Enter a short code (e.g. KARIRHUB) and a name."
         },
+        {
+          "title": "Create a test phase",
+          "body": "Menu 1. Preparation › Test phases. Enter a name and period, e.g. \"UAT Stage 1\"."
+        },
+        {
+          "title": "Prepare test scenarios",
+          "body": "Write them one by one in Test scenarios, or bring many at once with Import from Excel. Every row is checked before it is saved."
+        },
+        {
+          "title": "Choose how to test",
+          "body": "Create a Test sheet for individual testers and assign its scenarios. For a workshop, open Workshop & tables, create tables, enter the members' names (and e-mails if any), then print the table cards."
+        },
+        {
+          "title": "Add people",
+          "body": "Menu 4. Settings › Members & tasks. An e-mail is enough; without an account, enter the name and send an activation link with the \"Activation link\" button."
+        },
+        {
+          "title": "Follow up and review",
+          "body": "While testing runs, watch the Workshop & tables board, review incoming Problems, then share the Reports with leaders."
+        }
+      ],
+      "tips": [
+        "Codes (project, phase, feature) can be changed any time; old links keep pointing to the same data.",
+        "Important changes, such as changing someone's task or locking a test sheet, always ask for confirmation.",
+        "The Help button at the top right explains the page you are on."
+      ]
+    },
+    "developer": {
+      "intro": "As a Developer you follow up on reported problems.",
+      "steps": [
+        {
+          "title": "Open Problems",
+          "body": "Filter by severity or by what is assigned to you."
+        },
+        {
+          "title": "Start fixing",
+          "body": "Set the status to Being fixed so the team knows it is handled."
+        },
+        {
+          "title": "Mark it fixed",
+          "body": "When done, set it to Fixed then Ready to retest, and enter the fix version."
+        },
+        {
+          "title": "Wait for the retest",
+          "body": "A tester checks again. If it still happens, the status becomes Came back and returns to you."
+        }
+      ]
+    },
+    "observer": {
+      "intro": "As an Observer you see all progress without changing anything. Suits leaders.",
+      "steps": [
+        {
+          "title": "Project home",
+          "body": "How many scenarios were tried, the share of As expected, and open problems by severity."
+        },
+        {
+          "title": "Reports",
+          "body": "Details per feature, per test sheet and per tester, downloadable as Excel or CSV."
+        },
+        {
+          "title": "Problems",
+          "body": "The problem list with statuses; open one to see its history and photo evidence."
+        },
+        {
+          "title": "Public page",
+          "body": "When a phase is public, its progress can also be seen without signing in."
+        }
+      ]
+    },
+    "roles": {
+      "intro": "There are three levels of roles. Visitors of the public page and table cards are not users.",
+      "rows": [
+        {
+          "role": "Super Admin",
+          "who": "Website manager",
+          "can": "Everything an Admin can do, plus creating user accounts and setting their roles, website settings, account recovery and the website activity log."
+        },
+        {
+          "role": "Admin",
+          "who": "UAT organising team",
+          "can": "Creates and manages every project: phases, scenarios, imports, workshop tables, public view, problem review, members and their tasks."
+        },
+        {
+          "role": "User - Tester",
+          "who": "Testers, workshop participants with an account",
+          "can": "Tries the assigned scenarios, records results and reports problems in the projects they belong to."
+        },
+        {
+          "role": "User - Developer",
+          "who": "Development team",
+          "can": "Sees problems and updates their fix status."
+        },
+        {
+          "role": "User - Observer",
+          "who": "Leaders",
+          "can": "Sees all progress, results and reports without changing anything, and downloads reports."
+        }
+      ],
+      "head": {
+        "role": "Role",
+        "who": "For whom",
+        "can": "What they can do"
+      }
+    },
+    "publish": {
+      "intro": "Each phase can be opened to the public (no sign-in). Everything is hidden by default; an Admin chooses which data may be seen.",
+      "steps": [
+        {
+          "title": "Open Workshop & tables",
+          "body": "Choose the phase, then open the Public view tab."
+        },
+        {
+          "title": "Choose the data to show",
+          "body": "Each item has its own switch. Items that may hold personal data are marked."
+        },
+        {
+          "title": "Preview",
+          "body": "Press \"Preview the public view\" to see exactly what the public sees."
+        },
+        {
+          "title": "Switch on and save",
+          "body": "Turn on \"Show publicly\", then save. The phase appears on the front page."
+        }
+      ],
+      "sees": "Visitors only see the data that is switched on, never anything else."
+    },
+    "superAdmin": {
+      "intro": "The Super Admin manages the website as a whole.",
+      "steps": [
         {
           "title": "Users",
-          "body": "Administration > Users: create staff accounts (not table participants), deactivate them, make Super Admins."
+          "body": "Create accounts and choose their role: User, Admin or Super Admin. Role changes always ask for confirmation."
         },
         {
-          "title": "Project members",
-          "body": "Inside a project, Team & settings: add accounts to the project and choose their role."
+          "title": "Account recovery",
+          "body": "\"Forgot password\" and \"Forgot e-mail\" requests arrive here. Create a reset link after checking who is asking."
         },
         {
-          "title": "Forgotten e-mail / password",
-          "body": "Administration > Account recovery: create a time-limited password reset link."
-        },
-        {
-          "title": "Site settings",
-          "body": "Site name, announcement, session length and the \"Keep me signed in\" duration."
+          "title": "Website settings",
+          "body": "Site name, an announcement on every page, the help contact and sign-in time limits."
         },
         {
           "title": "Activity log",
-          "body": "Who changed what and when, including public view and table card changes."
-        }
-      ],
-      "roles": "Roles inside a project",
-      "role": "Role",
-      "can": "Can do",
-      "roleRows": [
-        {
-          "role": "Project admin",
-          "can": "Everything in that project, including members."
-        },
-        {
-          "role": "QA Lead (facilitator)",
-          "can": "Prepares scenarios, test runs, Workshop mode, tables, public view, and reviews problems."
-        },
-        {
-          "role": "Tester",
-          "can": "Records results and reports problems with their own account."
-        },
-        {
-          "role": "Developer",
-          "can": "Sees and updates the status of bugs assigned to them."
-        },
-        {
-          "role": "Viewer",
-          "can": "Read only."
-        },
-        {
-          "role": "Table participant",
-          "can": "No account; signs in with a table card and can only use the easy mode."
+          "body": "A record of who did what and when, across the website."
         }
       ]
     },
     "glossary": {
-      "intro": "Words in the menus and what they mean in everyday language.",
-      "items": [
+      "intro": "Terms used in TestBoard, with the original English term.",
+      "head": {
+        "term": "Term",
+        "original": "Original term",
+        "meaning": "Meaning"
+      },
+      "rows": [
         {
-          "term": "UAT (User Acceptance Testing)",
-          "plain": "Testing by future users to make sure the website works for what they need."
+          "term": "Test phase",
+          "original": "Test Cycle",
+          "meaning": "One round of testing in a given period."
         },
         {
-          "term": "Test cycle / Phase",
-          "plain": "One round of testing over certain dates."
+          "term": "Test scenario",
+          "original": "Test Case",
+          "meaning": "The steps to try and the expected result."
         },
         {
-          "term": "Module / Feature",
-          "plain": "A part of the website being tested."
+          "term": "Feature",
+          "original": "Module",
+          "meaning": "A part of the service under test, e.g. Job reports."
         },
         {
-          "term": "Test case / Scenario",
-          "plain": "One thing to try, with what should happen."
+          "term": "Scenario group",
+          "original": "Suite",
+          "meaning": "A set of scenarios within one feature, e.g. per sub-menu."
         },
         {
-          "term": "Run / Test sheet",
-          "plain": "The scenarios worked on in one phase, with their results."
+          "term": "Test sheet",
+          "original": "Test Run",
+          "meaning": "The scenarios assigned to be tried in a phase."
         },
         {
-          "term": "Bug / Problem",
-          "plain": "Something not as expected that needs fixing."
-        },
-        {
-          "term": "Severity / Impact",
-          "plain": "How serious a problem is, from Critical to Info. Set by facilitators."
-        },
-        {
-          "term": "Retest",
-          "plain": "Trying again after a problem was fixed."
-        },
-        {
-          "term": "Table",
-          "plain": "A group of workshop participants working on the same features."
+          "term": "Workshop & tables",
+          "original": "UAT Workshop",
+          "meaning": "Group testing per table with QR cards."
         },
         {
           "term": "Table card",
-          "plain": "A printed card with a QR code and 6 digits to sign in without an account."
+          "original": "Table card",
+          "meaning": "A card with a QR and 6 digits to open the table screen."
         },
         {
-          "term": "Also seen (+1)",
-          "plain": "A sign that another table found the same problem, so it is not recorded twice."
+          "term": "As expected / Not as expected / Could not try",
+          "original": "Passed / Failed / Blocked",
+          "meaning": "The three test answers."
         },
         {
-          "term": "Public view",
-          "plain": "Pages anyone can see without signing in; organisers choose what is shown, field by field."
+          "term": "Problem",
+          "original": "Bug / Defect",
+          "meaning": "Something that does not work as it should."
+        },
+        {
+          "term": "Severity",
+          "original": "Severity",
+          "meaning": "How badly users are affected: Critical, Severe, Moderate, Minor."
+        },
+        {
+          "term": "Priority",
+          "original": "Priority",
+          "meaning": "How soon it must be fixed: Right away, High, Medium, Low."
+        },
+        {
+          "term": "Retest",
+          "original": "Retest",
+          "meaning": "Trying again after a problem was fixed."
+        },
+        {
+          "term": "Photos & evidence",
+          "original": "Evidence",
+          "meaning": "Screenshots, documents or notes that prove a result."
         }
       ]
     },
     "privacy": {
       "points": [
-        "All phase data is hidden from the public until organisers switch it on, and only ticked data is shown.",
-        "Karirhub screen photos can contain job seekers' personal data (ID number, name, phone). Avoid photographing real data, and never publish photos without checking them.",
-        "Table cards only work on the workshop dates, can be replaced or blocked any time, and cannot open staff pages.",
-        "Table member names are stored as text; no accounts are created. Every staff change is recorded in the activity log.",
-        "Do not tick \"Keep me signed in\" on a shared computer. Sign out other devices from the Profile page when needed."
+        "Project data can only be opened by project members. The public page only shows data an Admin switched on.",
+        "A table card only opens the table screen, never other data, and only while it is valid.",
+        "The table screen never shows members' full e-mails.",
+        "Passwords are stored scrambled (hashed). Nobody, including Admins, can see them.",
+        "Photos and files are checked and made smaller automatically, and only project members can open them."
       ]
-    },
-    "publish": {
-      "intro": "A phase can be shown on the site's front page so the public and participants see test progress and the problems found. It is closed by default; you choose which data is shown.",
-      "steps": [
-        {
-          "title": "Open Workshop mode",
-          "body": "Sign in as staff, choose the project (e.g. Karirhub), click Workshop mode on the left and press \"Open workshop mode\" on the phase."
-        },
-        {
-          "title": "Open the Public view tab",
-          "body": "At the top there are tabs Board, Tables, Incoming problems, Public view, Features. Click Public view."
-        },
-        {
-          "title": "Switch on the main switch",
-          "body": "Switch on \"Show this phase on the front page\". You may add an introduction, e.g. the workshop schedule and place."
-        },
-        {
-          "title": "Tick the data that may be seen",
-          "body": "Start with the safe ones: Feature list, Progress per feature, Problem list. Be careful with data marked \"Personal data?\" such as screen photos and names."
-        },
-        {
-          "title": "Preview, then save",
-          "body": "Press \"Preview public view\" to see the result in a new tab. When it looks right, press \"Save public view\"."
-        },
-        {
-          "title": "Check as a visitor",
-          "body": "Open the \"Public site\" menu on the left, or open paskerid.kemnaker.go.id/testboard/ in a private (incognito) window. To close it again, switch the main switch off and save."
-        }
-      ],
-      "seeTitle": "What visitors see",
-      "see": [
-        "Front page: a headline, the \"Sign in with a table card\" button, a card for every open phase with its progress, and 4 steps on how to take part.",
-        "Phase page: the phase name, introduction, overall progress (when ticked), then the tabs \"Features being tested\" and \"Problem list\".",
-        "The problem list can be searched and filtered (not finished / finished / per feature). It only contains ticked data.",
-        "Nothing can be changed from the public pages, and unticked data is never sent to a visitor's browser."
-      ],
-      "open": "See the public site"
     }
   },
   "signIn": {
@@ -2625,6 +2677,216 @@
       "reportBug": "Report a problem",
       "bugs": "See problems",
       "reports": "Open reports"
+    }
+  },
+  "help": {
+    "button": "Help",
+    "eyebrow": "Help for this page",
+    "close": "Close help",
+    "stepsTitle": "What you usually do here",
+    "fullGuide": "Open the full guide",
+    "tour": "Repeat the short tour",
+    "pages": {
+      "projects": {
+        "title": "Projects",
+        "what": "The projects you can open. One project is usually one service under test, e.g. Karirhub.",
+        "steps": [
+          "Press Open project to enter.",
+          "Admins can create a project with Create project.",
+          "Open My tasks to see all your work."
+        ]
+      },
+      "tasks": {
+        "title": "My tasks",
+        "what": "Everything assigned to you across projects: workshop tables, test sheets and the problems you reported.",
+        "steps": [
+          "Press Open this table to test with your group; your name is chosen already.",
+          "Press Continue to try the next scenario of a test sheet.",
+          "Press View to follow the problems you reported."
+        ]
+      },
+      "profile": {
+        "title": "My profile",
+        "what": "Your name, language, password and the devices signed in with your account.",
+        "steps": ["Change your password regularly.", "Sign out devices you do not recognise."]
+      },
+      "dashboard": {
+        "title": "Project home",
+        "what": "A summary of the project: how many scenarios were tried, how many were as expected, and the problems still open.",
+        "steps": [
+          "Admins: follow the Start here card from top to bottom.",
+          "Filter by test sheet to see one round only.",
+          "Press a number or chart to open the details."
+        ]
+      },
+      "cycles": {
+        "title": "Test phases",
+        "what": "A phase is one round of testing in a given period. Test sheets and workshop tables always belong to a phase.",
+        "steps": [
+          "Press Create phase and enter its name and period.",
+          "Set the status to Active when testing starts.",
+          "The phase code can be changed any time."
+        ]
+      },
+      "testCases": {
+        "title": "Test scenarios",
+        "what": "The steps to try and the expected results. Results are recorded in Test sheets or at workshop tables.",
+        "steps": [
+          "Press Create test scenario to write one.",
+          "For many at once, use Import from Excel.",
+          "Tick several scenarios to change them together."
+        ]
+      },
+      "imports": {
+        "title": "Import from Excel",
+        "what": "Bring in many test scenarios or problems at once from an Excel file. Nothing is saved before you approve it.",
+        "steps": [
+          "Upload an Excel or CSV file.",
+          "Check the rows marked with problems and choose what to do.",
+          "Press Apply to save."
+        ]
+      },
+      "workshop": {
+        "title": "Workshop & tables",
+        "what": "Group testing per table with QR cards. Here you set up tables, follow progress, review incoming problems and set the public view.",
+        "steps": [
+          "Create tables, choose their features and enter the members' names (and e-mails if any).",
+          "Print the table cards and hand them out.",
+          "Follow the progress board and review incoming problems during the workshop."
+        ]
+      },
+      "runs": {
+        "title": "Test sheets",
+        "what": "A test sheet holds the scenarios assigned to individual testers in a phase.",
+        "steps": [
+          "Create a test sheet, then add test scenarios.",
+          "Assign scenarios to testers, then press Start.",
+          "When done, lock the test sheet once the results are approved."
+        ]
+      },
+      "execution": {
+        "title": "Trying a scenario",
+        "what": "Here you try one scenario and record the result.",
+        "steps": [
+          "Follow its steps in the service under test.",
+          "Choose As expected, Not as expected, or Could not try.",
+          "For Not as expected, describe what happened, attach a screenshot, then report the problem."
+        ]
+      },
+      "bugs": {
+        "title": "Problems",
+        "what": "Every problem found, with its severity, priority and fix status.",
+        "steps": [
+          "Open a problem to see its details, photos and history.",
+          "Developers update the status while fixing; testers check again.",
+          "Tick several problems to change them together."
+        ]
+      },
+      "evidence": {
+        "title": "Photos & evidence",
+        "what": "All screenshots, documents and notes that prove the results in this project.",
+        "steps": ["Filter by type or keyword.", "Open a file to see where it is used."]
+      },
+      "reports": {
+        "title": "Reports",
+        "what": "A summary of testing results and problems for leaders, and data downloads.",
+        "steps": [
+          "Choose filters, e.g. phase or feature.",
+          "Download as Excel or CSV under Export data.",
+          "See the Activity log to know who changed what."
+        ]
+      },
+      "members": {
+        "title": "Members & tasks",
+        "what": "Who takes part in this project and their task: Tester, Developer or Observer.",
+        "steps": [
+          "Add people by e-mail; without an account, enter their name.",
+          "Send an activation link to accounts that are not active yet.",
+          "Change someone's task; you will be asked to confirm."
+        ]
+      },
+      "settings": {
+        "title": "Features & groups",
+        "what": "The features (parts of the service under test) and scenario groups of this project.",
+        "steps": [
+          "Add features before writing test scenarios.",
+          "Feature codes can be changed; existing scenario codes stay."
+        ]
+      },
+      "adminUsers": {
+        "title": "Users",
+        "what": "All accounts on this website. The Super Admin creates accounts and sets their roles.",
+        "steps": [
+          "Create an account and choose a role: User, Admin or Super Admin.",
+          "Change a role with the choice on each row; you will be asked to confirm.",
+          "Create a reset link when someone forgets their password."
+        ]
+      },
+      "adminProjects": {
+        "title": "Manage projects",
+        "what": "All projects on this website, archived ones included.",
+        "steps": [
+          "Change a project's name, code or description.",
+          "Archive finished projects; their content stays readable."
+        ]
+      },
+      "adminRecovery": {
+        "title": "Account recovery",
+        "what": "\"Forgot password\" and \"Forgot e-mail\" requests from users.",
+        "steps": [
+          "Check who is asking through the contact they gave.",
+          "Create a reset link and send it to them.",
+          "Mark the request as done."
+        ]
+      },
+      "adminSettings": {
+        "title": "Website settings",
+        "what": "Settings for the whole website: name, announcement, help contact and sign-in time limits.",
+        "steps": ["Change a value and save.", "The announcement shows at the top of every page."]
+      },
+      "adminAudit": {
+        "title": "Website activity log",
+        "what": "A record of who did what and when, across the website.",
+        "steps": ["Filter by project, type or date.", "Open an entry to see the detailed changes."]
+      },
+      "guide": {
+        "title": "Guide",
+        "what": "The full illustrated guide, arranged by role.",
+        "steps": ["Choose the part that fits your role in the contents."]
+      }
+    }
+  },
+  "tour": {
+    "counter": "Short tour · {{n}} of {{total}}",
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "steps": {
+      "myTasks": {
+        "title": "My tasks",
+        "body": "Everything assigned to you, from every project, is here."
+      },
+      "projectMenu": {
+        "title": "A menu in the order of the work",
+        "body": "1. Preparation, 2. Testing, 3. Results & reports, 4. Settings. You only see the parts that fit your task."
+      },
+      "startHere": {
+        "title": "Start here",
+        "body": "Follow these steps from top to bottom to prepare and run the testing."
+      },
+      "pageHelp": {
+        "title": "Help on every page",
+        "body": "Press Help any time for a short explanation of the page you are on."
+      },
+      "guide": {
+        "title": "The full guide",
+        "body": "An illustrated guide arranged by role: participants, Testers, Admins, Developers and Observers."
+      },
+      "fontSize": {
+        "title": "Text size",
+        "body": "Text too small? Press A+ to make the letters bigger on the whole website."
+      }
     }
   }
 }

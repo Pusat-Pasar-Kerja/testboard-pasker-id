@@ -435,6 +435,7 @@ function BugFormBody({
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
                   <SelectField
                     label={t('fields.severity')}
+                    hint={t('fields.severityHint')}
                     required
                     value={form.severity_code}
                     onChange={(e) => set('severity_code')(e.target.value)}
@@ -446,6 +447,7 @@ function BugFormBody({
                   />
                   <SelectField
                     label={t('fields.priority')}
+                    hint={t('fields.priorityHint')}
                     required
                     value={form.priority_code}
                     onChange={(e) => set('priority_code')(e.target.value)}

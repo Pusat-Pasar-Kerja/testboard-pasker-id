@@ -1,8 +1,11 @@
-import { CircleHelp, Megaphone, Menu, Search, X } from 'lucide-react'
+import { Megaphone, Menu, Search, X } from 'lucide-react'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router'
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router'
 import { TestBoardLogo } from '../components/brand/TestBoardLogo'
+import { FontSizeControl } from '../components/FontSizeControl'
+import { PageHelp } from '../components/help/PageHelp'
+import { Tour } from '../components/help/Tour'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { usePublicSettings } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
@@ -10,29 +13,6 @@ import { MobileDrawer } from './MobileDrawer'
 import { ProjectSwitcher } from './ProjectSwitcher'
 import { SidebarNav } from './SidebarNav'
 import { UserMenu } from './UserMenu'
-
-/** The part of the guide that fits the page being used. */
-function guideSection(pathname: string): string {
-  if (pathname.includes('/workshop')) return 'fasilitator'
-  if (pathname.startsWith('/admin') || /\/(members|settings)$/.test(pathname)) return 'admin'
-  if (/\/(imports|test-cases|runs|cycles)/.test(pathname)) return 'fasilitator'
-  return 'cara-kerja'
-}
-
-function HelpLink() {
-  const { t } = useTranslation()
-  const { pathname } = useLocation()
-  return (
-    <Link
-      to={`/panduan#${guideSection(pathname)}`}
-      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-brand-700 hover:bg-brand-50"
-    >
-      <CircleHelp aria-hidden="true" className="size-5" />
-      <span className="hidden sm:inline">{t('nav.guide')}</span>
-      <span className="sr-only sm:hidden">{t('nav.guide')}</span>
-    </Link>
-  )
-}
 
 function TopbarSearch({ projectCode }: { projectCode: string }) {
   const { t } = useTranslation()
@@ -162,7 +142,10 @@ export function AppShell({ children }: { children?: ReactNode }) {
             )}
             {projectCode && <TopbarSearch projectCode={projectCode} />}
             <div className="ml-auto flex items-center gap-2">
-              <HelpLink />
+              <span data-tour="font-size" className="hidden md:inline-flex">
+                <FontSizeControl />
+              </span>
+              <PageHelp />
               <LanguageSwitcher />
               <UserMenu />
             </div>
@@ -184,6 +167,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
         </main>
       </div>
 
+      <Tour />
       <MobileDrawer open={menuOpen} onClose={closeMenu}>
         <SidebarNav projectCode={projectCode} onNavigate={closeMenu} />
       </MobileDrawer>

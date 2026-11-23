@@ -2,6 +2,22 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.18.0] - 2026-11-24
+
+Perombakan tahap 5: **bantuan di mana-mana**.
+
+### Ditambahkan
+
+- Tombol **Bantuan** di bagian atas setiap halaman aplikasi: panel samping yang menjelaskan halaman yang sedang dibuka dengan kata-kata awam (untuk apa halaman ini, apa yang biasa dilakukan), dengan tautan ke bagian panduan yang tepat.
+- **Tur singkat** saat pertama kali membuka aplikasi: menyorot Tugas saya, menu yang tersusun per tahap kerja, Mulai di sini, Bantuan, Panduan, dan ukuran huruf satu per satu. Bisa dilewati, dan bisa diulang dari panel Bantuan.
+- **Panduan baru, disusun menurut peran**, dengan ilustrasi: cara kerja, cara masuk (termasuk mengaktifkan akun), peserta di meja, Penguji, Admin, Developer, Pemantau dan pimpinan, tabel peran dan hak akses, membuka fase untuk publik, Super Admin, kamus istilah (dengan istilah aslinya), serta privasi.
+- Penjelasan singkat di bawah pilihan **Tingkat dampak** dan **Prioritas** saat melaporkan masalah, agar keduanya tidak tertukar.
+
+### Diubah
+
+- Pengatur ukuran huruf **A- / A / A+** kini juga ada di aplikasi (sebelumnya hanya di halaman publik dan layar meja).
+- Tautan langsung ke bagian panduan (mis. `/panduan#peran`) langsung menggulir ke bagiannya.
+
 ## [0.17.0] - 2026-11-24
 
 Perombakan tahap 4: **menu sesuai urutan kerja**, **kata-kata awam**, dan **beranda proyek yang menuntun**.
