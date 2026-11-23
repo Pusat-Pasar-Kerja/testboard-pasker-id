@@ -615,7 +615,7 @@ function ActivityTab({ code }: { code: string }) {
       )}
       {logs.isSuccess && logs.data.total > 0 && (
         <>
-          <AuditEntryList entries={logs.data.data} busy={logs.isFetching} />
+          <AuditEntryList entries={logs.data.data} busy={logs.isFetching} projectCode={code} />
           <Pagination
             page={logs.data.page}
             pageSize={logs.data.page_size}

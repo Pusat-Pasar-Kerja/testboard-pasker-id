@@ -1,21 +1,26 @@
-import type { PublicCycleSummary } from '@testboard/shared'
+import { emptyCounts, type PublicCycleSummary, type ResultCounts } from '@testboard/shared'
 import {
   ArrowRight,
   BookOpen,
+  Bug,
   Camera,
   CircleCheckBig,
+  ClipboardCheck,
+  Layers,
   QrCode,
   UsersRound,
   type LucideIcon,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { StatTile } from '../components/charts/StatTile'
 import { CycleStatusBadge } from '../components/status/StatusBadges'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
 import { ProgressMeter } from '../components/workshop/ProgressMeter'
 import { usePublicCycles } from '../hooks/workshop-queries'
 import { PublicSiteLayout } from '../layout/PublicSiteLayout'
-import { formatDate, toLocale } from '../lib/format'
+import { formatDate, formatNumber, toLocale } from '../lib/format'
+import { triedPercent } from '../lib/workshop'
 
 function Period({ cycle }: { cycle: PublicCycleSummary }) {
   const { t, i18n } = useTranslation()
@@ -55,6 +60,90 @@ function CycleCard({ cycle }: { cycle: PublicCycleSummary }) {
         </Link>
       </div>
     </li>
+  )
+}
+
+const add = (a: ResultCounts, b: ResultCounts): ResultCounts => ({
+  total: a.total + b.total,
+  tried: a.tried + b.tried,
+  passed: a.passed + b.passed,
+  failed: a.failed + b.failed,
+  blocked: a.blocked + b.blocked,
+  skipped: a.skipped + b.skipped,
+})
+
+/**
+ * Totals over every public Fase (audit 2026-11-24: leaders saw no overall numbers). Each
+ * figure only counts the Fases that chose to show that part, so nothing hidden leaks out.
+ */
+function PublicTotals({ cycles }: { cycles: PublicCycleSummary[] }) {
+  const { t, i18n } = useTranslation()
+  const locale = toLocale(i18n.resolvedLanguage)
+  const n = (value: number) => formatNumber(value, locale)
+  const projects = new Set(cycles.map((c) => c.project.code)).size
+  const withProgress = cycles.filter((c) => c.progress)
+  const progress = withProgress.reduce((sum, c) => add(sum, c.progress!), emptyCounts())
+  const withBugs = cycles.filter((c) => c.bug_count !== undefined)
+  const bugs = withBugs.reduce((sum, c) => sum + (c.bug_count ?? 0), 0)
+  const open = withBugs.reduce((sum, c) => sum + (c.bug_open ?? 0), 0)
+  const passedShare =
+    progress.tried === 0 ? 0 : Math.round((progress.passed / progress.tried) * 100)
+  const partial =
+    (withProgress.length > 0 && withProgress.length < cycles.length) ||
+    (withBugs.length > 0 && withBugs.length < cycles.length)
+
+  return (
+    <section aria-labelledby="ringkasan" className="mt-10">
+      <h2 id="ringkasan" className="text-2xl font-bold">
+        {t('public.totals.title')}
+      </h2>
+      <p className="mt-1 text-ink-muted">{t('public.totals.subtitle')}</p>
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile
+          label={t('public.totals.cycles')}
+          value={n(cycles.length)}
+          hint={t('public.totals.projects', { count: projects })}
+          icon={Layers}
+          tone="sky"
+        />
+        {withProgress.length > 0 && (
+          <>
+            <StatTile
+              label={t('public.totals.tried')}
+              value={`${triedPercent(progress)}%`}
+              hint={t('public.totals.triedHint', {
+                tried: n(progress.tried),
+                total: n(progress.total),
+              })}
+              icon={ClipboardCheck}
+              tone="lavender"
+            />
+            <StatTile
+              label={t('public.totals.passed')}
+              value={n(progress.passed)}
+              hint={t('public.totals.passedHint', { percent: passedShare })}
+              icon={CircleCheckBig}
+              tone="mint"
+            />
+          </>
+        )}
+        {withBugs.length > 0 && (
+          <StatTile
+            label={t('public.totals.bugs')}
+            value={n(bugs)}
+            hint={t('public.totals.bugsHint', { count: open, open: n(open) })}
+            icon={Bug}
+            tone="peach"
+          />
+        )}
+      </div>
+      {withProgress.length > 0 && (
+        <div className="mt-4 rounded-2xl border border-line bg-surface p-5 shadow-xs">
+          <ProgressMeter counts={progress} legend size="lg" />
+        </div>
+      )}
+      {partial && <p className="mt-2 text-sm text-ink-muted">{t('public.totals.partial')}</p>}
+    </section>
   )
 }
 
@@ -102,6 +191,8 @@ export function PublicHomePage() {
           </Link>
         </div>
       </section>
+
+      {cycles.isSuccess && cycles.data.length > 0 && <PublicTotals cycles={cycles.data} />}
 
       <section aria-labelledby="fase" className="mt-10">
         <h2 id="fase" className="text-2xl font-bold">

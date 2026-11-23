@@ -39,6 +39,21 @@ describe('public front page and public Fase', () => {
     expect(screen.queryByText('Dilaporkan oleh')).not.toBeInTheDocument()
   })
 
+  it('sums up every public Fase on the front page, counting only what each one shows', async () => {
+    const { db, dataSource } = setup()
+    renderRoute('/publik', { dataSource })
+    const totals = (
+      await screen.findByRole('heading', { name: 'Ringkasan semua fase yang dibuka' })
+    ).closest('section') as HTMLElement
+    const open = db.cycles.filter((c) => c.is_public).length
+    expect(within(totals).getByText('Fase dibuka').closest('div')).toHaveTextContent(
+      `Fase dibuka${open}`,
+    )
+    expect(within(totals).getByText('Skenario sudah dicoba')).toBeInTheDocument()
+    expect(within(totals).getByText('Masalah dilaporkan')).toBeInTheDocument()
+    expect(within(totals).getByRole('img', { name: /sudah dicoba/ })).toBeInTheDocument()
+  })
+
   it('says so when a Fase is not public', async () => {
     const { dataSource, cycle } = setup()
     cycle.is_public = false
@@ -160,6 +175,32 @@ describe('facilitator side', () => {
     await user.click(screen.getByRole('switch', { name: /Tampilkan fase ini di halaman depan/ }))
     await user.click(screen.getByRole('button', { name: 'Simpan tampilan publik' }))
     await waitFor(() => expect(cycle.is_public).toBe(false))
+  })
+
+  it('asks before changing what the public page shows for a feature', async () => {
+    const user = userEvent.setup()
+    const { dataSource, cycle } = setup()
+    renderRoute(`/projects/DEMO-KARIR/workshop/${cycle.id}?tab=fitur`, { dataSource })
+    const groups = await screen.findAllByRole('radiogroup', { name: /^Status fitur / })
+    const first = groups[0] as HTMLElement
+    const hidden = within(first).getByRole('radio', { name: 'Disembunyikan' })
+    await user.click(hidden)
+    const dialog = await screen.findByRole('alertdialog')
+    expect(dialog).toHaveTextContent(/menjadi "Disembunyikan"\?/)
+    expect(dialog).toHaveTextContent(/tidak tampil di halaman publik/)
+    await user.click(within(dialog).getByRole('button', { name: 'Batal' }))
+    expect(hidden).toHaveAttribute('aria-checked', 'false')
+
+    await user.click(hidden)
+    await user.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Ubah status' }),
+    )
+    await waitFor(() =>
+      expect(within(first).getByRole('radio', { name: 'Disembunyikan' })).toHaveAttribute(
+        'aria-checked',
+        'true',
+      ),
+    )
   })
 
   it('reviews a problem sent by a table', async () => {

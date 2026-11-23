@@ -4,6 +4,7 @@ import {
   defectReviewSchema,
   emptyCounts,
   normalizePublicFields,
+  PUBLIC_DONE_STATUSES,
   tableState,
   textCloseness,
   workshopBugSchema,
@@ -527,6 +528,16 @@ export function createMockWorkshop(deps: WorkshopDeps) {
         ? { period: { starts_on: cycle.starts_on ?? null, ends_on: cycle.ends_on ?? null } }
         : {}),
       ...(f.includes('cycle.progress') ? { progress: cycleTotals(cycle.id) } : {}),
+      ...(f.includes('bugs.list')
+        ? (() => {
+            const bugs = cycleBugs(project.id, cycle.id)
+            const done = PUBLIC_DONE_STATUSES as readonly string[]
+            return {
+              bug_count: bugs.length,
+              bug_open: bugs.filter((d) => !done.includes(d.status_code)).length,
+            }
+          })()
+        : {}),
       fields: f,
     }
   }
@@ -553,10 +564,7 @@ export function createMockWorkshop(deps: WorkshopDeps) {
         const { cycle, project, shown } = publicCycle(cycleId, preview)
         const base = summary(cycle, project, shown)
         const has = (f: PublicField) => base.fields.includes(f)
-        const out = { ...base } as ReturnType<typeof summary> & {
-          features?: unknown
-          bug_count?: number
-        }
+        const out = { ...base } as ReturnType<typeof summary> & { features?: unknown }
         if (has('features.list')) {
           out.features = cycleFeatures(cycle.id, false).map((feature) => ({
             name: feature.module.name,
@@ -591,7 +599,6 @@ export function createMockWorkshop(deps: WorkshopDeps) {
               : {}),
           }))
         }
-        if (has('bugs.list')) out.bug_count = cycleBugs(project.id, cycle.id).length
         return out as Awaited<ReturnType<DataSource['getPublicCycle']>>
       }),
 

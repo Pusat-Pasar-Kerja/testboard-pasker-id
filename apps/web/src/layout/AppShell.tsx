@@ -1,7 +1,7 @@
 import { Menu, Search } from 'lucide-react'
 import { useCallback, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Outlet, useLocation, useNavigate, useParams } from 'react-router'
+import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router'
 import { AnnouncementBanner } from '../components/AnnouncementBanner'
 import { TestBoardLogo } from '../components/brand/TestBoardLogo'
 import { FontSizeControl } from '../components/FontSizeControl'
@@ -21,13 +21,12 @@ function TopbarSearch({ projectCode }: { projectCode: string }) {
   return (
     <form
       role="search"
-      className="hidden max-w-xs flex-1 md:block"
+      className="hidden max-w-xs min-w-56 flex-1 2xl:block"
       onSubmit={(event) => {
         event.preventDefault()
         const q = value.trim()
-        navigate(
-          `${projectPath(projectCode, 'test-cases')}${q ? `?q=${encodeURIComponent(q)}` : ''}`,
-        )
+        // One search for scenarios, problems and test sheets (audit 2026-11-24).
+        navigate(`${projectPath(projectCode, 'search')}${q ? `?q=${encodeURIComponent(q)}` : ''}`)
         setValue('')
       }}
     >
@@ -100,6 +99,15 @@ export function AppShell({ children }: { children?: ReactNode }) {
               <span data-tour="font-size" className="hidden md:inline-flex">
                 <FontSizeControl />
               </span>
+              {projectCode && (
+                <Link
+                  to={projectPath(projectCode, 'search')}
+                  aria-label={t('search.title')}
+                  className="inline-flex size-11 items-center justify-center rounded-lg hover:bg-neutral-soft 2xl:hidden"
+                >
+                  <Search aria-hidden="true" className="size-5" />
+                </Link>
+              )}
               <PageHelp />
               <LanguageSwitcher />
               <UserMenu />

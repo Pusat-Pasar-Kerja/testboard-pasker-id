@@ -124,10 +124,12 @@ function BugSuggestion({
         />
       )}
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-ink-muted">
-          {bug.bug_code}
-          {bug.table_name ? ` · ${bug.table_name}` : ''}
-        </p>
+        {/* Participants recognise a problem by its words and photo, not by its code. */}
+        {bug.table_name && (
+          <p className="text-sm text-ink-muted">
+            {t('easy.bugs.reportedBy', { table: bug.table_name })}
+          </p>
+        )}
         <p className="text-lg font-semibold break-words">{bug.title}</p>
         {bug.description && <p className="line-clamp-2 text-ink-muted">{bug.description}</p>}
         {bug.confirmations > 0 && (
@@ -263,7 +265,7 @@ function FailedForm({
         className="inline-flex min-h-16 w-full items-center justify-center gap-3 rounded-2xl bg-danger px-6 text-xl font-semibold text-white shadow-sm hover:bg-danger/90 disabled:opacity-50"
       >
         {sending && <LoaderCircle aria-hidden="true" className="size-6 animate-spin" />}
-        {sameAs ? t('easy.failed.sendSame', { code: sameAs.bug_code }) : t('easy.failed.send')}
+        {sameAs ? t('easy.failed.sendSame') : t('easy.failed.send')}
       </button>
       {noteError && (
         <p role="alert" className="text-lg font-semibold text-danger">

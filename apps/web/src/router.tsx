@@ -120,6 +120,10 @@ const pages: RouteObject[] = [
             ...page(async () => (await import('./pages/DashboardPage')).DashboardPage),
           },
           {
+            path: 'search',
+            ...page(async () => (await import('./pages/SearchPage')).SearchPage),
+          },
+          {
             path: 'test-cases',
             ...page(async () => (await import('./pages/TestCasesPage')).TestCasesPage),
           },

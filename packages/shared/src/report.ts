@@ -258,11 +258,11 @@ const raw = <R>(key: keyof R & string, kind: ColumnKind = 'text'): ReportColumn<
 
 export const REPORT_COLUMNS: { [D in ReportDataset]: ReportColumn<ReportRecordMap[D]>[] } = {
   results: [
-    col('run_code', 'Kode lembar uji', 'Run code'),
-    col('run_name', 'Nama lembar uji', 'Run name'),
-    col('cycle_code', 'Fase', 'Cycle'),
-    col('module_code', 'Fitur', 'Module'),
-    col('case_code', 'Kode skenario uji', 'Test case code'),
+    col('run_code', 'Kode lembar uji', 'Test sheet code'),
+    col('run_name', 'Nama lembar uji', 'Test sheet name'),
+    col('cycle_code', 'Fase', 'Test phase'),
+    col('module_code', 'Fitur', 'Feature'),
+    col('case_code', 'Kode skenario uji', 'Scenario code'),
     col('title', 'Judul', 'Title'),
     col('case_version', 'Versi', 'Version', 'number'),
     col('status', 'Status terbaru', 'Latest status', { code: 'execution' }),
@@ -272,12 +272,12 @@ export const REPORT_COLUMNS: { [D in ReportDataset]: ReportColumn<ReportRecordMa
     col('assignee', 'Ditugaskan ke', 'Assigned to'),
     col('actual_result', 'Hasil aktual', 'Actual result'),
     col('notes', 'Catatan', 'Notes'),
-    col('bugs', 'Masalah terkait', 'Linked bugs', 'list'),
+    col('bugs', 'Masalah terkait', 'Linked problems', 'list'),
   ],
   attempts: [
-    col('run_code', 'Kode lembar uji', 'Run code'),
-    col('module_code', 'Fitur', 'Module'),
-    col('case_code', 'Kode skenario uji', 'Test case code'),
+    col('run_code', 'Kode lembar uji', 'Test sheet code'),
+    col('module_code', 'Fitur', 'Feature'),
+    col('case_code', 'Kode skenario uji', 'Scenario code'),
     col('title', 'Judul', 'Title'),
     col('attempt_number', 'Percobaan ke', 'Attempt', 'number'),
     col('kind', 'Jenis', 'Kind', { code: 'executionKind' }),
@@ -290,25 +290,25 @@ export const REPORT_COLUMNS: { [D in ReportDataset]: ReportColumn<ReportRecordMa
     col('device', 'Perangkat', 'Device'),
     col('os', 'Sistem operasi', 'Operating system'),
     col('evidence', 'Jumlah bukti', 'Evidence files', 'number'),
-    col('bugs', 'Masalah terkait', 'Linked bugs', 'list'),
+    col('bugs', 'Masalah terkait', 'Linked problems', 'list'),
   ],
   defects: [
-    col('bug_code', 'Kode masalah', 'Bug code'),
+    col('bug_code', 'Kode masalah', 'Problem code'),
     col('title', 'Judul', 'Title'),
-    col('severity', 'Tingkat dampak', 'Severity', { code: 'severity' }),
+    col('severity', 'Tingkat dampak', 'Impact', { code: 'severity' }),
     col('priority', 'Prioritas', 'Priority', { code: 'defectPriority' }),
     col('status', 'Status', 'Status', { code: 'defectStatus' }),
-    col('module_code', 'Fitur', 'Module'),
+    col('module_code', 'Fitur', 'Feature'),
     col('reporter', 'Pelapor', 'Reporter'),
     col('assignee', 'Ditugaskan ke', 'Assigned to'),
     col('environment', 'Lingkungan', 'Environment'),
-    col('build', 'Build/versi', 'Build/version'),
+    col('build', 'Versi aplikasi', 'App version'),
     col('fixed_in_version', 'Diperbaiki di versi', 'Fixed in version'),
     col('created_at', 'Dilaporkan (WIB)', 'Reported (WIB)', 'datetime'),
     col('resolved_at', 'Diselesaikan (WIB)', 'Resolved (WIB)', 'datetime'),
     col('closed_at', 'Ditutup (WIB)', 'Closed (WIB)', 'datetime'),
-    col('cases', 'Skenario uji terkait', 'Linked test cases', 'list'),
-    col('runs', 'Lembar uji terkait', 'Linked runs', 'list'),
+    col('cases', 'Skenario uji terkait', 'Linked scenarios', 'list'),
+    col('runs', 'Lembar uji terkait', 'Linked test sheets', 'list'),
   ],
   cases: [
     raw('case_code'),
@@ -386,12 +386,99 @@ export interface AuditLogEntry {
   actor: { id: IdString; display_name: string } | null
   entity_type: string
   entity_id: IdString
+  /** What the entry is about in human words, e.g. "BUG-KAR-0012 · Login gagal" (null = unknown). */
+  entity_label: string | null
   action_code: string
   /** Top-level fields that changed (secrets were already redacted when written). */
   changes: AuditChange[]
+  /** Names for the ids inside `changes`, keyed by auditRefKey(kind, id); see AUDIT_REF_FIELDS. */
+  refs: Record<string, string>
   request_id: string | null
   /** Site-wide log only: the project the entry belongs to (null = website level). */
   project?: { id: IdString; project_code: string } | null
+}
+
+/** Kinds of records an id inside an audit snapshot can point to. */
+export type AuditRefKind = 'user' | 'cycle' | 'module' | 'suite' | 'run' | 'defect' | 'case'
+
+/**
+ * Snapshot fields whose values are database ids (single or list). The server turns them into
+ * names (AuditLogEntry.refs) so the activity log never shows bare ids.
+ */
+export const AUDIT_REF_FIELDS: Readonly<Record<string, AuditRefKind>> = {
+  assigned_to: 'user',
+  user_id: 'user',
+  actor_id: 'user',
+  cycle_id: 'cycle',
+  module_id: 'module',
+  feature_module_id: 'module',
+  module_ids: 'module',
+  suite_id: 'suite',
+  run_id: 'run',
+  duplicate_of_id: 'defect',
+  defect_id: 'defect',
+  removed_test_case_id: 'case',
+  test_case_id: 'case',
+}
+
+export const auditRefKey = (kind: AuditRefKind, id: string): string => `${kind}:${id}`
+
+/** Every id named in the changes (also one level deep, e.g. report filters), by kind. */
+export function auditRefIds(changes: AuditChange[]): Map<AuditRefKind, Set<string>> {
+  const found = new Map<AuditRefKind, Set<string>>()
+  const add = (field: string, value: unknown) => {
+    const kind = AUDIT_REF_FIELDS[field]
+    if (!kind) return
+    const ids = Array.isArray(value) ? value : [value]
+    for (const id of ids) {
+      if (typeof id !== 'string' && typeof id !== 'number') continue
+      if (!/^\d{1,20}$/.test(String(id))) continue
+      const set = found.get(kind) ?? new Set<string>()
+      set.add(String(id))
+      found.set(kind, set)
+    }
+  }
+  for (const change of changes) {
+    for (const value of [change.old, change.new]) {
+      add(change.field, value)
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        for (const [key, inner] of Object.entries(value)) add(key, inner)
+      }
+    }
+  }
+  return found
+}
+
+/** "CODE · Name" (name shortened); whichever part exists; null when neither does. */
+export function auditLabel(
+  code: string | null | undefined,
+  name: string | null | undefined,
+): string | null {
+  const max = 90
+  const shortName = name ? (name.length > max ? `${name.slice(0, max)}…` : name) : null
+  if (code && shortName && code !== shortName) return `${code} · ${shortName}`
+  return code || shortName || null
+}
+
+/**
+ * Label taken from the snapshot itself, for records that no longer exist (deleted tables,
+ * removed files): codes first, then a title or name.
+ */
+export function auditSnapshotLabel(oldValues: unknown, newValues: unknown): string | null {
+  const pick = (keys: string[]) => {
+    for (const source of [newValues, oldValues]) {
+      if (!source || typeof source !== 'object' || Array.isArray(source)) continue
+      for (const key of keys) {
+        const value = (source as Record<string, unknown>)[key]
+        if (typeof value === 'string' && value.trim()) return value
+      }
+    }
+    return null
+  }
+  return auditLabel(
+    pick(['bug_code', 'case_code', 'run_code', 'cycle_code', 'module_code', 'project_code']),
+    pick(['title', 'name', 'display_name', 'filename']),
+  )
 }
 
 export const auditFilterSchema = z

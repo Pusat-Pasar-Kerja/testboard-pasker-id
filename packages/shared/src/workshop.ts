@@ -461,8 +461,15 @@ export interface PublicCycleSummary {
   description?: string | null
   period?: { starts_on: string | null; ends_on: string | null }
   progress?: ResultCounts
+  /** Only with "bugs.list": problems reported in the Fase (duplicates counted once). */
+  bug_count?: number
+  /** Only with "bugs.list": of those, the ones not finished yet. */
+  bug_open?: number
   fields: PublicField[]
 }
+
+/** Problem statuses the public pages count as finished. */
+export const PUBLIC_DONE_STATUSES = ['CLOSED', 'VERIFIED', 'WONT_FIX'] as const
 
 export interface PublicFeatureDto {
   name: string
@@ -475,7 +482,6 @@ export interface PublicFeatureDto {
 
 export interface PublicCycleDetail extends PublicCycleSummary {
   features?: PublicFeatureDto[]
-  bug_count?: number
 }
 
 export interface PublicBugDto {

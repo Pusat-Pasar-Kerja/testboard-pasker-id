@@ -2,7 +2,6 @@ import {
   adminProjectUpdateSchema,
   adminUserCreateSchema,
   adminUserUpdateSchema,
-  auditChanges,
   auditFilterSchema,
   isOneOf,
   OPEN_DEFECT_STATUSES,
@@ -28,13 +27,13 @@ import {
   insertedId,
   iso,
   isDuplicateKey,
-  parseJson,
   select,
   selectOne,
   withTransaction,
   type Db,
 } from '../db/tx.js'
 import { writeAudit } from '../lib/audit.js'
+import { auditEntries, type AuditLogRow } from '../lib/audit-entries.js'
 import { temporaryPassword } from '../lib/crypto.js'
 import { AppError } from '../lib/errors.js'
 import { idParam, pageParams, parseBody, parseWith } from '../lib/validation.js'
@@ -442,20 +441,7 @@ export function adminRoutes(pool: Pool, settings: SettingsService) {
       `SELECT COUNT(*) AS n FROM audit_logs a WHERE ${where}`,
       params,
     )
-    const rows = await select<{
-      id: string
-      created_at: Date
-      actor_id: string | null
-      display_name: string | null
-      entity_type: string
-      entity_id: string
-      action_code: string
-      old_values_json: unknown
-      new_values_json: unknown
-      request_id: string | null
-      project_id: string | null
-      project_code: string | null
-    }>(
+    const rows = await select<AuditLogRow>(
       pool,
       `SELECT a.id, a.created_at, a.actor_id, u.display_name, a.entity_type, a.entity_id,
               a.action_code, a.old_values_json, a.new_values_json, a.request_id,
@@ -469,21 +455,7 @@ export function adminRoutes(pool: Pool, settings: SettingsService) {
       params,
     )
     const body: Paginated<AuditLogEntry> = {
-      data: rows.map((row) => ({
-        id: String(row.id),
-        created_at: iso(row.created_at) as string,
-        actor: row.actor_id
-          ? { id: String(row.actor_id), display_name: row.display_name ?? '' }
-          : null,
-        entity_type: row.entity_type,
-        entity_id: String(row.entity_id),
-        action_code: row.action_code,
-        changes: auditChanges(parseJson(row.old_values_json), parseJson(row.new_values_json)),
-        request_id: row.request_id,
-        project: row.project_id
-          ? { id: String(row.project_id), project_code: row.project_code ?? '' }
-          : null,
-      })),
+      data: await auditEntries(pool, rows, null),
       page,
       page_size: pageSize,
       total: Number(total?.n ?? 0),

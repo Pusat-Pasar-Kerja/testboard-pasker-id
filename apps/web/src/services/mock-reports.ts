@@ -1,5 +1,9 @@
 import {
   auditChanges,
+  auditLabel,
+  auditRefIds,
+  auditRefKey,
+  auditSnapshotLabel,
   DEFECT_SEVERITIES,
   DEFECT_STATUSES,
   emptyStatusCounts,
@@ -12,7 +16,9 @@ import {
   wibDayEnd,
   wibDayStart,
   type AttemptRecord,
+  type AuditChange,
   type AuditLogEntry,
+  type AuditRefKind,
   type CaseRecord,
   type DefectRecord,
   type ReportDataset,
@@ -361,8 +367,74 @@ export function mockReportRecords<D extends ReportDataset>(
 }
 
 /** Demo activity log: derived from the demo data plus actions taken in this session. */
+/** Same naming as the API (apps/api/src/lib/audit-entries.ts), from the demo data. */
+function mockEntityLabel(db: MockDb, type: string, id: string): string | null {
+  const user = () => db.users.find((u) => u.id === id)?.display_name ?? null
+  switch (type) {
+    case 'defect': {
+      const d = db.defects.find((x) => x.id === id)
+      return d ? auditLabel(d.bug_code, d.title) : null
+    }
+    case 'test_case': {
+      const c = db.cases.find((x) => x.id === id)
+      return c ? auditLabel(c.case_code, c.title) : null
+    }
+    case 'test_run': {
+      const r = db.runs.find((x) => x.id === id)
+      return r ? auditLabel(r.run_code, r.name) : null
+    }
+    case 'test_execution': {
+      const e = db.executions.find((x) => x.id === id)
+      const rc = e && db.runCases.find((x) => x.id === e.runCaseId)
+      const run = rc && db.runs.find((x) => x.id === rc.runId)
+      const c = rc && db.cases.find((x) => x.id === rc.caseId)
+      return c ? auditLabel(c.case_code, run?.run_code) : null
+    }
+    case 'test_cycle': {
+      const c = db.cycles.find((x) => x.id === id)
+      return c ? auditLabel(c.cycle_code, c.title) : null
+    }
+    case 'module': {
+      const m = db.modules.find((x) => x.id === id)
+      return m ? auditLabel(m.module_code, m.name) : null
+    }
+    case 'file':
+      return db.files.find((x) => x.id === id)?.original_filename ?? null
+    case 'project': {
+      const p = db.projects.find((x) => x.id === id)
+      return p ? auditLabel(p.project_code, p.name) : null
+    }
+    case 'user':
+    case 'project_member':
+      return user()
+    default:
+      return null
+  }
+}
+
+const MOCK_REF_TYPE: Record<AuditRefKind, string> = {
+  user: 'user',
+  cycle: 'test_cycle',
+  module: 'module',
+  suite: '',
+  run: 'test_run',
+  defect: 'defect',
+  case: 'test_case',
+}
+
+function mockRefs(db: MockDb, changes: AuditChange[]): Record<string, string> {
+  const refs: Record<string, string> = {}
+  for (const [kind, ids] of auditRefIds(changes)) {
+    for (const id of ids) {
+      const name = mockEntityLabel(db, MOCK_REF_TYPE[kind], id)
+      if (name) refs[auditRefKey(kind, id)] = name
+    }
+  }
+  return refs
+}
+
 export function mockAuditLog(db: MockDb, projectId: string, session: MockAuditEntry[]) {
-  const entries: (Omit<AuditLogEntry, 'actor' | 'changes'> & {
+  const entries: (Omit<AuditLogEntry, 'actor' | 'changes' | 'entity_label' | 'refs'> & {
     actorId: string | null
     oldValues?: unknown
     newValues?: unknown
@@ -417,9 +489,16 @@ export function mockAuditLog(db: MockDb, projectId: string, session: MockAuditEn
   }
   return entries
     .sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id))
-    .map(({ actorId, oldValues, newValues, ...entry }) => ({
-      ...entry,
-      actor: actorId ? { id: actorId, display_name: userName(db, actorId) ?? '' } : null,
-      changes: auditChanges(oldValues, newValues),
-    }))
+    .map(({ actorId, oldValues, newValues, ...entry }) => {
+      const changes = auditChanges(oldValues, newValues)
+      return {
+        ...entry,
+        actor: actorId ? { id: actorId, display_name: userName(db, actorId) ?? '' } : null,
+        entity_label:
+          mockEntityLabel(db, entry.entity_type, entry.entity_id) ??
+          auditSnapshotLabel(oldValues, newValues),
+        changes,
+        refs: mockRefs(db, changes),
+      }
+    })
 }

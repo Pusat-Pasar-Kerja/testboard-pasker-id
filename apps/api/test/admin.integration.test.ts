@@ -136,6 +136,10 @@ describe('projects from the admin console', () => {
       .flatMap((e) => e.changes)
       .find((c) => c.field === 'project_code')
     expect(change).toMatchObject({ old: code, new: next })
+    const entry = (log.json.data as { entity_id: string; entity_label: string | null }[]).find(
+      (e) => e.entity_id === project.id,
+    )
+    expect(entry?.entity_label).toBe(`${next} · Kode lama`)
   })
 
   it('archives a project as read-only and restores it', async () => {

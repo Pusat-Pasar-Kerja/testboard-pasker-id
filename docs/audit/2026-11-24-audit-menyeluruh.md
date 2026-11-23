@@ -9,7 +9,7 @@ Permintaan pemilik proyek: audit seluruh situs lalu perbaiki apa saja yang membu
 3. **Pemetaan hak akses**: matriks izin, setiap rute API, skema database, dan alur sesi kartu meja.
 4. **Pemeriksaan langsung di browser** (desktop dan HP) setelah setiap tahap.
 
-## Ringkasan perubahan (v0.14.0 - v0.19.0)
+## Ringkasan perubahan (v0.14.0 - v0.20.0)
 
 | Tahap | Versi   | Isi                                                                                                                                                         |
 | ----- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -19,6 +19,7 @@ Permintaan pemilik proyek: audit seluruh situs lalu perbaiki apa saja yang membu
 | 4     | v0.17.0 | Menu per tahap kerja, kata-kata awam di seluruh situs, "Mulai di sini" di beranda proyek                                                                    |
 | 5     | v0.18.0 | Tombol Bantuan per halaman, tur singkat, panduan baru menurut peran                                                                                         |
 | 6     | v0.19.0 | Perapian temuan audit (lihat di bawah) dan laporan ini                                                                                                      |
+| 7     | v0.20.0 | Sisa temuan: log aktivitas berkata biasa, pencarian satu proyek, ringkasan publik, konfirmasi status fitur, layar besar, bahasa Inggris awam                |
 
 ## Temuan dan statusnya
 
@@ -34,7 +35,7 @@ Status: **Selesai** = sudah diperbaiki; **Sebagian** = diperbaiki sebagian; **Be
 | Pengumuman situs hanya muncul di aplikasi dan halaman depan                             | Selesai (v0.19.0): di semua halaman, termasuk layar meja                     |
 | Layar memuat kosong tanpa identitas                                                     | Selesai (v0.19.0): logo dan teks "Memuat halaman..."                         |
 | Tab browser tidak menyebut halaman                                                      | Selesai (v0.19.0): mis. "Masalah · TestBoard PASKER ID"                      |
-| Layar besar (proyektor) memakai warna gelap sendiri                                     | Berikutnya: disengaja untuk proyektor; belum diselaraskan                    |
+| Layar besar (proyektor) memakai warna gelap sendiri                                     | Selesai (v0.20.0): navy Kemnaker dengan aksen biru-toska situs               |
 
 ### Bahasa
 
@@ -45,7 +46,7 @@ Status: **Selesai** = sudah diperbaiki; **Sebagian** = diperbaiki sebagian; **Be
 | Tingkat dampak dan prioritas memakai kata yang sama                                                             | Selesai (v0.17.0): Kritis/Berat/Sedang/Ringan vs Segera/Tinggi/Sedang/Rendah, dengan penjelasan di formulir |
 | Pesan dari server tampil dalam bahasa Inggris                                                                   | Selesai (v0.15.0)                                                                                           |
 | "Mode DEMO ... Milestone 2", "Petugas", contoh kode yang tidak konsisten, istilah ClamAV/WebP                   | Selesai (v0.14.0 - v0.19.0)                                                                                 |
-| Versi bahasa Inggris belum seluruhnya memakai kata awam                                                         | Sebagian: menu, judul, status, panduan, dan bantuan sudah; kalimat lain masih istilah lama                  |
+| Versi bahasa Inggris belum seluruhnya memakai kata awam                                                         | Selesai (v0.20.0): 249 kalimat dan judul kolom berkas unduhan                                               |
 
 ### Alur dan navigasi
 
@@ -57,9 +58,9 @@ Status: **Selesai** = sudah diperbaiki; **Sebagian** = diperbaiki sebagian; **Be
 | Perubahan penting tanpa konfirmasi (tugas anggota, peran situs, status fase) | Selesai (v0.15.0, v0.19.0)                                                                    |
 | Pesan error tampil berwarna hijau seperti sukses (11 tempat)                 | Selesai (v0.19.0)                                                                             |
 | Pengunjung yang salah alamat dibawa ke halaman masuk                         | Selesai (v0.19.0): halaman "tidak ditemukan" di bingkai publik                                |
-| Status fitur di Mode Workshop berubah tanpa konfirmasi                       | Berikutnya (dampaknya kecil dan bisa dikembalikan)                                            |
-| Kotak cari di atas hanya mencari skenario uji                                | Berikutnya: label sudah jelas ("Cari skenario uji...")                                        |
-| Halaman depan publik belum menampilkan angka keseluruhan                     | Berikutnya                                                                                    |
+| Status fitur di Mode Workshop berubah tanpa konfirmasi                       | Selesai (v0.20.0): konfirmasi dengan penjelasan akibatnya di halaman publik                   |
+| Kotak cari di atas hanya mencari skenario uji                                | Selesai (v0.20.0): "Cari di proyek ini" untuk skenario, masalah, dan lembar uji               |
+| Halaman depan publik belum menampilkan angka keseluruhan                     | Selesai (v0.20.0): ringkasan semua fase yang dibuka                                           |
 
 ### Peran dan akses
 
@@ -77,11 +78,15 @@ Status: **Selesai** = sudah diperbaiki; **Sebagian** = diperbaiki sebagian; **Be
 | Tidak ada panduan yang mudah, tidak ada penjelasan di halaman | Selesai (v0.18.0): Bantuan per halaman, tur singkat, panduan menurut peran dengan ilustrasi |
 | Panduan menyebut menu yang tidak ada dan peran lama           | Selesai (v0.18.0): ditulis ulang                                                            |
 
-### Catatan teknis yang tersisa (Berikutnya)
+### Catatan teknis
 
-- Log aktivitas masih menampilkan nama kolom database dan nilai JSON mentah.
-- Laporan tindakan massal menampilkan ID database bila kode kosong.
-- Daftar "masalah mirip" di layar meja masih menyebut kode masalah.
+| Temuan                                                              | Status                                                                   |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Log aktivitas menampilkan nama kolom database dan nilai JSON mentah | Selesai (v0.20.0): label, kata, dan nama; ID tidak pernah tampil         |
+| Laporan tindakan massal menampilkan ID database bila kode kosong    | Selesai (v0.20.0)                                                        |
+| Daftar "masalah mirip" di layar meja menyebut kode masalah          | Selesai (v0.20.0): diganti nama meja pelapor                             |
+| Kalimat "Admin atau Admin" akibat penggantian kata otomatis         | Selesai (v0.20.0); dicek ulang tidak ada kata ganda lain di kedua bahasa |
+| Petunjuk masih memakai "lulus/gagal/terblokir" untuk hasil uji      | Selesai (v0.20.0): Sesuai / Tidak sesuai / Tidak bisa dicoba             |
 
 ## Yang perlu dilakukan pemilik di server
 

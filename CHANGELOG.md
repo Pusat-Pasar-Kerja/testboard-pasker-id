@@ -2,6 +2,30 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.20.0] - 2026-11-24
+
+Perombakan tahap 7: **sisa temuan audit** diselesaikan (`docs/audit/2026-11-24-audit-menyeluruh.md`).
+
+### Ditambahkan
+
+- **Cari di proyek ini**: satu pencarian untuk skenario uji, masalah, dan lembar uji sekaligus. Kotak cari ada di atas pada layar lebar; di layar lebih kecil dan HP lewat tombol bergambar kaca pembesar.
+- **Ringkasan semua fase yang dibuka** di halaman depan publik: fase dibuka, skenario sudah dicoba, hasil sesuai, dan masalah dilaporkan. Hanya bagian yang memang ditampilkan tiap fase yang ikut dihitung.
+
+### Diubah
+
+- **Log aktivitas** memakai kata biasa. Setiap baris menyebut nama atau kode datanya (mis. "Masalah BUG-KAR-0012 · Login gagal"), nama kolom menjadi label (mis. "Tingkat dampak"), kode menjadi kata (mis. "Sedang diperbaiki"), nomor ID menjadi nama, dan perubahan status tampil langsung di barisnya. Baris masuk dan aktivasi menyebut orangnya, bukan "Sistem".
+- Mengubah **status fitur di Mode Workshop** meminta konfirmasi dulu, dengan penjelasan akibatnya di halaman publik. Pilihan "Sembunyikan" menjadi "Disembunyikan".
+- **Layar besar** memakai warna keluarga Kemnaker: latar navy, cincin kemajuan biru ke toska, dan warna hasil yang sama dengan situs.
+- Layar meja: daftar "Mungkin sudah dilaporkan" tidak lagi menampilkan kode masalah, melainkan meja pelapornya. Tombol kirim menjadi "Kirim: sama seperti masalah yang dipilih".
+- Kata hasil uji **Sesuai / Tidak sesuai / Tidak bisa dicoba** kini juga dipakai di petunjuk yang tersisa, mis. "Persentase sesuai" dan "Tandai semua langkah sesuai".
+- **Versi bahasa Inggris** memakai kata awam yang sama (test scenario, test sheet, test phase, feature, problem, impact) di 249 kalimat dan di judul kolom berkas unduhan.
+
+### Diperbaiki
+
+- Kalimat rusak "Admin atau Admin" dan "ADMIN dan Admin" di empat tempat; Pemantau juga disebut boleh mengunduh data.
+- Laporan tindakan massal tidak lagi menampilkan nomor ID database untuk data tanpa kode.
+- Log aktivitas kini mengenal jenis data "Meja workshop" serta aksi "Juga mengalami", "Ditinjau", dan "Akun diaktifkan".
+
 ## [0.19.1] - 2026-11-24
 
 ### Diperbaiki

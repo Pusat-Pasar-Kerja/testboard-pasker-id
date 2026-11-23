@@ -15,6 +15,7 @@ export const PROJECT_AUDIT_ENTITIES = [
   'report',
   'project',
   'project_member',
+  'workshop_table',
 ] as const
 
 /** The website-wide log adds accounts and website settings. */
@@ -40,6 +41,9 @@ export const AUDIT_ACTIONS = [
   'PASSWORD_CHANGE',
   'PASSWORD_RESET',
   'REVOKE',
+  'CONFIRM',
+  'REVIEW',
+  'ACTIVATE',
 ] as const
 
 type AuditEntity = (typeof SITE_AUDIT_ENTITIES)[number]

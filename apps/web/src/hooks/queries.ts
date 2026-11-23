@@ -63,12 +63,13 @@ export function useDashboard(code: string, runId?: string) {
   })
 }
 
-export function useTestCases(code: string, query: TestCaseQuery) {
+export function useTestCases(code: string, query: TestCaseQuery, enabled = true) {
   const ds = useDataSource()
   return useQuery({
     queryKey: ['test-cases', code, query],
     queryFn: () => ds.listTestCases(code, query),
     placeholderData: keepPreviousData,
+    enabled,
   })
 }
 

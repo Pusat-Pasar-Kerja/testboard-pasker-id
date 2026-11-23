@@ -103,6 +103,7 @@ describe('public Fase (everything hidden by default)', () => {
     expect(card).toMatchObject({ title: 'UAT Fase 2', intro: 'Workshop 3-4 Desember', fields: [] })
     expect(card).not.toHaveProperty('progress')
     expect(card).not.toHaveProperty('period')
+    expect(card).not.toHaveProperty('bug_count')
     const detail = await anonymous.get(`/public/cycles/${cycleId}`)
     expect(detail.json).not.toHaveProperty('features')
     expect((await anonymous.get(`/public/cycles/${cycleId}/bugs`)).status).toBe(404)
@@ -297,6 +298,12 @@ describe('table cards and easy answers', () => {
     expect(detail.features[0]).toHaveProperty('progress')
     expect(detail.features[0]).not.toHaveProperty('tables')
     expect(detail.bug_count).toBe(1)
+    expect(detail.bug_open).toBe(1)
+    // The front page totals read the same counts from the list (audit 2026-11-24).
+    const card = (await anonymous.get('/public/cycles')).json.find(
+      (c: { id: string }) => c.id === cycleId,
+    )
+    expect(card).toMatchObject({ bug_count: 1, bug_open: 1 })
     const bugs = (await anonymous.get(`/public/cycles/${cycleId}/bugs`)).json
     expect(bugs.total).toBe(1)
     expect(bugs.data[0]).toMatchObject({ reporter: 'Meja 1 · Pak Budi' })

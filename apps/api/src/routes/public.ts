@@ -2,6 +2,7 @@ import {
   isOneOf,
   MEMBER_ROLES,
   normalizePublicFields,
+  PUBLIC_DONE_STATUSES,
   roleCan,
   type ExecutionStatus,
   type Paginated,
@@ -109,8 +110,23 @@ async function summary(
       ? { period: { starts_on: isoDate(row.starts_on), ends_on: isoDate(row.ends_on) } }
       : {}),
     ...(has('cycle.progress') ? { progress: await cycleTotals(db, String(row.id)) } : {}),
+    ...(has('bugs.list') ? await bugCounts(db, String(row.id)) : {}),
     fields,
   }
+}
+
+/** Problems of a public Fase, for the totals on the public pages (duplicates once). */
+async function bugCounts(
+  db: Db,
+  cycleId: string,
+): Promise<{ bug_count: number; bug_open: number }> {
+  const counted = await selectOne<{ n: number; open_n: string | number | null }>(
+    db,
+    `SELECT COUNT(*) AS n, SUM(status_code NOT IN (?)) AS open_n
+       FROM defects WHERE cycle_id = ? AND duplicate_of_id IS NULL`,
+    [[...PUBLIC_DONE_STATUSES], cycleId],
+  )
+  return { bug_count: Number(counted?.n ?? 0), bug_open: Number(counted?.open_n ?? 0) }
 }
 
 export function publicRoutes(pool: Pool, files: FileService) {
@@ -172,14 +188,6 @@ export function publicRoutes(pool: Pool, files: FileService) {
         return out
       })
     }
-    if (has('bugs.list')) {
-      const counted = await selectOne<{ n: number }>(
-        pool,
-        'SELECT COUNT(*) AS n FROM defects WHERE cycle_id = ? AND duplicate_of_id IS NULL',
-        [cycleId],
-      )
-      detail.bug_count = Number(counted?.n ?? 0)
-    }
     return c.json(detail)
   })
 
@@ -205,10 +213,11 @@ export function publicRoutes(pool: Pool, files: FileService) {
       )
     }
     if (feature && has('bugs.feature')) rows = rows.filter((r) => r.module_code === feature)
+    const done = (code: string) => (PUBLIC_DONE_STATUSES as readonly string[]).includes(code)
     if (status === 'OPEN') {
-      rows = rows.filter((r) => !['CLOSED', 'VERIFIED', 'WONT_FIX'].includes(r.status_code))
+      rows = rows.filter((r) => !done(r.status_code))
     } else if (status === 'DONE') {
-      rows = rows.filter((r) => ['CLOSED', 'VERIFIED', 'WONT_FIX'].includes(r.status_code))
+      rows = rows.filter((r) => done(r.status_code))
     }
     const pageRows = rows.slice(offset, offset + pageSize)
     const filesOf = has('bugs.evidence')

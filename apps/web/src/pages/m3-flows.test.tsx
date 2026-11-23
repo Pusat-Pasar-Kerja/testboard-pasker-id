@@ -147,7 +147,7 @@ describe('execution workspace (TB-EXEC-001..004)', () => {
     const { router } = renderRoute(`${P}/runs/${run.id}/cases/${rc.id}`, { dataSource })
     await screen.findByRole('heading', { name: 'Catat hasil' })
 
-    await user.click(screen.getByRole('button', { name: 'Tandai semua lulus' }))
+    await user.click(screen.getByRole('button', { name: 'Tandai semua langkah sesuai' }))
     const result = screen.getByRole('group', { name: 'Hasil uji' })
     await user.click(within(result).getByRole('radio', { name: 'Sesuai' }))
     await user.click(screen.getByRole('button', { name: 'Simpan & lanjut' }))

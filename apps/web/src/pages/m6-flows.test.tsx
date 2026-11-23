@@ -109,9 +109,7 @@ describe('import wizard (TB-IMP-001)', () => {
       db.currentUserId = '3'
     }, false)
     renderRoute(`${P}/imports`, { dataSource: tester.dataSource })
-    expect(
-      await screen.findByText('Impor hanya bisa dilakukan oleh Admin atau Admin.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Impor hanya bisa dilakukan oleh Admin.')).toBeInTheDocument()
     expect(screen.queryByLabelText('Pilih file')).toBeNull()
   })
 })

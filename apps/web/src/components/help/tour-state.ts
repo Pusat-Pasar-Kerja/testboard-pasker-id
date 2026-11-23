@@ -51,6 +51,7 @@ export type HelpKey =
   | 'adminSettings'
   | 'adminAudit'
   | 'guide'
+  | 'search'
 
 export function helpKeyOf(pathname: string): HelpKey {
   if (pathname.startsWith('/tugas')) return 'tasks'
@@ -77,6 +78,7 @@ export function helpKeyOf(pathname: string): HelpKey {
     reports: 'reports',
     members: 'members',
     settings: 'settings',
+    search: 'search',
   }
   return map[section ?? ''] ?? 'dashboard'
 }
@@ -104,4 +106,5 @@ export const GUIDE_SECTION: Record<HelpKey, string> = {
   adminSettings: 'super-admin',
   adminAudit: 'super-admin',
   guide: 'cara-kerja',
+  search: 'cara-kerja',
 }

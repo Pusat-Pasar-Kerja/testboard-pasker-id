@@ -1,5 +1,4 @@
 import {
-  auditChanges,
   auditFilterSchema,
   buildXlsx,
   CSV_MIME,
@@ -25,7 +24,8 @@ import { Hono } from 'hono'
 import type { Pool } from 'mysql2/promise'
 import { deflateRawSync } from 'node:zlib'
 import { requirePermission } from '../access/project-access.js'
-import { iso, parseJson, select, selectOne } from '../db/tx.js'
+import { select, selectOne } from '../db/tx.js'
+import { auditEntries, type AuditLogRow } from '../lib/audit-entries.js'
 import { writeAudit } from '../lib/audit.js'
 import { AppError } from '../lib/errors.js'
 import { pageParams, parseWith } from '../lib/validation.js'
@@ -162,18 +162,7 @@ export function auditRoutes(pool: Pool) {
       `SELECT COUNT(*) AS n FROM audit_logs a WHERE ${where}`,
       params,
     )
-    const rows = await select<{
-      id: string
-      created_at: Date
-      actor_id: string | null
-      display_name: string | null
-      entity_type: string
-      entity_id: string
-      action_code: string
-      old_values_json: unknown
-      new_values_json: unknown
-      request_id: string | null
-    }>(
+    const rows = await select<AuditLogRow>(
       pool,
       `SELECT a.id, a.created_at, a.actor_id, u.display_name, a.entity_type, a.entity_id,
               a.action_code, a.old_values_json, a.new_values_json, a.request_id
@@ -184,18 +173,7 @@ export function auditRoutes(pool: Pool) {
       params,
     )
     const body: Paginated<AuditLogEntry> = {
-      data: rows.map((row) => ({
-        id: String(row.id),
-        created_at: iso(row.created_at) as string,
-        actor: row.actor_id
-          ? { id: String(row.actor_id), display_name: row.display_name ?? '' }
-          : null,
-        entity_type: row.entity_type,
-        entity_id: String(row.entity_id),
-        action_code: row.action_code,
-        changes: auditChanges(parseJson(row.old_values_json), parseJson(row.new_values_json)),
-        request_id: row.request_id,
-      })),
+      data: await auditEntries(pool, rows, project.id),
       page,
       page_size: pageSize,
       total: Number(total?.n ?? 0),

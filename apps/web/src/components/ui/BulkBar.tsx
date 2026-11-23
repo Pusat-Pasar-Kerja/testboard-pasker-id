@@ -79,7 +79,9 @@ export function BulkReport({ result, onClose }: { result: BulkResult; onClose: (
         <ul className="mt-2 max-h-40 list-disc space-y-0.5 overflow-y-auto pl-5 text-xs text-ink-muted">
           {result.skipped.map((item) => (
             <li key={item.id}>
-              <span className="font-mono">{item.code || item.id}</span>: {reason(item.reason)}
+              {/* Never a database id (audit 2026-11-24): an item without a code is named in words. */}
+              {item.code ? <span className="font-mono">{item.code}</span> : t('bulk.noCode')}:{' '}
+              {reason(item.reason)}
             </li>
           ))}
         </ul>

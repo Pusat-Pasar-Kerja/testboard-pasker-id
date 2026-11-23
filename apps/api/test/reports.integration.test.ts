@@ -182,7 +182,7 @@ describe('report export (TB-REPORT-001)', () => {
     expect(text).toContain(`"'=HYPERLINK(""http://evil.example"",""klik"")"`)
     expect(text).toMatch(/,Retest after a fix,As expected,/)
     expect(text).toMatch(/BUG-[A-Z0-9]+-0001/)
-    expect(text.slice(1).split('\r\n')[0]).toMatch(/^Run code,Module,Test case code/)
+    expect(text.slice(1).split('\r\n')[0]).toMatch(/^Test sheet code,Feature,Scenario code/)
   })
 
   it('exports bugs as a real XLSX workbook (typed cells, no formulas)', async () => {
@@ -238,6 +238,17 @@ describe('audit log', () => {
     )
     expect(created.actor).toMatchObject({ id: testerId })
     expect(created.changes.length).toBeGreaterThan(0)
+    // Named, not numbered (audit 2026-11-24): the item and every id inside the changes.
+    expect(created.entity_label).toMatch(/^BUG-/)
+    const ids = (created.changes as { field: string; new: unknown }[]).filter(
+      (c) => ['module_id', 'cycle_id'].includes(c.field) && c.new !== null,
+    )
+    for (const change of ids) {
+      const kind = change.field === 'module_id' ? 'module' : 'cycle'
+      expect(created.refs[`${kind}:${String(change.new)}`]).toEqual(expect.any(String))
+    }
+    const labelled = all.json.data.filter((e: { entity_label: string | null }) => e.entity_label)
+    expect(labelled.length).toBeGreaterThan(all.json.data.length / 2)
 
     const bugsOnly = await lead.get(`${P()}/audit-logs?entity_type=defect`)
     expect(

@@ -59,7 +59,7 @@ describe('dashboard', () => {
   it('renders KPIs, the latest-status bar with legend, and severity bars', async () => {
     renderRoute(`${P}/dashboard`)
     expect(await screen.findByText('Skenario uji direncanakan')).toBeInTheDocument()
-    expect(screen.getByText('Tingkat lulus')).toBeInTheDocument()
+    expect(screen.getByText('Persentase sesuai')).toBeInTheDocument()
     expect(screen.getByRole('group', { name: /Distribusi status terbaru/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Kritis: \d+ masalah terbuka/ })).toHaveAttribute(
       'href',

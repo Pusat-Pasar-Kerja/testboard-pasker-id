@@ -84,19 +84,21 @@ describe('reports (S09, TB-REPORT-001)', () => {
       await readBytes(files[0] as Blob),
     )
     expect(text.charCodeAt(0)).toBe(0xfeff)
-    expect(text.slice(1).split('\r\n')[0]).toMatch(/^Bug code,Title,Severity,Priority,Status/)
+    expect(text.slice(1).split('\r\n')[0]).toMatch(/^Problem code,Title,Impact,Priority,Status/)
 
     await user.click(screen.getByRole('tab', { name: 'Log aktivitas' }))
     const log = (await screen.findByRole('heading', { name: 'Log aktivitas' })).closest(
       'section',
     ) as HTMLElement
-    expect(await within(log).findByText('Diekspor', { selector: 'span' })).toBeInTheDocument()
+    expect(
+      await within(log).findByText('Diunduh sebagai berkas', { selector: 'span' }),
+    ).toBeInTheDocument()
     await user.selectOptions(within(log).getByLabelText('Jenis data'), 'report')
     await waitFor(() =>
       expect(
         within(log)
           .getAllByRole('listitem')
-          .every((li) => /Laporan/.test(li.textContent ?? '')),
+          .every((li) => /Unduhan laporan/.test(li.textContent ?? '')),
       ).toBe(true),
     )
   })
@@ -120,7 +122,7 @@ describe('reports (S09, TB-REPORT-001)', () => {
     renderRoute(`${P}/reports`, { dataSource })
     expect(await screen.findByText('Skenario uji dalam lembar uji')).toBeInTheDocument()
     expect(
-      screen.getByText('Ekspor data hanya bisa dilakukan oleh Admin atau Admin.'),
+      screen.getByText('Ekspor data hanya bisa dilakukan oleh Admin dan Pemantau.'),
     ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Unduh' })).toBeNull()
     expect(screen.queryByRole('tab', { name: 'Log aktivitas' })).toBeNull()
