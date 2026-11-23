@@ -80,8 +80,6 @@ Status: **Selesai** = sudah diperbaiki; **Sebagian** = diperbaiki sebagian; **Be
 ### Catatan teknis yang tersisa (Berikutnya)
 
 - Log aktivitas masih menampilkan nama kolom database dan nilai JSON mentah.
-- Halaman Pemulihan akun menyebut perintah server untuk akun pemilik.
-- Pengaturan "Bahasa bawaan" di Pengaturan situs belum dipakai saat pertama membuka situs.
 - Laporan tindakan massal menampilkan ID database bila kode kosong.
 - Daftar "masalah mirip" di layar meja masih menyebut kode masalah.
 

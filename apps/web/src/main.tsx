@@ -12,6 +12,7 @@ import { createHttpDataSource } from './services/data-source'
 import { DataSourceProvider } from './services/data-source-context'
 import { createMockDataSource } from './services/mock-data-source'
 import '@fontsource-variable/inter/wght.css'
+import { SiteDefaultLocale } from './components/SiteDefaultLocale'
 import './styles.css'
 
 const i18n = createI18n(readStoredLocale() ?? webEnv.defaultLocale)
@@ -32,6 +33,7 @@ createRoot(rootElement).render(
       <QueryClientProvider client={queryClient}>
         <DataSourceProvider value={dataSource}>
           <ToastProvider>
+            <SiteDefaultLocale />
             <RouterProvider router={router} />
           </ToastProvider>
         </DataSourceProvider>

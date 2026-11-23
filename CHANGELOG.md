@@ -2,6 +2,13 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.19.1] - 2026-11-24
+
+### Diperbaiki
+
+- Pengaturan situs **"Bahasa bawaan"** kini benar-benar dipakai: pengunjung yang belum pernah memilih bahasa di perangkatnya melihat situs dalam bahasa bawaan tersebut.
+- Halaman Pemulihan akun tidak lagi menampilkan perintah server; cukup dijelaskan bahwa akun Super Admin utama dipulihkan langsung di server oleh tim teknis.
+
 ## [0.19.0] - 2026-11-24
 
 Perombakan tahap 6: **perapian temuan audit** dan laporan audit (`docs/audit/2026-11-24-audit-menyeluruh.md`).

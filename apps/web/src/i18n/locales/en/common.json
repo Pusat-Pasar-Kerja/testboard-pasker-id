@@ -1406,7 +1406,7 @@
         "RESOLVED": "Request marked as resolved.",
         "DISMISSED": "Request dismissed."
       },
-      "ownerOnServer": "The permanent Super Admin can only be recovered on the server: bash ops/testboard.sh create-admin --email <email> --reset-password",
+      "ownerOnServer": "The main Super Admin account can only be recovered directly on the server by the technical team, for safety.",
       "sentAt": "Sent {{date}}",
       "sentTimes_one": "sent {{count}}×",
       "sentTimes_other": "sent {{count}}×",

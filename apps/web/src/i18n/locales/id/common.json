@@ -1406,7 +1406,7 @@
         "RESOLVED": "Permintaan ditandai selesai.",
         "DISMISSED": "Permintaan diabaikan."
       },
-      "ownerOnServer": "Akun Super Admin utama hanya bisa dipulihkan dari server: bash ops/testboard.sh create-admin --email <email> --reset-password",
+      "ownerOnServer": "Akun Super Admin utama hanya bisa dipulihkan langsung di server oleh tim teknis, demi keamanan.",
       "sentAt": "Dikirim {{date}}",
       "sentTimes_one": "dikirim {{count}}×",
       "sentTimes_other": "dikirim {{count}}×",
