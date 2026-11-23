@@ -4,9 +4,11 @@ import {
   adminUserUpdateSchema,
   auditChanges,
   auditFilterSchema,
+  isOneOf,
   OPEN_DEFECT_STATUSES,
   siteSettingsUpdateSchema,
   SITE_SETTING_KEYS,
+  SYSTEM_ROLES,
   wibDayEnd,
   wibDayStart,
   type AdminProjectDto,
@@ -18,7 +20,7 @@ import {
 } from '@testboard/shared'
 import { Hono } from 'hono'
 import type { Pool } from 'mysql2/promise'
-import { requireSuperAdmin } from '../auth/middleware.js'
+import { requireAdmin, requireSuperAdmin } from '../auth/middleware.js'
 import { hashPassword } from '../auth/passwords.js'
 import { revokeUserSessions } from '../auth/sessions.js'
 import {
@@ -39,13 +41,16 @@ import { idParam, pageParams, parseBody, parseWith } from '../lib/validation.js'
 import type { SettingsService } from '../settings/service.js'
 import type { AppEnv } from '../types.js'
 
+const isSystemRole = isOneOf(SYSTEM_ROLES)
+
 interface UserRow {
   id: string
   display_name: string
   email: string
   preferred_locale: string
   is_active: number
-  is_super_admin: number
+  system_role: string | null
+  has_password: number
   is_permanent: number
   created_at: Date
   link_issued_at: Date | null
@@ -57,8 +62,10 @@ async function listUsers(db: Db, userId?: string, q?: string): Promise<AdminUser
   const rows = await select<UserRow>(
     db,
     `SELECT u.id, u.display_name, u.email, u.preferred_locale, u.is_active, u.created_at,
-            EXISTS (SELECT 1 FROM user_system_roles r
-                     WHERE r.user_id = u.id AND r.role_code = 'SUPER_ADMIN') AS is_super_admin,
+            u.password_hash IS NOT NULL AS has_password,
+            (SELECT r.role_code FROM user_system_roles r
+              WHERE r.user_id = u.id AND r.role_code IN ('SUPER_ADMIN', 'ADMIN')
+              ORDER BY r.role_code = 'SUPER_ADMIN' DESC LIMIT 1) AS system_role,
             EXISTS (SELECT 1 FROM user_system_roles r
                      WHERE r.user_id = u.id AND r.role_code = 'SUPER_ADMIN'
                        AND r.is_permanent = 1) AS is_permanent,
@@ -78,7 +85,9 @@ async function listUsers(db: Db, userId?: string, q?: string): Promise<AdminUser
     email: row.email,
     preferred_locale: row.preferred_locale === 'en' ? 'en' : 'id',
     is_active: Number(row.is_active) === 1,
-    is_super_admin: Number(row.is_super_admin) === 1,
+    system_role: isSystemRole(row.system_role) ? row.system_role : null,
+    is_super_admin: row.system_role === 'SUPER_ADMIN',
+    has_password: Number(row.has_password) === 1,
     is_permanent: Number(row.is_permanent) === 1,
     created_at: iso(row.created_at) as string,
     reset_link:
@@ -91,11 +100,15 @@ async function listUsers(db: Db, userId?: string, q?: string): Promise<AdminUser
   }))
 }
 
-/** Website-level administration (ADR 0004). Every route is Super Admin only. */
+/**
+ * Website-level administration (ADR 0004, 0017). The project list is for Admins and Super
+ * Admins; user accounts, settings and the activity log are for the Super Admin only.
+ */
 export function adminRoutes(pool: Pool, settings: SettingsService) {
   const routes = new Hono<AppEnv>()
   routes.use('*', async (c, next) => {
-    requireSuperAdmin(c)
+    if (/\/admin\/projects(\/|$)/.test(c.req.path)) requireAdmin(c)
+    else requireSuperAdmin(c)
     await next()
   })
 
@@ -124,11 +137,11 @@ export function adminRoutes(pool: Pool, settings: SettingsService) {
         }
         throw error
       }
-      if (input.is_super_admin) {
+      if (input.system_role !== 'NONE') {
         await execute(
           conn,
-          "INSERT INTO user_system_roles (user_id, role_code, granted_by) VALUES (?, 'SUPER_ADMIN', ?)",
-          [id, actor.userId],
+          'INSERT INTO user_system_roles (user_id, role_code, granted_by) VALUES (?, ?, ?)',
+          [id, input.system_role, actor.userId],
         )
       }
       await writeAudit(conn, c, {
@@ -139,7 +152,7 @@ export function adminRoutes(pool: Pool, settings: SettingsService) {
         newValues: {
           email: input.email,
           display_name: input.display_name,
-          is_super_admin: input.is_super_admin,
+          system_role: input.system_role,
         },
       })
       return id
@@ -157,7 +170,9 @@ export function adminRoutes(pool: Pool, settings: SettingsService) {
       const before = (await listUsers(conn, userId))[0]
       if (!before) throw new AppError(404, 'NOT_FOUND', 'Not found.')
       // The owner account is set on the server only and can never be revoked here (ADR 0011).
-      if (before.is_permanent && (input.is_super_admin === false || input.is_active === false)) {
+      const changesRole =
+        input.system_role !== undefined && input.system_role !== (before.system_role ?? 'NONE')
+      if (before.is_permanent && (changesRole || input.is_active === false)) {
         throw new AppError(
           403,
           'FORBIDDEN',
@@ -165,8 +180,7 @@ export function adminRoutes(pool: Pool, settings: SettingsService) {
           [{ field: 'user', message: 'PERMANENT_SUPER_ADMIN' }],
         )
       }
-      const removesSuperAdmin =
-        before.is_super_admin && (input.is_super_admin === false || input.is_active === false)
+      const removesSuperAdmin = before.is_super_admin && (changesRole || input.is_active === false)
       if (removesSuperAdmin) {
         const admins = await select(
           conn,
@@ -186,19 +200,20 @@ export function adminRoutes(pool: Pool, settings: SettingsService) {
           userId,
         ],
       )
-      if (input.is_super_admin === true && !before.is_super_admin) {
+      // One website role at a time: User (none), Admin or Super Admin (ADR 0017).
+      if (changesRole && input.system_role) {
         await execute(
           conn,
-          "INSERT INTO user_system_roles (user_id, role_code, granted_by) VALUES (?, 'SUPER_ADMIN', ?)",
-          [userId, actor.userId],
-        )
-      }
-      if (input.is_super_admin === false && before.is_super_admin) {
-        await execute(
-          conn,
-          "DELETE FROM user_system_roles WHERE user_id = ? AND role_code = 'SUPER_ADMIN'",
+          "DELETE FROM user_system_roles WHERE user_id = ? AND role_code IN ('SUPER_ADMIN', 'ADMIN')",
           [userId],
         )
+        if (input.system_role !== 'NONE') {
+          await execute(
+            conn,
+            'INSERT INTO user_system_roles (user_id, role_code, granted_by) VALUES (?, ?, ?)',
+            [userId, input.system_role, actor.userId],
+          )
+        }
       }
       // A deactivated account is signed out everywhere immediately.
       if (input.is_active === false) await revokeUserSessions(conn, userId)
@@ -210,7 +225,7 @@ export function adminRoutes(pool: Pool, settings: SettingsService) {
         oldValues: {
           display_name: before.display_name,
           is_active: before.is_active,
-          is_super_admin: before.is_super_admin,
+          system_role: before.system_role ?? 'NONE',
         },
         newValues: input,
       })

@@ -297,6 +297,7 @@ export function workshopRoutes(
       displayName: table.name,
       preferredLocale: 'id',
       isSuperAdmin: false,
+      isAdmin: false,
       sessionId: '',
       csrfTokenHash: '',
       accountKind: 'TABLE',

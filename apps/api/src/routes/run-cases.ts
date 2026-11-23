@@ -353,7 +353,7 @@ export function runCaseRoutes(pool: Pool) {
       recordExecution(conn, c, project, runCaseId, input, {
         userId: auth?.userId ?? null,
         // TESTER may only execute cases assigned to them; leads may execute any (doc 09).
-        anyCase: Boolean(auth?.isSuperAdmin) || roleCan(project.role, 'run.assign'),
+        anyCase: Boolean(auth?.isAdmin) || roleCan(project.role, 'run.assign'),
       }),
     )
     const created = (await listExecutions(pool, runCaseId)).find((e) => e.id === executionId)

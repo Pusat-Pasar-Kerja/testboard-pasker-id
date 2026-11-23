@@ -63,7 +63,14 @@ export const PASSWORD = 'Correct-Horse-Battery-9'
 
 export async function createUser(
   pool: Pool,
-  options: { name?: string; superAdmin?: boolean; active?: boolean; password?: string } = {},
+  options: {
+    name?: string
+    superAdmin?: boolean
+    /** Website role ADMIN (ADR 0017): manages every project, not the website. */
+    siteAdmin?: boolean
+    active?: boolean
+    password?: string
+  } = {},
 ): Promise<{ id: string; email: string; password: string }> {
   const email = `${unique('u').toLowerCase()}@test.invalid`
   const password = options.password ?? PASSWORD
@@ -79,12 +86,11 @@ export async function createUser(
     ],
   )
   const id = insertedId(result)
-  if (options.superAdmin) {
-    await execute(
-      pool,
-      "INSERT INTO user_system_roles (user_id, role_code) VALUES (?, 'SUPER_ADMIN')",
-      [id],
-    )
+  if (options.superAdmin || options.siteAdmin) {
+    await execute(pool, 'INSERT INTO user_system_roles (user_id, role_code) VALUES (?, ?)', [
+      id,
+      options.superAdmin ? 'SUPER_ADMIN' : 'ADMIN',
+    ])
   }
   return { id, email, password }
 }

@@ -208,14 +208,14 @@ describe('report export (TB-REPORT-001)', () => {
     expect(rows).toHaveLength(3)
   })
 
-  it('is limited to leads and audited', async () => {
-    expect((await viewer.raw(`${P()}/reports/export?dataset=results`)).status).toBe(403)
+  it('is for Admins and Pemantau (leaders), not testers, and is audited', async () => {
+    expect((await viewer.raw(`${P()}/reports/export?dataset=results`)).status).toBe(200)
     expect((await tester.raw(`${P()}/reports/export?dataset=results`)).status).toBe(403)
     expect((await lead.raw(`${P()}/reports/export?dataset=nope`)).status).toBe(422)
 
     const log = await lead.get(`${P()}/audit-logs?action=EXPORT`)
     expect(log.status).toBe(200)
-    expect(log.json.total).toBeGreaterThanOrEqual(4)
+    expect(log.json.total).toBeGreaterThanOrEqual(5)
     expect(log.json.data[0]).toMatchObject({ entity_type: 'report', action_code: 'EXPORT' })
     expect(log.json.data[0].changes.map((c: { field: string }) => c.field)).toEqual(
       expect.arrayContaining(['dataset', 'format', 'rows']),

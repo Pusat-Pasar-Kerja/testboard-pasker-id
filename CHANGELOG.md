@@ -2,6 +2,28 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.15.0] - 2026-11-24
+
+Perombakan tahap 2: **tiga tingkat peran** yang mudah dijelaskan (ADR 0017, migration `0013`).
+
+### Ditambahkan
+
+- **Peran situs Admin**: membuat proyek dan mengelola **semua** proyek (fase, fitur, skenario uji, impor, meja, tampilan publik, tinjauan masalah, anggota). Super Admin tetap memegang akun pengguna, pengaturan situs, pemulihan akun, dan log aktivitas situs.
+- **Tugas Pengguna per proyek**: Penguji (bawaan), Developer, Pemantau. Halaman **Anggota & tugas** menjelaskan ketiganya dan meminta **konfirmasi** sebelum tugas seseorang diubah.
+- **Tambah anggota tanpa akun**: cukup email; bila belum ada akun, Admin diminta mengisi nama dan akunnya dibuatkan (status **Belum aktif** sampai orangnya membuat kata sandi).
+- Halaman **Pengguna** (Super Admin): pilih peran **Pengguna / Admin / Super Admin** beserta penjelasannya, dengan konfirmasi sebelum peran berubah.
+- Pemantau boleh **mengunduh laporan**.
+
+### Diubah
+
+- **Migration `0013`**: akun yang dulu Admin atau QA Lead di sebuah proyek otomatis menjadi **Admin** situs; peran lamanya di proyek menjadi Penguji. Peran "QA Lead" dan "Admin proyek" tidak ditawarkan lagi.
+- Pembuat proyek tidak lagi otomatis dimasukkan sebagai anggota, dan aturan "minimal satu Admin per proyek" dihapus (Admin situs mengelola semua proyek).
+- **Tidak ada lagi pesan berbahasa Inggris** dari server di layar: setiap pesan diterjemahkan ke kalimat awam, dan pesan yang tidak dikenal diganti kalimat umum yang menenangkan.
+
+### Diperbaiki
+
+- Data contoh untuk tes tidak lagi bocor antar-tes (daftar pengguna contoh disalin per tes).
+
 ## [0.14.0] - 2026-11-24
 
 Awal perombakan menyeluruh agar situs mudah dipahami orang awam dan para pimpinan. Tahap ini: **tampilan bernuansa keluarga Kemnaker** dan **satu halaman masuk**.

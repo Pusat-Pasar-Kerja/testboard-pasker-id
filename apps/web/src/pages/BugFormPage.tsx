@@ -37,7 +37,7 @@ import {
   useRunCase,
 } from '../hooks/queries'
 import { projectPath, useProjectCode } from '../hooks/route-state'
-import { apiErrorText, apiFieldErrors } from '../lib/api-errors'
+import { apiErrorText, apiFieldErrors, serverText } from '../lib/api-errors'
 import { newIdempotencyKey } from '../lib/idempotency'
 import { ApiClientError } from '../services/api-client'
 import type { DefectInput } from '../services/data-source'
@@ -213,7 +213,7 @@ function BugFormBody({
             field,
             error instanceof ApiClientError && error.status === 403
               ? t('pages.bugForm.lockedField')
-              : message,
+              : (serverText(t, message) ?? t('form.invalid')),
           ]),
         ),
       )

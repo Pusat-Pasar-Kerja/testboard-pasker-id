@@ -171,7 +171,7 @@
     },
     "role": {
       "ADMIN": "Admin",
-      "QA_LEAD": "QA Lead",
+      "QA_LEAD": "QA Lead (peran lama)",
       "TESTER": "Penguji",
       "DEVELOPER": "Developer",
       "VIEWER": "Pemantau"
@@ -262,6 +262,21 @@
       "PASSWORD_CHANGE": "Ganti kata sandi",
       "PASSWORD_RESET": "Kata sandi direset",
       "REVOKE": "Dicabut"
+    },
+    "roleHelp": {
+      "TESTER": "Menjalankan skenario uji yang ditugaskan, mencatat hasil, dan melaporkan masalah.",
+      "DEVELOPER": "Melihat masalah yang dilaporkan, memperbaikinya, dan mengubah status perbaikan.",
+      "VIEWER": "Melihat kemajuan, hasil, dan laporan tanpa mengubah apa pun. Cocok untuk pimpinan."
+    },
+    "systemRole": {
+      "SUPER_ADMIN": "Super Admin",
+      "ADMIN": "Admin",
+      "NONE": "Pengguna"
+    },
+    "systemRoleHelp": {
+      "SUPER_ADMIN": "Kuasa penuh: mengundang pengguna, mengatur situs, dan semua yang bisa dilakukan Admin.",
+      "ADMIN": "Membuat dan mengelola semua proyek: fase, fitur, skenario, meja, tampilan publik, dan tinjauan masalah.",
+      "NONE": "Hanya membuka proyek tempat ia menjadi anggota, sesuai tugasnya (Penguji, Developer, atau Pemantau)."
     }
   },
   "fields": {
@@ -540,19 +555,28 @@
       "saved": "Perubahan disimpan (versi {{version}})."
     },
     "members": {
-      "title": "Tim & Pengaturan",
-      "subtitle": "Siapa saja yang bisa mengakses proyek ini dan apa perannya.",
+      "title": "Anggota & tugas",
+      "subtitle": "Siapa saja yang ikut di proyek ini dan apa tugasnya.",
       "addTitle": "Tambah anggota",
-      "emailHint": "Akun harus sudah dibuat oleh Super Admin.",
+      "emailHint": "Bila orang ini belum punya akun, Anda akan diminta mengisi namanya untuk dibuatkan akun.",
       "added": "{{name}} ditambahkan sebagai {{role}}.",
-      "roleChanged": "Peran {{name}} sekarang {{role}}.",
+      "roleChanged": "Tugas {{name}} sekarang {{role}}.",
       "removeTitle": "Keluarkan {{name}} dari proyek?",
       "removeBody": "Akses ke proyek ini langsung dicabut. Riwayat pekerjaannya tetap tersimpan.",
       "removed": "{{name}} dikeluarkan dari proyek.",
       "you": "Anda",
       "inactive": "Nonaktif",
-      "readOnly": "Hanya ADMIN proyek yang dapat mengubah anggota.",
-      "roleLabel": "Peran {{name}}"
+      "readOnly": "Hanya Admin yang bisa mengubah anggota dan tugasnya.",
+      "roleLabel": "Tugas {{name}}",
+      "nameLabel": "Nama lengkap",
+      "nameHint": "Belum ada akun dengan email ini. Isi namanya, lalu tekan Tambah untuk membuatkan akun. Orangnya mengaktifkan akun dengan tautan aktivasi.",
+      "notActivated": "Belum aktif",
+      "notActivatedHint": "Akun dibuat dari nama dan email; orangnya belum membuat kata sandi.",
+      "changeTitle": "Ubah tugas {{name}}?",
+      "changeBody": "Tugas baru: {{role}}. {{help}}",
+      "change": "Ubah tugas",
+      "tasksTitle": "Tiga tugas yang bisa diberikan",
+      "adminsNote": "Admin dan Super Admin bisa mengelola semua proyek, jadi tidak perlu ditambahkan di sini."
     },
     "projectSettings": {
       "modules": "Modul",
@@ -600,11 +624,10 @@
       }
     },
     "adminUsers": {
-      "title": "Kelola pengguna",
-      "subtitle": "Khusus Super Admin. Akun baru mendapat kata sandi sementara yang tampil sekali.",
+      "title": "Pengguna",
+      "subtitle": "Khusus Super Admin: buat akun, tentukan perannya di situs, dan bantu pemulihan akun.",
       "search": "Cari nama atau email…",
       "create": "Buat akun",
-      "superAdminLabel": "Jadikan Super Admin (akses dan pengaturan penuh)",
       "created": "Akun {{email}} dibuat.",
       "tempPasswordTitle": "Kata sandi sementara untuk {{email}}",
       "tempPasswordBody": "Tampil sekali ini saja. Berikan secara aman kepada pemilik akun dan minta segera menggantinya di Profil.",
@@ -612,8 +635,6 @@
       "inactive": "Nonaktif",
       "deactivate": "Nonaktifkan",
       "activate": "Aktifkan",
-      "grantSuperAdmin": "Jadikan Super Admin",
-      "revokeSuperAdmin": "Cabut Super Admin",
       "deactivateTitle": "Nonaktifkan {{name}}?",
       "deactivateBody": "Pengguna langsung keluar dari semua perangkat dan tidak bisa masuk sampai diaktifkan lagi.",
       "updated": "Akun {{name}} diperbarui.",
@@ -621,7 +642,11 @@
       "empty": "Tidak ada pengguna yang cocok.",
       "permanent": "Super Admin utama",
       "permanentHint": "Akun pemilik: tidak bisa dicabut atau dinonaktifkan dari website oleh siapa pun.",
-      "resetLink": "Tautan reset"
+      "resetLink": "Tautan reset",
+      "roleLegend": "Peran di situs",
+      "roleOf": "Peran {{name}} di situs",
+      "roleChangeTitle": "Jadikan {{name}} sebagai {{role}}?",
+      "roleChange": "Ubah peran"
     },
     "cycles": {
       "title": "Siklus Uji",
@@ -1059,19 +1084,60 @@
     }
   },
   "errors": {
-    "VALIDATION_ERROR": "Data yang dimasukkan tidak valid.",
+    "VALIDATION_ERROR": "Ada isian yang belum benar. Periksa lagi lalu coba simpan.",
     "UNAUTHENTICATED": "Silakan masuk terlebih dahulu.",
-    "FORBIDDEN": "Anda tidak memiliki izin untuk tindakan ini.",
-    "NOT_FOUND": "Data tidak ditemukan.",
-    "CONFLICT": "Data bertentangan dengan kondisi terbaru.",
+    "FORBIDDEN": "Tugas Anda di proyek ini tidak mencakup tindakan ini.",
+    "NOT_FOUND": "Data tidak ditemukan, atau Anda tidak punya akses ke data ini.",
+    "CONFLICT": "Perubahan belum bisa disimpan karena datanya baru saja berubah. Muat ulang halaman, lalu coba lagi.",
     "PAYLOAD_TOO_LARGE": "Ukuran data atau file terlalu besar.",
     "UNSUPPORTED_MEDIA_TYPE": "Jenis file tidak didukung.",
     "RATE_LIMITED": "Terlalu banyak permintaan. Coba lagi nanti.",
     "SERVICE_UNAVAILABLE": "Layanan sedang tidak tersedia. Coba lagi sebentar lagi.",
     "INTERNAL_ERROR": "Terjadi kesalahan. Silakan coba lagi.",
-    "reference": "Kode referensi: {{id}}",
+    "reference": "Kode untuk tim teknis: {{id}}",
     "projectArchived": "Proyek ini diarsipkan sehingga hanya bisa dibaca.",
-    "permanentSuperAdmin": "Super Admin utama tidak bisa dicabut atau dinonaktifkan."
+    "permanentSuperAdmin": "Super Admin utama tidak bisa dicabut atau dinonaktifkan.",
+    "server": {
+      "resetLinkActive": "Akun ini sudah punya tautan aktif. Cabut dulu tautan lama, atau pilih \"Cabut & buat tautan baru\".",
+      "runLocked": "Lembar uji ini sudah dikunci, jadi tidak bisa diubah lagi.",
+      "fileTooLarge": "Ukuran file terlalu besar.",
+      "chooseFile": "Pilih file terlebih dahulu.",
+      "codeUsed": "Kode ini sudah dipakai. Pakai kode lain.",
+      "emailUsed": "Email ini sudah dipakai akun lain.",
+      "statusNotAllowed": "Tugas Anda tidak bisa mengubah masalah ini ke status tersebut.",
+      "noPermission": "Tugas Anda di proyek ini tidak mencakup tindakan ini.",
+      "superAdminOnly": "Hanya Super Admin yang bisa melakukan ini.",
+      "adminOnly": "Hanya Admin yang bisa melakukan ini.",
+      "tooManyRows": "Datanya terlalu banyak. Persempit saringan lalu coba lagi.",
+      "alreadyMember": "Orang ini sudah menjadi anggota proyek.",
+      "assignedToOther": "Skenario ini ditugaskan kepada orang lain.",
+      "tableNoRun": "Meja ini belum punya lembar uji. Hubungi panitia.",
+      "tableHasAnswers": "Meja ini sudah punya jawaban, jadi tidak bisa dihapus. Nonaktifkan kartunya saja.",
+      "projectArchived": "Proyek ini diarsipkan sehingga hanya bisa dibaca.",
+      "importNotReady": "Impor ini belum siap diterapkan. Periksa dulu baris yang bermasalah.",
+      "importLocked": "Impor ini sudah diterapkan dan disimpan sebagai riwayat, jadi tidak bisa diubah.",
+      "fileUnavailable": "File ini sudah tidak tersedia.",
+      "runNotActive": "Hasil hanya bisa dicatat saat lembar uji sedang berjalan.",
+      "caseArchived": "Skenario ini diarsipkan. Pulihkan dulu sebelum mengubahnya.",
+      "fileNotYours": "Hanya pengunggah atau Admin yang bisa menghapus file ini.",
+      "evidenceNotYours": "Anda tidak bisa menambahkan bukti di sini.",
+      "assignAdminOnly": "Hanya Admin yang bisa menugaskan masalah kepada seseorang.",
+      "lastSuperAdmin": "Harus tetap ada minimal satu Super Admin yang aktif.",
+      "accountInactive": "Akun nonaktif. Aktifkan akun dulu sebelum membuat tautan.",
+      "tableNameUsed": "Nama meja ini sudah dipakai di fase ini.",
+      "requestOtherAccount": "Permintaan ini milik akun lain.",
+      "reload": "Halaman ini sudah terlalu lama terbuka. Muat ulang halaman, lalu coba lagi.",
+      "noAccount": "Belum ada akun dengan email ini.",
+      "notAPerson": "Email ini milik kartu meja, bukan milik seseorang.",
+      "permanentSuperAdmin": "Super Admin utama tidak bisa dicabut atau dinonaktifkan.",
+      "wrongPassword": "Kata sandi saat ini salah.",
+      "endBeforeStart": "Tanggal selesai tidak boleh sebelum tanggal mulai.",
+      "passwordHasEmail": "Kata sandi tidak boleh memuat nama email Anda.",
+      "assigneeNotMember": "Orang yang ditugaskan harus anggota aktif proyek ini.",
+      "notInProject": "Pilihan ini tidak ada di proyek ini.",
+      "notTableFeature": "Fitur ini bukan bagian dari meja Anda.",
+      "unknownAccount": "Akun tidak dikenal."
+    }
   },
   "form": {
     "optional": "opsional",

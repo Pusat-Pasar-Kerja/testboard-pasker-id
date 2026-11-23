@@ -1,7 +1,7 @@
-import type { AdminUserDto } from '@testboard/shared'
+import { SYSTEM_ROLES, type AdminUserDto } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, Copy, Link2, LockKeyhole, ShieldCheck, UserPlus } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useId, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ResetLinkDialog } from '../components/recovery/ResetLinkDialog'
 import { ValidityBar } from '../components/recovery/ValidityBar'
@@ -16,16 +16,58 @@ import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
 import { useToast } from '../components/ui/toast-context'
 import type { TFunction } from 'i18next'
 import { useAdminUsers, useCurrentUser } from '../hooks/queries'
+import { apiErrorText } from '../lib/api-errors'
 import { ApiClientError } from '../services/api-client'
+import type { SystemRoleChoice } from '../services/data-source'
 import { useDataSource } from '../services/use-data-source'
 import { NotFoundPage } from './NotFoundPage'
 
+/** User first: most accounts are Users; the website roles come after (ADR 0017). */
+const ROLE_CHOICES: SystemRoleChoice[] = ['NONE', ...[...SYSTEM_ROLES].reverse()]
+
+/** Pengguna / Admin / Super Admin, each with what it may do. */
+function RoleChoice({
+  value,
+  onChange,
+}: {
+  value: SystemRoleChoice
+  onChange: (value: SystemRoleChoice) => void
+}) {
+  const { t } = useTranslation()
+  const name = useId()
+  return (
+    <fieldset className="sm:col-span-2">
+      <legend className="mb-2 text-sm font-semibold">{t('pages.adminUsers.roleLegend')}</legend>
+      <div className="grid gap-2 md:grid-cols-3">
+        {ROLE_CHOICES.map((role) => (
+          <label
+            key={role}
+            className={`flex cursor-pointer gap-3 rounded-xl border-2 p-3 text-sm ${
+              value === role ? 'border-brand-600 bg-brand-50' : 'border-line hover:border-brand-300'
+            }`}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={role}
+              checked={value === role}
+              onChange={() => onChange(role)}
+              className="mt-0.5 size-4 accent-brand-700"
+            />
+            <span>
+              <span className="block font-semibold">{t(`codes.systemRole.${role}`)}</span>
+              <span className="block text-ink-muted">{t(`codes.systemRoleHelp.${role}`)}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  )
+}
+
 function message(t: TFunction, error: unknown) {
-  if (error instanceof ApiClientError) {
-    if (error.status === 409) return error.details[0] ? t('form.alreadyUsed') : error.message
-    return error.status === 422 ? t('form.invalid') : t(`errors.${error.code}`)
-  }
-  return t('errors.INTERNAL_ERROR')
+  if (error instanceof ApiClientError && error.status === 422) return t('form.invalid')
+  return apiErrorText(t, error)
 }
 
 function TemporaryPassword({ email, password }: { email: string; password: string }) {
@@ -66,16 +108,16 @@ function CreateUserForm() {
   const queryClient = useQueryClient()
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
-  const [superAdmin, setSuperAdmin] = useState(false)
+  const [role, setRole] = useState<SystemRoleChoice>('NONE')
   const [issued, setIssued] = useState<{ email: string; password: string } | null>(null)
 
   const create = useMutation({
     mutationFn: () =>
-      ds.createUser({ email: email.trim(), display_name: name.trim(), is_super_admin: superAdmin }),
+      ds.createUser({ email: email.trim(), display_name: name.trim(), system_role: role }),
     onSuccess: async (result) => {
       setEmail('')
       setName('')
-      setSuperAdmin(false)
+      setRole('NONE')
       setIssued(
         result.temporary_password
           ? { email: result.user.email, password: result.temporary_password }
@@ -109,15 +151,7 @@ function CreateUserForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <label className="flex min-h-11 items-center gap-3 text-sm sm:col-span-2">
-          <input
-            type="checkbox"
-            checked={superAdmin}
-            onChange={(e) => setSuperAdmin(e.target.checked)}
-            className="size-5 accent-brand-700"
-          />
-          {t('pages.adminUsers.superAdminLabel')}
-        </label>
+        <RoleChoice value={role} onChange={setRole} />
         <div className="sm:col-span-2">
           <FormAlert message={create.isError ? message(t, create.error) : null} />
         </div>
@@ -139,18 +173,24 @@ function UserRow({ user, isMe }: { user: AdminUserDto; isMe: boolean }) {
   const queryClient = useQueryClient()
   const [confirmDeactivate, setConfirmDeactivate] = useState(false)
   const [linkOpen, setLinkOpen] = useState(false)
+  // A role change is confirmed first (owner audit: nothing changes by accident).
+  const [pendingRole, setPendingRole] = useState<SystemRoleChoice | null>(null)
+  const roleSelectId = useId()
+  const currentRole: SystemRoleChoice = user.system_role ?? 'NONE'
 
   const update = useMutation({
-    mutationFn: (input: { is_active?: boolean; is_super_admin?: boolean }) =>
+    mutationFn: (input: { is_active?: boolean; system_role?: SystemRoleChoice }) =>
       ds.updateUser(user.id, input),
     onSuccess: async (updated) => {
       setConfirmDeactivate(false)
+      setPendingRole(null)
       await queryClient.invalidateQueries({ queryKey: ['admin-users'] })
       if (isMe) await queryClient.invalidateQueries({ queryKey: ['me'] })
       toast.show(t('pages.adminUsers.updated', { name: updated.display_name }))
     },
     onError: (error) => {
       setConfirmDeactivate(false)
+      setPendingRole(null)
       toast.show(message(t, error), 'error')
     },
   })
@@ -163,9 +203,16 @@ function UserRow({ user, isMe }: { user: AdminUserDto; isMe: boolean }) {
           {user.is_permanent ? (
             <Badge tone="brand" icon={LockKeyhole} label={t('pages.adminUsers.permanent')} />
           ) : (
-            user.is_super_admin && (
-              <Badge tone="brand" icon={ShieldCheck} label={t('shell.superAdmin')} />
+            user.system_role && (
+              <Badge
+                tone="brand"
+                icon={ShieldCheck}
+                label={t(`codes.systemRole.${user.system_role}`)}
+              />
             )
+          )}
+          {user.is_active && !user.has_password && (
+            <Badge tone="warning" label={t('pages.members.notActivated')} />
           )}
           <Badge
             tone={user.is_active ? 'success' : 'muted'}
@@ -197,15 +244,25 @@ function UserRow({ user, isMe }: { user: AdminUserDto; isMe: boolean }) {
         >
           {t('pages.adminUsers.resetLink')}
         </Button>
-        <Button
-          variant="secondary"
+        <label htmlFor={roleSelectId} className="sr-only">
+          {t('pages.adminUsers.roleOf', { name: user.display_name })}
+        </label>
+        <select
+          id={roleSelectId}
+          value={currentRole}
           disabled={update.isPending || user.is_permanent}
-          onClick={() => update.mutate({ is_super_admin: !user.is_super_admin })}
+          onChange={(e) => {
+            const next = e.target.value as SystemRoleChoice
+            if (next !== currentRole) setPendingRole(next)
+          }}
+          className="min-h-11 rounded-lg border border-line-strong bg-surface px-3 text-sm"
         >
-          {user.is_super_admin
-            ? t('pages.adminUsers.revokeSuperAdmin')
-            : t('pages.adminUsers.grantSuperAdmin')}
-        </Button>
+          {ROLE_CHOICES.map((role) => (
+            <option key={role} value={role}>
+              {t(`codes.systemRole.${role}`)}
+            </option>
+          ))}
+        </select>
         {user.is_active ? (
           <Button
             variant="ghost"
@@ -229,6 +286,19 @@ function UserRow({ user, isMe }: { user: AdminUserDto; isMe: boolean }) {
         user={user}
         activeLink={user.reset_link}
         onClose={() => setLinkOpen(false)}
+      />
+      <ConfirmDialog
+        open={pendingRole !== null}
+        title={t('pages.adminUsers.roleChangeTitle', {
+          name: user.display_name,
+          role: pendingRole ? t(`codes.systemRole.${pendingRole}`) : '',
+        })}
+        body={pendingRole ? t(`codes.systemRoleHelp.${pendingRole}`) : ''}
+        confirmLabel={t('pages.adminUsers.roleChange')}
+        tone="primary"
+        busy={update.isPending}
+        onConfirm={() => pendingRole && update.mutate({ system_role: pendingRole })}
+        onCancel={() => setPendingRole(null)}
       />
       <ConfirmDialog
         open={confirmDeactivate}

@@ -68,6 +68,18 @@ export type DefectSourceKind = (typeof DEFECT_SOURCE_KINDS)[number]
 export const MEMBER_ROLES = ['ADMIN', 'QA_LEAD', 'TESTER', 'DEVELOPER', 'VIEWER'] as const
 export type MemberRole = (typeof MEMBER_ROLES)[number]
 
+/**
+ * The tasks a User can be given in a project (owner, 2026-11-24): Penguji (default),
+ * Developer, Pemantau. Managing projects belongs to the website roles Admin and Super Admin
+ * (SYSTEM_ROLES), so ADMIN and QA_LEAD rows are legacy (migration 0013) and never offered.
+ */
+export const MEMBER_TASKS = [
+  'TESTER',
+  'DEVELOPER',
+  'VIEWER',
+] as const satisfies readonly MemberRole[]
+export type MemberTask = (typeof MEMBER_TASKS)[number]
+
 // Evidence types live in files.ts (the app accepts SCREENSHOT | DOCUMENT | LOG, ADR 0008).
 
 export const FILE_PROCESSING_STATUSES = ['PROCESSING', 'READY', 'FAILED', 'REJECTED'] as const

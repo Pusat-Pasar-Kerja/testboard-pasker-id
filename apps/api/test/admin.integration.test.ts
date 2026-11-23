@@ -26,7 +26,7 @@ beforeAll(async () => {
 })
 
 describe('projects from the admin console', () => {
-  it('lets a Super Admin create a project and become its Admin; others may not', async () => {
+  it('lets a Super Admin create a project; Users may not', async () => {
     const code = unique('KRH').slice(0, 20)
     const created = await superAdmin.post('/projects', {
       project_code: code,
@@ -45,7 +45,8 @@ describe('projects from the admin console', () => {
     expect(list.json.find((p: { project_code: string }) => p.project_code === code)).toMatchObject({
       name: 'Karirhub',
       is_archived: false,
-      member_count: 1,
+      // The creator needs no membership row (ADR 0017).
+      member_count: 0,
       created_by: { display_name: 'Admin Situs' },
     })
     expect((await other.get('/admin/projects')).status).toBe(403)
@@ -237,9 +238,9 @@ describe('permanent Super Admin', () => {
     expect(users.find((u) => u.id === owner.id)?.is_permanent).toBe(true)
 
     for (const [client, body] of [
-      [superAdmin, { is_super_admin: false }],
+      [superAdmin, { system_role: 'NONE' }],
       [superAdmin, { is_active: false }],
-      [ownerClient, { is_super_admin: false }],
+      [ownerClient, { system_role: 'ADMIN' }],
     ] as const) {
       const res = await client.patch(`/admin/users/${owner.id}`, body)
       expect(res.status).toBe(403)
@@ -252,7 +253,7 @@ describe('permanent Super Admin', () => {
 
     await setPermanentSuperAdmin(h.pool, owner.email, false)
     expect(
-      (await superAdmin.patch(`/admin/users/${owner.id}`, { is_super_admin: false })).status,
+      (await superAdmin.patch(`/admin/users/${owner.id}`, { system_role: 'NONE' })).status,
     ).toBe(200)
   })
 

@@ -150,11 +150,12 @@ function ProjectCard({
 export function AdminProjectsPage() {
   const { t } = useTranslation()
   const me = useCurrentUser()
-  const isSuperAdmin = Boolean(me.data?.is_super_admin)
-  const projects = useAdminProjects(isSuperAdmin)
+  // Admin and Super Admin manage every project (ADR 0017).
+  const isAdmin = Boolean(me.data?.system_role)
+  const projects = useAdminProjects(isAdmin)
   const [dialog, setDialog] = useState<{ project?: AdminProjectDto } | null>(null)
 
-  if (!isSuperAdmin) return <NotFoundPage reason="item" />
+  if (!isAdmin) return <NotFoundPage reason="item" />
   const createButton = (
     <Button icon={FolderPlus} onClick={() => setDialog({})}>
       {t('pages.adminProjects.create')}

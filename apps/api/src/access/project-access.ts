@@ -11,7 +11,7 @@ const isRole = isOneOf(MEMBER_ROLES)
 /**
  * Resolve `:projectCode` for the signed-in user. A project the user is not a member of
  * answers 404 exactly like a missing one (TB-RBAC-002: no data leak, no existence leak).
- * Super Admin (ADR 0004) gets ADMIN-level access to every project.
+ * The website roles Admin and Super Admin (ADR 0017) get ADMIN-level access to every project.
  */
 export function projectAccess(pool: Pool): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
@@ -35,15 +35,15 @@ export function projectAccess(pool: Pool): MiddlewareHandler<AppEnv> {
       [auth.userId, code],
     )
     const memberRole = row && isRole(row.role_code) ? row.role_code : null
-    if (!row || (!memberRole && !auth.isSuperAdmin)) {
+    if (!row || (!memberRole && !auth.isAdmin)) {
       throw new AppError(404, 'NOT_FOUND', 'Not found.')
     }
     const access: ProjectAccess = {
       id: String(row.id),
       code: row.project_code,
       name: row.name,
-      role: auth.isSuperAdmin ? 'ADMIN' : (memberRole as MemberRole),
-      viaSuperAdmin: auth.isSuperAdmin && memberRole !== 'ADMIN',
+      role: auth.isAdmin ? 'ADMIN' : (memberRole as MemberRole),
+      viaSiteRole: auth.isAdmin,
     }
     // Archived projects stay readable (history, reports, exports) but accept no changes.
     if (Number(row.is_archived) === 1 && !['GET', 'HEAD', 'OPTIONS'].includes(c.req.method)) {

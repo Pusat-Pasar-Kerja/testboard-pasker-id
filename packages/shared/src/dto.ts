@@ -21,6 +21,7 @@ import type {
   TestCaseStatus,
   TestType,
 } from './enums.js'
+import type { SystemRole } from './permissions.js'
 
 export interface UserRef {
   id: IdString
@@ -30,7 +31,9 @@ export interface UserRef {
 export interface CurrentUser extends UserRef {
   email: string
   preferred_locale: Locale
-  /** System role (ADR 0004): full access to every project and website settings. */
+  /** Website role (ADR 0017); null for a User. */
+  system_role: SystemRole | null
+  /** Shorthand for system_role === 'SUPER_ADMIN': website settings and user accounts. */
   is_super_admin: boolean
   projects: { project_code: string; role_code: MemberRole }[]
   /** TABLE = signed in with a workshop table card: only Mode Mudah (ADR 0016). */
@@ -51,7 +54,8 @@ export interface SessionDeviceDto {
 }
 
 export interface MemberDto {
-  user: UserRef & { email: string; is_active: boolean }
+  /** has_password = false: the account was made from a name and e-mail and is not activated yet. */
+  user: UserRef & { email: string; is_active: boolean; has_password: boolean }
   role_code: MemberRole
   joined_at: string
 }
@@ -62,7 +66,11 @@ export interface AdminUserDto {
   email: string
   preferred_locale: Locale
   is_active: boolean
+  /** Website role (ADR 0017); null for a User. */
+  system_role: SystemRole | null
   is_super_admin: boolean
+  /** false = not activated yet (no password chosen). */
+  has_password: boolean
   /** Owner account (set on the server only): cannot be revoked or deactivated. */
   is_permanent: boolean
   created_at: string

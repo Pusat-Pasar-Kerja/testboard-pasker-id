@@ -272,6 +272,7 @@ export function createMockWorkshop(deps: WorkshopDeps) {
     display_name: t.name,
     email: '',
     preferred_locale: 'id',
+    system_role: null,
     is_super_admin: false,
     projects: [],
     account_kind: 'TABLE',

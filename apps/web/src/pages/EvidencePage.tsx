@@ -205,7 +205,7 @@ export function EvidencePage() {
   const [preview, setPreview] = useState<number | null>(null)
   const [pendingDelete, setPendingDelete] = useState<EvidenceItem | null>(null)
   const isLead =
-    me.data?.is_super_admin || ['ADMIN', 'QA_LEAD'].includes(project.data?.role_code ?? '')
+    Boolean(me.data?.system_role) || ['ADMIN', 'QA_LEAD'].includes(project.data?.role_code ?? '')
 
   // New uploads appear in the list once the server has decided about them.
   const settled = uploads.items.filter(

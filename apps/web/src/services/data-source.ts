@@ -78,11 +78,12 @@ import type {
   HealthResponse,
   Locale,
   MemberDto,
-  MemberRole,
+  MemberTask,
   ModuleDto,
   Paginated,
   ProjectSummary,
   SuiteDto,
+  SystemRole,
   TestCaseDetail,
   TestCaseListItem,
   TestCasePriority,
@@ -241,10 +242,13 @@ export interface ImportRowQuery extends PageQuery {
   status?: 'ok' | 'review' | 'DUPLICATE' | 'ERROR' | 'IMPORTED' | 'SKIPPED'
 }
 
+/** Website role choice in the Super Admin forms (ADR 0017): NONE = a User. */
+export type SystemRoleChoice = SystemRole | 'NONE'
+
 export interface AdminUserInput {
   email: string
   display_name: string
-  is_super_admin?: boolean
+  system_role?: SystemRoleChoice
 }
 
 /**
@@ -275,9 +279,10 @@ export interface DataSource {
   listMembers(projectCode: string): Promise<MemberDto[]>
   addMember(
     projectCode: string,
-    input: { email: string; role_code: MemberRole },
+    /** display_name creates the account when nobody has this e-mail yet (Admin, ADR 0017). */
+    input: { email: string; display_name?: string; role_code: MemberTask },
   ): Promise<MemberDto>
-  updateMember(projectCode: string, userId: string, role: MemberRole): Promise<MemberDto>
+  updateMember(projectCode: string, userId: string, role: MemberTask): Promise<MemberDto>
   removeMember(projectCode: string, userId: string): Promise<void>
   listModules(projectCode: string): Promise<ModuleDto[]>
   createModule(
@@ -436,7 +441,7 @@ export interface DataSource {
   ): Promise<{ user: AdminUserDto; temporary_password: string | null }>
   updateUser(
     userId: string,
-    input: { display_name?: string; is_active?: boolean; is_super_admin?: boolean },
+    input: { display_name?: string; is_active?: boolean; system_role?: SystemRoleChoice },
   ): Promise<AdminUserDto>
 
   // Admin console (ADR 0011): projects, website settings, site-wide activity

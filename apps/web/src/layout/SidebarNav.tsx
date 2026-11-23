@@ -121,13 +121,16 @@ export function SidebarNav({
             <Globe aria-hidden="true" className="size-5 shrink-0" />
             <span>{t('nav.publicSite')}</span>
           </NavLink>
-          {me.data?.is_super_admin && (
+          {me.data?.system_role && (
             <>
               <p className="mt-5 px-3 pb-1 text-[11px] font-semibold tracking-wide text-ink-muted uppercase">
                 {t('nav.adminSection')}
               </p>
               <ul className="space-y-1">
-                {ADMIN_ITEMS.map((item) => (
+                {ADMIN_ITEMS.filter(
+                  // An Admin manages projects; the rest is for the Super Admin (ADR 0017).
+                  (item) => me.data?.is_super_admin || item.key === 'adminProjects',
+                ).map((item) => (
                   <li key={item.key}>
                     <NavLink to={item.path} className={linkClass} onClick={onNavigate}>
                       <item.icon aria-hidden="true" className="size-5 shrink-0" />

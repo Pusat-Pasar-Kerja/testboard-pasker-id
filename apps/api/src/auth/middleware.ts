@@ -63,3 +63,10 @@ export function requireSuperAdmin(c: Context<AppEnv>): AuthContext {
   if (!auth.isSuperAdmin) throw new AppError(403, 'FORBIDDEN', 'Super Admin only.')
   return auth
 }
+
+/** Admin or Super Admin (ADR 0017): creating and managing projects. */
+export function requireAdmin(c: Context<AppEnv>): AuthContext {
+  const auth = requireAuth(c)
+  if (!auth.isAdmin) throw new AppError(403, 'FORBIDDEN', 'Admin only.')
+  return auth
+}

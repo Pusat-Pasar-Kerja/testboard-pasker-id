@@ -8,7 +8,7 @@ import {
 import { Hono } from 'hono'
 import type { Pool } from 'mysql2/promise'
 import { projectAccess, requirePermission } from '../access/project-access.js'
-import { requireAuth, requireSuperAdmin } from '../auth/middleware.js'
+import { requireAdmin, requireAuth } from '../auth/middleware.js'
 import type { FileService } from '../files/pipeline.js'
 import type { ImportStore } from '../imports/analyze.js'
 import {
@@ -57,7 +57,8 @@ const OPEN_LIST = OPEN_DEFECT_STATUSES.map(() => '?').join(', ')
 async function projectRows(
   db: Db,
   userId: string,
-  isSuperAdmin: boolean,
+  /** Admin or Super Admin: every project (ADR 0017). */
+  seesAll: boolean,
   projectId?: string,
 ): Promise<ProjectSummary[]> {
   const rows = await select<ProjectRow>(
@@ -72,14 +73,14 @@ async function projectRows(
        LEFT JOIN project_members m ON m.project_id = p.id AND m.user_id = ?
       WHERE (m.user_id IS NOT NULL OR ? = 1) AND (? IS NULL OR p.id = ?)
       ORDER BY p.is_archived, p.project_code`,
-    [...OPEN_DEFECT_STATUSES, userId, isSuperAdmin ? 1 : 0, projectId ?? null, projectId ?? null],
+    [...OPEN_DEFECT_STATUSES, userId, seesAll ? 1 : 0, projectId ?? null, projectId ?? null],
   )
   return rows.map((row) => ({
     id: String(row.id),
     project_code: row.project_code,
     name: row.name,
     description: row.description,
-    role_code: row.role_code ?? 'ADMIN',
+    role_code: seesAll ? 'ADMIN' : (row.role_code ?? 'VIEWER'),
     is_archived: Number(row.is_archived) === 1,
     counts: {
       test_cases: Number(row.test_cases),
@@ -94,12 +95,13 @@ export function projectRoutes(pool: Pool, files: FileService, imports: ImportSto
 
   routes.get('/projects', async (c) => {
     const auth = requireAuth(c)
-    return c.json(await projectRows(pool, auth.userId, auth.isSuperAdmin))
+    return c.json(await projectRows(pool, auth.userId, auth.isAdmin))
   })
 
-  // Creating projects is a website-level action (ADR 0004): Super Admin only.
+  // Creating projects is a website-level action: Admin or Super Admin (ADR 0017). The creator
+  // needs no membership row: the website role already manages every project.
   routes.post('/projects', async (c) => {
-    const auth = requireSuperAdmin(c)
+    const auth = requireAdmin(c)
     const input = await parseBody(c, projectCreateSchema)
     const projectId = await withTransaction(pool, async (conn) => {
       try {
@@ -109,11 +111,6 @@ export function projectRoutes(pool: Pool, files: FileService, imports: ImportSto
           [input.project_code, input.name, input.description ?? null, auth.userId],
         )
         const id = insertedId(result)
-        await execute(
-          conn,
-          "INSERT INTO project_members (project_id, user_id, role_code) VALUES (?, ?, 'ADMIN')",
-          [id, auth.userId],
-        )
         await writeAudit(conn, c, {
           projectId: id,
           entityType: 'project',
@@ -131,7 +128,7 @@ export function projectRoutes(pool: Pool, files: FileService, imports: ImportSto
         throw error
       }
     })
-    const [created] = await projectRows(pool, auth.userId, auth.isSuperAdmin, projectId)
+    const [created] = await projectRows(pool, auth.userId, auth.isAdmin, projectId)
     return c.json(created, 201)
   })
 

@@ -117,6 +117,7 @@ interface SessionRow {
   display_name: string
   preferred_locale: string
   is_super_admin: number
+  is_admin: number
   auth_provider: string
 }
 
@@ -133,7 +134,9 @@ export async function loadSession(
     `SELECT s.id, s.user_id, s.csrf_token_hash, s.last_seen_at,
             u.email, u.display_name, u.preferred_locale, u.auth_provider,
             EXISTS (SELECT 1 FROM user_system_roles r
-                     WHERE r.user_id = u.id AND r.role_code = 'SUPER_ADMIN') AS is_super_admin
+                     WHERE r.user_id = u.id AND r.role_code = 'SUPER_ADMIN') AS is_super_admin,
+            EXISTS (SELECT 1 FROM user_system_roles r
+                     WHERE r.user_id = u.id AND r.role_code IN ('SUPER_ADMIN', 'ADMIN')) AS is_admin
        FROM user_sessions s
        JOIN users u ON u.id = s.user_id
       WHERE s.id = ?
@@ -157,6 +160,8 @@ export async function loadSession(
     displayName: row.display_name,
     preferredLocale: row.preferred_locale === 'en' ? 'en' : 'id',
     isSuperAdmin: Boolean(Number(row.is_super_admin)),
+    // A table card never manages anything, whatever its account row says.
+    isAdmin: row.auth_provider !== 'WORKSHOP' && Boolean(Number(row.is_admin)),
     sessionId: row.id,
     csrfTokenHash: row.csrf_token_hash,
     accountKind: row.auth_provider === 'WORKSHOP' ? 'TABLE' : 'PERSON',

@@ -171,10 +171,10 @@
     },
     "role": {
       "ADMIN": "Admin",
-      "QA_LEAD": "QA Lead",
+      "QA_LEAD": "QA Lead (old role)",
       "TESTER": "Tester",
       "DEVELOPER": "Developer",
-      "VIEWER": "Viewer"
+      "VIEWER": "Observer"
     },
     "caseSource": {
       "MANUAL": "Manual",
@@ -262,6 +262,21 @@
       "PASSWORD_CHANGE": "Password changed",
       "PASSWORD_RESET": "Password reset",
       "REVOKE": "Revoked"
+    },
+    "roleHelp": {
+      "TESTER": "Runs the assigned test scenarios, records results and reports problems.",
+      "DEVELOPER": "Sees reported problems, fixes them and updates the fix status.",
+      "VIEWER": "Sees progress, results and reports without changing anything. Suits leaders."
+    },
+    "systemRole": {
+      "SUPER_ADMIN": "Super Admin",
+      "ADMIN": "Admin",
+      "NONE": "User"
+    },
+    "systemRoleHelp": {
+      "SUPER_ADMIN": "Full power: invites users, configures the website, and everything an Admin can do.",
+      "ADMIN": "Creates and manages every project: phases, features, scenarios, tables, public view and problem review.",
+      "NONE": "Only opens the projects they are a member of, according to their task (Tester, Developer or Observer)."
     }
   },
   "fields": {
@@ -540,19 +555,28 @@
       "saved": "Changes saved (version {{version}})."
     },
     "members": {
-      "title": "Team & Settings",
-      "subtitle": "Who can access this project and with which role.",
-      "addTitle": "Add member",
-      "emailHint": "The account must already exist (created by a Super Admin).",
+      "title": "Members & tasks",
+      "subtitle": "Who takes part in this project and what their task is.",
+      "addTitle": "Add a member",
+      "emailHint": "If this person has no account yet, you will be asked for their name to create one.",
       "added": "{{name}} added as {{role}}.",
       "roleChanged": "{{name}} is now {{role}}.",
       "removeTitle": "Remove {{name}} from the project?",
-      "removeBody": "Access to this project is revoked immediately. Their work history is kept.",
-      "removed": "{{name}} removed from the project.",
+      "removeBody": "Access to this project is removed right away. Their work history is kept.",
+      "removed": "{{name}} was removed from the project.",
       "you": "You",
       "inactive": "Inactive",
-      "readOnly": "Only project ADMINs can change members.",
-      "roleLabel": "Role of {{name}}"
+      "readOnly": "Only an Admin can change members and their tasks.",
+      "roleLabel": "Task of {{name}}",
+      "nameLabel": "Full name",
+      "nameHint": "There is no account with this e-mail yet. Enter the name and press Add to create one. The person activates it with an activation link.",
+      "notActivated": "Not activated",
+      "notActivatedHint": "The account was made from a name and e-mail; the person has not chosen a password yet.",
+      "changeTitle": "Change the task of {{name}}?",
+      "changeBody": "New task: {{role}}. {{help}}",
+      "change": "Change task",
+      "tasksTitle": "Three tasks you can give",
+      "adminsNote": "Admins and Super Admins can manage every project, so they do not need to be added here."
     },
     "projectSettings": {
       "modules": "Modules",
@@ -600,11 +624,10 @@
       }
     },
     "adminUsers": {
-      "title": "Manage users",
-      "subtitle": "Super Admin only. New accounts get a temporary password shown once.",
+      "title": "Users",
+      "subtitle": "Super Admin only: create accounts, set their website role and help with account recovery.",
       "search": "Search name or email…",
       "create": "Create account",
-      "superAdminLabel": "Make Super Admin (full access and settings)",
       "created": "Account {{email}} created.",
       "tempPasswordTitle": "Temporary password for {{email}}",
       "tempPasswordBody": "Shown only this once. Hand it over securely and ask the owner to change it in Profile right away.",
@@ -612,8 +635,6 @@
       "inactive": "Inactive",
       "deactivate": "Deactivate",
       "activate": "Activate",
-      "grantSuperAdmin": "Make Super Admin",
-      "revokeSuperAdmin": "Revoke Super Admin",
       "deactivateTitle": "Deactivate {{name}}?",
       "deactivateBody": "They are signed out of every device immediately and cannot sign in until reactivated.",
       "updated": "Account {{name}} updated.",
@@ -621,7 +642,11 @@
       "empty": "No matching users.",
       "permanent": "Permanent Super Admin",
       "permanentHint": "Owner account: nobody can revoke or deactivate it from the website.",
-      "resetLink": "Reset link"
+      "resetLink": "Reset link",
+      "roleLegend": "Website role",
+      "roleOf": "Website role of {{name}}",
+      "roleChangeTitle": "Make {{name}} a {{role}}?",
+      "roleChange": "Change role"
     },
     "cycles": {
       "title": "Test cycles",
@@ -1059,19 +1084,60 @@
     }
   },
   "errors": {
-    "VALIDATION_ERROR": "The submitted data is invalid.",
+    "VALIDATION_ERROR": "Some entries are not right yet. Check them and save again.",
     "UNAUTHENTICATED": "Please sign in first.",
-    "FORBIDDEN": "You do not have permission for this action.",
-    "NOT_FOUND": "The data was not found.",
-    "CONFLICT": "The data conflicts with its latest state.",
+    "FORBIDDEN": "Your task in this project does not include this action.",
+    "NOT_FOUND": "Not found, or you do not have access to it.",
+    "CONFLICT": "The change could not be saved because the data just changed. Reload the page and try again.",
     "PAYLOAD_TOO_LARGE": "The data or file is too large.",
     "UNSUPPORTED_MEDIA_TYPE": "This file type is not supported.",
     "RATE_LIMITED": "Too many requests. Please try again later.",
     "SERVICE_UNAVAILABLE": "The service is temporarily unavailable. Please try again shortly.",
     "INTERNAL_ERROR": "Something went wrong. Please try again.",
-    "reference": "Reference code: {{id}}",
+    "reference": "Code for the technical team: {{id}}",
     "projectArchived": "This project is archived and read-only.",
-    "permanentSuperAdmin": "The permanent Super Admin cannot be revoked or deactivated."
+    "permanentSuperAdmin": "The permanent Super Admin cannot be revoked or deactivated.",
+    "server": {
+      "resetLinkActive": "This account already has an active link. Revoke the old link first, or choose \"Revoke & create a new link\".",
+      "runLocked": "This test sheet is locked and can no longer be changed.",
+      "fileTooLarge": "The file is too large.",
+      "chooseFile": "Choose a file first.",
+      "codeUsed": "This code is already used. Use another code.",
+      "emailUsed": "This e-mail is already used by another account.",
+      "statusNotAllowed": "Your task cannot move this problem to that status.",
+      "noPermission": "Your task in this project does not include this action.",
+      "superAdminOnly": "Only a Super Admin can do this.",
+      "adminOnly": "Only an Admin can do this.",
+      "tooManyRows": "Too much data. Narrow the filters and try again.",
+      "alreadyMember": "This person is already a member of the project.",
+      "assignedToOther": "This scenario is assigned to someone else.",
+      "tableNoRun": "This table has no test sheet yet. Ask the organisers.",
+      "tableHasAnswers": "This table already has answers, so it cannot be deleted. Block its card instead.",
+      "projectArchived": "This project is archived and read-only.",
+      "importNotReady": "This import is not ready to apply. Check the rows with problems first.",
+      "importLocked": "This import was applied and is kept as history, so it cannot be changed.",
+      "fileUnavailable": "This file is no longer available.",
+      "runNotActive": "Results can only be recorded while the test sheet is running.",
+      "caseArchived": "This scenario is archived. Restore it before changing it.",
+      "fileNotYours": "Only the uploader or an Admin can remove this file.",
+      "evidenceNotYours": "You cannot add evidence here.",
+      "assignAdminOnly": "Only an Admin can assign a problem to someone.",
+      "lastSuperAdmin": "At least one active Super Admin must remain.",
+      "accountInactive": "The account is inactive. Activate it before creating a link.",
+      "tableNameUsed": "This table name is already used in this phase.",
+      "requestOtherAccount": "This request belongs to another account.",
+      "reload": "This page has been open too long. Reload it and try again.",
+      "noAccount": "There is no account with this e-mail yet.",
+      "notAPerson": "This e-mail belongs to a table card, not to a person.",
+      "permanentSuperAdmin": "The main Super Admin cannot be revoked or deactivated.",
+      "wrongPassword": "The current password is wrong.",
+      "endBeforeStart": "The end date cannot be before the start date.",
+      "passwordHasEmail": "The password must not contain your e-mail name.",
+      "assigneeNotMember": "The assignee must be an active member of this project.",
+      "notInProject": "This choice does not exist in this project.",
+      "notTableFeature": "This feature is not part of your table.",
+      "unknownAccount": "Unknown account."
+    }
   },
   "form": {
     "optional": "optional",

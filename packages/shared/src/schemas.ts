@@ -1,11 +1,12 @@
 import { z } from 'zod'
 import {
   LOCALES,
-  MEMBER_ROLES,
+  MEMBER_TASKS,
   TEST_CASE_PRIORITIES,
   TEST_CASE_STATUSES,
   TEST_TYPES,
 } from './enums.js'
+import { SYSTEM_ROLES } from './permissions.js'
 
 /**
  * Request validation shared by API (authoritative) and web forms (early feedback).
@@ -75,12 +76,17 @@ export const projectUpdateSchema = z
   })
   .refine((v) => Object.keys(v).length > 0, 'Nothing to update')
 
+/**
+ * Add a person to a project by e-mail. When no account has that e-mail yet, an Admin may
+ * give display_name to create one (not activated until the person sets a password).
+ */
 export const memberAddSchema = z.object({
   email: emailSchema,
-  role_code: z.enum(MEMBER_ROLES),
+  display_name: trimmed(200).min(1).optional(),
+  role_code: z.enum(MEMBER_TASKS),
 })
 
-export const memberUpdateSchema = z.object({ role_code: z.enum(MEMBER_ROLES) })
+export const memberUpdateSchema = z.object({ role_code: z.enum(MEMBER_TASKS) })
 
 export const moduleCreateSchema = z.object({
   module_code: codeSchema(40),
@@ -171,7 +177,8 @@ export const adminUserCreateSchema = z.object({
   display_name: trimmed(200).min(1),
   /** Omit to let the server generate a strong temporary password (returned once). */
   password: passwordSchema.optional(),
-  is_super_admin: z.boolean().default(false),
+  /** NONE = a User; the website roles are ADMIN and SUPER_ADMIN (ADR 0017). */
+  system_role: z.enum(['NONE', ...SYSTEM_ROLES]).default('NONE'),
   preferred_locale: z.enum(LOCALES).default('id'),
 })
 
@@ -179,7 +186,7 @@ export const adminUserUpdateSchema = z
   .object({
     display_name: trimmed(200).min(1).optional(),
     is_active: z.boolean().optional(),
-    is_super_admin: z.boolean().optional(),
+    system_role: z.enum(['NONE', ...SYSTEM_ROLES]).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, 'Nothing to update')
 

@@ -97,7 +97,7 @@ describe('role permissions (doc 09 matrix)', () => {
     ).toBe(403)
   })
 
-  it('only project ADMIN manages members, and the last ADMIN cannot be removed', async () => {
+  it('only an Admin manages members; a member gets one of the three User tasks', async () => {
     const admin = clients.ADMIN!
     const newcomer = await createUser(h.pool)
     const added = await admin.post(`/projects/${projectA.code}/members`, {
@@ -105,15 +105,52 @@ describe('role permissions (doc 09 matrix)', () => {
       role_code: 'TESTER',
     })
     expect(added.status).toBe(201)
+    expect(added.json.user.has_password).toBe(true)
     expect(
       (await clients.QA_LEAD!.delete(`/projects/${projectA.code}/members/${newcomer.id}`)).status,
     ).toBe(403)
-
+    // ADMIN and QA_LEAD are website matters now (ADR 0017), never a project task.
+    for (const role_code of ['ADMIN', 'QA_LEAD']) {
+      const res = await admin.patch(`/projects/${projectA.code}/members/${newcomer.id}`, {
+        role_code,
+      })
+      expect(res.status).toBe(422)
+    }
+    // No "last ADMIN" rule any more: the website roles manage every project.
     const me = await admin.get('/auth/me')
     const demoteSelf = await admin.patch(`/projects/${projectA.code}/members/${me.json.id}`, {
       role_code: 'VIEWER',
     })
-    expect(demoteSelf.status).toBe(409)
+    expect(demoteSelf.status).toBe(200)
+    await h.pool.query(
+      "UPDATE project_members SET role_code = 'ADMIN' WHERE project_id = ? AND user_id = ?",
+      [projectA.id, me.json.id],
+    )
+  })
+
+  it('an Admin creates the account of a new e-mail from a name; it is not activated', async () => {
+    const admin = clients.ADMIN!
+    const email = `${unique('baru').toLowerCase()}@test.invalid`
+    const missing = await admin.post(`/projects/${projectA.code}/members`, {
+      email,
+      role_code: 'TESTER',
+    })
+    expect(missing.status).toBe(422)
+    expect(missing.json.error.details[0]).toMatchObject({ field: 'email', message: 'NO_ACCOUNT' })
+
+    const created = await admin.post(`/projects/${projectA.code}/members`, {
+      email,
+      display_name: 'Warga Baru',
+      role_code: 'TESTER',
+    })
+    expect(created.status).toBe(201)
+    expect(created.json).toMatchObject({
+      role_code: 'TESTER',
+      user: { display_name: 'Warga Baru', email, has_password: false, is_active: true },
+    })
+    // No password yet: signing in is impossible until the person activates the account.
+    const login = await new Client(h).post('/auth/login', { email, password: 'whatever-123' })
+    expect(login.status).toBe(401)
   })
 
   it('a removed member loses access immediately', async () => {
@@ -128,11 +165,68 @@ describe('role permissions (doc 09 matrix)', () => {
   })
 })
 
-describe('Super Admin (ADR 0004)', () => {
-  it('only Super Admin creates projects and manages users; it sees every project', async () => {
+describe('website roles Admin and Super Admin (ADR 0004, ADR 0017)', () => {
+  it('an Admin creates and manages every project but not accounts or website settings', async () => {
+    // A legacy project ADMIN row is not a website role.
     expect(
       (await clients.ADMIN!.post('/projects', { project_code: unique('X'), name: 'X' })).status,
     ).toBe(403)
+
+    const siteAdmin = await createUser(h.pool, { siteAdmin: true })
+    const client = new Client(h)
+    await client.login(siteAdmin.email)
+    const me = await client.get('/auth/me')
+    expect(me.json).toMatchObject({ system_role: 'ADMIN', is_super_admin: false })
+
+    const code = unique('adm').toLowerCase()
+    const created = await client.post('/projects', { project_code: code, name: 'Proyek Admin' })
+    expect(created.status).toBe(201)
+    expect(created.json.role_code).toBe('ADMIN')
+    // Not a member of project B, yet it manages it.
+    expect((await client.get(`/projects/${projectB.code}/test-cases/${caseInB}`)).status).toBe(200)
+    const codes = ((await client.get('/projects')).json as { project_code: string }[]).map(
+      (p) => p.project_code,
+    )
+    expect(codes).toEqual(expect.arrayContaining([projectA.code, projectB.code]))
+    expect((await client.get('/admin/projects')).status).toBe(200)
+
+    expect((await client.get('/admin/users')).status).toBe(403)
+    expect((await client.get('/admin/settings')).status).toBe(403)
+    expect((await client.get('/admin/audit-logs')).status).toBe(403)
+  })
+
+  it('a Super Admin gives and takes the website roles, one at a time', async () => {
+    const sa = await createUser(h.pool, { superAdmin: true })
+    const client = new Client(h)
+    await client.login(sa.email)
+    const target = await createUser(h.pool)
+    const targetClient = new Client(h)
+    await targetClient.login(target.email)
+
+    const made = await client.patch(`/admin/users/${target.id}`, { system_role: 'ADMIN' })
+    expect(made.status).toBe(200)
+    expect(made.json).toMatchObject({ system_role: 'ADMIN', is_super_admin: false })
+    expect((await targetClient.get('/auth/me')).json.system_role).toBe('ADMIN')
+    expect(
+      (await targetClient.post('/projects', { project_code: unique('t'), name: 'T' })).status,
+    ).toBe(201)
+
+    const back = await client.patch(`/admin/users/${target.id}`, { system_role: 'NONE' })
+    expect(back.json.system_role).toBeNull()
+    expect(
+      (await targetClient.post('/projects', { project_code: unique('t'), name: 'T' })).status,
+    ).toBe(403)
+
+    const created = await client.post('/admin/users', {
+      email: `${unique('adm').toLowerCase()}@test.invalid`,
+      display_name: 'Admin Baru',
+      system_role: 'ADMIN',
+    })
+    expect(created.status).toBe(201)
+    expect(created.json.user.system_role).toBe('ADMIN')
+  })
+
+  it('only Super Admin manages users; it sees every project', async () => {
     expect((await clients.ADMIN!.get('/admin/users')).status).toBe(403)
 
     const sa = await createUser(h.pool, { superAdmin: true })

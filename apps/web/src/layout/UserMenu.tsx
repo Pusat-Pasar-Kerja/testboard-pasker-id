@@ -56,9 +56,9 @@ export function UserMenu() {
               {t('mode.demoShort')}
             </span>
           ) : (
-            me.data?.is_super_admin && (
+            me.data?.system_role && (
               <span className="block text-[11px] font-semibold text-brand-700">
-                {t('shell.superAdmin')}
+                {t(`codes.systemRole.${me.data.system_role}`)}
               </span>
             )
           )}
@@ -76,10 +76,14 @@ export function UserMenu() {
           <UserRound aria-hidden="true" className="size-4" />
           {t('nav.profile')}
         </Link>
-        {me.data?.is_super_admin && (
-          <Link to="/admin/projects" className={ITEM} onClick={close}>
+        {me.data?.system_role && (
+          <Link
+            to={me.data.system_role === 'SUPER_ADMIN' ? '/admin/users' : '/admin/projects'}
+            className={ITEM}
+            onClick={close}
+          >
             <UsersRound aria-hidden="true" className="size-4" />
-            {t('nav.adminUsers')}
+            {t('nav.adminSection')}
             <ShieldCheck aria-hidden="true" className="ml-auto size-4 text-brand-600" />
           </Link>
         )}

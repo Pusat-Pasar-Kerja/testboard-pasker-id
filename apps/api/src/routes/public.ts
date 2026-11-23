@@ -82,7 +82,7 @@ async function resolveCycle(
   const lead =
     auth?.accountKind === 'PERSON' &&
     row !== null &&
-    (auth.isSuperAdmin || (isRole(row.role_code) && roleCan(row.role_code, 'run.write')))
+    (auth.isAdmin || (isRole(row.role_code) && roleCan(row.role_code, 'run.write')))
   if (!row || !lead) throw new AppError(404, 'NOT_FOUND', 'Not found.')
   const chosen = c.req.query('fields')
   return {

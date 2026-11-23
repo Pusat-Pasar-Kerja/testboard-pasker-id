@@ -271,7 +271,9 @@ export function ProfilePage() {
         title={t('pages.profile.title')}
         subtitle={me.data.email}
         badges={
-          me.data.is_super_admin ? <Badge tone="brand" label={t('shell.superAdmin')} /> : undefined
+          me.data.system_role ? (
+            <Badge tone="brand" label={t(`codes.systemRole.${me.data.system_role}`)} />
+          ) : undefined
         }
       />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

@@ -7,7 +7,16 @@ import {
 import { Hono } from 'hono'
 import type { Pool, PoolConnection } from 'mysql2/promise'
 import { requirePermission } from '../access/project-access.js'
-import { execute, iso, select, selectOne, withTransaction, type Db } from '../db/tx.js'
+import {
+  execute,
+  insertedId,
+  isDuplicateKey,
+  iso,
+  select,
+  selectOne,
+  withTransaction,
+  type Db,
+} from '../db/tx.js'
 import { writeAudit } from '../lib/audit.js'
 import { AppError } from '../lib/errors.js'
 import { idParam, parseBody } from '../lib/validation.js'
@@ -18,6 +27,7 @@ interface MemberRow {
   display_name: string
   email: string
   is_active: number
+  has_password: number
   role_code: MemberRole
   joined_at: Date
 }
@@ -25,7 +35,8 @@ interface MemberRow {
 async function listMembers(db: Db, projectId: string, userId?: string): Promise<MemberDto[]> {
   const rows = await select<MemberRow>(
     db,
-    `SELECT u.id AS user_id, u.display_name, u.email, u.is_active, m.role_code, m.joined_at
+    `SELECT u.id AS user_id, u.display_name, u.email, u.is_active,
+            u.password_hash IS NOT NULL AS has_password, m.role_code, m.joined_at
        FROM project_members m JOIN users u ON u.id = m.user_id
       WHERE m.project_id = ? AND (? IS NULL OR m.user_id = ?)
       ORDER BY u.display_name`,
@@ -37,24 +48,73 @@ async function listMembers(db: Db, projectId: string, userId?: string): Promise<
       display_name: row.display_name,
       email: row.email,
       is_active: Number(row.is_active) === 1,
+      has_password: Number(row.has_password) === 1,
     },
     role_code: row.role_code,
     joined_at: iso(row.joined_at) as string,
   }))
 }
 
-/** Never leave a project without an ADMIN (it would become unmanageable). */
-async function assertNotLastAdmin(conn: PoolConnection, projectId: string, userId: string) {
-  const rows = await select<{ user_id: string }>(
+/**
+ * Find the person with this e-mail, or create their account when the Admin gave a name
+ * (owner, 2026-11-24). A new account has no password until the person activates it with a
+ * link from an Admin or at their table.
+ */
+export async function findOrCreatePerson(
+  conn: PoolConnection,
+  c: Parameters<typeof writeAudit>[1],
+  input: { email: string; display_name?: string | undefined },
+): Promise<{ userId: string; created: boolean }> {
+  const user = await selectOne<{ id: string; auth_provider: string }>(
     conn,
-    "SELECT user_id FROM project_members WHERE project_id = ? AND role_code = 'ADMIN' FOR UPDATE",
-    [projectId],
+    'SELECT id, auth_provider FROM users WHERE email = ? FOR UPDATE',
+    [input.email],
   )
-  if (rows.length === 1 && String(rows[0]?.user_id) === userId) {
-    throw new AppError(409, 'CONFLICT', 'A project must keep at least one ADMIN.')
+  if (user) {
+    if (user.auth_provider === 'WORKSHOP') {
+      throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+        { field: 'email', message: 'NOT_A_PERSON' },
+      ])
+    }
+    return { userId: String(user.id), created: false }
+  }
+  if (!input.display_name) {
+    // The web then asks for the person's name to create the account.
+    throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+      { field: 'email', message: 'NO_ACCOUNT' },
+    ])
+  }
+  try {
+    const result = await execute(
+      conn,
+      `INSERT INTO users (display_name, email, password_hash, auth_provider, preferred_locale)
+       VALUES (?, ?, NULL, 'LOCAL', 'id')`,
+      [input.display_name, input.email],
+    )
+    const userId = insertedId(result)
+    await writeAudit(conn, c, {
+      projectId: null,
+      entityType: 'user',
+      entityId: userId,
+      action: 'CREATE',
+      newValues: { email: input.email, display_name: input.display_name, activated: false },
+    })
+    return { userId, created: true }
+  } catch (error) {
+    if (isDuplicateKey(error)) {
+      throw new AppError(409, 'CONFLICT', 'An account with this e-mail already exists.', [
+        { field: 'email', message: 'Already used' },
+      ])
+    }
+    throw error
   }
 }
 
+/**
+ * Project members are Users with one task each (ADR 0017): Penguji, Developer or Pemantau.
+ * Admins and Super Admins manage every project through their website role, so there is no
+ * longer a "keep at least one ADMIN" rule.
+ */
 export function memberRoutes(pool: Pool) {
   const routes = new Hono<AppEnv>()
 
@@ -65,34 +125,27 @@ export function memberRoutes(pool: Pool) {
   routes.post('/', requirePermission('member.manage'), async (c) => {
     const project = c.get('project')
     const input = await parseBody(c, memberAddSchema)
-    const user = await selectOne<{ id: string }>(pool, 'SELECT id FROM users WHERE email = ?', [
-      input.email,
-    ])
-    if (!user) {
-      throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
-        { field: 'email', message: 'No account with this e-mail. Ask a Super Admin to create it.' },
-      ])
-    }
-    const userId = String(user.id)
-    await withTransaction(pool, async (conn) => {
+    const userId = await withTransaction(pool, async (conn) => {
+      const person = await findOrCreatePerson(conn, c, input)
       const existing = await selectOne(
         conn,
         'SELECT 1 FROM project_members WHERE project_id = ? AND user_id = ?',
-        [project.id, userId],
+        [project.id, person.userId],
       )
       if (existing) throw new AppError(409, 'CONFLICT', 'This user is already a member.')
       await execute(
         conn,
         'INSERT INTO project_members (project_id, user_id, role_code) VALUES (?, ?, ?)',
-        [project.id, userId, input.role_code],
+        [project.id, person.userId, input.role_code],
       )
       await writeAudit(conn, c, {
         projectId: project.id,
         entityType: 'project_member',
-        entityId: userId,
+        entityId: person.userId,
         action: 'CREATE',
-        newValues: { role_code: input.role_code },
+        newValues: { role_code: input.role_code, new_account: person.created },
       })
+      return person.userId
     })
     const [member] = await listMembers(pool, project.id, userId)
     return c.json(member, 201)
@@ -109,9 +162,6 @@ export function memberRoutes(pool: Pool) {
         [project.id, userId],
       )
       if (!current) throw new AppError(404, 'NOT_FOUND', 'Not found.')
-      if (current.role_code === 'ADMIN' && input.role_code !== 'ADMIN') {
-        await assertNotLastAdmin(conn, project.id, userId)
-      }
       await execute(
         conn,
         'UPDATE project_members SET role_code = ? WHERE project_id = ? AND user_id = ?',
@@ -140,7 +190,6 @@ export function memberRoutes(pool: Pool) {
         [project.id, userId],
       )
       if (!current) throw new AppError(404, 'NOT_FOUND', 'Not found.')
-      if (current.role_code === 'ADMIN') await assertNotLastAdmin(conn, project.id, userId)
       await execute(conn, 'DELETE FROM project_members WHERE project_id = ? AND user_id = ?', [
         project.id,
         userId,

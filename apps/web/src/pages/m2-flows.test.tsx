@@ -108,12 +108,31 @@ describe('test case create / edit / archive (mock mode)', () => {
 })
 
 describe('team, profile and user administration', () => {
-  it('changes a member role', async () => {
+  it('changes a member task after confirming it', async () => {
     const user = userEvent.setup()
     renderRoute(`${P}/members`)
-    const select = await screen.findByLabelText('Peran Demo Penguji 2')
-    await user.selectOptions(select, 'QA_LEAD')
-    expect(await screen.findByText('Peran Demo Penguji 2 sekarang QA Lead.')).toBeInTheDocument()
+    const select = await screen.findByLabelText('Tugas Demo Penguji 2')
+    // Only the three User tasks are offered (ADR 0017).
+    expect(Array.from(select.querySelectorAll('option')).map((option) => option.value)).toEqual([
+      'TESTER',
+      'DEVELOPER',
+      'VIEWER',
+    ])
+    await user.selectOptions(select, 'VIEWER')
+    const dialog = await screen.findByRole('alertdialog', { name: 'Ubah tugas Demo Penguji 2?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Ubah tugas' }))
+    expect(await screen.findByText('Tugas Demo Penguji 2 sekarang Pemantau.')).toBeInTheDocument()
+  })
+
+  it('creates an account for a new e-mail when an Admin adds a member by name', async () => {
+    const user = userEvent.setup()
+    renderRoute(`${P}/members`)
+    await user.type(await screen.findByLabelText(/^Email/), 'warga.baru@demo.invalid')
+    await user.click(screen.getByRole('button', { name: 'Tambah' }))
+    await user.type(await screen.findByLabelText(/^Nama lengkap/), 'Warga Baru')
+    await user.click(screen.getByRole('button', { name: 'Tambah' }))
+    expect(await screen.findByText('Warga Baru ditambahkan sebagai Penguji.')).toBeInTheDocument()
+    expect(await screen.findByText('Belum aktif')).toBeInTheDocument()
   })
 
   it('creates an account and shows the temporary password once', async () => {

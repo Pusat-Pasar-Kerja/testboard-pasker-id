@@ -33,17 +33,23 @@ export async function currentUserDto(db: Db, userId: string): Promise<CurrentUse
     display_name: string
     email: string
     preferred_locale: string
-    is_super_admin: number
+    system_role: string | null
     auth_provider: string
   }>(
     db,
     `SELECT u.id, u.display_name, u.email, u.preferred_locale, u.auth_provider,
-            EXISTS (SELECT 1 FROM user_system_roles r
-                     WHERE r.user_id = u.id AND r.role_code = 'SUPER_ADMIN') AS is_super_admin
+            (SELECT r.role_code FROM user_system_roles r
+              WHERE r.user_id = u.id AND r.role_code IN ('SUPER_ADMIN', 'ADMIN')
+              ORDER BY r.role_code = 'SUPER_ADMIN' DESC LIMIT 1) AS system_role
        FROM users u WHERE u.id = ?`,
     [userId],
   )
   if (!user) throw new AppError(401, 'UNAUTHENTICATED', 'Authentication is required.')
+  const table = user.auth_provider === 'WORKSHOP'
+  const systemRole =
+    !table && (user.system_role === 'SUPER_ADMIN' || user.system_role === 'ADMIN')
+      ? user.system_role
+      : null
   const projects = await select<{ project_code: string; role_code: MemberRole }>(
     db,
     `SELECT p.project_code, m.role_code
@@ -56,7 +62,8 @@ export async function currentUserDto(db: Db, userId: string): Promise<CurrentUse
     display_name: user.display_name,
     email: user.email,
     preferred_locale: user.preferred_locale === 'en' ? 'en' : 'id',
-    is_super_admin: Boolean(Number(user.is_super_admin)),
+    system_role: systemRole,
+    is_super_admin: systemRole === 'SUPER_ADMIN',
     projects,
     account_kind: user.auth_provider === 'WORKSHOP' ? 'TABLE' : 'PERSON',
   }

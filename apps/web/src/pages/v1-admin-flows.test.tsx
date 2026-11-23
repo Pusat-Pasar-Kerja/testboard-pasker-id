@@ -37,10 +37,8 @@ describe('v1 admin console (ADR 0011)', () => {
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/projects/KARIRHUB/dashboard'))
     expect(await screen.findByText('Proyek KARIRHUB dibuat.')).toBeInTheDocument()
-    expect(db.projects[0]).toMatchObject({
-      project_code: 'KARIRHUB',
-      members: [{ userId: db.currentUserId, role: 'ADMIN' }],
-    })
+    // The creator needs no membership row: Admin and Super Admin manage every project.
+    expect(db.projects[0]).toMatchObject({ project_code: 'KARIRHUB', members: [] })
   })
 
   it('refuses a duplicate project code inline', async () => {
@@ -99,7 +97,7 @@ describe('v1 admin console (ADR 0011)', () => {
     const badge = await screen.findByText('Super Admin utama')
     const row = badge.closest('li') as HTMLElement
     expect(within(row).getByText(owner?.email as string)).toBeInTheDocument()
-    expect(within(row).getByRole('button', { name: 'Cabut Super Admin' })).toBeDisabled()
+    expect(within(row).getByLabelText(`Peran ${owner?.display_name} di situs`)).toBeDisabled()
     expect(within(row).getByRole('button', { name: 'Nonaktifkan' })).toBeDisabled()
   })
 

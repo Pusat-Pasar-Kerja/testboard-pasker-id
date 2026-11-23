@@ -23,6 +23,7 @@ import {
   type PublicSiteSettings,
   type SiteSettingKey,
   type SiteSettingsDto,
+  type SystemRole,
   type SessionDeviceDto,
   auditFilterSchema,
   buildXlsx,
@@ -191,7 +192,14 @@ export function paginate<T>(items: T[], query: PageQuery = {}): Paginated<T> {
 
 /** In-memory implementation of the API contract over fictitious data. */
 export function createMockDataSource(
-  options: { latencyMs?: number; db?: MockDb; superAdmin?: boolean; permanentAdmin?: string } = {},
+  options: {
+    latencyMs?: number
+    db?: MockDb
+    superAdmin?: boolean
+    /** The demo user is a website Admin (ADR 0017) instead of the Super Admin. */
+    siteAdmin?: boolean
+    permanentAdmin?: string
+  } = {},
 ): DataSource {
   const latencyMs = options.latencyMs ?? 200
   const db = options.db ?? createMockDb()
@@ -322,7 +330,7 @@ export function createMockDataSource(
     project_code: p.project_code,
     name: p.name,
     description: p.description,
-    role_code: roleIn(p.id),
+    role_code: managesAll(db.currentUserId) ? 'ADMIN' : roleIn(p.id),
     is_archived: Boolean(p.archived),
     counts: {
       test_cases: db.cases.filter((c) => c.projectId === p.id && c.case_status !== 'ARCHIVED')
@@ -336,7 +344,16 @@ export function createMockDataSource(
   // ---- Demo-only mutable state (in memory; resets on reload) ----------------------
   const profile: { locale: Locale } = { locale: 'id' }
   // The demo user is shown as Super Admin so every screen of the prototype can be explored.
-  const superAdmins = new Set<string>(options.superAdmin === false ? [] : [db.currentUserId])
+  const superAdmins = new Set<string>(
+    options.superAdmin === false || options.siteAdmin ? [] : [db.currentUserId],
+  )
+  /** Website Admins (ADR 0017): manage every project, but not accounts or site settings. */
+  const siteAdmins = new Set<string>(options.siteAdmin ? [db.currentUserId] : [])
+  /** Accounts made from a name + e-mail that have not chosen a password yet. */
+  const unactivated = new Set<string>()
+  const systemRoleOf = (userId: string): SystemRole | null =>
+    superAdmins.has(userId) ? 'SUPER_ADMIN' : siteAdmins.has(userId) ? 'ADMIN' : null
+  const managesAll = (userId: string) => superAdmins.has(userId) || siteAdmins.has(userId)
   /** Permanent (owner) Super Admin; on the server only a CLI command can set it. */
   const permanentAdmins = new Set<string>(options.permanentAdmin ? [options.permanentAdmin] : [])
   const inactive = new Set<string>()
@@ -411,6 +428,7 @@ export function createMockDataSource(
       display_name: user.display_name,
       email: user.email,
       preferred_locale: profile.locale,
+      system_role: systemRoleOf(user.id),
       is_super_admin: superAdmins.has(user.id),
       projects: db.projects
         .filter((p) => p.members.some((m) => m.userId === user.id))
@@ -427,6 +445,7 @@ export function createMockDataSource(
         display_name: user.display_name,
         email: user.email,
         is_active: !inactive.has(user.id),
+        has_password: !unactivated.has(user.id),
       },
       role_code: role,
       joined_at: '2026-10-01T02:00:00.000Z',
@@ -441,7 +460,9 @@ export function createMockDataSource(
       email: user.email,
       preferred_locale: 'id',
       is_active: !inactive.has(user.id),
+      system_role: systemRoleOf(user.id),
       is_super_admin: superAdmins.has(user.id),
+      has_password: !unactivated.has(user.id),
       is_permanent: permanentAdmins.has(user.id),
       created_at: '2026-10-01T02:00:00.000Z',
       reset_link: recovery.activeLinkOf(user.id),
@@ -473,12 +494,6 @@ export function createMockDataSource(
       change_reason: reason,
       changed_at: now(),
     })
-  }
-
-  const assertKeepsAdmin = (members: { role: MemberRole }[], member: { role: MemberRole }) => {
-    if (member.role === 'ADMIN' && members.filter((m) => m.role === 'ADMIN').length === 1) {
-      fail(409, 'CONFLICT', 'role_code', 'A project must keep at least one ADMIN.')
-    }
   }
 
   // ---- Milestone 6: import (demo: CSV/JSON in memory, same planner as the API) ------
@@ -1033,7 +1048,7 @@ export function createMockDataSource(
 
   // ---- Milestone 4: bug workflow (demo, same rules as the API, ADR 0007) ------------
   const effectiveRole = (projectId: string): MemberRole =>
-    superAdmins.has(db.currentUserId) ? 'ADMIN' : roleIn(projectId)
+    managesAll(db.currentUserId) ? 'ADMIN' : roleIn(projectId)
   const forbidden = (message: string, fields: string[] = []): never => {
     throw new ApiClientError(
       403,
@@ -1045,6 +1060,9 @@ export function createMockDataSource(
   }
   const requireSuperAdmin = () => {
     if (!superAdmins.has(db.currentUserId)) forbidden('Super Admin only.')
+  }
+  const requireAdmin = () => {
+    if (!managesAll(db.currentUserId)) forbidden('Admin only.')
   }
   const siteAudit = (
     projectId: string,
@@ -1384,8 +1402,16 @@ export function createMockDataSource(
     addMember: (code, input) =>
       delay(() => {
         const p = project(code)
-        const user = db.users.find((u) => u.email === input.email.trim().toLowerCase())
-        if (!user) return fail(422, 'VALIDATION_ERROR', 'email', 'No account with this e-mail')
+        const email = input.email.trim().toLowerCase()
+        let user = db.users.find((u) => u.email === email)
+        if (!user) {
+          // Same as the API: with a name the Admin creates the account (not activated yet).
+          if (!input.display_name?.trim())
+            return fail(422, 'VALIDATION_ERROR', 'email', 'NO_ACCOUNT')
+          user = { id: newId(), display_name: input.display_name.trim(), email }
+          db.users.push(user)
+          unactivated.add(user.id)
+        }
         if (p.members.some((m) => m.userId === user.id)) {
           fail(409, 'CONFLICT', 'email', 'Already a member')
         }
@@ -1396,7 +1422,6 @@ export function createMockDataSource(
       delay(() => {
         const p = project(code)
         const member = p.members.find((m) => m.userId === userId) ?? notFound()
-        if (role !== 'ADMIN') assertKeepsAdmin(p.members, member)
         member.role = role
         return memberDto(userId, role)
       }),
@@ -1404,7 +1429,6 @@ export function createMockDataSource(
       delay(() => {
         const p = project(code)
         const member = p.members.find((m) => m.userId === userId) ?? notFound()
-        assertKeepsAdmin(p.members, member)
         p.members.splice(p.members.indexOf(member), 1)
       }),
     createModule: (code, input) =>
@@ -1605,7 +1629,8 @@ export function createMockDataSource(
         if (db.users.some((u) => u.email === email)) fail(409, 'CONFLICT', 'email', 'Already used')
         const user = { id: newId(), display_name: input.display_name.trim(), email }
         db.users.push(user)
-        if (input.is_super_admin) superAdmins.add(user.id)
+        if (input.system_role === 'SUPER_ADMIN') superAdmins.add(user.id)
+        if (input.system_role === 'ADMIN') siteAdmins.add(user.id)
         // Demo only: a visibly fake value; the real API returns a random password once.
         return { user: adminUser(user.id), temporary_password: 'Demo-Bukan-Kata-Sandi-Asli' }
       }),
@@ -1614,7 +1639,8 @@ export function createMockDataSource(
         const user = db.users.find((u) => u.id === userId) ?? notFound()
         if (
           permanentAdmins.has(userId) &&
-          (input.is_super_admin === false || input.is_active === false)
+          ((input.system_role !== undefined && input.system_role !== 'SUPER_ADMIN') ||
+            input.is_active === false)
         ) {
           throw new ApiClientError(
             403,
@@ -1625,7 +1651,9 @@ export function createMockDataSource(
           )
         }
         const losesSuperAdmin =
-          superAdmins.has(userId) && (input.is_super_admin === false || input.is_active === false)
+          superAdmins.has(userId) &&
+          ((input.system_role !== undefined && input.system_role !== 'SUPER_ADMIN') ||
+            input.is_active === false)
         const activeAdmins = [...superAdmins].filter((id) => !inactive.has(id))
         if (losesSuperAdmin && activeAdmins.length <= 1) {
           throw new ApiClientError(
@@ -1638,15 +1666,22 @@ export function createMockDataSource(
         if (input.display_name) user.display_name = input.display_name
         if (input.is_active === false) inactive.add(userId)
         if (input.is_active === true) inactive.delete(userId)
-        if (input.is_super_admin === true) superAdmins.add(userId)
-        if (input.is_super_admin === false) superAdmins.delete(userId)
+        if (input.system_role !== undefined) {
+          superAdmins.delete(userId)
+          siteAdmins.delete(userId)
+          if (input.system_role === 'SUPER_ADMIN') superAdmins.add(userId)
+          if (input.system_role === 'ADMIN') siteAdmins.add(userId)
+        }
         return adminUser(userId)
       }),
 
     listProjects: () =>
       delay(() =>
         db.projects
-          .filter((p) => p.members.some((m) => m.userId === db.currentUserId))
+          .filter(
+            (p) =>
+              managesAll(db.currentUserId) || p.members.some((m) => m.userId === db.currentUserId),
+          )
           .map(projectSummary),
       ),
 
@@ -2731,7 +2766,7 @@ export function createMockDataSource(
     // ---- Admin console (demo; same rules as the API, ADR 0011) ------------------------
     createProject: (input) =>
       delay(() => {
-        requireSuperAdmin()
+        requireAdmin()
         const parsed = projectCreateSchema.safeParse(input)
         if (!parsed.success) validationError(parsed.error.issues)
         const value = parsed.data
@@ -2744,7 +2779,7 @@ export function createMockDataSource(
           name: value.name,
           description: value.description ?? '',
           bugPrefix: value.project_code.replace(/[^A-Z0-9]/g, '').slice(0, 3) || 'BUG',
-          members: [{ userId: db.currentUserId, role: 'ADMIN' as const }],
+          members: [] as MockDb['projects'][number]['members'],
           createdAt: now(),
           createdBy: db.currentUserId,
         }
@@ -2758,7 +2793,7 @@ export function createMockDataSource(
 
     listAdminProjects: () =>
       delay(() => {
-        requireSuperAdmin()
+        requireAdmin()
         return [...db.projects]
           .sort(
             (a, b) =>
@@ -2770,7 +2805,7 @@ export function createMockDataSource(
 
     updateAdminProject: (projectId, input) =>
       delay(() => {
-        requireSuperAdmin()
+        requireAdmin()
         const parsed = adminProjectUpdateSchema.safeParse(input)
         if (!parsed.success) validationError(parsed.error.issues)
         const target = db.projects.find((p) => p.id === projectId) ?? notFound()

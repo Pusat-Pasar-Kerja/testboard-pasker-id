@@ -15,9 +15,10 @@ export function ProjectsPage() {
   const { t } = useTranslation()
   const projects = useProjects()
   const me = useCurrentUser()
-  const isSuperAdmin = Boolean(me.data?.is_super_admin)
+  // Admin and Super Admin create projects (ADR 0017).
+  const canCreate = Boolean(me.data?.system_role)
   const [creating, setCreating] = useState(false)
-  const createButton = isSuperAdmin ? (
+  const createButton = canCreate ? (
     <Button icon={FolderPlus} onClick={() => setCreating(true)}>
       {t('pages.projects.create')}
     </Button>
@@ -36,7 +37,7 @@ export function ProjectsPage() {
       )}
       {projects.isSuccess &&
         projects.data.length === 0 &&
-        (isSuperAdmin ? (
+        (canCreate ? (
           <EmptyState
             title={t('pages.projects.emptyAdminTitle')}
             description={t('pages.projects.emptyAdmin')}

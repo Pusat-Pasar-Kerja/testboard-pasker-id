@@ -86,6 +86,18 @@ try {
         )
       }
     }
+    // Same as migration 0013 (ADR 0017): project Admins and QA Leads become website Admins.
+    await execute(
+      conn,
+      `INSERT INTO user_system_roles (user_id, role_code)
+       SELECT DISTINCT m.user_id, 'ADMIN' FROM project_members m
+        WHERE m.role_code IN ('ADMIN', 'QA_LEAD')
+          AND NOT EXISTS (SELECT 1 FROM user_system_roles r WHERE r.user_id = m.user_id)`,
+    )
+    await execute(
+      conn,
+      "UPDATE project_members SET role_code = 'TESTER' WHERE role_code IN ('ADMIN', 'QA_LEAD')",
+    )
     for (const m of mock.modules) {
       const result = await execute(
         conn,

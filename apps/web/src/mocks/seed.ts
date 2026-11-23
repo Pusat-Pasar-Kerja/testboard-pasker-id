@@ -784,7 +784,7 @@ export function createMockDb(seed = 20261120): MockDb {
 
   const db: MockDb = {
     currentUserId: '1',
-    users: USERS,
+    users: USERS.map((u) => ({ ...u })),
     projects: [],
     modules: [],
     cases: [],

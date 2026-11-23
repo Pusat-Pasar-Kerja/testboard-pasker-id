@@ -18,11 +18,14 @@ describe('permission matrix (doc 09)', () => {
     expect(PERMISSIONS['project.update']).toEqual(['ADMIN'])
   })
 
-  it('never lets VIEWER write anything', () => {
-    const writes = Object.keys(PERMISSIONS).filter((p) => !/\.read$/.test(p))
+  it('never lets VIEWER (Pemantau) write anything; downloading reports is allowed', () => {
+    const writes = Object.keys(PERMISSIONS).filter(
+      (p) => !/\.read$/.test(p) && p !== 'report.export',
+    )
     for (const permission of writes) {
       expect(roleCan('VIEWER', permission as keyof typeof PERMISSIONS), permission).toBe(false)
     }
+    expect(roleCan('VIEWER', 'report.export')).toBe(true)
   })
 })
 
