@@ -26,7 +26,7 @@ describe('bulk actions and bug cycle (ADR 0013)', () => {
     await screen.findAllByText(targets[0]!.bug_code)
     for (const d of targets) await user.click(checkbox(`Pilih ${d.bug_code}`))
     const bar = screen.getByRole('region', { name: '2 dipilih' })
-    await user.selectOptions(within(bar).getByLabelText('Yang diubah'), 'Severity')
+    await user.selectOptions(within(bar).getByLabelText('Yang diubah'), 'Tingkat dampak')
     await user.selectOptions(within(bar).getByLabelText('Nilai baru'), 'Kritis')
     await user.click(within(bar).getByRole('button', { name: 'Terapkan ke 2' }))
 
@@ -43,7 +43,7 @@ describe('bulk actions and bug cycle (ADR 0013)', () => {
     await screen.findAllByText(open.bug_code)
     await user.click(checkbox(`Pilih ${open.bug_code}`))
     const bar = screen.getByRole('region', { name: '1 dipilih' })
-    await user.selectOptions(within(bar).getByLabelText('Nilai baru'), 'Ditutup')
+    await user.selectOptions(within(bar).getByLabelText('Nilai baru'), 'Selesai')
     await user.click(within(bar).getByRole('button', { name: 'Terapkan ke 1' }))
     expect(await screen.findByText(/0 diubah · 0 sudah sesuai · 1 dilewati/)).toBeInTheDocument()
     expect(
@@ -65,7 +65,7 @@ describe('bulk actions and bug cycle (ADR 0013)', () => {
     renderRoute('/projects/DEMO-KARIR/bugs', { dataSource })
     const label = `${cycle.cycle_code} - ${cycle.title}`
     await screen.findByRole('option', { name: label })
-    await user.selectOptions(screen.getByLabelText('Siklus'), label)
+    await user.selectOptions(screen.getByLabelText('Fase'), label)
     await waitFor(() =>
       expect(screen.getAllByText('Bug di siklus pertama').length).toBeGreaterThan(0),
     )
@@ -102,7 +102,7 @@ describe('bulk actions and bug cycle (ADR 0013)', () => {
     const bar = screen.getByRole('region', { name: '1 dipilih' })
     await user.selectOptions(within(bar).getByLabelText('Aksi'), 'Arsipkan')
     await user.click(within(bar).getByRole('button', { name: 'Terapkan ke 1' }))
-    const dialog = await screen.findByRole('alertdialog', { name: 'Arsipkan 1 test case?' })
+    const dialog = await screen.findByRole('alertdialog', { name: 'Arsipkan 1 skenario uji?' })
     await user.click(within(dialog).getByRole('button', { name: 'Arsipkan' }))
     await waitFor(() => expect(target.case_status).toBe('ARCHIVED'))
   })
@@ -120,7 +120,7 @@ describe('bulk actions and bug cycle (ADR 0013)', () => {
     const bar = screen.getByRole('region', { name: '2 dipilih' })
     await user.selectOptions(within(bar).getByLabelText('Aksi'), 'Gabungkan (duplikat)')
     await user.click(within(bar).getByRole('button', { name: 'Terapkan ke 2' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Gabungkan 2 test case' })
+    const dialog = await screen.findByRole('dialog', { name: 'Gabungkan 2 skenario uji' })
     await user.click(within(dialog).getByRole('radio', { name: new RegExp(keep!.case_code) }))
     await user.click(
       within(dialog).getByRole('button', { name: `Gabungkan 1 ke ${keep!.case_code}` }),
@@ -218,7 +218,7 @@ describe('bulk actions and bug cycle (ADR 0013)', () => {
     const { db, dataSource, project } = setup()
     const before = db.defects.filter((d) => d.projectId === project.id).length
     const { router } = renderRoute('/projects/DEMO-KARIR/imports', { dataSource })
-    await user.click(await screen.findByRole('radio', { name: /^Bug/ }))
+    await user.click(await screen.findByRole('radio', { name: /^Masalah/ }))
     const csv = [
       'ID UAT,Fitur / Proses,Status UAT,Detail Hasil Aktual / Defect,Severity,Penguji,Tgl UAT',
       'UAT-X-001,Simpan profil,Gagal Diuji,Tombol simpan tidak merespons,High,Penguji Contoh,30/07/2026',
@@ -236,15 +236,17 @@ describe('bulk actions and bug cycle (ADR 0013)', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Periksa' }))
     expect(
-      await screen.findByText(/2 bug akan dibuat · 1 baris dilewati · 0 sudah ada · 0 bermasalah/),
+      await screen.findByText(
+        /2 masalah akan dibuat · 1 baris dilewati · 0 sudah ada · 0 bermasalah/,
+      ),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('combobox', { name: 'Status di file → status bug: Gagal Diuji' }),
+      screen.getByRole('combobox', { name: 'Status di file → status masalah: Gagal Diuji' }),
     ).toHaveValue('OPEN')
     await user.click(screen.getByRole('button', { name: 'Terapkan impor' }))
     const dialog = await screen.findByRole('alertdialog')
     await user.click(within(dialog).getByRole('button', { name: 'Terapkan impor' }))
-    expect(await screen.findByText(/2 bug dibuat · 1 baris dilewati/)).toBeInTheDocument()
+    expect(await screen.findByText(/2 masalah dibuat · 1 baris dilewati/)).toBeInTheDocument()
     const created = db.defects.filter((d) => d.projectId === project.id).slice(before)
     expect(created.map((d) => [d.title, d.severity_code, d.status_code])).toEqual([
       ['Simpan profil', 'HIGH', 'OPEN'],

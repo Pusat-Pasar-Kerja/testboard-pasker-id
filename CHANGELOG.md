@@ -2,6 +2,24 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.17.0] - 2026-11-24
+
+Perombakan tahap 4: **menu sesuai urutan kerja**, **kata-kata awam**, dan **beranda proyek yang menuntun**.
+
+### Ditambahkan
+
+- **"Mulai di sini"** di beranda proyek (untuk Admin): enam langkah dari proyek kosong sampai laporan (buat fase, siapkan skenario, pilih cara menguji, jalankan, tinjau masalah, lihat laporan). Langkah yang sudah dikerjakan otomatis dicentang, setiap langkah punya tombolnya, dan kartunya bisa disembunyikan.
+- Kartu **"Tugas Anda"** di beranda proyek untuk Penguji, Developer, dan Pemantau, berisi apa yang bisa mereka lakukan dan tombol ke tempat yang tepat.
+- Halaman **Proyek** menyapa pengguna, menyebut perannya, dan memberi jalan pintas ke **Tugas saya** dan **Panduan**. Kartu proyek kini menonjolkan nama proyek dan tombol **Buka proyek**.
+
+### Diubah
+
+- **Menu proyek dikelompokkan per tahap kerja**: 1. Persiapan (Fase uji, Skenario uji, Impor dari Excel), 2. Pelaksanaan (Workshop & meja, Lembar uji), 3. Hasil & laporan (Masalah, Foto & bukti, Laporan), 4. Pengaturan (Anggota & tugas, Fitur & kelompok). Setiap menu memakai kata awam dengan istilah aslinya kecil di bawahnya (mis. "Skenario uji" - Test Case).
+- **Menu menyesuaikan tugas**: Penguji dan Developer hanya melihat bagian yang menjadi tugasnya; Pemantau melihat semua tanpa bisa mengubah.
+- **Kata-kata awam di seluruh situs**: test case menjadi skenario uji, run menjadi lembar uji, siklus menjadi fase, modul menjadi fitur, suite menjadi kelompok skenario, bug menjadi masalah, severity menjadi tingkat dampak, dan lain-lain (lebih dari 300 kalimat).
+- **Satu bahasa untuk hasil uji**: Sesuai / Tidak sesuai / Tidak bisa dicoba / Dilewati / Belum dicoba, sama seperti di meja workshop. Status masalah juga dibuat awam (mis. Baru dilaporkan, Sedang diperbaiki, Sudah dicek beres, Muncul lagi). Tingkat dampak (Kritis / Berat / Sedang / Ringan) kini berbeda dari prioritas (Segera / Tinggi / Sedang / Rendah), dan prioritas skenario memakai Wajib / Penting / Tambahan / Tidak sekarang.
+- Label dan judul kolom di berkas ekspor laporan (CSV/Excel) ikut memakai kata-kata baru, mis. "Kode masalah", "Tingkat dampak", lembar "Masalah".
+
 ## [0.16.0] - 2026-11-24
 
 Perombakan tahap 3: **anggota meja dengan akun Pengguna**, aktivasi akun, dan **Tugas saya** (ADR 0018, migration `0014`).

@@ -30,23 +30,25 @@ describe('routing & shell', () => {
   it('switches the whole UI to English without reload (TB-I18N-001)', async () => {
     const user = userEvent.setup()
     renderRoute(`${P}/dashboard`)
-    await screen.findByRole('heading', { level: 1, name: 'Dasbor' })
+    await screen.findByRole('heading', { level: 1, name: 'Beranda proyek' })
 
     await user.click(screen.getAllByRole('button', { name: /English/ })[0] as HTMLElement)
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: /Bug Tracker/ }).length).toBeGreaterThan(0)
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Project home' }),
+    ).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /^Problems/ }).length).toBeGreaterThan(0)
     expect(document.documentElement.lang).toBe('en')
   })
 
   it('opens the mobile navigation drawer and closes it with Escape', async () => {
     const user = userEvent.setup()
     renderRoute(`${P}/dashboard`)
-    await screen.findByRole('heading', { level: 1, name: 'Dasbor' })
+    await screen.findByRole('heading', { level: 1, name: 'Beranda proyek' })
 
     await user.click(screen.getByRole('button', { name: 'Buka menu navigasi' }))
     const dialog = screen.getByRole('dialog', { name: 'Navigasi utama' })
-    expect(within(dialog).getByRole('link', { name: /Daftar Bug/ })).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: /^Masalah/ })).toBeInTheDocument()
 
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
@@ -56,10 +58,10 @@ describe('routing & shell', () => {
 describe('dashboard', () => {
   it('renders KPIs, the latest-status bar with legend, and severity bars', async () => {
     renderRoute(`${P}/dashboard`)
-    expect(await screen.findByText('Test case direncanakan')).toBeInTheDocument()
+    expect(await screen.findByText('Skenario uji direncanakan')).toBeInTheDocument()
     expect(screen.getByText('Tingkat lulus')).toBeInTheDocument()
     expect(screen.getByRole('group', { name: /Distribusi status terbaru/ })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Kritis: \d+ bug terbuka/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Kritis: \d+ masalah terbuka/ })).toHaveAttribute(
       'href',
       `${P}/bugs?status=open&severity=CRITICAL`,
     )
@@ -81,7 +83,7 @@ describe('test cases', () => {
     const user = userEvent.setup()
     const { router } = renderRoute(`${P}/test-cases?q=zzz-tidak-ada`)
     expect(
-      await screen.findByText('Tidak ada test case yang cocok dengan filter.'),
+      await screen.findByText('Tidak ada skenario uji yang cocok dengan filter.'),
     ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /Hapus filter/ }))
     await waitFor(() => expect(router.state.location.search).toBe(''))
@@ -101,7 +103,7 @@ describe('test cases', () => {
 
     overview.focus()
     await user.keyboard('{ArrowRight}')
-    expect(screen.getByRole('tab', { name: /Dipakai di run/ })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: /Dipakai di lembar uji/ })).toHaveAttribute(
       'aria-selected',
       'true',
     )
@@ -119,10 +121,10 @@ describe('runs and bugs', () => {
     ).toBeInTheDocument()
     const table = screen.queryByRole('table')
     if (table) {
-      const badges = within(table).getAllByText(/Gagal Diuji|Berhasil Diuji|Terhambat|Dilewati/)
-      expect(badges.every((b) => b.textContent === 'Gagal Diuji')).toBe(true)
+      const badges = within(table).getAllByText(/Tidak sesuai|Sesuai|Tidak bisa dicoba|Dilewati/)
+      expect(badges.every((b) => b.textContent === 'Tidak sesuai')).toBe(true)
     } else {
-      expect(screen.getByText('Tidak ada test case dengan status ini.')).toBeInTheDocument()
+      expect(screen.getByText('Tidak ada skenario uji dengan status ini.')).toBeInTheDocument()
     }
   })
 
@@ -132,7 +134,7 @@ describe('runs and bugs', () => {
     renderRoute(`${P}/bugs/${defect?.id}`)
     expect((await screen.findAllByText(defect?.bug_code ?? '')).length).toBeGreaterThan(0)
     expect(screen.getByRole('heading', { name: 'Riwayat status' })).toBeInTheDocument()
-    expect(screen.getByText('Dibuat dengan status Terbuka')).toBeInTheDocument()
+    expect(screen.getByText('Dibuat dengan status Baru dilaporkan')).toBeInTheDocument()
     expect(screen.getAllByText(/Percobaan #1/).length).toBeGreaterThan(0)
   })
 

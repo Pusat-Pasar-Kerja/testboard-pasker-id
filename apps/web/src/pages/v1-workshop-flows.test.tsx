@@ -175,7 +175,7 @@ describe('facilitator side', () => {
     await dataSource.logout()
     renderRoute(`/projects/DEMO-KARIR/workshop/${cycle.id}?tab=masuk`, { dataSource })
     const item = (await screen.findByText('Muncul pesan error merah')).closest('li') as HTMLElement
-    await user.click(within(item).getByRole('radio', { name: 'Tinggi' }))
+    await user.click(within(item).getByRole('radio', { name: 'Berat' }))
     await waitFor(() =>
       expect(db.defects.find((d) => d.id === saved.defect?.id)?.severity_code).toBe('HIGH'),
     )

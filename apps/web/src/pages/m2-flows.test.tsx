@@ -55,17 +55,17 @@ describe('test case create / edit / archive (mock mode)', () => {
   it('validates required fields, then creates a case with a generated code', async () => {
     const user = userEvent.setup()
     const { router } = renderRoute(`${P}/test-cases/new`)
-    await screen.findByRole('heading', { level: 1, name: 'Buat test case' })
+    await screen.findByRole('heading', { level: 1, name: 'Buat skenario uji' })
 
     await user.click(screen.getByRole('button', { name: 'Simpan' }))
     expect(await screen.findByText('Periksa kembali isian yang ditandai.')).toBeInTheDocument()
 
     await user.type(screen.getByLabelText(/^Judul/), 'Pengguna mengunggah foto profil')
-    await user.selectOptions(screen.getByLabelText(/^Modul/), 'PROFIL')
+    await user.selectOptions(screen.getByLabelText(/^Fitur/), 'PROFIL')
     await user.type(screen.getByLabelText(/^Hasil yang diharapkan/), 'Foto tampil di profil')
     await user.click(screen.getByRole('button', { name: 'Simpan' }))
 
-    expect(await screen.findByText('Test case UAT-PROFIL-007 dibuat.')).toBeInTheDocument()
+    expect(await screen.findByText('Skenario uji UAT-PROFIL-007 dibuat.')).toBeInTheDocument()
     await waitFor(() => expect(router.state.location.pathname).toMatch(/\/test-cases\/\d+$/))
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Pengguna mengunggah foto profil' }),
@@ -103,7 +103,7 @@ describe('test case create / edit / archive (mock mode)', () => {
       dataSource: createMockDataSource({ latencyMs: 0, db, superAdmin: false }),
     })
     await screen.findByRole('table')
-    expect(screen.queryByRole('link', { name: 'Buat test case' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Buat skenario uji' })).not.toBeInTheDocument()
   })
 })
 

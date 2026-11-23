@@ -166,11 +166,12 @@ describe('report export (TB-REPORT-001)', () => {
     const text = res.bytes.toString('utf8')
     expect(text.startsWith(BOM)).toBe(true)
     const lines = text.slice(1).trim().split('\r\n')
-    expect(lines[0]).toMatch(/^Kode run,Nama run,Siklus,Modul,Kode test case,Judul/)
+    expect(lines[0]).toMatch(/^Kode lembar uji,Nama lembar uji,Fase,Fitur,Kode skenario uji,Judul/)
     expect(lines).toHaveLength(4)
-    expect(text).toContain('Berhasil Diuji')
-    expect(text).toContain('Terhambat')
-    expect(text).toContain('Belum Diuji')
+    // Plain words, the same as in the app (owner, 2026-11-24).
+    expect(text).toContain('Sesuai')
+    expect(text).toContain('Tidak bisa dicoba')
+    expect(text).toContain('Belum dicoba')
     // Latest attempt of the login case is PASSED; the failed attempt's text is not "latest".
     expect(text).not.toContain('HYPERLINK')
   })
@@ -179,7 +180,7 @@ describe('report export (TB-REPORT-001)', () => {
     const res = await lead.raw(`${P()}/reports/export?dataset=attempts&locale=en`)
     const text = res.bytes.toString('utf8')
     expect(text).toContain(`"'=HYPERLINK(""http://evil.example"",""klik"")"`)
-    expect(text).toMatch(/,Retest,Passed,/)
+    expect(text).toMatch(/,Retest after a fix,As expected,/)
     expect(text).toMatch(/BUG-[A-Z0-9]+-0001/)
     expect(text.slice(1).split('\r\n')[0]).toMatch(/^Run code,Module,Test case code/)
   })
@@ -193,10 +194,12 @@ describe('report export (TB-REPORT-001)', () => {
     const book = readWorkbook(res.bytes)
     expect(book.sheets).toHaveLength(1)
     const sheet = book.sheets[0]!
-    expect(sheet.name).toBe('Bug')
-    expect(sheet.rows[0]?.slice(0, 3)).toEqual(['Kode bug', 'Judul', 'Tingkat keparahan'])
+    expect(sheet.name).toBe('Masalah')
+    expect(sheet.rows[0]?.slice(0, 3)).toEqual(['Kode masalah', 'Judul', 'Tingkat dampak'])
     expect(sheet.rows).toHaveLength(3)
-    expect(sheet.rows.flat()).toEqual(expect.arrayContaining(['Tinggi', 'Rendah', 'Terbuka']))
+    expect(sheet.rows.flat()).toEqual(
+      expect.arrayContaining(['Berat', 'Ringan', 'Baru dilaporkan']),
+    )
   })
 
   it('exports the case library in the import template format', async () => {

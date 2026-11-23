@@ -258,11 +258,11 @@ const raw = <R>(key: keyof R & string, kind: ColumnKind = 'text'): ReportColumn<
 
 export const REPORT_COLUMNS: { [D in ReportDataset]: ReportColumn<ReportRecordMap[D]>[] } = {
   results: [
-    col('run_code', 'Kode run', 'Run code'),
-    col('run_name', 'Nama run', 'Run name'),
-    col('cycle_code', 'Siklus', 'Cycle'),
-    col('module_code', 'Modul', 'Module'),
-    col('case_code', 'Kode test case', 'Test case code'),
+    col('run_code', 'Kode lembar uji', 'Run code'),
+    col('run_name', 'Nama lembar uji', 'Run name'),
+    col('cycle_code', 'Fase', 'Cycle'),
+    col('module_code', 'Fitur', 'Module'),
+    col('case_code', 'Kode skenario uji', 'Test case code'),
     col('title', 'Judul', 'Title'),
     col('case_version', 'Versi', 'Version', 'number'),
     col('status', 'Status terbaru', 'Latest status', { code: 'execution' }),
@@ -272,12 +272,12 @@ export const REPORT_COLUMNS: { [D in ReportDataset]: ReportColumn<ReportRecordMa
     col('assignee', 'Ditugaskan ke', 'Assigned to'),
     col('actual_result', 'Hasil aktual', 'Actual result'),
     col('notes', 'Catatan', 'Notes'),
-    col('bugs', 'Bug terkait', 'Linked bugs', 'list'),
+    col('bugs', 'Masalah terkait', 'Linked bugs', 'list'),
   ],
   attempts: [
-    col('run_code', 'Kode run', 'Run code'),
-    col('module_code', 'Modul', 'Module'),
-    col('case_code', 'Kode test case', 'Test case code'),
+    col('run_code', 'Kode lembar uji', 'Run code'),
+    col('module_code', 'Fitur', 'Module'),
+    col('case_code', 'Kode skenario uji', 'Test case code'),
     col('title', 'Judul', 'Title'),
     col('attempt_number', 'Percobaan ke', 'Attempt', 'number'),
     col('kind', 'Jenis', 'Kind', { code: 'executionKind' }),
@@ -290,15 +290,15 @@ export const REPORT_COLUMNS: { [D in ReportDataset]: ReportColumn<ReportRecordMa
     col('device', 'Perangkat', 'Device'),
     col('os', 'Sistem operasi', 'Operating system'),
     col('evidence', 'Jumlah bukti', 'Evidence files', 'number'),
-    col('bugs', 'Bug terkait', 'Linked bugs', 'list'),
+    col('bugs', 'Masalah terkait', 'Linked bugs', 'list'),
   ],
   defects: [
-    col('bug_code', 'Kode bug', 'Bug code'),
+    col('bug_code', 'Kode masalah', 'Bug code'),
     col('title', 'Judul', 'Title'),
-    col('severity', 'Tingkat keparahan', 'Severity', { code: 'severity' }),
+    col('severity', 'Tingkat dampak', 'Severity', { code: 'severity' }),
     col('priority', 'Prioritas', 'Priority', { code: 'defectPriority' }),
     col('status', 'Status', 'Status', { code: 'defectStatus' }),
-    col('module_code', 'Modul', 'Module'),
+    col('module_code', 'Fitur', 'Module'),
     col('reporter', 'Pelapor', 'Reporter'),
     col('assignee', 'Ditugaskan ke', 'Assigned to'),
     col('environment', 'Lingkungan', 'Environment'),
@@ -307,8 +307,8 @@ export const REPORT_COLUMNS: { [D in ReportDataset]: ReportColumn<ReportRecordMa
     col('created_at', 'Dilaporkan (WIB)', 'Reported (WIB)', 'datetime'),
     col('resolved_at', 'Diselesaikan (WIB)', 'Resolved (WIB)', 'datetime'),
     col('closed_at', 'Ditutup (WIB)', 'Closed (WIB)', 'datetime'),
-    col('cases', 'Test case terkait', 'Linked test cases', 'list'),
-    col('runs', 'Run terkait', 'Linked runs', 'list'),
+    col('cases', 'Skenario uji terkait', 'Linked test cases', 'list'),
+    col('runs', 'Lembar uji terkait', 'Linked runs', 'list'),
   ],
   cases: [
     raw('case_code'),
@@ -334,8 +334,8 @@ export const REPORT_COLUMNS: { [D in ReportDataset]: ReportColumn<ReportRecordMa
 export const REPORT_SHEET_NAMES: Record<ReportDataset, Record<Locale, string>> = {
   results: { id: 'Hasil terbaru', en: 'Latest results' },
   attempts: { id: 'Semua percobaan', en: 'All attempts' },
-  defects: { id: 'Bug', en: 'Bugs' },
-  cases: { id: 'Test case', en: 'Test cases' },
+  defects: { id: 'Masalah', en: 'Problems' },
+  cases: { id: 'Skenario uji', en: 'Test scenarios' },
 }
 
 function cellValue(value: unknown, kind: ColumnKind, locale: Locale): TabularValue {

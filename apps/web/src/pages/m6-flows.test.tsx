@@ -23,7 +23,7 @@ describe('import wizard (TB-IMP-001)', () => {
     const user = userEvent.setup()
     const { db, dataSource } = withDb()
     const { router } = renderRoute(`${P}/imports`, { dataSource })
-    await screen.findByRole('heading', { level: 1, name: 'Impor Data' })
+    await screen.findByRole('heading', { level: 1, name: 'Impor dari Excel' })
 
     await user.upload(
       screen.getByLabelText('Pilih file'),
@@ -54,7 +54,7 @@ describe('import wizard (TB-IMP-001)', () => {
     expect(screen.getByText(/^1 dibuat/)).toBeInTheDocument()
     expect(db.cases.find((c) => c.case_code === 'WIZ-001')).toMatchObject({ case_status: 'DRAFT' })
     expect(db.cases.find((c) => c.case_code === 'WIZ-002')).toBeUndefined()
-    expect(screen.getByRole('link', { name: 'Lihat test case' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Lihat skenario uji' })).toHaveAttribute(
       'href',
       `${P}/test-cases`,
     )
@@ -72,8 +72,8 @@ describe('import wizard (TB-IMP-001)', () => {
       ]),
     )
     await user.click(await screen.findByRole('checkbox', { name: /Pindahkan juga hasil UAT lama/ }))
-    await user.clear(screen.getByLabelText(/^Nama run/))
-    await user.type(screen.getByLabelText(/^Nama run/), 'Migrasi UAT lama')
+    await user.clear(screen.getByLabelText(/^Nama lembar uji/))
+    await user.type(screen.getByLabelText(/^Nama lembar uji/), 'Migrasi UAT lama')
     await user.click(screen.getByRole('button', { name: 'Periksa' }))
 
     const closed = await screen.findByLabelText(/Status "Closed"/)
@@ -86,10 +86,10 @@ describe('import wizard (TB-IMP-001)', () => {
         name: 'Terapkan impor',
       }),
     )
-    expect(await screen.findByText(/Run RUN-\d{8}-\d+: 1 hasil uji/)).toBeInTheDocument()
+    expect(await screen.findByText(/Lembar uji RUN-\d{8}-\d+: 1 hasil uji/)).toBeInTheDocument()
     const run = db.runs.find((r) => r.name === 'Migrasi UAT lama')
     expect(run?.status_code).toBe('COMPLETED')
-    expect(screen.getByRole('link', { name: 'Buka run' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Buka lembar uji' })).toHaveAttribute(
       'href',
       `${P}/runs/${run?.id}`,
     )
@@ -110,7 +110,7 @@ describe('import wizard (TB-IMP-001)', () => {
     }, false)
     renderRoute(`${P}/imports`, { dataSource: tester.dataSource })
     expect(
-      await screen.findByText('Impor hanya bisa dilakukan oleh QA Lead atau Admin proyek.'),
+      await screen.findByText('Impor hanya bisa dilakukan oleh Admin atau Admin.'),
     ).toBeInTheDocument()
     expect(screen.queryByLabelText('Pilih file')).toBeNull()
   })

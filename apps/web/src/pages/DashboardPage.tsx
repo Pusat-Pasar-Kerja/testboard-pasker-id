@@ -10,7 +10,8 @@ import { FilterBar, SelectFilter } from '../components/ui/Filters'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Section } from '../components/ui/Section'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
-import { useDashboard, useProject } from '../hooks/queries'
+import { StartHere, TaskIntro } from '../components/project/StartHere'
+import { useCurrentUser, useCycles, useDashboard, useProject } from '../hooks/queries'
 import { projectPath, useProjectCode, useUrlFilters } from '../hooks/route-state'
 import { formatNumber, formatPercent, formatShortDateTime, toLocale } from '../lib/format'
 
@@ -23,6 +24,10 @@ export function DashboardPage() {
   const runId = filters.values.run || undefined
   const dashboard = useDashboard(code, runId)
   const data = dashboard.data
+  const me = useCurrentUser()
+  const cycles = useCycles(code)
+  const role = project.data?.role_code
+  const manages = Boolean(me.data?.system_role) || role === 'ADMIN' || role === 'QA_LEAD'
   const bugs = (query: string) => `${projectPath(code, 'bugs')}?${query}`
 
   return (
@@ -32,6 +37,26 @@ export function DashboardPage() {
         subtitle={project.data?.name}
         crumbs={[{ label: code }]}
       />
+
+      {project.data && data && manages && (
+        <div className="mb-6">
+          <StartHere
+            code={code}
+            facts={{
+              cycles: cycles.data?.length ?? 0,
+              cases: project.data.counts.test_cases,
+              runs: project.data.counts.runs,
+              executed: executedOf(data.counts),
+              openBugs: data.open_defects,
+            }}
+          />
+        </div>
+      )}
+      {project.data && !manages && role && (
+        <div className="mb-6">
+          <TaskIntro code={code} task={role} />
+        </div>
+      )}
 
       <FilterBar>
         <SelectFilter

@@ -156,8 +156,8 @@ describe('report helpers', () => {
       'UAT-1',
       'Login',
       2,
-      'Uji ulang',
-      'Berhasil Diuji',
+      'Uji ulang setelah perbaikan',
+      'Sesuai',
       '2026-07-30 10:00',
       'Penguji A',
       null,
@@ -168,6 +168,6 @@ describe('report helpers', () => {
       1,
       'BUG-1, BUG-2',
     ])
-    expect(reportTable('attempts', [record], 'en').rows[0]?.[6]).toBe('Passed')
+    expect(reportTable('attempts', [record], 'en').rows[0]?.[6]).toBe('As expected')
   })
 })

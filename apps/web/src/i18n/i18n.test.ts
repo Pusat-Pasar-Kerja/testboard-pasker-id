@@ -31,9 +31,12 @@ describe('translations (TB-I18N-001)', () => {
     }
   })
 
-  it('uses the status labels from the blueprint (doc 10)', () => {
-    expect(idKeys['codes.execution.PASSED']).toBe('Berhasil Diuji')
-    expect(idKeys['codes.execution.NOT_RUN']).toBe('Belum Diuji')
-    expect(enKeys['codes.defectStatus.READY_FOR_RETEST']).toBe('Ready for Retest')
+  // Plain words chosen with the owner (2026-11-24) replace the blueprint labels (doc 10):
+  // the same three answers as at the workshop tables.
+  it('uses the plain status words everywhere', () => {
+    expect(idKeys['codes.execution.PASSED']).toBe('Sesuai')
+    expect(idKeys['codes.execution.FAILED']).toBe('Tidak sesuai')
+    expect(idKeys['codes.execution.NOT_RUN']).toBe('Belum dicoba')
+    expect(enKeys['codes.defectStatus.READY_FOR_RETEST']).toBe('Ready to retest')
   })
 })

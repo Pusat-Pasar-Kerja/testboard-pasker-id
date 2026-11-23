@@ -17,22 +17,21 @@
   "nav": {
     "main": "Navigasi utama",
     "projects": "Semua proyek",
-    "dashboard": "Dasbor",
-    "testCases": "Test Case",
-    "cycles": "Siklus Uji",
-    "runs": "Pelaksanaan UAT",
-    "bugs": "Daftar Bug",
-    "evidence": "Pusat Bukti",
-    "imports": "Impor",
+    "dashboard": "Beranda proyek",
+    "testCases": "Skenario uji",
+    "cycles": "Fase uji",
+    "runs": "Lembar uji",
+    "bugs": "Masalah",
+    "evidence": "Foto & bukti",
+    "imports": "Impor dari Excel",
     "reports": "Laporan",
-    "team": "Tim & Pengaturan",
-    "soon": "Segera",
+    "team": "Anggota & tugas",
     "openMenu": "Buka menu navigasi",
     "closeMenu": "Tutup menu navigasi",
     "profile": "Profil saya",
     "adminUsers": "Administrasi",
-    "settings": "Modul & Suite",
-    "members": "Anggota",
+    "settings": "Fitur & kelompok",
+    "members": "Anggota & tugas",
     "adminSection": "Administrasi",
     "adminProjects": "Proyek",
     "adminUsersShort": "Pengguna",
@@ -40,16 +39,38 @@
     "adminAudit": "Log aktivitas",
     "adminRecovery": "Pemulihan akun",
     "openRequests": "permintaan baru",
-    "workshop": "Mode Workshop",
+    "workshop": "Workshop & meja",
     "guide": "Panduan",
     "publicSite": "Halaman publik",
-    "myTasks": "Tugas saya"
+    "myTasks": "Tugas saya",
+    "thisProject": "Proyek ini",
+    "yourTask": "Tugas Anda: {{task}}",
+    "term": {
+      "dashboard": "Dashboard",
+      "cycles": "Test Cycle",
+      "testCases": "Test Case",
+      "imports": "Import",
+      "workshop": "UAT Workshop",
+      "runs": "Test Run",
+      "bugs": "Bug",
+      "evidence": "Evidence",
+      "reports": "Report",
+      "members": "Members & Roles",
+      "settings": "Modules & Suites"
+    },
+    "group": {
+      "prepare": "1. Persiapan",
+      "run": "2. Pelaksanaan",
+      "results": "3. Hasil & laporan",
+      "manage": "4. Pengaturan",
+      "help": "Bantuan"
+    }
   },
   "shell": {
     "skipToContent": "Lewati ke konten utama",
     "project": "Proyek",
-    "search": "Cari test case…",
-    "searchLabel": "Cari test case di proyek ini",
+    "search": "Cari skenario uji…",
+    "searchLabel": "Cari skenario uji di proyek ini",
     "signedInAs": "Masuk sebagai {{name}}",
     "signOutDemo": "Keluar dari demo",
     "breadcrumb": "Lokasi halaman",
@@ -95,73 +116,73 @@
   },
   "filters": {
     "keyword": "Kata kunci",
-    "module": "Modul",
+    "module": "Fitur",
     "priority": "Prioritas",
     "type": "Jenis",
     "status": "Status",
-    "severity": "Severity",
-    "run": "Run",
+    "severity": "Tingkat dampak",
+    "run": "Lembar uji",
     "all": "Semua",
-    "allRuns": "Semua run",
+    "allRuns": "Semua lembar uji",
     "openOnly": "Belum selesai",
     "fileStatus": "Status file",
-    "cycle": "Siklus"
+    "cycle": "Fase"
   },
   "codes": {
     "execution": {
-      "NOT_RUN": "Belum Diuji",
-      "IN_PROGRESS": "Sedang Diuji",
-      "PASSED": "Berhasil Diuji",
-      "FAILED": "Gagal Diuji",
-      "BLOCKED": "Terhambat",
+      "NOT_RUN": "Belum dicoba",
+      "IN_PROGRESS": "Sedang dicoba",
+      "PASSED": "Sesuai",
+      "FAILED": "Tidak sesuai",
+      "BLOCKED": "Tidak bisa dicoba",
       "SKIPPED": "Dilewati"
     },
     "executionKind": {
-      "INITIAL": "Awal",
-      "RETEST": "Uji ulang",
-      "RERUN": "Ulang"
+      "INITIAL": "Percobaan pertama",
+      "RETEST": "Uji ulang setelah perbaikan",
+      "RERUN": "Diulang"
     },
     "defectStatus": {
-      "OPEN": "Terbuka",
-      "IN_PROGRESS": "Sedang Diperbaiki",
-      "FIXED": "Diperbaiki",
-      "READY_FOR_RETEST": "Siap Diuji Ulang",
-      "VERIFIED": "Terverifikasi",
-      "REOPENED": "Dibuka Kembali",
-      "CLOSED": "Ditutup",
-      "WONT_FIX": "Tidak Akan Diperbaiki"
+      "OPEN": "Baru dilaporkan",
+      "IN_PROGRESS": "Sedang diperbaiki",
+      "FIXED": "Sudah diperbaiki",
+      "READY_FOR_RETEST": "Siap diuji ulang",
+      "VERIFIED": "Sudah dicek beres",
+      "REOPENED": "Muncul lagi",
+      "CLOSED": "Selesai",
+      "WONT_FIX": "Tidak diperbaiki"
     },
     "severity": {
       "CRITICAL": "Kritis",
-      "HIGH": "Tinggi",
+      "HIGH": "Berat",
       "MEDIUM": "Sedang",
-      "LOW": "Rendah",
-      "INFO": "Informasi"
+      "LOW": "Ringan",
+      "INFO": "Info saja"
     },
     "defectPriority": {
-      "URGENT": "Mendesak",
+      "URGENT": "Segera",
       "HIGH": "Tinggi",
       "MEDIUM": "Sedang",
       "LOW": "Rendah"
     },
     "casePriority": {
-      "MUST_HAVE": "Must Have",
-      "SHOULD_HAVE": "Should Have",
-      "COULD_HAVE": "Could Have",
-      "WONT_HAVE": "Won't Have"
+      "MUST_HAVE": "Wajib",
+      "SHOULD_HAVE": "Penting",
+      "COULD_HAVE": "Tambahan",
+      "WONT_HAVE": "Tidak sekarang"
     },
     "testType": {
       "POSITIVE": "Positif",
       "NEGATIVE": "Negatif",
-      "RBAC": "Hak Akses",
-      "SLA": "SLA",
-      "UI_UX": "UI/UX",
+      "RBAC": "Hak akses",
+      "SLA": "Waktu layanan (SLA)",
+      "UI_UX": "Tampilan (UI/UX)",
       "INTEGRATION": "Integrasi",
       "OTHER": "Lainnya"
     },
     "caseStatus": {
       "DRAFT": "Draf",
-      "READY": "Siap",
+      "READY": "Siap diuji",
       "ARCHIVED": "Diarsipkan"
     },
     "runStatus": {
@@ -283,8 +304,8 @@
   "fields": {
     "caseCode": "Kode",
     "title": "Judul",
-    "module": "Modul",
-    "suite": "Suite",
+    "module": "Fitur",
+    "suite": "Kelompok skenario",
     "category": "Kategori",
     "priority": "Prioritas",
     "type": "Jenis pengujian",
@@ -301,24 +322,24 @@
     "contentLanguage": "Bahasa konten",
     "assignee": "Ditugaskan ke",
     "reporter": "Pelapor",
-    "severity": "Severity",
+    "severity": "Tingkat dampak",
     "attempts": "Percobaan",
     "lastTested": "Terakhir diuji",
-    "linkedBugs": "Bug terkait",
+    "linkedBugs": "Masalah terkait",
     "environment": "Lingkungan",
     "environmentUrl": "URL lingkungan",
     "build": "Build/versi",
-    "cycle": "Siklus",
+    "cycle": "Fase",
     "period": "Periode",
     "progress": "Progres",
-    "bugCode": "Kode bug",
+    "bugCode": "Kode masalah",
     "description": "Deskripsi",
     "stepsToReproduce": "Langkah reproduksi",
     "expectedBehavior": "Perilaku yang diharapkan",
     "actualBehavior": "Perilaku aktual",
     "browser": "Browser",
     "fixedIn": "Diperbaiki di versi",
-    "run": "Run",
+    "run": "Lembar uji",
     "name": "Nama",
     "attempt": "Percobaan #{{n}}",
     "result": "Hasil",
@@ -330,12 +351,12 @@
     "displayName": "Nama",
     "language": "Bahasa antarmuka",
     "testSteps": "Langkah pengujian",
-    "moduleCode": "Kode modul",
+    "moduleCode": "Kode fitur",
     "referenceDocument": "Dokumen acuan",
     "referenceVersion": "Versi dokumen",
     "accountStatus": "Status akun",
-    "runCode": "Kode run",
-    "cycleCode": "Kode siklus",
+    "runCode": "Kode lembar uji",
+    "cycleCode": "Kode fase",
     "startsOn": "Tanggal mulai",
     "endsOn": "Tanggal selesai",
     "device": "Perangkat",
@@ -345,7 +366,7 @@
     "actualResult": "Hasil aktual",
     "executionKind": "Jenis percobaan",
     "tester": "Penguji",
-    "runCount": "Jumlah run"
+    "runCount": "Jumlah lembar uji"
   },
   "pages": {
     "login": {
@@ -362,137 +383,144 @@
     },
     "projects": {
       "title": "Proyek",
-      "subtitle": "Pilih proyek untuk mulai bekerja. Anda hanya melihat proyek tempat Anda menjadi anggota.",
-      "cases_one": "{{count}} test case",
-      "cases_other": "{{count}} test case",
-      "runs_one": "{{count}} run",
-      "runs_other": "{{count}} run",
-      "openBugs_one": "{{count}} bug terbuka",
-      "openBugs_other": "{{count}} bug terbuka",
-      "yourRole": "Peran Anda: {{role}}",
-      "empty": "Anda belum menjadi anggota proyek mana pun.",
+      "subtitle": "Pilih proyek untuk mulai bekerja. Pengguna hanya melihat proyek tempat ia menjadi anggota.",
+      "cases_one": "{{count}} skenario uji",
+      "cases_other": "{{count}} skenario uji",
+      "runs_one": "{{count}} lembar uji",
+      "runs_other": "{{count}} lembar uji",
+      "openBugs_one": "{{count}} masalah terbuka",
+      "openBugs_other": "{{count}} masalah terbuka",
+      "yourRole": "Tugas Anda: {{role}}",
+      "empty": "Anda belum menjadi anggota proyek mana pun. Minta Admin menambahkan Anda, atau buka Tugas saya bila Anda terdaftar di meja workshop.",
       "create": "Buat proyek",
       "emptyAdminTitle": "Belum ada proyek",
-      "emptyAdmin": "Buat proyek pertama, lalu tambahkan anggota tim lewat menu Tim & Pengaturan di dalam proyek.",
-      "archived": "Diarsipkan"
+      "emptyAdmin": "Buat proyek pertama, lalu ikuti langkah \"Mulai di sini\" di beranda proyek.",
+      "archived": "Diarsipkan",
+      "signedInAs": "Anda masuk sebagai {{role}}",
+      "welcome": "Selamat datang, {{name}}",
+      "welcomeAdmin": "Pilih proyek yang ingin dikelola, atau buat proyek baru. Di dalam proyek, menu di kiri disusun sesuai urutan kerja.",
+      "welcomeUser": "Pilih proyek untuk mulai, atau buka Tugas saya untuk melihat semua pekerjaan yang ditugaskan kepada Anda.",
+      "youManage": "Anda mengelola proyek ini",
+      "open": "Buka proyek"
     },
     "dashboard": {
-      "title": "Dasbor",
-      "kpiPlanned": "Test case direncanakan",
-      "kpiExecuted": "Sudah dieksekusi",
+      "title": "Beranda proyek",
+      "kpiPlanned": "Skenario uji direncanakan",
+      "kpiExecuted": "Sudah dicoba",
       "kpiPassRate": "Tingkat lulus",
-      "kpiOpenBugs": "Bug terbuka",
-      "kpiCriticalHigh": "Bug kritis & tinggi",
-      "statusHeading": "Status terbaru test case",
-      "statusNote": "Dihitung dari percobaan terakhir setiap test case dalam run. Retest tidak dihitung ganda; Terhambat, Dilewati, dan Belum Diuji tidak dihitung lulus.",
+      "kpiOpenBugs": "Masalah terbuka",
+      "kpiCriticalHigh": "Masalah kritis & tinggi",
+      "statusHeading": "Status terbaru skenario uji",
+      "statusNote": "Dihitung dari percobaan terakhir setiap skenario uji dalam lembar uji. Uji ulang tidak dihitung ganda; Tidak bisa dicoba, Dilewati, dan Belum dicoba tidak dihitung lulus.",
       "statusBarLabel": "Distribusi status terbaru: {{summary}}",
-      "severityHeading": "Bug terbuka per severity",
-      "severityBarLabel": "{{severity}}: {{count}} bug terbuka",
-      "runsHeading": "Progres run",
-      "recentBugs": "Bug terbaru",
-      "noRuns": "Belum ada run di proyek ini.",
-      "noBugs": "Belum ada bug di proyek ini.",
-      "noRunCases": "Belum ada test case yang dijadwalkan dalam run."
+      "severityHeading": "Masalah terbuka per tingkat dampak",
+      "severityBarLabel": "{{severity}}: {{count}} masalah terbuka",
+      "runsHeading": "Progres lembar uji",
+      "recentBugs": "Masalah terbaru",
+      "noRuns": "Belum ada lembar uji di proyek ini.",
+      "noBugs": "Belum ada masalah di proyek ini.",
+      "noRunCases": "Belum ada skenario uji yang dijadwalkan dalam lembar uji.",
+      "subtitle": "Ringkasan kemajuan pengujian dan masalah di proyek ini."
     },
     "cases": {
-      "title": "Test Case",
-      "subtitle": "Pustaka definisi test case. Hasil uji dicatat terpisah di setiap run.",
+      "title": "Skenario uji",
+      "subtitle": "Daftar langkah yang harus dicoba beserta hasil yang diharapkan. Hasil percobaan dicatat di Lembar uji atau di meja workshop.",
       "searchPlaceholder": "Cari kode atau judul…",
-      "empty": "Belum ada test case di proyek ini.",
-      "emptyFiltered": "Tidak ada test case yang cocok dengan filter.",
-      "create": "Buat test case"
+      "empty": "Belum ada skenario uji di proyek ini.",
+      "emptyFiltered": "Tidak ada skenario uji yang cocok dengan filter.",
+      "create": "Buat skenario uji"
     },
     "caseDetail": {
       "tabOverview": "Ringkasan",
       "tabRevisions": "Revisi",
-      "tabRuns": "Dipakai di run",
+      "tabRuns": "Dipakai di lembar uji",
       "revision": "Revisi {{n}}",
       "noRevisions": "Belum ada revisi.",
-      "notUsed": "Test case ini belum dipakai di run mana pun.",
+      "notUsed": "Skenario uji ini belum dipakai di lembar uji mana pun.",
       "stepsPreserved": "Teks langkah ditampilkan apa adanya dari sumber.",
       "archiveTitle": "Arsipkan {{code}}?",
-      "archiveBody": "Test case disembunyikan dari daftar aktif. Riwayat run dan revisinya tetap tersimpan, dan bisa dipulihkan.",
+      "archiveBody": "Skenario uji disembunyikan dari daftar aktif. Riwayat lembar uji dan revisinya tetap tersimpan, dan bisa dipulihkan.",
       "archived": "{{code}} diarsipkan.",
       "restored": "{{code}} dipulihkan sebagai Draf.",
       "cloned": "Duplikat {{code}} dibuat sebagai Draf.",
-      "archivedNotice": "Test case ini diarsipkan. Pulihkan dulu sebelum mengubahnya.",
+      "archivedNotice": "Skenario uji ini diarsipkan. Pulihkan dulu sebelum mengubahnya.",
       "files": "Dokumen acuan"
     },
     "runs": {
-      "title": "Pelaksanaan UAT",
-      "subtitle": "Run = kumpulan test case yang diuji pada lingkungan dan build tertentu.",
-      "empty": "Belum ada run di proyek ini.",
-      "newRun": "Buat run"
+      "title": "Lembar uji",
+      "subtitle": "Lembar uji berisi skenario yang ditugaskan kepada penguji perorangan. Untuk pengujian berkelompok di meja, gunakan Workshop & meja.",
+      "empty": "Belum ada lembar uji di proyek ini.",
+      "newRun": "Buat lembar uji"
     },
     "runDetail": {
-      "casesHeading": "Test case dalam run",
-      "snapshotNote": "Judul dan versi diambil dari snapshot saat test case masuk run, sehingga perubahan test case tidak mengubah hasil lama.",
-      "emptyFiltered": "Tidak ada test case dengan status ini.",
+      "casesHeading": "Skenario uji dalam lembar uji",
+      "snapshotNote": "Judul dan versi diambil dari salinan saat skenario uji masuk lembar uji, sehingga perubahan skenario uji tidak mengubah hasil lama.",
+      "emptyFiltered": "Tidak ada skenario uji dengan status ini.",
       "unassigned": "Belum ditugaskan",
-      "empty": "Run ini belum berisi test case.",
-      "start": "Mulai run",
-      "complete": "Selesaikan run",
+      "empty": "Lembar uji ini belum berisi skenario uji.",
+      "start": "Mulai lembar uji",
+      "complete": "Selesaikan lembar uji",
       "reopen": "Buka lagi",
-      "lock": "Kunci run",
+      "lock": "Kunci lembar uji",
       "confirm": {
-        "ACTIVE": "Mulai run {{code}}?",
-        "COMPLETED": "Selesaikan run {{code}}?",
-        "REOPEN": "Buka lagi run {{code}}?",
-        "LOCKED": "Kunci run {{code}}?"
+        "ACTIVE": "Mulai lembar uji {{code}}?",
+        "COMPLETED": "Selesaikan lembar uji {{code}}?",
+        "REOPEN": "Buka lagi lembar uji {{code}}?",
+        "LOCKED": "Kunci lembar uji {{code}}?"
       },
       "confirmBody": {
-        "ACTIVE": "Setelah dimulai, penguji dapat mencatat hasil uji. Test case masih bisa ditambahkan.",
-        "COMPLETED": "Hasil uji tidak bisa dicatat lagi sampai run dibuka kembali.",
-        "REOPEN": "Run kembali berjalan sehingga penguji dapat melakukan uji ulang.",
-        "LOCKED": "Run yang dikunci bersifat final: hasil, daftar test case, dan penugasan tidak dapat diubah lagi. Tindakan ini tidak bisa dibatalkan."
+        "ACTIVE": "Setelah dimulai, penguji dapat mencatat hasil uji. Skenario uji masih bisa ditambahkan.",
+        "COMPLETED": "Hasil uji tidak bisa dicatat lagi sampai lembar uji dibuka kembali.",
+        "REOPEN": "Lembar uji kembali berjalan sehingga penguji dapat melakukan uji ulang.",
+        "LOCKED": "Lembar uji yang dikunci bersifat final: hasil, daftar skenario uji, dan penugasan tidak dapat diubah lagi. Tindakan ini tidak bisa dibatalkan."
       },
-      "statusChanged": "Status run sekarang: {{status}}.",
+      "statusChanged": "Status lembar uji sekarang: {{status}}.",
       "notice": {
-        "PLANNED": "Run belum dimulai. Tambahkan test case dan tugaskan penguji, lalu mulai run.",
-        "COMPLETED": "Run sudah selesai. Buka lagi bila perlu uji ulang, atau kunci bila hasil sudah disetujui.",
-        "LOCKED": "Run dikunci dan bersifat final."
+        "PLANNED": "Lembar uji belum dimulai. Tambahkan skenario uji dan tugaskan penguji, lalu mulai lembar uji.",
+        "COMPLETED": "Lembar uji sudah selesai. Buka lagi bila perlu uji ulang, atau kunci bila hasil sudah disetujui.",
+        "LOCKED": "Lembar uji dikunci dan bersifat final."
       },
-      "addCases": "Tambah test case",
-      "addHeading": "Tambah test case ke run",
-      "addHint": "Hanya test case berstatus Siap Uji yang bisa dimasukkan. Definisinya dibekukan sebagai snapshot.",
+      "addCases": "Tambah skenario uji",
+      "addHeading": "Tambah skenario uji ke lembar uji",
+      "addHint": "Hanya skenario uji berstatus Siap diuji yang bisa dimasukkan. Definisinya dibekukan sebagai salinan.",
       "addSearch": "Cari kode atau judul",
       "addAssignee": "Tugaskan ke",
       "addSubmit": "Tambahkan ({{count}})",
-      "addEmpty": "Tidak ada test case Siap Uji yang cocok.",
-      "inRun": "Sudah di run",
-      "added": "{{added}} test case ditambahkan.",
-      "addedSkipped": "{{added}} ditambahkan, {{skipped}} dilewati (sudah ada atau belum Siap Uji).",
-      "selectAll": "Pilih semua test case",
+      "addEmpty": "Tidak ada skenario uji Siap diuji yang cocok.",
+      "inRun": "Sudah di lembar uji",
+      "added": "{{added}} skenario uji ditambahkan.",
+      "addedSkipped": "{{added}} ditambahkan, {{skipped}} dilewati (sudah ada atau belum Siap diuji).",
+      "selectAll": "Pilih semua skenario uji",
       "selectRow": "Pilih {{code}}",
       "selected": "{{count}} dipilih",
       "assignApply": "Terapkan",
-      "assigned": "{{count}} test case ditugaskan ke {{name}}.",
-      "unassignedDone": "Penugasan {{count}} test case dilepas.",
-      "removeSelected": "Keluarkan dari run",
-      "removeTitle": "Keluarkan {{count}} test case dari run?",
-      "removeBody": "Test case kembali bisa dimasukkan nanti. Riwayat test case tidak terhapus.",
-      "removeBlocked": "Test case yang sudah punya hasil uji tidak bisa dikeluarkan.",
-      "removed": "{{count}} test case dikeluarkan dari run.",
+      "assigned": "{{count}} skenario uji ditugaskan ke {{name}}.",
+      "unassignedDone": "Penugasan {{count}} skenario uji dilepas.",
+      "removeSelected": "Keluarkan dari lembar uji",
+      "removeTitle": "Keluarkan {{count}} skenario uji dari lembar uji?",
+      "removeBody": "Skenario uji kembali bisa dimasukkan nanti. Riwayat skenario uji tidak terhapus.",
+      "removeBlocked": "Skenario uji yang sudah punya hasil uji tidak bisa dikeluarkan.",
+      "removed": "{{count}} skenario uji dikeluarkan dari lembar uji.",
       "assigneeFilter": "Penugasan",
       "myTasks": "Tugas saya",
       "continueTesting": "Lanjutkan pengujian"
     },
     "bugs": {
-      "title": "Daftar Bug",
-      "subtitle": "Defect dari pelaksanaan UAT maupun laporan pengguna.",
-      "searchPlaceholder": "Cari kode atau judul bug…",
-      "empty": "Belum ada bug di proyek ini.",
-      "emptyFiltered": "Tidak ada bug yang cocok dengan filter.",
-      "newBug": "Laporkan bug",
+      "title": "Masalah",
+      "subtitle": "Semua masalah yang ditemukan saat pengujian maupun yang dilaporkan pengguna, beserta status perbaikannya.",
+      "searchPlaceholder": "Cari kode atau judul masalah…",
+      "empty": "Belum ada masalah di proyek ini.",
+      "emptyFiltered": "Tidak ada masalah yang cocok dengan filter.",
+      "newBug": "Laporkan masalah",
       "assigneeFilter": "Penugasan",
       "mine": "Ditugaskan ke saya",
       "unassigned": "Belum ditugaskan",
-      "noCycle": "Tanpa siklus"
+      "noCycle": "Tanpa fase"
     },
     "bugDetail": {
       "details": "Detail",
-      "linkedExecutions": "Eksekusi terkait",
-      "noLinked": "Bug mandiri - tidak terkait eksekusi test case.",
+      "linkedExecutions": "Percobaan terkait",
+      "noLinked": "Masalah mandiri - tidak terkait percobaan skenario uji.",
       "history": "Riwayat status",
       "created": "Dibuat dengan status {{to}}",
       "comments": "Komentar",
@@ -503,26 +531,26 @@
         "READY_FOR_RETEST": "Siap diuji ulang",
         "VERIFIED": "Verifikasi lulus",
         "REOPENED": "Buka kembali",
-        "CLOSED": "Tutup bug",
+        "CLOSED": "Tutup masalah",
         "WONT_FIX": "Tidak akan diperbaiki"
       },
       "statusTitle": "Ubah status {{code}} menjadi \"{{status}}\"?",
       "statusNote": "Perubahan dicatat di riwayat status beserta nama Anda.",
       "statusHint": {
         "VERIFIED": "Pastikan uji ulang sudah lulus. Hasil uji lama tidak berubah.",
-        "REOPENED": "Jelaskan mengapa bug dibuka kembali, mis. hasil uji ulang masih gagal.",
-        "WONT_FIX": "Jelaskan alasan bug tidak akan diperbaiki.",
-        "CLOSED": "Bug yang ditutup masih bisa dibuka kembali bila terjadi lagi."
+        "REOPENED": "Jelaskan mengapa masalah dibuka kembali, mis. hasil uji ulang masih gagal.",
+        "WONT_FIX": "Jelaskan alasan masalah tidak akan diperbaiki.",
+        "CLOSED": "Masalah yang ditutup masih bisa dibuka kembali bila terjadi lagi."
       },
       "statusChanged": "Status {{code}} sekarang: {{status}}.",
-      "workflowHint": "Alur: Terbuka → Sedang Diperbaiki → Diperbaiki → Siap Diuji Ulang → Terverifikasi → Ditutup.",
+      "workflowHint": "Alur: Terbuka → Sedang diperbaiki → Diperbaiki → Siap diuji ulang → Sudah dicek beres → Ditutup.",
       "commentLabel": "Tulis komentar",
       "commentPlaceholder": "Pembaruan, pertanyaan, atau hasil pengecekan…",
       "commentSubmit": "Kirim komentar",
       "commentAdded": "Komentar terkirim.",
       "unlink": "Lepas tautan {{case}} percobaan #{{n}}",
       "unlinkTitle": "Lepas tautan ke {{case}} percobaan #{{n}}?",
-      "unlinkBody": "Hasil uji tidak terhapus; hanya tautannya ke bug ini yang dilepas.",
+      "unlinkBody": "Hasil uji tidak terhapus; hanya tautannya ke masalah ini yang dilepas.",
       "unlinked": "Tautan dilepas.",
       "files": "Lampiran",
       "legacyReporter": "{{name}} (dari file impor)",
@@ -532,7 +560,7 @@
     "comingSoon": {
       "title": "Segera hadir",
       "body": "Fitur {{feature}} dibangun pada Milestone {{milestone}}. Lihat roadmap di README.",
-      "back": "Kembali ke dasbor"
+      "back": "Kembali ke beranda proyek"
     },
     "notFound": {
       "title": "Halaman tidak ditemukan",
@@ -542,17 +570,17 @@
       "home": "Ke daftar proyek"
     },
     "caseForm": {
-      "newTitle": "Buat test case",
+      "newTitle": "Buat skenario uji",
       "editTitle": "Ubah {{code}}",
       "codeHint": "Kosongkan agar dibuat otomatis, mis. UAT-AUTH-001.",
-      "statusHint": "Draf belum dipakai di run; Siap boleh dimasukkan ke run.",
+      "statusHint": "Draf belum dipakai di lembar uji; Siap boleh dimasukkan ke lembar uji.",
       "stepsHint": "Satu langkah per baris, diawali nomor (1., 2., ...). Teks disimpan apa adanya.",
       "changeReason": "Alasan perubahan",
       "changeReasonHint": "Tercatat di riwayat revisi.",
-      "versionNote": "Menyimpan membuat versi {{next}}. Run yang sudah berjalan tetap memakai versi lamanya.",
-      "noModule": "Tanpa modul",
-      "noSuite": "Tanpa suite",
-      "created": "Test case {{code}} dibuat.",
+      "versionNote": "Menyimpan membuat versi {{next}}. Lembar uji yang sudah berjalan tetap memakai versi lamanya.",
+      "noModule": "Tanpa fitur",
+      "noSuite": "Tanpa kelompok skenario",
+      "created": "Skenario uji {{code}} dibuat.",
       "saved": "Perubahan disimpan (versi {{version}})."
     },
     "members": {
@@ -580,22 +608,22 @@
       "adminsNote": "Admin dan Super Admin bisa mengelola semua proyek, jadi tidak perlu ditambahkan di sini."
     },
     "projectSettings": {
-      "modules": "Modul",
-      "suites": "Suite",
-      "addModule": "Tambah modul",
-      "addSuite": "Tambah suite",
+      "modules": "Fitur",
+      "suites": "Kelompok skenario",
+      "addModule": "Tambah fitur",
+      "addSuite": "Tambah kelompok skenario",
       "moduleCodeHint": "Huruf besar tanpa spasi, mis. AUTH.",
-      "caseCount_one": "{{count}} test case",
-      "caseCount_other": "{{count}} test case",
-      "moduleCreated": "Modul {{code}} ditambahkan.",
-      "suiteCreated": "Suite {{name}} ditambahkan.",
-      "noModules": "Belum ada modul.",
-      "noSuites": "Belum ada suite.",
-      "readOnly": "Hanya ADMIN dan QA Lead yang dapat menambah modul dan suite.",
+      "caseCount_one": "{{count}} skenario uji",
+      "caseCount_other": "{{count}} skenario uji",
+      "moduleCreated": "Fitur {{code}} ditambahkan.",
+      "suiteCreated": "Kelompok skenario {{name}} ditambahkan.",
+      "noModules": "Belum ada fitur.",
+      "noSuites": "Belum ada kelompok skenario.",
+      "readOnly": "Hanya ADMIN dan Admin yang dapat menambah fitur dan kelompok skenario.",
       "editModule": "Ubah",
-      "editModuleTitle": "Ubah modul {{code}}",
-      "moduleCodeEditHint": "Test case yang sudah ada tetap memakai kodenya sekarang (mis. UAT-LPL-001); test case baru memakai kode modul yang baru. Saat impor, isi kode modul yang baru.",
-      "moduleSaved": "Modul {{code}} disimpan."
+      "editModuleTitle": "Ubah fitur {{code}}",
+      "moduleCodeEditHint": "Skenario uji yang sudah ada tetap memakai kodenya sekarang (mis. UAT-LPL-001); skenario uji baru memakai kode fitur yang baru. Saat impor, isi kode fitur yang baru.",
+      "moduleSaved": "Fitur {{code}} disimpan."
     },
     "profile": {
       "title": "Profil saya",
@@ -650,36 +678,36 @@
       "roleChange": "Ubah peran"
     },
     "cycles": {
-      "title": "Siklus Uji",
-      "subtitle": "Siklus mengelompokkan beberapa run dalam satu periode UAT.",
-      "empty": "Belum ada siklus uji di proyek ini.",
-      "newHeading": "Siklus baru",
+      "title": "Fase uji",
+      "subtitle": "Fase adalah satu putaran pengujian dalam periode tertentu (mis. UAT Tahap 1). Lembar uji dan meja workshop selalu berada di dalam sebuah fase.",
+      "empty": "Belum ada fase uji di proyek ini.",
+      "newHeading": "Fase baru",
       "codeHint": "Huruf besar, angka, dan tanda hubung. Contoh: SIKLUS-2-2026",
-      "created": "Siklus {{code}} dibuat.",
-      "updated": "Siklus {{code}} diperbarui.",
-      "statusLabel": "Status siklus {{code}}",
-      "runs": "{{count}} run",
+      "created": "Fase {{code}} dibuat.",
+      "updated": "Fase {{code}} diperbarui.",
+      "statusLabel": "Status fase {{code}}",
+      "runs": "{{count}} lembar uji",
       "dateOrder": "Tanggal selesai tidak boleh sebelum tanggal mulai.",
       "edit": "Ubah",
-      "editTitle": "Ubah siklus {{code}}",
-      "editCodeHint": "Huruf, angka, titik, strip, atau garis bawah (mis. FASE-1). Run dan bug yang sudah ada tetap terhubung ke siklus ini."
+      "editTitle": "Ubah fase {{code}}",
+      "editCodeHint": "Huruf, angka, titik, strip, atau garis bawah (mis. FASE-1). Lembar uji dan masalah yang sudah ada tetap terhubung ke fase ini."
     },
     "runForm": {
-      "newTitle": "Buat run",
-      "editTitle": "Ubah run {{code}}",
+      "newTitle": "Buat lembar uji",
+      "editTitle": "Ubah lembar uji {{code}}",
       "codeHint": "Kosongkan agar dibuat otomatis (RUN-YYYYMMDD-N).",
-      "noCycle": "Tanpa siklus",
+      "noCycle": "Tanpa fase",
       "urlHint": "Alamat situs yang diuji, diawali https://",
       "invalidUrl": "URL harus diawali http:// atau https://",
-      "created": "Run {{code}} dibuat. Tambahkan test case lalu mulai run.",
-      "saved": "Perubahan run disimpan."
+      "created": "Lembar uji {{code}} dibuat. Tambahkan skenario uji lalu mulai lembar uji.",
+      "saved": "Perubahan lembar uji disimpan."
     },
     "execution": {
       "scenarioTab": "Skenario",
       "resultTab": "Catat hasil",
       "historyTab": "Riwayat",
-      "snapshotVersion": "Snapshot versi {{version}}",
-      "newerVersion": "Test case sudah diperbarui ke versi {{current}} setelah masuk run. Halaman ini tetap memakai snapshot versi {{version}} agar hasil konsisten.",
+      "snapshotVersion": "Salinan versi {{version}}",
+      "newerVersion": "Skenario uji sudah diperbarui ke versi {{current}} setelah masuk lembar uji. Halaman ini tetap memakai salinan versi {{version}} agar hasil konsisten.",
       "noSteps": "Langkah tidak dipecah per nomor. Ikuti teks langkah di atas.",
       "stepLabel": "Langkah {{n}}",
       "stepResult": "Hasil langkah {{n}}",
@@ -698,56 +726,56 @@
       "saveNext": "Simpan & lanjut",
       "saved": "Percobaan #{{n}} tersimpan: {{status}}.",
       "chooseResult": "Pilih hasil uji terlebih dahulu.",
-      "prev": "Test case sebelumnya",
-      "next": "Test case berikutnya",
+      "prev": "Skenario uji sebelumnya",
+      "next": "Skenario uji berikutnya",
       "locked": {
-        "PLANNED": "Run belum dimulai. Hasil uji bisa dicatat setelah QA Lead memulai run.",
-        "COMPLETED": "Run sudah selesai. Minta QA Lead membuka lagi run untuk uji ulang.",
-        "LOCKED": "Run dikunci. Hasil uji tidak dapat diubah."
+        "PLANNED": "Lembar uji belum dimulai. Hasil uji bisa dicatat setelah Admin memulai lembar uji.",
+        "COMPLETED": "Lembar uji sudah selesai. Minta Admin membuka lagi lembar uji untuk uji ulang.",
+        "LOCKED": "Lembar uji dikunci. Hasil uji tidak dapat diubah."
       },
-      "notAssigned": "Test case ini ditugaskan ke {{name}}. Anda hanya dapat mencatat hasil untuk test case yang ditugaskan kepada Anda.",
-      "notAssignedNobody": "Test case ini belum ditugaskan. Minta QA Lead menugaskannya kepada Anda.",
+      "notAssigned": "Skenario uji ini ditugaskan ke {{name}}. Anda hanya dapat mencatat hasil untuk skenario uji yang ditugaskan kepada Anda.",
+      "notAssignedNobody": "Skenario uji ini belum ditugaskan. Minta Admin menugaskannya kepada Anda.",
       "readOnly": "Peran Anda hanya dapat melihat hasil uji.",
       "historyHeading": "Riwayat percobaan",
       "historyEmpty": "Belum ada percobaan.",
       "stepResults": "Hasil per langkah",
-      "bugsHeading": "Bug terkait",
-      "bugsEmpty": "Belum ada bug terkait.",
+      "bugsHeading": "Masalah terkait",
+      "bugsEmpty": "Belum ada masalah terkait.",
       "openEnvironment": "Buka lingkungan uji",
       "conflict": "Hasil tidak disimpan: {{message}}",
       "stepsPassed": "{{passed}}/{{total}} langkah lulus",
-      "reportBug": "Laporkan bug dari percobaan #{{n}}",
-      "linkBug": "Tautkan bug yang ada",
-      "linkSearch": "Cari bug terbuka",
-      "linkEmpty": "Tidak ada bug terbuka yang cocok.",
+      "reportBug": "Laporkan masalah dari percobaan #{{n}}",
+      "linkBug": "Tautkan masalah yang ada",
+      "linkSearch": "Cari masalah terbuka",
+      "linkEmpty": "Tidak ada masalah terbuka yang cocok.",
       "linkAction": "Tautkan {{code}}",
-      "linked": "Bug {{code}} ditautkan ke percobaan #{{n}}.",
-      "bugsHint": "Hasil gagal tidak membuat bug otomatis. Laporkan bug baru atau tautkan bug yang sudah ada.",
-      "bugsNeedAttempt": "Catat hasil uji dulu untuk melaporkan atau menautkan bug.",
-      "evidenceHeading": "Bukti (screenshot, dokumen, log)"
+      "linked": "Masalah {{code}} ditautkan ke percobaan #{{n}}.",
+      "bugsHint": "Hasil gagal tidak membuat masalah otomatis. Laporkan masalah baru atau tautkan masalah yang sudah ada.",
+      "bugsNeedAttempt": "Catat hasil uji dulu untuk melaporkan atau menautkan masalah.",
+      "evidenceHeading": "Bukti (tangkapan layar, dokumen, log)"
     },
     "bugForm": {
-      "newTitle": "Laporkan bug",
-      "editTitle": "Ubah bug {{code}}",
-      "fromExecution": "Bug ini akan ditautkan ke {{run}} · {{case}} · percobaan #{{n}}. Isian di bawah diambil dari hasil uji tersebut; periksa dan lengkapi.",
+      "newTitle": "Laporkan masalah",
+      "editTitle": "Ubah masalah {{code}}",
+      "fromExecution": "Masalah ini akan ditautkan ke {{run}} · {{case}} · percobaan #{{n}}. Isian di bawah diambil dari hasil uji tersebut; periksa dan lengkapi.",
       "titleHint": "Ringkas dan spesifik, mis. \"Tombol Simpan tidak merespons di form lowongan\".",
-      "describe": "Uraian bug",
+      "describe": "Uraian masalah",
       "classify": "Klasifikasi",
       "environment": "Lingkungan",
-      "noModule": "Tanpa modul",
+      "noModule": "Tanpa fitur",
       "unassigned": "Belum ditugaskan",
-      "assigneeHint": "Hanya QA Lead atau Admin yang dapat menugaskan bug.",
+      "assigneeHint": "Hanya Admin atau Admin yang dapat menugaskan masalah.",
       "lockedField": "Sebagian kolom terkunci karena peran Anda tidak dapat mengubahnya.",
-      "created": "Bug {{code}} dibuat.",
-      "saved": "Perubahan bug disimpan.",
+      "created": "Masalah {{code}} dibuat.",
+      "saved": "Perubahan masalah disimpan.",
       "attemptFiles": "Sertakan bukti dari percobaan #{{n}}",
       "newFiles": "Bukti tambahan",
-      "noCycle": "Tanpa siklus",
-      "cycleFromRun": "Kosongkan untuk mengikuti siklus run tempat bug ini ditemukan."
+      "noCycle": "Tanpa fase",
+      "cycleFromRun": "Kosongkan untuk mengikuti fase lembar uji tempat masalah ini ditemukan."
     },
     "evidence": {
-      "title": "Pusat Bukti",
-      "subtitle": "Semua file bukti proyek: screenshot, dokumen, dan log. Hanya anggota proyek yang bisa membukanya.",
+      "title": "Foto & bukti",
+      "subtitle": "Semua tangkapan layar, dokumen, dan catatan sebagai bukti pengujian. Hanya anggota proyek yang bisa membukanya.",
       "empty": "Belum ada file bukti di proyek ini.",
       "emptyFiltered": "Tidak ada file yang cocok dengan filter.",
       "searchPlaceholder": "Cari nama file…",
@@ -758,17 +786,17 @@
       "deleteBody": "File yang belum dipakai akan disembunyikan dan tidak bisa dibuka lagi.",
       "deleted": "File dihapus.",
       "upload": "Unggah file",
-      "uploadHint": "File yang diunggah di sini bisa dilampirkan nanti ke hasil uji, bug, atau test case.",
+      "uploadHint": "File yang diunggah di sini bisa dilampirkan nanti ke hasil uji, masalah, atau skenario uji.",
       "uploader": "Diunggah oleh {{name}}"
     },
     "imports": {
-      "title": "Impor Data",
-      "subtitle": "Test case atau bug dari Excel UAT/Tracker, template CSV, atau JSON hasil AI. Semua baris diperiksa dulu sebelum diterapkan.",
-      "leadsOnly": "Impor hanya bisa dilakukan oleh QA Lead atau Admin proyek.",
+      "title": "Impor dari Excel",
+      "subtitle": "Masukkan banyak skenario uji atau masalah sekaligus dari file Excel. Setiap baris diperiksa dulu dan Anda yang memutuskan sebelum datanya disimpan.",
+      "leadsOnly": "Impor hanya bisa dilakukan oleh Admin atau Admin.",
       "newImport": "Impor baru",
       "drop": "Tarik file XLSX, CSV, atau JSON ke sini",
       "choose": "Pilih file",
-      "rules": "Maks 40 MB · Excel (banyak sheet, screenshot tertanam) · template CSV · JSON AI v1.0",
+      "rules": "Maks 40 MB · Excel (banyak sheet, tangkapan layar tertanam) · template CSV · JSON AI v1.0",
       "templateCsv": "Template CSV",
       "templateJson": "Contoh JSON AI",
       "uploading": "Mengunggah dan membaca file…",
@@ -793,23 +821,23 @@
       },
       "targetQuestion": "Apa yang ingin diimpor?",
       "target": {
-        "TEST_CASES": "Test case",
-        "DEFECTS": "Bug"
+        "TEST_CASES": "Skenario uji",
+        "DEFECTS": "Masalah"
       },
       "targetHint": {
-        "TEST_CASES": "Pustaka test case, bisa sekaligus hasil UAT lama (dengan screenshot).",
-        "DEFECTS": "Bug dari tracker: baris Gagal Diuji dan aduan pengguna, dengan severity dan screenshot."
+        "TEST_CASES": "Pustaka skenario uji, bisa sekaligus hasil UAT lama (dengan tangkapan layar).",
+        "DEFECTS": "Masalah dari tracker: baris Tidak sesuai dan aduan pengguna, dengan tingkat dampak dan tangkapan layar."
       }
     },
     "importJob": {
       "sheets": "Sheet dan kolom",
-      "sheetsHint": "Pilih sheet yang berisi test case resmi. Sheet versi lama atau salinan sebaiknya tidak dipilih.",
+      "sheetsHint": "Pilih sheet yang berisi skenario uji resmi. Sheet versi lama atau salinan sebaiknya tidak dipilih.",
       "include": "Impor sheet {{name}}",
       "hidden": "Tersembunyi",
       "headerRow": "Baris header",
-      "module": "Kode modul",
-      "moduleHint": "Dipakai bila baris tidak punya kolom modul.",
-      "suite": "Nama suite",
+      "module": "Kode fitur",
+      "moduleHint": "Dipakai bila baris tidak punya kolom fitur.",
+      "suite": "Nama kelompok skenario",
       "reference": "Dokumen acuan: {{doc}}",
       "referenceVersion": "versi {{version}}",
       "images": "{{count}} gambar",
@@ -818,21 +846,21 @@
       "mappingHint": "Kolom yang tidak dipakai tetap disimpan sebagai data asal.",
       "column": "Kolom \"{{name}}\"",
       "ignore": "Tidak diimpor",
-      "groupCase": "Test case",
+      "groupCase": "Skenario uji",
       "groupResult": "Hasil UAT lama",
       "sample": "Contoh isi: {{value}}",
       "noHeader": "Header tidak terdeteksi otomatis; isi nomor baris header.",
       "options": "Opsi impor",
-      "mode": "Jika kode test case sudah ada",
+      "mode": "Jika kode skenario uji sudah ada",
       "modeHint": {
         "CREATE_ONLY": "Lewati yang sudah ada. Aman untuk impor ulang file yang sama.",
         "UPDATE": "Kolom yang terisi di file menimpa isi lama; dibuat versi baru.",
         "NEW_REVISION": "Definisi diganti seluruhnya dari file; dibuat versi baru."
       },
-      "caseStatus": "Status test case baru",
+      "caseStatus": "Status skenario uji baru",
       "results": "Pindahkan juga hasil UAT lama",
-      "resultsHint": "Status, tanggal, nama penguji (sebagai teks, tanpa membuat akun) dan screenshot tertanam masuk ke run baru. Test case menjadi Siap Uji.",
-      "runName": "Nama run",
+      "resultsHint": "Status, tanggal, nama penguji (sebagai teks, tanpa membuat akun) dan tangkapan layar tertanam masuk ke lembar uji baru. Skenario uji menjadi Siap diuji.",
+      "runName": "Nama lembar uji",
       "runEnvironment": "Lingkungan",
       "runBuild": "Build/versi",
       "check": "Periksa",
@@ -845,15 +873,15 @@
         "duplicate": "Duplikat",
         "invalid": "Tidak valid"
       },
-      "newModules": "Modul baru: {{list}}",
-      "newSuites": "Suite baru: {{list}}",
+      "newModules": "Fitur baru: {{list}}",
+      "newSuites": "Kelompok skenario baru: {{list}}",
       "statusMap": "Pemetaan status hasil",
-      "statusMapHint": "Label seperti Closed/Open dari Status Retest tidak diterjemahkan otomatis; pilih sendiri atau biarkan tanpa hasil.",
+      "statusMapHint": "Label seperti Closed/Open dari Status Uji ulang tidak diterjemahkan otomatis; pilih sendiri atau biarkan tanpa hasil.",
       "statusLabel": "Status \"{{label}}\" ({{count}} baris)",
       "statusIgnore": "Tanpa hasil",
       "imagesAuto": "{{count}} gambar tertanam otomatis terhubung ke barisnya.",
       "imagesReview": "Gambar perlu ditinjau ({{count}})",
-      "imagesReviewHint": "Gambar ini tidak berada di baris test case (mis. logo di area judul). Pasangkan ke nomor baris atau biarkan tidak dipakai.",
+      "imagesReviewHint": "Gambar ini tidak berada di baris skenario uji (mis. logo di area judul). Pasangkan ke nomor baris atau biarkan tidak dipakai.",
       "imageAt": "Gambar di {{sheet}}!{{anchor}}",
       "imageRow": "Nomor baris untuk gambar {{anchor}}",
       "applyChanges": "Terapkan perubahan pemetaan lalu periksa ulang.",
@@ -872,8 +900,8 @@
       "downloadErrors": "Unduh daftar masalah (CSV)",
       "apply": "Terapkan impor",
       "applyTitle": "Terapkan impor {{name}}?",
-      "applyBody": "{{create}} test case dibuat dan {{update}} diperbarui. Baris tidak valid dan duplikat tidak ikut. Semua perubahan diterapkan sekaligus.",
-      "applying": "Menerapkan impor… screenshot sedang diperiksa dan dikompres.",
+      "applyBody": "{{create}} skenario uji dibuat dan {{update}} diperbarui. Baris tidak valid dan duplikat tidak ikut. Semua perubahan diterapkan sekaligus.",
+      "applying": "Menerapkan impor… tangkapan layar sedang diperiksa dan dikompres.",
       "cancel": "Batalkan impor",
       "cancelTitle": "Batalkan impor {{name}}?",
       "cancelBody": "File yang diunggah dihapus. Tidak ada data yang berubah.",
@@ -884,26 +912,26 @@
         "FAILED": "Impor gagal; tidak ada data yang berubah."
       },
       "summary": "{{created}} dibuat · {{updated}} diperbarui · {{unchanged}} tidak berubah · {{skipped}} dilewati",
-      "summaryRun": "Run {{code}}: {{executions}} hasil uji dan {{images}} screenshot dipindahkan",
+      "summaryRun": "Lembar uji {{code}}: {{executions}} hasil uji dan {{images}} tangkapan layar dipindahkan",
       "imagesNotUsed": "{{count}} gambar tidak dipakai",
-      "openRun": "Buka run",
-      "openCases": "Lihat test case",
+      "openRun": "Buka lembar uji",
+      "openCases": "Lihat skenario uji",
       "failure": {
         "COMMIT_FAILED": "Terjadi kesalahan saat menerapkan; semua perubahan dibatalkan.",
         "INTERRUPTED": "Server berhenti saat menerapkan; semua perubahan dibatalkan."
       },
       "noDataRows": "Tidak ada baris data di bawah header. Pastikan nomor baris header dan sheet yang dipilih sudah benar.",
-      "applyRun": "Hasil uji lama masuk ke run baru \"{{name}}\" berstatus Selesai.",
+      "applyRun": "Hasil uji lama masuk ke lembar uji baru \"{{name}}\" berstatus Selesai.",
       "summaryInvalid": "{{count}} tidak valid",
-      "codeConflict": "Bila kode sudah dipakai test case lain",
-      "codeConflictHint": "Mis. sheet tersembunyi \"... 3\" memakai UAT-LPL-001 untuk isi yang berbeda. Kode baru = nomor berikutnya di modul itu; kode asal dicatat di riwayat.",
+      "codeConflict": "Bila kode sudah dipakai skenario uji lain",
+      "codeConflictHint": "Mis. sheet tersembunyi \"... 3\" memakai UAT-LPL-001 untuk isi yang berbeda. Kode baru = nomor berikutnya di fitur itu; kode asal dicatat di riwayat.",
       "conflictDecision": {
         "SKIP": "Lewati baris",
         "NEW_CODE": "Buat dengan kode baru"
       },
       "conflicts_one": "Kode bentrok ({{count}})",
       "conflicts_other": "Kode bentrok ({{count}})",
-      "conflictsHint": "Kode di file sudah dipakai test case dengan isi berbeda. Pilih per baris, lalu tekan \"Periksa\" lagi.",
+      "conflictsHint": "Kode di file sudah dipakai skenario uji dengan isi berbeda. Pilih per baris, lalu tekan \"Periksa\" lagi.",
       "conflictAll": {
         "SKIP": "Lewati semua",
         "NEW_CODE": "Semua pakai kode baru"
@@ -916,53 +944,53 @@
     },
     "reports": {
       "title": "Laporan",
-      "subtitle": "Ringkasan hasil UAT dan bug, ekspor data, dan log aktivitas proyek.",
+      "subtitle": "Ringkasan hasil pengujian dan masalah, unduhan data, serta catatan aktivitas proyek.",
       "tabs": {
         "overview": "Ringkasan",
         "activity": "Log aktivitas"
       },
       "filters": {
-        "cycle": "Siklus",
-        "allCycles": "Semua siklus",
-        "module": "Modul",
-        "allModules": "Semua modul",
+        "cycle": "Fase",
+        "allCycles": "Semua fase",
+        "module": "Fitur",
+        "allModules": "Semua fitur",
         "from": "Dari tanggal",
         "to": "Sampai tanggal",
         "rangeInvalid": "Tanggal akhir lebih awal dari tanggal awal; filter tanggal akhir diabaikan."
       },
       "howTitle": "Cara menghitung",
-      "how1": "Satu test case dalam run dihitung sekali, memakai percobaan terakhirnya. Uji ulang tidak dihitung dua kali.",
-      "how2": "Tingkat lulus = Berhasil Diuji dibagi semua test case dalam run. Belum Diuji, Terhambat, dan Dilewati tidak dihitung lulus.",
-      "how3": "Periode memakai hari kalender WIB: run yang masa berjalannya beririsan dengan periode, percobaan yang diuji, dan bug yang dilaporkan pada periode itu.",
+      "how1": "Satu skenario uji dalam lembar uji dihitung sekali, memakai percobaan terakhirnya. Uji ulang tidak dihitung dua kali.",
+      "how2": "Tingkat lulus = Sesuai dibagi semua skenario uji dalam lembar uji. Belum dicoba, Tidak bisa dicoba, dan Dilewati tidak dihitung lulus.",
+      "how3": "Periode memakai hari kalender WIB: lembar uji yang masa berjalannya beririsan dengan periode, percobaan yang diuji, dan masalah yang dilaporkan pada periode itu.",
       "kpi": {
-        "runCases": "Test case dalam run",
-        "executed": "Sudah dieksekusi",
+        "runCases": "Skenario uji dalam lembar uji",
+        "executed": "Sudah dicoba",
         "passRate": "Tingkat lulus",
         "attempts": "Percobaan",
         "retests": "{{count}} uji ulang",
-        "openBugs": "Bug terbuka",
-        "ofBugs": "dari {{count}} bug"
+        "openBugs": "Masalah terbuka",
+        "ofBugs": "dari {{count}} masalah"
       },
       "statusHeading": "Status terbaru",
-      "byModule": "Per modul",
-      "byRun": "Per run",
+      "byModule": "Per fitur",
+      "byRun": "Per lembar uji",
       "byTester": "Per penguji",
       "byTesterNote": "Semua percobaan yang dicatat penguji, termasuk uji ulang.",
-      "defectsHeading": "Bug terbuka per tingkat keparahan",
-      "defectsSummary": "{{open}} terbuka dari {{total}} bug pada filter ini.",
+      "defectsHeading": "Masalah terbuka per tingkat keparahan",
+      "defectsSummary": "{{open}} terbuka dari {{total}} masalah pada filter ini.",
       "col": {
-        "module": "Modul",
-        "runCases": "Test case",
+        "module": "Fitur",
+        "runCases": "Skenario uji",
         "status": "Status",
         "passRate": "Lulus",
-        "run": "Run",
+        "run": "Lembar uji",
         "period": "Periode",
         "tester": "Penguji",
         "attempts": "Percobaan",
         "retests": "Uji ulang",
         "lastTested": "Terakhir diuji"
       },
-      "noModule": "Tanpa modul",
+      "noModule": "Tanpa fitur",
       "legacyTester": "dari impor",
       "empty": "Belum ada data untuk filter ini.",
       "export": {
@@ -971,20 +999,20 @@
         "dataset": "Data",
         "datasets": {
           "results": {
-            "title": "Hasil terbaru per test case",
-            "hint": "Satu baris per test case dalam run: status terakhir, penguji, dan bug terkait."
+            "title": "Hasil terbaru per skenario uji",
+            "hint": "Satu baris per skenario uji dalam lembar uji: status terakhir, penguji, dan masalah terkait."
           },
           "attempts": {
             "title": "Semua percobaan",
             "hint": "Setiap percobaan termasuk uji ulang, dengan hasil, penguji, dan waktu uji."
           },
           "defects": {
-            "title": "Daftar bug",
-            "hint": "Bug yang dilaporkan pada filter ini, dengan test case dan run terkait."
+            "title": "Daftar masalah",
+            "hint": "Masalah yang dilaporkan pada filter ini, dengan skenario uji dan lembar uji terkait."
           },
           "cases": {
-            "title": "Pustaka test case",
-            "hint": "Format sama dengan template impor. Hanya filter modul yang berlaku."
+            "title": "Pustaka skenario uji",
+            "hint": "Format sama dengan template impor. Hanya filter fitur yang berlaku."
           }
         },
         "format": "Format",
@@ -1000,11 +1028,11 @@
         "download": "Unduh",
         "downloaded": "Berkas {{name}} diunduh.",
         "tooLarge": "Data terlalu banyak (lebih dari 50.000 baris). Persempit filternya.",
-        "leadsOnly": "Ekspor data hanya bisa dilakukan oleh QA Lead atau Admin proyek."
+        "leadsOnly": "Ekspor data hanya bisa dilakukan oleh Admin atau Admin."
       },
       "activity": {
         "heading": "Log aktivitas",
-        "description": "Perubahan di proyek ini tercatat otomatis dan tidak bisa diubah. Hanya terlihat oleh QA Lead dan Admin.",
+        "description": "Perubahan di proyek ini tercatat otomatis dan tidak bisa diubah. Hanya terlihat oleh Admin dan Admin.",
         "entity": "Jenis data",
         "action": "Aksi",
         "actor": "Pengguna",
@@ -1016,10 +1044,10 @@
     },
     "adminProjects": {
       "title": "Proyek",
-      "subtitle": "Semua proyek di website, termasuk yang diarsipkan. Pembuat proyek otomatis menjadi Admin proyek itu.",
+      "subtitle": "Semua proyek di website, termasuk yang diarsipkan. Pembuat proyek otomatis menjadi Admin itu.",
       "create": "Buat proyek",
       "createTitle": "Buat proyek baru",
-      "createHint": "Anda otomatis menjadi Admin proyek ini dan bisa menambahkan anggota tim setelahnya.",
+      "createHint": "Anda otomatis menjadi Admin ini dan bisa menambahkan anggota tim setelahnya.",
       "editTitle": "Ubah proyek {{code}}",
       "code": "Kode proyek",
       "codeHint": "Huruf besar, angka, titik, garis bawah atau tanda hubung; 2-40 karakter, mis. KARIRHUB. Dipakai di alamat link proyek; bila nanti diubah, link lama tidak bisa dibuka lagi.",
@@ -1041,7 +1069,7 @@
       "createdBy": "Dibuat {{date}} oleh {{name}}",
       "createdAt": "Dibuat {{date}}",
       "empty": "Belum ada proyek. Buat proyek pertama untuk mulai.",
-      "codeEditHint": "Mengubah kode juga mengubah alamat link proyek; link lama tidak bisa dibuka lagi. Kode bug yang sudah ada tidak berubah."
+      "codeEditHint": "Mengubah kode juga mengubah alamat link proyek; link lama tidak bisa dibuka lagi. Kode masalah yang sudah ada tidak berubah."
     },
     "adminSettings": {
       "title": "Pengaturan situs",
@@ -1062,7 +1090,7 @@
       "idleMinutes": "Keluar otomatis bila diam (menit)",
       "idleMinutesHint": "5-1440 menit tanpa aktivitas.",
       "unusedFileDays": "Hapus unggahan yang tidak dipakai setelah (hari)",
-      "unusedFileDaysHint": "Bukti yang dipakai di hasil uji, bug atau test case tidak pernah dihapus otomatis.",
+      "unusedFileDaysHint": "Bukti yang dipakai di hasil uji, masalah atau skenario uji tidak pernah dihapus otomatis.",
       "importDays": "Hapus file kerja impor setelah (hari)",
       "importDaysHint": "Riwayat impor dan hasil per baris tetap tersimpan.",
       "save": "Simpan pengaturan",
@@ -1152,9 +1180,9 @@
     "alreadyUsed": "Sudah dipakai"
   },
   "evidence": {
-    "dropTitle": "Tarik file ke sini atau tempel screenshot (Ctrl+V)",
+    "dropTitle": "Tarik file ke sini atau tempel tangkapan layar (Ctrl+V)",
     "choose": "Pilih file",
-    "rules": "Screenshot PNG/JPG/WebP maks 15 MB · Dokumen PDF/DOCX/XLSX maks 25 MB · Log TXT/CSV/JSON/HAR maks 20 MB",
+    "rules": "Tangkapan layar PNG/JPG/WebP maks 15 MB · Dokumen PDF/DOCX/XLSX maks 25 MB · Log TXT/CSV/JSON/HAR maks 20 MB",
     "status": {
       "uploading": "Mengunggah {{percent}}%",
       "processing": "Memeriksa dan mengompres…",
@@ -1218,14 +1246,14 @@
     "detach": "Lepas {{name}}",
     "detached": "File dilepas.",
     "empty": "Belum ada lampiran.",
-    "failedWarning": "Hasil gagal sebaiknya disertai screenshot sebagai bukti.",
+    "failedWarning": "Hasil gagal sebaiknya disertai tangkapan layar sebagai bukti.",
     "addMore": "Tambah bukti",
     "stepBadge": "Langkah {{n}}"
   },
   "importField": {
-    "case_code": "Kode test case",
-    "module_code": "Kode modul",
-    "suite_name": "Suite",
+    "case_code": "Kode skenario uji",
+    "module_code": "Kode fitur",
+    "suite_name": "Kelompok skenario",
     "sequence_number": "No. urut",
     "category": "Kategori",
     "title": "Judul",
@@ -1248,15 +1276,15 @@
   "importIssue": {
     "REQUIRED": "wajib diisi",
     "INVALID_CODE": "kode tidak valid",
-    "UNKNOWN_PRIORITY": "prioritas tidak dikenal, dipakai Must Have",
+    "UNKNOWN_PRIORITY": "prioritas tidak dikenal, dipakai Wajib",
     "TYPE_AS_OTHER": "jenis dipetakan ke Lainnya",
     "UNKNOWN_TYPE": "jenis tidak dikenal, dipakai Lainnya",
     "HIDDEN_ROW": "baris tersembunyi di Excel",
     "UNKNOWN_STATUS": "status tidak dikenal, tidak diimpor sebagai hasil",
     "NOT_RECORDABLE": "status \"sedang diuji\" tidak diimpor sebagai hasil",
     "BAD_DATE": "tanggal tidak terbaca",
-    "ARCHIVED_CASE": "test case sudah diarsipkan",
-    "EXISTING_CASE_KEPT": "test case sudah ada, definisinya tidak diubah",
+    "ARCHIVED_CASE": "skenario uji sudah diarsipkan",
+    "EXISTING_CASE_KEPT": "skenario uji sudah ada, definisinya tidak diubah",
     "CODE_TAKEN": "kode sudah dipakai saat diterapkan"
   },
   "recovery": {
@@ -1426,46 +1454,46 @@
     "apply_other": "Terapkan ke {{count}}",
     "bugFields": {
       "status": "Status",
-      "severity_code": "Severity",
+      "severity_code": "Tingkat dampak",
       "priority_code": "Prioritas",
-      "module_id": "Modul",
-      "cycle_id": "Siklus",
+      "module_id": "Fitur",
+      "cycle_id": "Fase",
       "assigned_to": "Penanggung jawab"
     },
     "caseActions": {
       "ready": "Tandai Siap",
       "draft": "Jadikan Draf",
-      "set_module": "Pindahkan ke modul",
+      "set_module": "Pindahkan ke fitur",
       "set_priority": "Ubah prioritas",
-      "add_to_run": "Tambahkan ke run",
+      "add_to_run": "Tambahkan ke lembar uji",
       "archive": "Arsipkan",
       "merge": "Gabungkan (duplikat)"
     },
-    "noOpenRun": "Belum ada run yang direncanakan atau aktif",
-    "archiveTitle_one": "Arsipkan {{count}} test case?",
-    "archiveTitle_other": "Arsipkan {{count}} test case?",
-    "archiveBody": "Test case yang diarsipkan tidak bisa dipakai di run baru. Hasil uji lama tetap tersimpan, dan test case bisa diaktifkan lagi kapan saja."
+    "noOpenRun": "Belum ada lembar uji yang direncanakan atau aktif",
+    "archiveTitle_one": "Arsipkan {{count}} skenario uji?",
+    "archiveTitle_other": "Arsipkan {{count}} skenario uji?",
+    "archiveBody": "Skenario uji yang diarsipkan tidak bisa dipakai di lembar uji baru. Hasil uji lama tetap tersimpan, dan skenario uji bisa diaktifkan lagi kapan saja."
   },
   "merge": {
-    "title_one": "Gabungkan {{count}} test case",
-    "title_other": "Gabungkan {{count}} test case",
-    "description": "Pilih test case yang dipertahankan. Yang lain diarsipkan dan menunjuk ke test case itu. Hasil uji lama tidak berubah.",
+    "title_one": "Gabungkan {{count}} skenario uji",
+    "title_other": "Gabungkan {{count}} skenario uji",
+    "description": "Pilih skenario uji yang dipertahankan. Yang lain diarsipkan dan menunjuk ke skenario uji itu. Hasil uji lama tidak berubah.",
     "keepWhich": "Mana yang dipertahankan?",
     "kept": "Dipertahankan",
     "archived": "Diarsipkan dan digabung ke yang dipertahankan",
     "submit_one": "Gabungkan {{count}} ke {{code}}",
     "submit_other": "Gabungkan {{count}} ke {{code}}",
     "done": "{{codes}} digabung ke {{code}}.",
-    "mergedInto": "Test case ini sudah digabung ke",
-    "mergedIntoHint": "Gunakan test case itu untuk run baru. Bila digabung karena keliru, aktifkan lagi test case ini.",
+    "mergedInto": "Skenario uji ini sudah digabung ke",
+    "mergedIntoHint": "Gunakan skenario uji itu untuk lembar uji baru. Bila digabung karena keliru, aktifkan lagi skenario uji ini.",
     "mergedFrom_one": "Gabungan dari:",
     "mergedFrom_other": "Gabungan dari:"
   },
   "similar": {
     "open": "Cari yang mirip",
-    "title": "Test case yang mirip",
+    "title": "Skenario uji yang mirip",
     "subtitle": "Kemungkinan duplikat berdasarkan kemiripan judul, hasil yang diharapkan, dan rujukan dalam kurung (mis. [FSD-LPL-001]). Kode tidak dipakai, karena sheet berbeda bisa memakai kode yang sama untuk isi yang lain.",
-    "empty": "Tidak ada pasangan yang mirip. Coba pilih modul lain.",
+    "empty": "Tidak ada pasangan yang mirip. Coba pilih fitur lain.",
     "score": "Mirip {{percent}}%",
     "reasons": {
       "TITLE": "Judul mirip",
@@ -1477,9 +1505,9 @@
     "notDuplicate": "Bukan duplikat"
   },
   "defectImport": {
-    "sheetsHint": "Centang sheet yang berisi bug. Sheet tersembunyi biasanya salinan; biarkan tidak dicentang bila isinya sama.",
-    "moduleHint": "Kode modul bug dari sheet ini. Modul baru dibuat otomatis.",
-    "sourceKind": "Sumber bug",
+    "sheetsHint": "Centang sheet yang berisi masalah. Sheet tersembunyi biasanya salinan; biarkan tidak dicentang bila isinya sama.",
+    "moduleHint": "Kode fitur masalah dari sheet ini. Fitur baru dibuat otomatis.",
+    "sourceKind": "Sumber masalah",
     "mapping_one": "Kolom ({{count}} dipetakan)",
     "mapping_other": "Kolom ({{count}} dipetakan)",
     "columnFor": "Arti kolom {{column}}",
@@ -1500,24 +1528,24 @@
       "evidence": "Bukti / screenshot"
     },
     "settings": "Pengaturan",
-    "cycleHint": "Semua bug yang diimpor masuk ke siklus ini, mis. UAT Fase 1.",
+    "cycleHint": "Semua masalah yang diimpor masuk ke fase ini, mis. UAT Fase 1.",
     "linkResults": "Tautkan ke hasil uji",
-    "linkResultsHint": "Bila ada kolom ID UAT, bug ditautkan ke hasil uji terakhir test case itu di siklus yang dipilih (yang gagal diutamakan).",
+    "linkResultsHint": "Bila ada kolom ID UAT, masalah ditautkan ke hasil uji terakhir skenario uji itu di fase yang dipilih (yang gagal diutamakan).",
     "check": "Periksa",
     "recheck": "Periksa ulang",
     "stale": "Pengaturan berubah. Tekan \"Periksa ulang\" sebelum menerapkan.",
-    "counts": "{{create}} bug akan dibuat · {{skipped}} baris dilewati · {{duplicate}} sudah ada · {{invalid}} bermasalah",
-    "imageCount": "{{auto}} dari {{total}} screenshot terhubung ke barisnya",
-    "statusMap": "Status di file → status bug",
-    "severityMap": "Severity di file",
+    "counts": "{{create}} masalah akan dibuat · {{skipped}} baris dilewati · {{duplicate}} sudah ada · {{invalid}} bermasalah",
+    "imageCount": "{{auto}} dari {{total}} tangkapan layar terhubung ke barisnya",
+    "statusMap": "Status di file → status masalah",
+    "severityMap": "Tingkat dampak di file",
     "priorityMap": "Prioritas di file",
     "empty": "(kosong)",
     "unknown": "Belum dipetakan (jadi Terbuka)",
     "skip": "Lewati (tidak diimpor)",
-    "applyBody_one": "{{count}} bug akan dibuat beserta screenshot-nya. Bug yang sudah ada tidak dibuat ulang.",
-    "applyBody_other": "{{count}} bug akan dibuat beserta screenshot-nya. Bug yang sudah ada tidak dibuat ulang.",
-    "summary": "{{created}} bug dibuat · {{skipped}} baris dilewati · {{linked}} ditautkan ke hasil uji · {{images}} screenshot",
-    "openBugs": "Buka Daftar Bug"
+    "applyBody_one": "{{count}} masalah akan dibuat beserta tangkapan layar-nya. Masalah yang sudah ada tidak dibuat ulang.",
+    "applyBody_other": "{{count}} masalah akan dibuat beserta tangkapan layar-nya. Masalah yang sudah ada tidak dibuat ulang.",
+    "summary": "{{created}} masalah dibuat · {{skipped}} baris dilewati · {{linked}} ditautkan ke hasil uji · {{images}} tangkapan layar",
+    "openBugs": "Buka Daftar masalah"
   },
   "fontSize": {
     "label": "Ukuran huruf",
@@ -1831,15 +1859,15 @@
       "features": "Fitur"
     },
     "notFound": "Fase tidak ditemukan.",
-    "indexSubtitle": "Pilih fase (siklus uji) yang dikerjakan dalam forum workshop.",
-    "noCycles": "Belum ada fase. Buat fase dulu di menu Siklus Uji.",
-    "makeCycle": "Buka Siklus Uji",
+    "indexSubtitle": "Pilih fase yang dikerjakan bersama peserta di meja-meja workshop.",
+    "noCycles": "Belum ada fase. Buat fase dulu di menu Fase uji.",
+    "makeCycle": "Buka Fase uji",
     "open": "Buka Mode Workshop",
     "setup": {
       "title": "Persiapan workshop",
       "intro": "Langkah yang belum selesai. Setelah semuanya tercentang, kotak ini hilang.",
-      "cases": "Skenario uji sudah ada (Test Case atau Impor Data)",
-      "run": "Lembar uji (run) untuk fase ini sudah dibuat",
+      "cases": "Skenario uji sudah ada (Skenario uji atau Impor Data)",
+      "run": "Lembar uji untuk fase ini sudah dibuat",
       "active": "Lembar uji sudah dimulai (status Berjalan)",
       "tables": "Meja sudah dibuat dan masing-masing punya fitur",
       "public": "Tampilan publik sudah diatur",
@@ -1877,8 +1905,8 @@
       "createHint": "Kode kartu dibuat otomatis. Nama anggota boleh diisi sekarang atau nanti oleh meja sendiri.",
       "name": "Nama meja",
       "namePlaceholder": "mis. Meja 1",
-      "run": "Lembar uji (run)",
-      "noRuns": "Fase ini belum punya lembar uji. Buat dulu di menu Pelaksanaan UAT.",
+      "run": "Lembar uji",
+      "noRuns": "Fase ini belum punya lembar uji. Buat dulu di menu Lembar uji.",
       "runHint": "Skenario yang dikerjakan meja diambil dari lembar uji ini.",
       "noRun": "Belum dipilih",
       "features": "Fitur yang dikerjakan",
@@ -1963,7 +1991,7 @@
       "sameAs": "Sama dengan {{code}}",
       "severity": "Tingkat dampak",
       "markReviewed": "Sudah ditinjau",
-      "openBug": "Buka detail bug"
+      "openBug": "Buka detail masalah"
     },
     "public": {
       "savedOn": "Tampilan publik disimpan. Fase ini terlihat di halaman depan.",
@@ -1971,7 +1999,7 @@
       "mainTitle": "Tampilkan secara publik",
       "main": "Tampilkan fase ini di halaman depan",
       "mainOn": "Siapa pun yang membuka alamat situs bisa melihat fase ini dan data yang dicentang di bawah.",
-      "mainOff": "Fase ini tidak terlihat oleh umum. Hanya petugas yang masuk dan peserta meja yang bisa melihatnya.",
+      "mainOff": "Fase ini tidak terlihat oleh umum. Hanya pengguna yang masuk dan peserta meja yang bisa melihatnya.",
       "intro": "Pengantar untuk umum",
       "introHint": "Mis. jadwal dan tempat workshop. Selalu tampil bila fase dibuka untuk umum.",
       "privacy": "Semua data tersembunyi bawaannya. Centang hanya yang memang boleh dilihat umum. Foto layar dan uraian bisa memuat data pribadi pencari kerja (NIK, nama, nomor HP), jadi periksa dulu sebelum membukanya.",
@@ -1984,7 +2012,7 @@
         "cycle": {
           "description": {
             "label": "Keterangan fase",
-            "hint": "Keterangan yang diisi di Siklus Uji."
+            "hint": "Keterangan yang diisi di Fase uji."
           },
           "period": {
             "label": "Tanggal fase",
@@ -2023,7 +2051,7 @@
             "hint": "Judul dan status setiap masalah."
           },
           "code": {
-            "label": "Kode bug",
+            "label": "Kode masalah",
             "hint": "mis. BUG-KAR-0012."
           },
           "feature": {
@@ -2069,7 +2097,7 @@
         "step1": "Nyalakan tombol \"Tampilkan fase ini di halaman depan\" di bawah.",
         "step2": "Centang data yang boleh dilihat umum (bawaannya semua tersembunyi). Contoh aman untuk awal: Daftar fitur, Kemajuan per fitur, Daftar masalah.",
         "step3": "Tekan \"Pratinjau tampilan publik\" untuk melihat hasilnya dulu, lalu tekan \"Simpan tampilan publik\" di paling bawah.",
-        "step4": "Selesai: siapa pun yang membuka paskerid.kemnaker.go.id/testboard/ tanpa login melihat fase ini. Petugas yang login bisa melihatnya lewat menu \"Halaman publik\"."
+        "step4": "Selesai: siapa pun yang membuka paskerid.kemnaker.go.id/testboard/ tanpa login melihat fase ini. Pengguna yang login bisa melihatnya lewat menu \"Halaman publik\"."
       },
       "previewButton": "Pratinjau tampilan publik",
       "guideLink": "Penjelasan lengkap di Panduan"
@@ -2144,22 +2172,22 @@
       },
       "cycle": {
         "title": "Fase",
-        "menu": "Menu: Siklus Uji",
+        "menu": "Menu: Fase uji",
         "body": "Satu putaran kegiatan uji, mis. Fase 1 (workshop 30-31 Juli)."
       },
       "feature": {
         "title": "Fitur",
-        "menu": "Menu: Modul",
+        "menu": "Menu: Fitur",
         "body": "Bagian website, mis. Lapor Loker atau Gig Workers."
       },
       "scenario": {
         "title": "Skenario uji",
-        "menu": "Menu: Test Case",
+        "menu": "Menu: Skenario uji",
         "body": "Satu hal yang dicoba: langkah-langkah dan hasil yang seharusnya terjadi."
       },
       "run": {
         "title": "Lembar uji",
-        "menu": "Menu: Pelaksanaan UAT",
+        "menu": "Menu: Lembar uji",
         "body": "Daftar skenario yang dikerjakan di satu fase. Harus dimulai supaya bisa diisi."
       },
       "result": {
@@ -2168,11 +2196,11 @@
         "body": "Sesuai, Tidak sesuai, atau Tidak bisa dicoba untuk setiap skenario."
       },
       "bug": {
-        "title": "Masalah (bug)",
-        "menu": "Menu: Daftar Bug",
+        "title": "Masalah",
+        "menu": "Menu: Daftar masalah",
         "body": "Dicatat bila hasilnya tidak sesuai, lalu diperbaiki developer dan diuji ulang."
       },
-      "example": "Contoh: proyek Karirhub > Fase 2 > fitur Lapor Loker > skenario \"Simpan laporan lowongan\" di lembar uji Workshop Fase 2 > hasilnya Tidak sesuai > tercatat sebagai bug BUG-KAR-0012 > diperbaiki developer > diuji ulang."
+      "example": "Contoh: proyek Karirhub > Fase 2 > fitur Lapor Loker > skenario \"Simpan laporan lowongan\" di lembar uji Workshop Fase 2 > hasilnya Tidak sesuai > tercatat sebagai masalah BUG-KAR-0012 > diperbaiki developer > diuji ulang."
     },
     "participant": {
       "intro": "Peserta tidak perlu akun. Satu meja = satu kelompok yang mengerjakan fitur yang sama.",
@@ -2221,7 +2249,7 @@
         },
         {
           "q": "Bagaimana membuat foto layar?",
-          "a": "Paling mudah: tekan \"Ambil foto\" lalu foto layar komputer dengan kamera HP. Bisa juga \"Pilih gambar\" untuk screenshot yang sudah ada."
+          "a": "Paling mudah: tekan \"Ambil foto\" lalu foto layar komputer dengan kamera HP. Bisa juga \"Pilih gambar\" untuk tangkapan layar yang sudah ada."
         },
         {
           "q": "Apakah perlu memilih tingkat keparahan?",
@@ -2239,15 +2267,15 @@
       "beforeSteps": [
         {
           "title": "Buat fase",
-          "body": "Menu Siklus Uji > Siklus baru. Isi kode (mis. FASE-2), judul, dan tanggal workshop."
+          "body": "Menu Fase uji > Fase baru. Isi kode (mis. FASE-2), judul, dan tanggal workshop."
         },
         {
           "title": "Siapkan skenario uji",
-          "body": "Menu Impor Data untuk mengambil skenario dari Excel, atau tambah manual di Test Case. Kelompokkan per fitur (modul)."
+          "body": "Menu Impor Data untuk mengambil skenario dari Excel, atau tambah manual di Skenario uji. Kelompokkan per fitur."
         },
         {
           "title": "Buat lembar uji dan mulai",
-          "body": "Menu Pelaksanaan UAT > Run baru, pilih fase tadi, tambahkan skenario, lalu ubah status menjadi Berjalan saat workshop dimulai."
+          "body": "Menu Lembar uji > Lembar uji baru, pilih fase tadi, tambahkan skenario, lalu ubah status menjadi Berjalan saat workshop dimulai."
         },
         {
           "title": "Buat meja",
@@ -2297,11 +2325,11 @@
         },
         {
           "title": "Masukkan hasil dari lembar kertas (bila ada)",
-          "body": "Buka lembar uji di menu Pelaksanaan UAT dan isi hasilnya."
+          "body": "Buka lembar uji di menu Lembar uji dan isi hasilnya."
         },
         {
-          "title": "Lihat laporan dan teruskan bug",
-          "body": "Menu Laporan untuk rekap; menu Daftar Bug untuk menugaskan perbaikan ke developer."
+          "title": "Lihat laporan dan teruskan masalah",
+          "body": "Menu Laporan untuk rekap; menu Daftar masalah untuk menugaskan perbaikan ke developer."
         },
         {
           "title": "Tutup tampilan publik bila perlu",
@@ -2311,7 +2339,7 @@
       "faq": [
         {
           "q": "Peserta melihat \"Lembar uji belum dibuka\".",
-          "a": "Ubah status lembar uji (run) menjadi Berjalan di menu Pelaksanaan UAT."
+          "a": "Ubah status lembar uji menjadi Berjalan di menu Lembar uji."
         },
         {
           "q": "Satu fitur dikerjakan dua meja.",
@@ -2332,7 +2360,7 @@
         },
         {
           "title": "Pengguna",
-          "body": "Administrasi > Pengguna: buat akun petugas (bukan peserta meja), nonaktifkan, jadikan Super Admin."
+          "body": "Administrasi > Pengguna: buat akun pengguna (bukan peserta meja), nonaktifkan, jadikan Super Admin."
         },
         {
           "title": "Anggota proyek",
@@ -2356,23 +2384,23 @@
       "can": "Bisa melakukan",
       "roleRows": [
         {
-          "role": "Admin proyek",
+          "role": "Admin",
           "can": "Semua di proyek itu, termasuk mengatur anggota."
         },
         {
-          "role": "QA Lead (fasilitator)",
+          "role": "Admin (fasilitator)",
           "can": "Menyiapkan skenario, lembar uji, Mode Workshop, meja, tampilan publik, dan meninjau masalah."
         },
         {
-          "role": "Tester",
+          "role": "Penguji",
           "can": "Mengisi hasil uji dan melaporkan masalah dengan akunnya sendiri."
         },
         {
           "role": "Developer",
-          "can": "Melihat dan memperbarui status bug yang ditugaskan."
+          "can": "Melihat dan memperbarui status masalah yang ditugaskan."
         },
         {
-          "role": "Viewer",
+          "role": "Pemantau",
           "can": "Hanya melihat."
         },
         {
@@ -2389,31 +2417,31 @@
           "plain": "Uji oleh calon pengguna untuk memastikan website bisa dipakai sesuai kebutuhan."
         },
         {
-          "term": "Siklus Uji / Fase",
+          "term": "Fase uji / Fase",
           "plain": "Satu putaran kegiatan uji pada rentang tanggal tertentu."
         },
         {
-          "term": "Modul / Fitur",
+          "term": "Fitur / Fitur",
           "plain": "Bagian website yang diuji, mis. Lapor Loker."
         },
         {
-          "term": "Test Case / Skenario uji",
+          "term": "Skenario uji / Skenario uji",
           "plain": "Satu hal yang dicoba beserta hasil yang seharusnya."
         },
         {
-          "term": "Run / Lembar uji",
+          "term": "Lembar uji / Lembar uji",
           "plain": "Daftar skenario yang dikerjakan di satu fase, beserta hasilnya."
         },
         {
-          "term": "Bug / Masalah",
+          "term": "Masalah / Masalah",
           "plain": "Hal yang tidak sesuai dan perlu diperbaiki."
         },
         {
-          "term": "Severity / Tingkat dampak",
+          "term": "Tingkat dampak / Tingkat dampak",
           "plain": "Seberapa besar akibat sebuah masalah, dari Kritis sampai Informasi. Ditentukan fasilitator."
         },
         {
-          "term": "Retest / Uji ulang",
+          "term": "Uji ulang / Uji ulang",
           "plain": "Mencoba lagi setelah masalah diperbaiki."
         },
         {
@@ -2438,8 +2466,8 @@
       "points": [
         "Semua data fase tersembunyi dari umum sampai panitia menyalakannya, dan hanya data yang dicentang yang terlihat.",
         "Foto layar Karirhub bisa memuat data pribadi pencari kerja (NIK, nama, nomor HP). Hindari memotret data asli, dan jangan membuka foto ke publik tanpa diperiksa.",
-        "Kartu meja hanya berlaku pada tanggal workshop, bisa diganti atau dinonaktifkan kapan saja, dan tidak bisa membuka halaman petugas.",
-        "Nama anggota meja disimpan sebagai teks, tidak dibuatkan akun. Setiap perubahan oleh petugas tercatat di log aktivitas.",
+        "Kartu meja hanya berlaku pada tanggal workshop, bisa diganti atau dinonaktifkan kapan saja, dan tidak bisa membuka halaman pengguna.",
+        "Nama anggota meja disimpan sebagai teks, tidak dibuatkan akun. Setiap perubahan oleh pengguna tercatat di log aktivitas.",
         "\"Selalu login di perangkat ini\" jangan dicentang di komputer bersama. Keluarkan perangkat lain dari menu Profil bila perlu."
       ]
     },
@@ -2448,7 +2476,7 @@
       "steps": [
         {
           "title": "Buka Mode Workshop",
-          "body": "Masuk sebagai petugas, pilih proyek (mis. Karirhub), lalu klik menu Mode Workshop di kiri dan tekan \"Buka Mode Workshop\" pada fase yang diinginkan."
+          "body": "Masuk sebagai pengguna, pilih proyek (mis. Karirhub), lalu klik menu Mode Workshop di kiri dan tekan \"Buka Mode Workshop\" pada fase yang diinginkan."
         },
         {
           "title": "Buka tab Tampilan publik",
@@ -2536,5 +2564,67 @@
     "empty": "Belum ada meja atau skenario yang ditugaskan kepada Anda. Admin akan menambahkan Anda ke meja atau menugaskan skenario uji.",
     "toProjects": "Lihat proyek saya",
     "footer": "Tugas di sini hanya milik Anda. Tugas orang lain tidak ditampilkan."
+  },
+  "startHere": {
+    "title": "Mulai di sini",
+    "subtitle": "Ikuti langkah ini dari atas ke bawah. {{done}} dari {{total}} langkah persiapan sudah selesai.",
+    "show": "Tampilkan langkah",
+    "hide": "Sembunyikan",
+    "done": "sudah selesai",
+    "steps": {
+      "cycle": {
+        "title": "Buat fase uji",
+        "body": "Fase adalah satu putaran pengujian, mis. \"UAT Tahap 1, 3-4 Desember\".",
+        "action": "Buat fase"
+      },
+      "cases": {
+        "title": "Siapkan skenario uji",
+        "body": "Tulis langkah yang harus dicoba dan hasil yang diharapkan, satu per satu atau sekaligus dari Excel.",
+        "action": "Tulis skenario",
+        "alt": "Impor dari Excel"
+      },
+      "plan": {
+        "title": "Pilih cara menguji",
+        "body": "Lembar uji untuk penguji perorangan, atau meja workshop untuk pengujian berkelompok dengan kartu QR.",
+        "action": "Buat lembar uji",
+        "alt": "Siapkan meja workshop"
+      },
+      "test": {
+        "title": "Jalankan pengujian",
+        "body": "Penguji mencoba setiap skenario lalu memilih Sesuai, Tidak sesuai, atau Tidak bisa dicoba.",
+        "action": "Lihat lembar uji"
+      },
+      "review": {
+        "title": "Tinjau masalah yang masuk",
+        "body_one": "Ada {{count}} masalah yang masih perlu ditangani.",
+        "body_other": "Ada {{count}} masalah yang masih perlu ditangani.",
+        "action": "Buka daftar masalah"
+      },
+      "report": {
+        "title": "Lihat laporan",
+        "body": "Ringkasan hasil untuk pimpinan, bisa diunduh sebagai Excel atau CSV.",
+        "action": "Buka laporan"
+      }
+    },
+    "task": {
+      "TESTER": {
+        "title": "Tugas Anda: Penguji",
+        "body": "Coba skenario yang ditugaskan kepada Anda, catat hasilnya, dan laporkan bila ada masalah. Semua tugas Anda ada di halaman Tugas saya."
+      },
+      "DEVELOPER": {
+        "title": "Tugas Anda: Developer",
+        "body": "Lihat masalah yang dilaporkan, perbaiki, lalu ubah statusnya menjadi Sudah diperbaiki agar penguji bisa mengujinya ulang."
+      },
+      "VIEWER": {
+        "title": "Tugas Anda: Pemantau",
+        "body": "Anda bisa melihat semua kemajuan, hasil, dan laporan proyek ini tanpa mengubah apa pun. Ringkasan ada di bawah; laporan lengkap bisa diunduh."
+      }
+    },
+    "links": {
+      "myTasks": "Buka Tugas saya",
+      "reportBug": "Laporkan masalah",
+      "bugs": "Lihat masalah",
+      "reports": "Buka laporan"
+    }
   }
 }

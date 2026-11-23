@@ -17,22 +17,21 @@
   "nav": {
     "main": "Main navigation",
     "projects": "All projects",
-    "dashboard": "Dashboard",
-    "testCases": "Test Cases",
-    "cycles": "Test Cycles",
-    "runs": "Test Runs",
-    "bugs": "Bug Tracker",
-    "evidence": "Evidence Center",
-    "imports": "Imports",
+    "dashboard": "Project home",
+    "testCases": "Test scenarios",
+    "cycles": "Test phases",
+    "runs": "Test sheets",
+    "bugs": "Problems",
+    "evidence": "Photos & evidence",
+    "imports": "Import from Excel",
     "reports": "Reports",
-    "team": "Team & Settings",
-    "soon": "Soon",
+    "team": "Members & tasks",
     "openMenu": "Open navigation menu",
     "closeMenu": "Close navigation menu",
     "profile": "My profile",
     "adminUsers": "Administration",
-    "settings": "Modules & Suites",
-    "members": "Members",
+    "settings": "Features & groups",
+    "members": "Members & tasks",
     "adminSection": "Administration",
     "adminProjects": "Projects",
     "adminUsersShort": "Users",
@@ -40,16 +39,38 @@
     "adminAudit": "Activity log",
     "adminRecovery": "Account recovery",
     "openRequests": "new requests",
-    "workshop": "Workshop mode",
+    "workshop": "Workshop & tables",
     "guide": "Guide",
     "publicSite": "Public site",
-    "myTasks": "My tasks"
+    "myTasks": "My tasks",
+    "thisProject": "This project",
+    "yourTask": "Your task: {{task}}",
+    "term": {
+      "dashboard": "Dashboard",
+      "cycles": "Test Cycle",
+      "testCases": "Test Case",
+      "imports": "Import",
+      "workshop": "UAT Workshop",
+      "runs": "Test Run",
+      "bugs": "Bug",
+      "evidence": "Evidence",
+      "reports": "Report",
+      "members": "Members & Roles",
+      "settings": "Modules & Suites"
+    },
+    "group": {
+      "prepare": "1. Preparation",
+      "run": "2. Testing",
+      "results": "3. Results & reports",
+      "manage": "4. Settings",
+      "help": "Help"
+    }
   },
   "shell": {
     "skipToContent": "Skip to main content",
     "project": "Project",
-    "search": "Search test cases…",
-    "searchLabel": "Search test cases in this project",
+    "search": "Search test scenarios…",
+    "searchLabel": "Search test scenarios in this project",
     "signedInAs": "Signed in as {{name}}",
     "signOutDemo": "Leave demo",
     "breadcrumb": "Breadcrumb",
@@ -109,59 +130,59 @@
   },
   "codes": {
     "execution": {
-      "NOT_RUN": "Not Tested",
-      "IN_PROGRESS": "In Progress",
-      "PASSED": "Passed",
-      "FAILED": "Failed",
-      "BLOCKED": "Blocked",
+      "NOT_RUN": "Not tried yet",
+      "IN_PROGRESS": "Being tried",
+      "PASSED": "As expected",
+      "FAILED": "Not as expected",
+      "BLOCKED": "Could not try",
       "SKIPPED": "Skipped"
     },
     "executionKind": {
-      "INITIAL": "Initial",
-      "RETEST": "Retest",
-      "RERUN": "Rerun"
+      "INITIAL": "First try",
+      "RETEST": "Retest after a fix",
+      "RERUN": "Repeated"
     },
     "defectStatus": {
-      "OPEN": "Open",
-      "IN_PROGRESS": "In Progress",
+      "OPEN": "Newly reported",
+      "IN_PROGRESS": "Being fixed",
       "FIXED": "Fixed",
-      "READY_FOR_RETEST": "Ready for Retest",
-      "VERIFIED": "Verified",
-      "REOPENED": "Reopened",
-      "CLOSED": "Closed",
-      "WONT_FIX": "Won't Fix"
+      "READY_FOR_RETEST": "Ready to retest",
+      "VERIFIED": "Checked, all good",
+      "REOPENED": "Came back",
+      "CLOSED": "Done",
+      "WONT_FIX": "Won't be fixed"
     },
     "severity": {
       "CRITICAL": "Critical",
-      "HIGH": "High",
-      "MEDIUM": "Medium",
-      "LOW": "Low",
-      "INFO": "Informational"
+      "HIGH": "Severe",
+      "MEDIUM": "Moderate",
+      "LOW": "Minor",
+      "INFO": "Info only"
     },
     "defectPriority": {
-      "URGENT": "Urgent",
+      "URGENT": "Right away",
       "HIGH": "High",
       "MEDIUM": "Medium",
       "LOW": "Low"
     },
     "casePriority": {
-      "MUST_HAVE": "Must Have",
-      "SHOULD_HAVE": "Should Have",
-      "COULD_HAVE": "Could Have",
-      "WONT_HAVE": "Won't Have"
+      "MUST_HAVE": "Must",
+      "SHOULD_HAVE": "Important",
+      "COULD_HAVE": "Extra",
+      "WONT_HAVE": "Not now"
     },
     "testType": {
       "POSITIVE": "Positive",
       "NEGATIVE": "Negative",
-      "RBAC": "Access control",
-      "SLA": "SLA",
-      "UI_UX": "UI/UX",
+      "RBAC": "Access rights",
+      "SLA": "Service time (SLA)",
+      "UI_UX": "Look and feel (UI/UX)",
       "INTEGRATION": "Integration",
       "OTHER": "Other"
     },
     "caseStatus": {
       "DRAFT": "Draft",
-      "READY": "Ready",
+      "READY": "Ready to test",
       "ARCHIVED": "Archived"
     },
     "runStatus": {
@@ -362,22 +383,28 @@
     },
     "projects": {
       "title": "Projects",
-      "subtitle": "Pick a project to start working. You only see projects you are a member of.",
+      "subtitle": "Choose a project to start working. Users only see the projects they are a member of.",
       "cases_one": "{{count}} test case",
       "cases_other": "{{count}} test cases",
       "runs_one": "{{count}} run",
       "runs_other": "{{count}} runs",
       "openBugs_one": "{{count}} open bug",
       "openBugs_other": "{{count}} open bugs",
-      "yourRole": "Your role: {{role}}",
-      "empty": "You are not a member of any project yet.",
+      "yourRole": "Your task: {{role}}",
+      "empty": "You are not a member of any project yet. Ask an Admin to add you, or open My tasks if you are listed at a workshop table.",
       "create": "Create project",
       "emptyAdminTitle": "No projects yet",
-      "emptyAdmin": "Create the first project, then add team members through Team & Settings inside the project.",
-      "archived": "Archived"
+      "emptyAdmin": "Create the first project, then follow the \"Start here\" steps on the project home.",
+      "archived": "Archived",
+      "signedInAs": "You are signed in as {{role}}",
+      "welcome": "Welcome, {{name}}",
+      "welcomeAdmin": "Choose a project to manage, or create a new one. Inside a project the menu on the left follows the order of the work.",
+      "welcomeUser": "Choose a project to start, or open My tasks to see everything assigned to you.",
+      "youManage": "You manage this project",
+      "open": "Open project"
     },
     "dashboard": {
-      "title": "Dashboard",
+      "title": "Project home",
       "kpiPlanned": "Test cases planned",
       "kpiExecuted": "Executed",
       "kpiPassRate": "Pass rate",
@@ -392,11 +419,12 @@
       "recentBugs": "Recent bugs",
       "noRuns": "No runs in this project yet.",
       "noBugs": "No bugs in this project yet.",
-      "noRunCases": "No test cases have been scheduled in a run yet."
+      "noRunCases": "No test cases have been scheduled in a run yet.",
+      "subtitle": "Summary of the testing progress and problems in this project."
     },
     "cases": {
-      "title": "Test Cases",
-      "subtitle": "Library of test case definitions. Test results are recorded separately in each run.",
+      "title": "Test scenarios",
+      "subtitle": "The steps to try and the expected results. Results are recorded in Test sheets or at workshop tables.",
       "searchPlaceholder": "Search code or title…",
       "empty": "No test cases in this project yet.",
       "emptyFiltered": "No test cases match the filters.",
@@ -419,8 +447,8 @@
       "files": "Reference documents"
     },
     "runs": {
-      "title": "Test Runs",
-      "subtitle": "A run is a set of test cases executed on a given environment and build.",
+      "title": "Test sheets",
+      "subtitle": "A test sheet holds the scenarios assigned to individual testers. For group testing at tables, use Workshop & tables.",
       "empty": "No runs in this project yet.",
       "newRun": "New run"
     },
@@ -478,8 +506,8 @@
       "continueTesting": "Continue testing"
     },
     "bugs": {
-      "title": "Bug Tracker",
-      "subtitle": "Defects from UAT runs and from user reports.",
+      "title": "Problems",
+      "subtitle": "Every problem found while testing or reported by users, with its fix status.",
       "searchPlaceholder": "Search bug code or title…",
       "empty": "No bugs in this project yet.",
       "emptyFiltered": "No bugs match the filters.",
@@ -650,8 +678,8 @@
       "roleChange": "Change role"
     },
     "cycles": {
-      "title": "Test cycles",
-      "subtitle": "A cycle groups several runs within one UAT period.",
+      "title": "Test phases",
+      "subtitle": "A phase is one round of testing in a given period (e.g. UAT Stage 1). Test sheets and workshop tables always belong to a phase.",
       "empty": "No test cycles in this project yet.",
       "newHeading": "New cycle",
       "codeHint": "Upper-case letters, digits and hyphens. Example: CYCLE-2-2026",
@@ -746,8 +774,8 @@
       "cycleFromRun": "Leave empty to use the cycle of the run where this bug was found."
     },
     "evidence": {
-      "title": "Evidence Center",
-      "subtitle": "All evidence files of the project: screenshots, documents and logs. Only project members can open them.",
+      "title": "Photos & evidence",
+      "subtitle": "All screenshots, documents and notes that prove the testing. Only project members can open them.",
       "empty": "No evidence files in this project yet.",
       "emptyFiltered": "No files match the filters.",
       "searchPlaceholder": "Search file name…",
@@ -762,8 +790,8 @@
       "uploader": "Uploaded by {{name}}"
     },
     "imports": {
-      "title": "Import data",
-      "subtitle": "Test cases or bugs from UAT/tracker Excel files, the CSV template or AI JSON. Every row is checked before it is applied.",
+      "title": "Import from Excel",
+      "subtitle": "Bring in many test scenarios or problems at once from an Excel file. Every row is checked first and you decide before anything is saved.",
       "leadsOnly": "Only a QA lead or project admin can import.",
       "newImport": "New import",
       "drop": "Drag an XLSX, CSV or JSON file here",
@@ -916,7 +944,7 @@
     },
     "reports": {
       "title": "Reports",
-      "subtitle": "UAT results and bugs at a glance, data exports and the project activity log.",
+      "subtitle": "Summary of testing results and problems, data downloads and the project activity log.",
       "tabs": {
         "overview": "Overview",
         "activity": "Activity log"
@@ -1831,7 +1859,7 @@
       "features": "Features"
     },
     "notFound": "Phase not found.",
-    "indexSubtitle": "Choose the phase (test cycle) worked on in the workshop.",
+    "indexSubtitle": "Choose the phase tested together with participants at workshop tables.",
     "noCycles": "No phase yet. Create one under Test cycles first.",
     "makeCycle": "Open Test cycles",
     "open": "Open workshop mode",
@@ -2536,5 +2564,67 @@
     "empty": "No table or scenario is assigned to you yet. An Admin will add you to a table or assign test scenarios.",
     "toProjects": "See my projects",
     "footer": "Only your own tasks are shown here. Other people's tasks are not."
+  },
+  "startHere": {
+    "title": "Start here",
+    "subtitle": "Follow these steps from top to bottom. {{done}} of {{total}} preparation steps are done.",
+    "show": "Show the steps",
+    "hide": "Hide",
+    "done": "done",
+    "steps": {
+      "cycle": {
+        "title": "Create a test phase",
+        "body": "A phase is one round of testing, e.g. \"UAT Stage 1, 3-4 December\".",
+        "action": "Create a phase"
+      },
+      "cases": {
+        "title": "Prepare test scenarios",
+        "body": "Write the steps to try and the expected result, one by one or all at once from Excel.",
+        "action": "Write a scenario",
+        "alt": "Import from Excel"
+      },
+      "plan": {
+        "title": "Choose how to test",
+        "body": "A test sheet for individual testers, or workshop tables for group testing with QR cards.",
+        "action": "Create a test sheet",
+        "alt": "Set up workshop tables"
+      },
+      "test": {
+        "title": "Run the tests",
+        "body": "Testers try each scenario and choose As expected, Not as expected, or Could not try.",
+        "action": "See test sheets"
+      },
+      "review": {
+        "title": "Review incoming problems",
+        "body_one": "{{count}} problem still needs attention.",
+        "body_other": "{{count}} problems still need attention.",
+        "action": "Open the problem list"
+      },
+      "report": {
+        "title": "See the reports",
+        "body": "A summary for leaders, downloadable as Excel or CSV.",
+        "action": "Open reports"
+      }
+    },
+    "task": {
+      "TESTER": {
+        "title": "Your task: Tester",
+        "body": "Try the scenarios assigned to you, record the results and report any problem. All your work is on the My tasks page."
+      },
+      "DEVELOPER": {
+        "title": "Your task: Developer",
+        "body": "See the reported problems, fix them, then set their status to Fixed so testers can retest."
+      },
+      "VIEWER": {
+        "title": "Your task: Observer",
+        "body": "You can see all progress, results and reports of this project without changing anything. The summary is below; full reports can be downloaded."
+      }
+    },
+    "links": {
+      "myTasks": "Open My tasks",
+      "reportBug": "Report a problem",
+      "bugs": "See problems",
+      "reports": "Open reports"
+    }
   }
 }

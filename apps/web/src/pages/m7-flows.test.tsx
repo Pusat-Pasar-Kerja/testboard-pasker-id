@@ -42,18 +42,18 @@ describe('reports (S09, TB-REPORT-001)', () => {
     const { dataSource } = withDb()
     const { router } = renderRoute(`${P}/reports`, { dataSource })
     expect(await screen.findByRole('heading', { level: 1, name: 'Laporan' })).toBeInTheDocument()
-    expect(await screen.findByText('Test case dalam run')).toBeInTheDocument()
+    expect(await screen.findByText('Skenario uji dalam lembar uji')).toBeInTheDocument()
     expect(screen.getByText('Cara menghitung')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Per modul' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Per fitur' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Per penguji' })).toBeInTheDocument()
 
-    const moduleFilter = screen.getByLabelText('Modul')
+    const moduleFilter = screen.getByLabelText('Fitur')
     const firstModule = within(moduleFilter).getAllByRole('option')[1] as HTMLOptionElement
     await user.selectOptions(moduleFilter, firstModule.value)
     await waitFor(() =>
       expect(router.state.location.search).toContain(`module=${firstModule.value}`),
     )
-    const table = (await screen.findByRole('heading', { name: 'Per modul' })).closest(
+    const table = (await screen.findByRole('heading', { name: 'Per fitur' })).closest(
       'section',
     ) as HTMLElement
     await waitFor(() => expect(within(table).getAllByRole('row')).toHaveLength(2))
@@ -71,7 +71,7 @@ describe('reports (S09, TB-REPORT-001)', () => {
     const { dataSource } = withDb()
     renderRoute(`${P}/reports`, { dataSource })
 
-    await user.click(await screen.findByRole('radio', { name: /Daftar bug/ }))
+    await user.click(await screen.findByRole('radio', { name: /Daftar masalah/ }))
     await user.click(screen.getByRole('radio', { name: 'CSV' }))
     await user.selectOptions(screen.getByLabelText('Bahasa label'), 'en')
     await user.click(screen.getByRole('button', { name: 'Unduh' }))
@@ -118,9 +118,9 @@ describe('reports (S09, TB-REPORT-001)', () => {
       db.currentUserId = '3'
     }, false)
     renderRoute(`${P}/reports`, { dataSource })
-    expect(await screen.findByText('Test case dalam run')).toBeInTheDocument()
+    expect(await screen.findByText('Skenario uji dalam lembar uji')).toBeInTheDocument()
     expect(
-      screen.getByText('Ekspor data hanya bisa dilakukan oleh QA Lead atau Admin proyek.'),
+      screen.getByText('Ekspor data hanya bisa dilakukan oleh Admin atau Admin.'),
     ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Unduh' })).toBeNull()
     expect(screen.queryByRole('tab', { name: 'Log aktivitas' })).toBeNull()

@@ -31,7 +31,11 @@ export function useProjects() {
 
 export function useProject(code: string) {
   const ds = useDataSource()
-  return useQuery({ queryKey: ['project', code], queryFn: () => ds.getProject(code) })
+  return useQuery({
+    queryKey: ['project', code],
+    queryFn: () => ds.getProject(code),
+    enabled: Boolean(code),
+  })
 }
 
 export function useModules(code: string) {

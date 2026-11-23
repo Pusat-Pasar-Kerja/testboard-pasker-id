@@ -44,9 +44,9 @@ describe('changing codes after creation', () => {
     const caseCode = authCase.case_code
     renderRoute('/projects/DEMO-KARIR/settings', { dataSource })
 
-    await user.click(await screen.findByRole('button', { name: 'Ubah modul AUTH' }))
+    await user.click(await screen.findByRole('button', { name: 'Ubah fitur AUTH' }))
     const dialog = await screen.findByRole('dialog')
-    const field = within(dialog).getByLabelText(/^Kode modul/)
+    const field = within(dialog).getByLabelText(/^Kode fitur/)
     await user.clear(field)
     await user.type(field, 'LOKER')
     await user.click(within(dialog).getByRole('button', { name: 'Simpan' }))
@@ -55,7 +55,7 @@ describe('changing codes after creation', () => {
     await user.clear(field)
     await user.type(field, 'login')
     await user.click(within(dialog).getByRole('button', { name: 'Simpan' }))
-    expect(await screen.findByText('Modul LOGIN disimpan.')).toBeInTheDocument()
+    expect(await screen.findByText('Fitur LOGIN disimpan.')).toBeInTheDocument()
     expect(auth.module_code).toBe('LOGIN')
     expect(authCase.case_code).toBe(caseCode)
     const detail = await dataSource.getTestCase('DEMO-KARIR', authCase.id)
@@ -71,9 +71,9 @@ describe('changing codes after creation', () => {
     )!
     renderRoute('/projects/DEMO-KARIR/cycles', { dataSource })
 
-    await user.click(await screen.findByRole('button', { name: 'Ubah siklus SIKLUS-1-2026' }))
+    await user.click(await screen.findByRole('button', { name: 'Ubah fase SIKLUS-1-2026' }))
     const dialog = await screen.findByRole('dialog')
-    const code = within(dialog).getByLabelText(/^Kode siklus/)
+    const code = within(dialog).getByLabelText(/^Kode fase/)
     await user.clear(code)
     await user.type(code, 'FASE-2')
     await user.click(within(dialog).getByRole('button', { name: 'Simpan' }))

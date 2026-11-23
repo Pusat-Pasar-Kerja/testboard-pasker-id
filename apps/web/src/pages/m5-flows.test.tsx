@@ -36,15 +36,15 @@ describe('evidence while testing (TB-FILE-001)', () => {
     await screen.findByRole('heading', { name: 'Catat hasil' })
 
     const result = screen.getByRole('group', { name: 'Hasil uji' })
-    await user.click(within(result).getByRole('radio', { name: 'Gagal Diuji' }))
+    await user.click(within(result).getByRole('radio', { name: 'Tidak sesuai' }))
     expect(
-      screen.getByText('Hasil gagal sebaiknya disertai screenshot sebagai bukti.'),
+      screen.getByText('Hasil gagal sebaiknya disertai tangkapan layar sebagai bukti.'),
     ).toBeInTheDocument()
 
     await user.upload(screen.getByLabelText('Pilih file'), png('login-gagal.png'))
     expect(await screen.findByText(/WebP lossless/)).toBeInTheDocument()
     expect(
-      screen.queryByText('Hasil gagal sebaiknya disertai screenshot sebagai bukti.'),
+      screen.queryByText('Hasil gagal sebaiknya disertai tangkapan layar sebagai bukti.'),
     ).toBeNull()
     await user.type(
       screen.getByLabelText('Keterangan untuk login-gagal.png'),
@@ -54,7 +54,7 @@ describe('evidence while testing (TB-FILE-001)', () => {
     await user.type(screen.getByLabelText(/^Hasil aktual/), 'Halaman tetap diam')
     await user.click(screen.getByRole('button', { name: 'Simpan hasil' }))
 
-    expect(await screen.findByText('Percobaan #1 tersimpan: Gagal Diuji.')).toBeInTheDocument()
+    expect(await screen.findByText('Percobaan #1 tersimpan: Tidak sesuai.')).toBeInTheDocument()
     const saved = db.executions.find((e) => e.runCaseId === rc.id)
     expect(saved?.files).toEqual([
       { fileId: expect.any(String), caption: 'Tombol tidak merespons', step_number: 2 },
@@ -106,7 +106,7 @@ describe('evidence on bugs and in the Evidence Center', () => {
     const reuse = await screen.findByRole('checkbox', { name: /Pesan galat/ })
     expect(reuse).toBeChecked()
     await user.click(screen.getByRole('button', { name: 'Simpan' }))
-    await screen.findByText(/^Bug BUG-DKR-\d{4} dibuat\.$/)
+    await screen.findByText(/^Masalah BUG-DKR-\d{4} dibuat\.$/)
     expect(db.defects.at(-1)?.files).toEqual([
       { fileId, caption: 'Pesan galat', step_number: null },
     ])
@@ -146,7 +146,7 @@ describe('evidence on bugs and in the Evidence Center', () => {
       d.currentUserId = '6'
     }, false)
     renderRoute(`${P}/evidence`, { dataSource })
-    await screen.findByRole('heading', { level: 1, name: 'Pusat Bukti' })
+    await screen.findByRole('heading', { level: 1, name: 'Foto & bukti' })
     expect(screen.queryByRole('heading', { name: 'Unggah file' })).toBeNull()
     expect(screen.queryByLabelText('Pilih file')).toBeNull()
   })
