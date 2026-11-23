@@ -268,7 +268,7 @@ function LinkedExecutions({
     },
     onError: (err) => {
       setPending(null)
-      toast.show(apiErrorText(t, err))
+      toast.show(apiErrorText(t, err), 'error')
     },
   })
 

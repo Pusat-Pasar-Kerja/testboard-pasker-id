@@ -105,7 +105,8 @@
     "loading": "Loading data…",
     "emptyTitle": "Nothing here yet",
     "filteredTitle": "No results",
-    "errorTitle": "Could not load data"
+    "errorTitle": "Could not load data",
+    "loadingPage": "Loading the page..."
   },
   "pagination": {
     "label": "Pagination",
@@ -684,7 +685,7 @@
       "subtitle": "A phase is one round of testing in a given period (e.g. UAT Stage 1). Test sheets and workshop tables always belong to a phase.",
       "empty": "No test cycles in this project yet.",
       "newHeading": "New cycle",
-      "codeHint": "Upper-case letters, digits and hyphens. Example: CYCLE-2-2026",
+      "codeHint": "Capital letters, digits and hyphens. Example: PHASE-1 or UAT-STAGE-1",
       "created": "Cycle {{code}} created.",
       "updated": "Cycle {{code}} updated.",
       "statusLabel": "Status of cycle {{code}}",
@@ -692,7 +693,10 @@
       "dateOrder": "The end date must not be before the start date.",
       "edit": "Edit",
       "editTitle": "Edit cycle {{code}}",
-      "editCodeHint": "Letters, numbers, dot, dash or underscore (e.g. PHASE-1). Existing runs and bugs stay linked to this cycle."
+      "editCodeHint": "Letters, numbers, dot, dash or underscore (e.g. PHASE-1). Existing runs and bugs stay linked to this cycle.",
+      "statusConfirmTitle": "Change {{code}} to {{status}}?",
+      "statusConfirmBody": "The phase status tells whether its test sheets and tables are being worked on. It can be changed again any time.",
+      "statusConfirm": "Change status"
     },
     "runForm": {
       "newTitle": "New run",
@@ -788,7 +792,7 @@
       "deleteBody": "An unused file is hidden and can no longer be opened.",
       "deleted": "File deleted.",
       "upload": "Upload files",
-      "uploadHint": "Files uploaded here can be attached later to test results, bugs or test cases.",
+      "uploadHint": "Files uploaded here are kept as project evidence and can be opened by every project member.",
       "uploader": "Uploaded by {{name}}"
     },
     "imports": {
@@ -1215,7 +1219,7 @@
       "HAR_REDACTED": "cookies and tokens redacted"
     },
     "method": {
-      "WEBP_LOSSLESS": "lossless WebP",
+      "WEBP_LOSSLESS": "Made smaller without losing sharpness",
       "PNG_OPTIMIZE": "optimised PNG",
       "JPEG_MOZJPEG_Q90": "high-quality JPEG",
       "METADATA_STRIP": "metadata removed",
@@ -1225,7 +1229,7 @@
     "saving": "saved {{percent}}%",
     "scan": {
       "BASIC": "Passed basic checks",
-      "CLAMAV": "Passed ClamAV antivirus"
+      "CLAMAV": "Checked, free of viruses"
     },
     "caption": "Caption for {{name}}",
     "captionPlaceholder": "Caption (optional)",
@@ -1733,7 +1737,7 @@
       "waiting": "Waiting for the photos to be checked..."
     },
     "case": {
-      "actor": "Try it as: {{actor}}",
+      "actor": "You act as: {{actor}}",
       "preparation": "Preparation",
       "steps": "Steps",
       "expected": "What should happen",

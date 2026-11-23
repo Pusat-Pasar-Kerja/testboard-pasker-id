@@ -59,8 +59,9 @@ function ScenarioBody({ scenario }: { scenario: WorkshopCaseDto }) {
   return (
     <div className="space-y-5">
       <div>
-        <p className="font-mono text-sm text-ink-muted">{scenario.case_code}</p>
-        <h1 className="mt-1 text-2xl leading-snug font-bold sm:text-3xl">{scenario.title}</h1>
+        <h1 className="text-2xl leading-snug font-bold sm:text-3xl">{scenario.title}</h1>
+        {/* The code is only for organisers who help at the table: small, after the title. */}
+        <p className="mt-1 font-mono text-xs text-ink-muted">{scenario.case_code}</p>
         {scenario.actor_label && (
           <p className="mt-2 text-lg text-ink-muted">
             {t('easy.case.actor', { actor: scenario.actor_label })}

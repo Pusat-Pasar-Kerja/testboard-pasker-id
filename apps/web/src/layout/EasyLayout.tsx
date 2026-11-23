@@ -3,6 +3,7 @@ import { CircleHelp, LogOut, QrCode } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, Outlet, useNavigate } from 'react-router'
+import { AnnouncementBanner } from '../components/AnnouncementBanner'
 import { TestBoardMark } from '../components/brand/TestBoardMark'
 import { FontSizeControl } from '../components/FontSizeControl'
 import { ConfirmDialog } from '../components/ui/Dialog'
@@ -119,6 +120,7 @@ export function EasyLayout({ children }: { children?: ReactNode }) {
             </div>
           </div>
         </header>
+        <AnnouncementBanner />
         <OutboxProvider tableId={data.table.id}>
           <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">
             {children ?? <Outlet />}

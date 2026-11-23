@@ -1,13 +1,13 @@
-import { Megaphone, Menu, Search, X } from 'lucide-react'
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { Menu, Search } from 'lucide-react'
+import { useCallback, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router'
+import { AnnouncementBanner } from '../components/AnnouncementBanner'
 import { TestBoardLogo } from '../components/brand/TestBoardLogo'
 import { FontSizeControl } from '../components/FontSizeControl'
 import { PageHelp } from '../components/help/PageHelp'
 import { Tour } from '../components/help/Tour'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
-import { usePublicSettings } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
 import { MobileDrawer } from './MobileDrawer'
 import { ProjectSwitcher } from './ProjectSwitcher'
@@ -49,46 +49,6 @@ function TopbarSearch({ projectCode }: { projectCode: string }) {
   )
 }
 
-/** Website-wide announcement set by a Super Admin (site settings); dismissible per tab. */
-function AnnouncementBanner({ text }: { text: string }) {
-  const { t } = useTranslation()
-  const [dismissed, setDismissed] = useState(() => {
-    try {
-      return sessionStorage.getItem('tb-dismissed-announcement') === text
-    } catch {
-      return false
-    }
-  })
-  if (!text || dismissed) return null
-  return (
-    <div
-      role="status"
-      className="flex items-start gap-3 border-b border-line bg-pastel-butter px-4 py-2 text-sm text-ink sm:px-6 lg:px-8"
-    >
-      <Megaphone aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-pastel-butter-ink" />
-      <p className="min-w-0 flex-1 whitespace-pre-line">
-        <span className="sr-only">{t('shell.announcement')}: </span>
-        {text}
-      </p>
-      <button
-        type="button"
-        onClick={() => {
-          setDismissed(true)
-          try {
-            sessionStorage.setItem('tb-dismissed-announcement', text)
-          } catch {
-            // private mode: dismissed for this view only
-          }
-        }}
-        className="-my-1 inline-flex size-8 shrink-0 items-center justify-center rounded-lg hover:bg-ink/5"
-      >
-        <X aria-hidden="true" className="size-4" />
-        <span className="sr-only">{t('shell.dismiss')}</span>
-      </button>
-    </div>
-  )
-}
-
 /**
  * Responsive application frame: sidebar (lg+), drawer (< lg), topbar, main landmark.
  * Renders the matched child route, or `children` for a page that picks its frame itself
@@ -101,11 +61,6 @@ export function AppShell({ children }: { children?: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   // Every drawer link calls closeMenu, so navigation from the drawer always closes it.
   const closeMenu = useCallback(() => setMenuOpen(false), [])
-  const publicSettings = usePublicSettings()
-  const siteName = publicSettings.data?.['site.name']
-  useEffect(() => {
-    if (siteName) document.title = siteName
-  }, [siteName])
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
@@ -151,10 +106,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
             </div>
           </div>
         </header>
-        <AnnouncementBanner
-          key={publicSettings.data?.['site.announcement'] ?? ''}
-          text={publicSettings.data?.['site.announcement'] ?? ''}
-        />
+        <AnnouncementBanner />
 
         <main
           id="main"

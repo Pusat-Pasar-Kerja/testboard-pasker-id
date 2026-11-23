@@ -13,7 +13,6 @@ import { Link } from 'react-router'
 import { CycleStatusBadge } from '../components/status/StatusBadges'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
 import { ProgressMeter } from '../components/workshop/ProgressMeter'
-import { usePublicSettings } from '../hooks/queries'
 import { usePublicCycles } from '../hooks/workshop-queries'
 import { PublicSiteLayout } from '../layout/PublicSiteLayout'
 import { formatDate, toLocale } from '../lib/format'
@@ -70,8 +69,6 @@ const STEPS: { key: 'gather' | 'scan' | 'answer' | 'photo'; icon: LucideIcon; to
 export function PublicHomePage() {
   const { t } = useTranslation()
   const cycles = usePublicCycles()
-  const settings = usePublicSettings()
-  const announcement = settings.data?.['site.announcement']
 
   return (
     <PublicSiteLayout>
@@ -88,9 +85,6 @@ export function PublicHomePage() {
           {t('public.title')}
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-ink-muted">{t('public.subtitle')}</p>
-        {announcement && (
-          <p className="mt-4 max-w-2xl rounded-xl bg-info-soft p-4 text-info">{announcement}</p>
-        )}
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             to="/meja"

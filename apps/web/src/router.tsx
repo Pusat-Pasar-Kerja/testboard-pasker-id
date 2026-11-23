@@ -6,6 +6,7 @@ import { FirstLoad } from './layout/FirstLoad'
 import { HomeGate } from './layout/HomeGate'
 import { RequireAuth } from './layout/RequireAuth'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { NotFoundRoute } from './pages/NotFoundRoute'
 import { ProjectGate } from './pages/ProjectGate'
 import { PublicHomePage } from './pages/PublicHomePage'
 import { RecoverPage } from './pages/RecoverPage'
@@ -234,10 +235,11 @@ const pages: RouteObject[] = [
           { path: '*', element: <NotFoundPage /> },
         ],
       },
-      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ]
+
+pages.push({ path: '*', element: <NotFoundRoute /> })
 
 export const routes: RouteObject[] = [{ HydrateFallback: FirstLoad, children: pages }]
 

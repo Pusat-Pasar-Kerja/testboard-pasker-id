@@ -2,6 +2,7 @@ import { ArrowRight, BookOpen, House, LogIn, QrCode } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router'
+import { AnnouncementBanner } from '../components/AnnouncementBanner'
 import { TestBoardLogo } from '../components/brand/TestBoardLogo'
 import { FontSizeControl } from '../components/FontSizeControl'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
@@ -85,6 +86,7 @@ export function PublicSiteLayout({
           </div>
         </div>
       </header>
+      <AnnouncementBanner />
       <main id="isi" className={`mx-auto w-full flex-1 px-4 py-8 sm:py-10 ${width}`}>
         {children}
       </main>

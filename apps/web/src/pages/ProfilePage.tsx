@@ -110,7 +110,7 @@ function PasswordForm({ demo }: { demo: boolean }) {
     event.preventDefault()
     const nextErrors = {
       current: current ? undefined : t('form.required'),
-      next: passwordSchema.safeParse(next).success ? undefined : t('form.tooShort', { min: 12 }),
+      next: passwordSchema.safeParse(next).success ? undefined : t('form.tooShort', { min: 8 }),
       confirm: confirm === next ? undefined : t('pages.profile.mismatch'),
     }
     setErrors(nextErrors)

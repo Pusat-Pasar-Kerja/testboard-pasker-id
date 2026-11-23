@@ -105,7 +105,8 @@
     "loading": "Memuat data…",
     "emptyTitle": "Belum ada data",
     "filteredTitle": "Tidak ada hasil",
-    "errorTitle": "Data gagal dimuat"
+    "errorTitle": "Data gagal dimuat",
+    "loadingPage": "Memuat halaman..."
   },
   "pagination": {
     "label": "Navigasi halaman",
@@ -684,7 +685,7 @@
       "subtitle": "Fase adalah satu putaran pengujian dalam periode tertentu (mis. UAT Tahap 1). Lembar uji dan meja workshop selalu berada di dalam sebuah fase.",
       "empty": "Belum ada fase uji di proyek ini.",
       "newHeading": "Fase baru",
-      "codeHint": "Huruf besar, angka, dan tanda hubung. Contoh: SIKLUS-2-2026",
+      "codeHint": "Huruf besar, angka, dan tanda hubung. Contoh: FASE-1 atau UAT-TAHAP-1",
       "created": "Fase {{code}} dibuat.",
       "updated": "Fase {{code}} diperbarui.",
       "statusLabel": "Status fase {{code}}",
@@ -692,7 +693,10 @@
       "dateOrder": "Tanggal selesai tidak boleh sebelum tanggal mulai.",
       "edit": "Ubah",
       "editTitle": "Ubah fase {{code}}",
-      "editCodeHint": "Huruf, angka, titik, strip, atau garis bawah (mis. FASE-1). Lembar uji dan masalah yang sudah ada tetap terhubung ke fase ini."
+      "editCodeHint": "Huruf, angka, titik, strip, atau garis bawah (mis. FASE-1). Lembar uji dan masalah yang sudah ada tetap terhubung ke fase ini.",
+      "statusConfirmTitle": "Ubah status {{code}} menjadi {{status}}?",
+      "statusConfirmBody": "Status fase menentukan apakah lembar uji dan meja di dalamnya sedang dikerjakan. Status bisa diubah lagi kapan saja.",
+      "statusConfirm": "Ubah status"
     },
     "runForm": {
       "newTitle": "Buat lembar uji",
@@ -788,7 +792,7 @@
       "deleteBody": "File yang belum dipakai akan disembunyikan dan tidak bisa dibuka lagi.",
       "deleted": "File dihapus.",
       "upload": "Unggah file",
-      "uploadHint": "File yang diunggah di sini bisa dilampirkan nanti ke hasil uji, masalah, atau skenario uji.",
+      "uploadHint": "File yang diunggah di sini tersimpan sebagai bukti proyek dan bisa dibuka semua anggota proyek.",
       "uploader": "Diunggah oleh {{name}}"
     },
     "imports": {
@@ -1215,7 +1219,7 @@
       "HAR_REDACTED": "cookie dan token disensor"
     },
     "method": {
-      "WEBP_LOSSLESS": "WebP lossless",
+      "WEBP_LOSSLESS": "Dikecilkan tanpa mengurangi ketajaman",
       "PNG_OPTIMIZE": "PNG dioptimalkan",
       "JPEG_MOZJPEG_Q90": "JPEG kualitas tinggi",
       "METADATA_STRIP": "metadata dibuang",
@@ -1225,7 +1229,7 @@
     "saving": "hemat {{percent}}%",
     "scan": {
       "BASIC": "Lolos pemeriksaan dasar",
-      "CLAMAV": "Lolos antivirus ClamAV"
+      "CLAMAV": "Sudah diperiksa, bebas virus"
     },
     "caption": "Keterangan untuk {{name}}",
     "captionPlaceholder": "Keterangan (opsional)",
@@ -1733,7 +1737,7 @@
       "waiting": "Menunggu foto selesai diperiksa..."
     },
     "case": {
-      "actor": "Dicoba sebagai: {{actor}}",
+      "actor": "Anda berperan sebagai: {{actor}}",
       "preparation": "Persiapan",
       "steps": "Langkah-langkah",
       "expected": "Yang seharusnya terjadi",

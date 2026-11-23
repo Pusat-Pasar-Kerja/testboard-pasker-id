@@ -34,12 +34,12 @@ export function AttachmentsPanel({
       toast.show(t('evidence.attached', { count: uploads.refs.length }))
       uploads.clear()
     },
-    onError: (error) => toast.show(apiErrorText(t, error)),
+    onError: (error) => toast.show(apiErrorText(t, error), 'error'),
   })
   const detach = useMutation({
     mutationFn: (fileId: string) => onDetach(fileId),
     onSuccess: () => toast.show(t('evidence.detached')),
-    onError: (error) => toast.show(apiErrorText(t, error)),
+    onError: (error) => toast.show(apiErrorText(t, error), 'error'),
   })
 
   return (

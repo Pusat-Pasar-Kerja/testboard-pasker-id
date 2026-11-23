@@ -188,7 +188,7 @@ function AttemptEvidence({
       setAdding(false)
       await refresh()
     },
-    onError: (error) => toast.show(apiErrorText(t, error)),
+    onError: (error) => toast.show(apiErrorText(t, error), 'error'),
   })
   const detach = useMutation({
     mutationFn: (fileId: string) => ds.detachExecutionFile(projectCode, attempt.id, fileId),
@@ -196,7 +196,7 @@ function AttemptEvidence({
       toast.show(t('evidence.detached'))
       await refresh()
     },
-    onError: (error) => toast.show(apiErrorText(t, error)),
+    onError: (error) => toast.show(apiErrorText(t, error), 'error'),
   })
   if (attempt.files.length === 0 && !canAdd) return null
   return (
@@ -270,7 +270,7 @@ function BugsPanel({
         t('pages.execution.linked', { code: bug.bug_code, n: latest?.attempt_number ?? 0 }),
       )
     },
-    onError: (error) => toast.show(apiErrorText(t, error)),
+    onError: (error) => toast.show(apiErrorText(t, error), 'error'),
   })
 
   return (

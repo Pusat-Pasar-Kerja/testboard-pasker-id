@@ -42,7 +42,7 @@ describe('evidence while testing (TB-FILE-001)', () => {
     ).toBeInTheDocument()
 
     await user.upload(screen.getByLabelText('Pilih file'), png('login-gagal.png'))
-    expect(await screen.findByText(/WebP lossless/)).toBeInTheDocument()
+    expect(await screen.findByText(/tanpa mengurangi ketajaman/)).toBeInTheDocument()
     expect(
       screen.queryByText('Hasil gagal sebaiknya disertai tangkapan layar sebagai bukti.'),
     ).toBeNull()

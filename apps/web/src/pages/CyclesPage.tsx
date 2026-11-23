@@ -13,6 +13,7 @@ import { Link } from 'react-router'
 import { CycleStatusBadge } from '../components/status/StatusBadges'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
+import { ConfirmDialog } from '../components/ui/Dialog'
 import { FormAlert, SelectField, TextArea, TextField } from '../components/ui/Form'
 import { FormDialog } from '../components/ui/FormDialog'
 import { PageHeader } from '../components/ui/PageHeader'
@@ -289,13 +290,16 @@ function CycleCard({ code, cycle, canEdit }: { code: string; cycle: CycleDto; ca
   const toast = useToast()
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState(false)
+  // A status change is confirmed first (audit 2026-11-24: nothing changes by accident).
+  const [pendingStatus, setPendingStatus] = useState<CycleStatus | null>(null)
   const update = useMutation({
     mutationFn: (status_code: CycleStatus) => ds.updateCycle(code, cycle.id, { status_code }),
+    onSettled: () => setPendingStatus(null),
     onSuccess: async (updated) => {
       await queryClient.invalidateQueries({ queryKey: ['cycles', code] })
       toast.show(t('pages.cycles.updated', { code: updated.cycle_code }))
     },
-    onError: (error) => toast.show(apiErrorText(t, error)),
+    onError: (error) => toast.show(apiErrorText(t, error), 'error'),
   })
   const period =
     cycle.starts_on || cycle.ends_on
@@ -356,13 +360,29 @@ function CycleCard({ code, cycle, canEdit }: { code: string; cycle: CycleDto; ca
               required
               value={cycle.status_code}
               disabled={update.isPending}
-              onChange={(e) => update.mutate(e.target.value as CycleStatus)}
+              onChange={(e) => {
+                const next = e.target.value as CycleStatus
+                if (next !== cycle.status_code) setPendingStatus(next)
+              }}
               options={CYCLE_STATUSES.map((s) => ({
                 value: s,
                 label: t(`codes.cycleStatus.${s}`),
               }))}
             />
           </div>
+          <ConfirmDialog
+            open={pendingStatus !== null}
+            title={t('pages.cycles.statusConfirmTitle', {
+              code: cycle.cycle_code,
+              status: pendingStatus ? t(`codes.cycleStatus.${pendingStatus}`) : '',
+            })}
+            body={t('pages.cycles.statusConfirmBody')}
+            confirmLabel={t('pages.cycles.statusConfirm')}
+            tone="primary"
+            busy={update.isPending}
+            onConfirm={() => pendingStatus && update.mutate(pendingStatus)}
+            onCancel={() => setPendingStatus(null)}
+          />
           <Button
             variant="secondary"
             icon={Pencil}

@@ -2,6 +2,25 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.19.0] - 2026-11-24
+
+Perombakan tahap 6: **perapian temuan audit** dan laporan audit (`docs/audit/2026-11-24-audit-menyeluruh.md`).
+
+### Diubah
+
+- Pesan gagal kini selalu tampil **merah** (sebelumnya 11 tempat tampil hijau seperti sukses).
+- Mengubah **status fase** meminta konfirmasi lebih dulu.
+- **Pengumuman situs** tampil di semua halaman: aplikasi, halaman publik, dan layar meja.
+- Setiap halaman memberi nama pada **tab browser**, mis. "Masalah · TestBoard PASKER ID". Judul halaman memakai warna navy Kemnaker.
+- Layar memuat menampilkan logo dan "Memuat halaman...".
+- Alamat yang tidak ada kini menampilkan halaman **"tidak ditemukan"** di bingkai yang sesuai (pengunjung tidak lagi dibawa ke halaman masuk).
+- Layar meja: kode skenario dikecilkan di bawah judul, dan "Dicoba sebagai" menjadi "Anda berperan sebagai".
+- Kata-kata teknis yang tersisa diganti: contoh kode fase (FASE-1), keterangan unggah bukti, "Dikecilkan tanpa mengurangi ketajaman", "Sudah diperiksa, bebas virus".
+
+### Diperbaiki
+
+- Formulir ganti kata sandi menyebut minimal 12 karakter, padahal aturannya 8.
+
 ## [0.18.0] - 2026-11-24
 
 Perombakan tahap 5: **bantuan di mana-mana**.

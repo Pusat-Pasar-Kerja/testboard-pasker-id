@@ -1,7 +1,8 @@
 import { ChevronRight } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { usePublicSettings } from '../../hooks/queries'
 
 export interface Crumb {
   label: string
@@ -21,6 +22,11 @@ export function PageHeader({
   badges?: ReactNode
   actions?: ReactNode
 }) {
+  // Each page names the browser tab: "Masalah · TestBoard PASKER ID" (audit 2026-11-24).
+  const siteName = usePublicSettings().data?.['site.name'] ?? 'TestBoard PASKER ID'
+  useEffect(() => {
+    if (typeof title === 'string') document.title = `${title} · ${siteName}`
+  }, [title, siteName])
   const { t } = useTranslation()
   return (
     <header className="mb-6 space-y-3">
@@ -44,7 +50,7 @@ export function PageHeader({
       )}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight break-words">{title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight break-words text-brand-800">{title}</h1>
           {badges && <div className="flex flex-wrap items-center gap-2">{badges}</div>}
           {subtitle && <p className="max-w-3xl text-sm text-ink-muted">{subtitle}</p>}
         </div>

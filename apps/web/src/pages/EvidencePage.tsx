@@ -224,7 +224,7 @@ export function EvidencePage() {
     },
     onError: (error) => {
       setPendingDelete(null)
-      toast.show(apiErrorText(t, error))
+      toast.show(apiErrorText(t, error), 'error')
     },
   })
 

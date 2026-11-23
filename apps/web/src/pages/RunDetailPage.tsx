@@ -116,7 +116,7 @@ function RunStatusActions({ code, run }: { code: string; run: TestRunDetail }) {
     },
     onError: (error) => {
       setPending(null)
-      toast.show(apiErrorText(t, error))
+      toast.show(apiErrorText(t, error), 'error')
     },
   })
 
@@ -355,7 +355,7 @@ function BulkBar({
       )
       onDone()
     },
-    onError: (error) => toast.show(apiErrorText(t, error)),
+    onError: (error) => toast.show(apiErrorText(t, error), 'error'),
   })
 
   const remove = useMutation({
@@ -371,7 +371,7 @@ function BulkBar({
     onError: async (error) => {
       setConfirmRemove(false)
       await invalidateRunData(queryClient, code, run.id)
-      toast.show(apiErrorText(t, error))
+      toast.show(apiErrorText(t, error), 'error')
     },
   })
 
