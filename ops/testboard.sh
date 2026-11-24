@@ -510,7 +510,9 @@ build_all() {
   say "Build web untuk ${BASE_PATH}"
   local web="$APP_DIR/apps/web"
   rm -rf "$web/dist.next"
+  # VITE_SITE_URL: the full address for link previews (WhatsApp needs https://...).
   (cd "$APP_DIR" && VITE_BASE_PATH="$BASE_PATH" VITE_API_BASE_URL="${BASE_PATH}api/v1" VITE_DEMO_MODE=false \
+    VITE_SITE_URL="$PUBLIC_URL" \
     npm run build -w @testboard/web -- --outDir dist.next --emptyOutDir >/dev/null)
   [ -f "$web/dist.next/index.html" ] && [ -f "$web/dist.next/.htaccess" ] || die "Hasil build web tidak lengkap"
   # Switch the files Apache serves in one rename (the old build stays as dist.prev).
@@ -669,10 +671,17 @@ cmd_smoke() {
 
   # TB-OPS-001: page, deep link, API through Apache, no folder listing.
   check_app() { # check_app LABEL BASE_URL [extra curl args...]
-    local label="$1" base="$2" body code
+    local label="$1" base="$2" body code loc
     shift 2
     body="$(curl -s --max-time 15 "$@" "$base" 2>/dev/null)" || true
     if grep -q 'id="root"' <<<"$body"; then ok "Halaman utama tampil ($label)"; else bad "Halaman utama tidak tampil ($label)"; fails=$((fails + 1)); fi
+    # Link preview (WhatsApp and others): the card in the page, its picture, and the address
+    # without the final slash going straight to https (no http:// detour).
+    if grep -q 'property="og:image" content="https://' <<<"$body"; then ok "Pratinjau tautan WhatsApp ada ($label)"; else bad "Pratinjau tautan tidak ada ($label)"; fails=$((fails + 1)); fi
+    code="$(status_of "$@" "${base}og-image.png")"
+    if [ "$code" = "200" ]; then ok "Gambar pratinjau tampil ($label)"; else bad "Gambar pratinjau -> $code ($label)"; fails=$((fails + 1)); fi
+    loc="$(curl -s -o /dev/null -w '%{redirect_url}' --max-time 15 "$@" "${base%/}" 2>/dev/null)" || true
+    if [[ "$loc" == https://*/ ]]; then ok "Alamat tanpa / di akhir langsung ke https ($label)"; else bad "Alamat tanpa / di akhir -> ${loc:-tidak dialihkan} ($label)"; fails=$((fails + 1)); fi
     code="$(status_of "$@" "${base}projects/CONTOH/runs/1")"
     if [ "$code" = "200" ]; then ok "Deep link dimuat ulang tanpa 404 ($label)"; else bad "Deep link -> $code ($label)"; fails=$((fails + 1)); fi
     body="$(curl -s --max-time 15 "$@" "${base}api/v1/health" 2>/dev/null)" || true

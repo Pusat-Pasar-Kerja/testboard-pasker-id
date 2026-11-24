@@ -1,7 +1,25 @@
 /// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defaultClientConditions, defineConfig, loadEnv } from 'vite'
+import { defaultClientConditions, defineConfig, loadEnv, type Plugin } from 'vite'
+
+/** The live address; used when the build is not told its own (local builds, demo). */
+const LIVE_URL = 'https://paskerid.kemnaker.go.id/testboard/'
+
+/**
+ * Link previews (WhatsApp, Telegram, Facebook, LinkedIn, X) only show the picture when its
+ * address is complete (https://...). index.html writes %SITE_URL%; the server's deploy
+ * script passes its PUBLIC_URL as VITE_SITE_URL, anything else falls back to the live site.
+ */
+function sharePreview(siteUrl: string | undefined): Plugin {
+  const given = siteUrl?.trim() ?? ''
+  const absolute = given.startsWith('https://') || given.startsWith('http://')
+  const url = absolute ? (given.endsWith('/') ? given : `${given}/`) : LIVE_URL
+  return {
+    name: 'testboard-share-preview',
+    transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', url),
+  }
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -11,7 +29,7 @@ export default defineConfig(({ mode }) => {
   return {
     // '/' for a dedicated subdomain, '/testboard/' for a subpath deploy (DEC-16, still open).
     base: env.VITE_BASE_PATH || '/',
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), sharePreview(env.VITE_SITE_URL)],
     resolve: {
       // Consume @testboard/shared straight from TypeScript source.
       conditions: ['source', ...defaultClientConditions],

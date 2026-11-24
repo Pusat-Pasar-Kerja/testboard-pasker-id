@@ -55,6 +55,17 @@ Satu kepala dan satu kaki halaman untuk seluruh situs: halaman publik, aplikasi,
 - **Ikon Aksesibilitas** adalah simbol akses universal: sosok manusia dengan tangan terbuka di dalam lingkaran (`CirclePersonArmsSpread`), **bukan** ikon kursi roda (keputusan pemilik). Bentuk lingkarannya sama dengan ikon Bantuan di sebelahnya.
 - **Kaki** (`SiteFooter`): navy Kemnaker, semua di tengah: logo putih, tautan Beranda publik · Panduan (· Masuk bila belum masuk), dan "© tahun Pusat Pasar Kerja · Kementerian Ketenagakerjaan Republik Indonesia".
 
+## Pratinjau tautan (WhatsApp dan lainnya)
+
+Setiap tautan TestBoard yang dibagikan (WhatsApp, Telegram, Facebook, LinkedIn, X) tampil sebagai kartu yang sama: judul "TestBoard PASKER ID · Uji Penerimaan Pengguna (UAT)", deskripsi singkat, dan gambar.
+
+- **Gambar**: [`apps/web/public/og-image.png`](../../apps/web/public/og-image.png), 1200 × 630, di bawah 300 KB (WhatsApp tidak memuat gambar yang besar). Latar navy dengan logo putih di tengah, sehingga potongan persegi pun tetap memuat logo utuh. Ikon layar utama ponsel: `apple-touch-icon.png` (180 × 180).
+- **Membuat ulang** setelah logo atau warna berubah: `npm run brand:share-image` (memakai Chrome atau Edge; gambar digambar dari `mark-geometry.ts` dan font Inter).
+- **Alamat gambar harus lengkap** (`https://...`). Saat build di server, `ops/testboard.sh` mengisinya dari `PUBLIC_URL` di pengaturan deploy; tanpa itu dipakai alamat live.
+- **`/testboard` tanpa garis miring** diarahkan langsung ke `https://.../testboard/` dalam satu langkah (`.htaccess` di akar repo). Dulu Apache mengarahkannya lewat `http://` lebih dulu, dan ponsel yang membuat pratinjau berhenti di situ.
+- `ops/testboard.sh smoke` memeriksa ketiganya setelah setiap deploy.
+- WhatsApp sempat menyimpan pratinjau lama. Bila kartu belum muncul, kirim ulang tautannya, atau tambahkan `?1` di belakangnya.
+
 ## Hal yang perlu dikonfirmasi pemilik brand
 
 - Teks endorsement "oleh PASKER ID" (alternatif: "oleh Kemnaker").

@@ -2,6 +2,20 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.25.0] - 2026-11-24
+
+Tautan TestBoard yang dibagikan (WhatsApp, Telegram, Facebook, LinkedIn, X) sekarang tampil dengan gambar dan keterangan. Tanpa migration.
+
+### Ditambahkan
+
+- **Pratinjau tautan** di setiap halaman: judul, deskripsi singkat, dan gambar 1200 × 630 bergaya TestBoard (logo, "Uji layanan bersama pengguna sebelum dipakai masyarakat", Pusat Pasar Kerja · Kementerian Ketenagakerjaan). Juga ikon untuk layar utama ponsel.
+- `npm run brand:share-image` membuat ulang gambar itu dari logo dan font Inter.
+- Uji setelah deploy (`ops/testboard.sh smoke`) kini juga memeriksa kartu pratinjau, gambarnya, dan pengalihan ke https.
+
+### Diperbaiki
+
+- **`/testboard` tanpa garis miring di akhir** dulu dialihkan lewat `http://` sebelum sampai ke `https://`, dan ponsel yang membuat pratinjau WhatsApp berhenti di situ. Sekarang langsung ke `https://.../testboard/` dalam satu langkah.
+
 ## [0.24.1] - 2026-11-24
 
 ### Diubah

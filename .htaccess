@@ -33,6 +33,16 @@ ServerSignature Off
   # Hidden files and folders anywhere in the path (.git, .env, .private-storage, ...).
   RewriteRule (^|/)\. - [R=404,L]
 
+  # A folder without the final slash (above all /testboard itself) -> https://<domain>/...
+  # in ONE step. Apache's own slash redirect does not know the visitor came over https
+  # (the firewall in front ends https), so it sent people to http:// first; phones making
+  # a link preview (WhatsApp) give up on that detour. AllowNoSlash lets these rules see
+  # such requests at all (mod_rewrite skips them by default).
+  RewriteOptions AllowNoSlash
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteCond %{REQUEST_URI} !/$
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI}/ [R=301,L]
+
   # API -> Node service on loopback. Requires mod_proxy + mod_proxy_http.
   # API_PORT in the API settings must stay 8787.
   RewriteRule ^api/(.*)$ http://127.0.0.1:8787/api/$1 [P,L]

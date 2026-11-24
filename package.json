@@ -1,6 +1,6 @@
 {
   "name": "testboard-pasker-id",
-  "version": "0.24.1",
+  "version": "0.25.0",
   "private": true,
   "description": "TestBoard PASKER ID - multi-project UAT, test execution, evidence and bug tracking web app",
   "type": "module",
@@ -23,6 +23,7 @@
     "db:status": "node scripts/local-db.mjs status",
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed": "npm run db:seed -w @testboard/api",
+    "brand:share-image": "node scripts/make-share-image.mjs",
     "build": "npm run build -w @testboard/shared && npm run build -w @testboard/api && npm run build -w @testboard/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
