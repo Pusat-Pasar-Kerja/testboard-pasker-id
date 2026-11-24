@@ -1,5 +1,5 @@
 import { Menu, Search, Settings } from 'lucide-react'
-import { useCallback, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router'
 import { AccessibilityMenu } from '../components/a11y/AccessibilityMenu'
@@ -11,6 +11,7 @@ import { projectPath } from '../hooks/route-state'
 import { HEADER_FIELD, HEADER_ICON } from './header-styles'
 import { MobileDrawer } from './MobileDrawer'
 import { ProjectSwitcher } from './ProjectSwitcher'
+import { rememberPage } from './return-path'
 import { SidebarNav } from './SidebarNav'
 import { SiteFooter } from './SiteFooter'
 import { TopBar } from './TopBar'
@@ -93,7 +94,9 @@ function AdminLink() {
 export function AppShell({ children }: { children?: ReactNode }) {
   const { t } = useTranslation()
   const { projectCode } = useParams()
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
+  // "Buka TestBoard" on the guide and the public pages comes back to this very page.
+  useEffect(() => rememberPage('app', pathname + search), [pathname, search])
   const siteName = usePublicSettings().data?.['site.name'] ?? 'TestBoard PASKER ID'
   const [menuOpen, setMenuOpen] = useState(false)
   // Every drawer link calls closeMenu, so navigation from the drawer always closes it.
@@ -169,7 +172,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
               {children ?? <Outlet />}
             </div>
           </main>
-          <SiteFooter />
+          <SiteFooter frame="app" />
         </div>
       </div>
 

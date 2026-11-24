@@ -6,19 +6,25 @@ import { AnnouncementBanner } from '../components/AnnouncementBanner'
 import { AccessibilityMenu } from '../components/a11y/AccessibilityMenu'
 import { useCurrentUser, usePublicSettings } from '../hooks/queries'
 import { HEADER_PILL } from './header-styles'
+import { lastPage } from './return-path'
 import { SiteFooter } from './SiteFooter'
 import { TopBar } from './TopBar'
 
-/** The account slot of the public header: sign in, or go back to where this device is signed in. */
+/**
+ * The account slot of the public header: sign in, or go back to the page this tab was
+ * working on (the application or the table screen).
+ */
 function HeaderAction() {
   const { t } = useTranslation()
   const me = useCurrentUser()
+  // Until we know who this is, keep the place empty: never flash "Masuk" to a signed-in user.
+  if (me.isPending) return <span aria-hidden="true" className="inline-block h-11 w-28" />
   const kind = me.data?.account_kind
   const target = !me.data
     ? { to: '/masuk', label: t('public.signIn'), icon: LogIn }
     : kind === 'TABLE'
-      ? { to: '/meja/kerja', label: t('public.backToTable'), icon: QrCode }
-      : { to: '/projects', label: t('public.backToApp'), icon: ArrowRight }
+      ? { to: lastPage('table', '/meja/kerja'), label: t('public.backToTable'), icon: QrCode }
+      : { to: lastPage('app', '/projects'), label: t('public.backToApp'), icon: ArrowRight }
   const Icon = target.icon
   return (
     <Link to={target.to} className={`inline-flex ${HEADER_PILL}`}>
@@ -81,7 +87,7 @@ export function PublicSiteLayout({
       <main id="isi" className={`mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-10 ${width}`}>
         {children}
       </main>
-      <SiteFooter />
+      <SiteFooter width={width} />
     </div>
   )
 }

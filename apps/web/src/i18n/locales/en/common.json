@@ -1605,7 +1605,7 @@
     "nav": "Main menu",
     "guide": "Guide",
     "tableSignIn": "Sign in with a table card",
-    "footer": "Pusat Pasar Kerja · Ministry of Manpower of the Republic of Indonesia",
+    "footer": "Pusat Pasar Kerja · Ministry of Manpower",
     "period": "{{from}} - {{to}}",
     "eyebrow": "User acceptance testing (UAT) together",
     "title": "Together we make sure Labour Market services are ready for the public",
@@ -2230,7 +2230,7 @@
   "guide": {
     "eyebrow": "User guide",
     "title": "TestBoard guide",
-    "subtitle": "Everything you need to use TestBoard: the flow, how to sign in, and what each person does. Choose a part in the contents.",
+    "subtitle": "Everything you need to use TestBoard. Start from your role, or pick a part from the contents.",
     "toc": "Contents",
     "faqTitle": "Frequently asked questions",
     "help": "Still unsure? Ask your project Admin.",
@@ -2606,6 +2606,28 @@
           "body": "The team fixes it and changes the status; UAT users check again until it is solved."
         }
       ]
+    },
+    "backToContents": "Back to contents",
+    "start": {
+      "title": "Start from your role",
+      "cards": {
+        "peserta": {
+          "title": "Participant at a table",
+          "body": "Sign in with the table card, try the feature, then press As expected, Not as expected or Could not try."
+        },
+        "penguji": {
+          "title": "UAT user",
+          "body": "Work through the scenarios of the UATs you were added to, then report the problems you find."
+        },
+        "admin": {
+          "title": "Admin",
+          "body": "Prepare phases, feature folders, UATs, participants and groups, then follow the results."
+        },
+        "super-admin": {
+          "title": "Super Admin",
+          "body": "Manage projects, users, account requests and site settings."
+        }
+      }
     }
   },
   "signIn": {
@@ -3474,6 +3496,7 @@
     }
   },
   "footer": {
-    "publicHome": "Public home"
+    "publicHome": "Public home",
+    "version": "Version {{version}}"
   }
 }

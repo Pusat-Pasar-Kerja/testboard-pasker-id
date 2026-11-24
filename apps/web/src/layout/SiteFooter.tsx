@@ -1,49 +1,53 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { TestBoardLogo } from '../components/brand/TestBoardLogo'
-import { useCurrentUser } from '../hooks/queries'
 
 /**
- * The one footer of the whole website (owner, 2026-11-24: "header dan footer itu sama semua
- * dan simetris"): Kemnaker navy with everything centred - the logo, the links people look
- * for at the bottom of a page, and who runs the site. The same on the public pages, in the
- * application and on the table screen.
+ * The one footer of the whole website (owner, 2026-11-24): a slim white bar that mirrors
+ * the header - who runs the site on the left, a few links and the release number on the
+ * right. In the application it closes the page column next to the left panel (same white,
+ * same thin lines), so panel, header and footer frame the work area; on the public pages
+ * and the table screen it lines up with the header's column.
  */
-export function SiteFooter() {
+export function SiteFooter({
+  frame = 'site',
+  width = 'max-w-6xl',
+}: {
+  /** "app": inside the page column next to the left panel; "site": a centred column. */
+  frame?: 'app' | 'site'
+  /** Width of the centred column (site frame), the same as the header's. */
+  width?: string
+}) {
   const { t } = useTranslation()
-  const me = useCurrentUser()
-  const links = [
-    { to: '/publik', label: t('footer.publicHome') },
-    { to: '/panduan', label: t('public.guide') },
-    // Only once we know nobody is signed in on this device (no flicker while checking).
-    ...(me.data === null ? [{ to: '/masuk', label: t('public.signIn') }] : []),
-  ]
+  const isApp = frame === 'app'
+  const link =
+    'inline-flex min-h-8 items-center rounded-md px-1.5 text-ink-muted hover:text-brand-700 hover:underline'
   return (
-    <footer className="bg-brand-800 text-white">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 py-6 text-center sm:px-6">
-        <TestBoardLogo size="sm" tone="light" />
-        <nav aria-label={t('public.footerNav')}>
-          <ul className="flex flex-wrap items-center justify-center text-sm">
-            {links.map((link, index) => (
-              <li key={link.to} className="flex items-center">
-                {index > 0 && (
-                  <span aria-hidden="true" className="px-1 text-white/40">
-                    ·
-                  </span>
-                )}
-                <Link
-                  to={link.to}
-                  className="inline-flex min-h-10 items-center rounded-md px-2 text-white/90 hover:text-white hover:underline"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <p className="text-xs text-white/70">
+    <footer className="border-t border-line bg-surface">
+      <div
+        className={`flex flex-col items-center gap-1 py-3 text-center text-xs text-ink-muted sm:flex-row sm:justify-between sm:gap-4 sm:py-2 sm:text-left ${
+          isApp ? 'px-4 sm:px-6 lg:px-8' : `mx-auto ${width} px-4 sm:px-6`
+        }`}
+      >
+        <p>
           © {new Date().getFullYear()} {t('public.footer')}
         </p>
+        <nav aria-label={t('public.footerNav')}>
+          <ul className="flex flex-wrap items-center justify-center gap-x-2 whitespace-nowrap sm:flex-nowrap">
+            <li>
+              <Link to="/panduan" className={link}>
+                {t('public.guide')}
+              </Link>
+            </li>
+            <li aria-hidden="true">·</li>
+            <li>
+              <Link to="/publik" className={link}>
+                {t('footer.publicHome')}
+              </Link>
+            </li>
+            <li aria-hidden="true">·</li>
+            <li className="px-1.5">{t('footer.version', { version: __APP_VERSION__ })}</li>
+          </ul>
+        </nav>
       </div>
     </footer>
   )

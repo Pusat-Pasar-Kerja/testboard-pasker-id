@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CircleHelp, LogOut, QrCode } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate, Outlet, useNavigate } from 'react-router'
+import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router'
 import { AnnouncementBanner } from '../components/AnnouncementBanner'
 import { AccessibilityMenu } from '../components/a11y/AccessibilityMenu'
 import { ConfirmDialog } from '../components/ui/Dialog'
@@ -13,6 +13,7 @@ import { ApiClientError } from '../services/api-client'
 import { useDataSource } from '../services/use-data-source'
 import { HEADER_ICON, HEADER_PILL_QUIET } from './header-styles'
 import { OutboxProvider } from './outbox-context'
+import { rememberPage } from './return-path'
 import { SiteFooter } from './SiteFooter'
 import { SessionContext } from './table-session'
 import { TopBar } from './TopBar'
@@ -55,6 +56,9 @@ export function EasyLayout({ children }: { children?: ReactNode }) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [confirmLeave, setConfirmLeave] = useState(false)
+  const { pathname, search } = useLocation()
+  // "Kembali ke meja" on the guide comes back to the very screen the table was on.
+  useEffect(() => rememberPage('table', pathname + search), [pathname, search])
   const leave = useMutation({
     mutationFn: () => ds.logout(),
     onSettled: () => {
@@ -135,7 +139,7 @@ export function EasyLayout({ children }: { children?: ReactNode }) {
             {children ?? <Outlet />}
           </main>
         </OutboxProvider>
-        <SiteFooter />
+        <SiteFooter width="max-w-4xl" />
         <ConfirmDialog
           open={confirmLeave}
           title={t('easy.leaveTitle', { name: data.table.name })}

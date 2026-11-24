@@ -2,6 +2,29 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [1.0.0] - 2026-11-24
+
+**Versi 1.** Ditetapkan oleh pemilik: TestBoard PASKER ID sudah live di `paskerid.kemnaker.go.id/testboard` dan dipakai untuk UAT bersama. Isi versi 1, singkatnya:
+
+- proyek tersusun seperti Google Drive (Fase › Fitur › Skenario);
+- UAT dengan peserta, kelompok bernomor meja, dan penugasan per fitur;
+- Mode Mudah lewat kartu meja (QR);
+- Bug Reporting dengan laporan masyarakat yang ditinjau dulu;
+- halaman publik dengan saklar ON/OFF;
+- laporan untuk pimpinan;
+- tiga jenis pengguna (Super Admin, Admin, Pengguna);
+- Aksesibilitas (bahasa ID/EN, ukuran teks, tema);
+- pratinjau tautan.
+
+### Diubah
+
+- **Kaki halaman ramping**: satu baris putih seperti kepala halaman (© Pusat Pasar Kerja · Kementerian Ketenagakerjaan, lalu Panduan · Beranda publik · nomor versi). Di aplikasi ia menutup kolom halaman tepat di samping panel kiri, sehingga panel, kepala, dan kaki membingkai area kerja. Isinya sejajar dengan kepala halaman di semua halaman.
+- **Panduan menjadi halaman baca**: tanpa panel kerja di sampingnya, satu kolom di tengah, dengan kartu "Mulai dari peran Anda" (Peserta di meja, Pengguna UAT, Admin, Super Admin), daftar isi berbentuk tombol, dan tombol "Ke daftar isi" saat halaman digulir.
+- **"Buka TestBoard" dan "Kembali ke meja"** di Panduan dan halaman publik kini kembali ke halaman yang terakhir dikerjakan, bukan ke halaman awal.
+- Kepala halaman publik tidak lagi sempat menampilkan "Masuk" kepada orang yang sudah masuk.
+- Nomor versi tampil di kaki halaman.
+- Mulai versi 1: patch untuk perbaikan, minor untuk fitur baru, major untuk perubahan yang tidak cocok dengan versi sebelumnya (ADR 0001).
+
 ## [0.25.0] - 2026-11-24
 
 Tautan TestBoard yang dibagikan (WhatsApp, Telegram, Facebook, LinkedIn, X) sekarang tampil dengan gambar dan keterangan. Tanpa migration.

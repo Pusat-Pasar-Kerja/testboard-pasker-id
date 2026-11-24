@@ -20,6 +20,15 @@
    - `v1.0.0` hanya saat release gate produksi (doc 13 + security gate doc 09) lulus.
    - Versi di semua `package.json` workspace disamakan dengan tag (`npm version X.Y.Z --workspaces --include-workspace-root --no-git-tag-version`).
 
+## Pembaruan 24 November 2026: Versi 1
+
+- Pemilik proyek menetapkan **`v1.0.0`**. Situs sudah live di VPS dan dipakai untuk UAT bersama. Deploy, migrasi, uji `smoke`, Super Admin pertama, serta backup dengan uji restore sudah dijalankan di VPS sejak 20 November 2026. Kolom "VPS" di `docs/deploy/production-checklist.md` belum dicentang di repo.
+- Mulai `v1.0.0`, setiap commit yang di-push tetap diberi tag:
+  - **patch** untuk perbaikan (`v1.0.1`);
+  - **minor** untuk fitur baru atau milestone (`v1.1.0`);
+  - **major** hanya untuk perubahan yang tidak cocok dengan versi sebelumnya (`v2.0.0`).
+- Nomor versi tampil di kaki halaman (`__APP_VERSION__` dari `apps/web/package.json`) dan di `GET /api/v1/health`.
+
 ## Konsekuensi
 
 - Default branch GitHub menjadi `develop` sampai `main` dibuat pada rilis pertama.

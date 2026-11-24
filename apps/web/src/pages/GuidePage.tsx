@@ -1,4 +1,5 @@
 import {
+  ArrowUp,
   BookOpen,
   Bug,
   CalendarRange,
@@ -20,7 +21,7 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react'
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router'
 import {
@@ -28,9 +29,6 @@ import {
   TableGroupIllustration,
 } from '../components/illustrations/GuideIllustrations'
 import { WelcomeIllustration } from '../components/illustrations/WelcomeIllustration'
-import { useCurrentUser } from '../hooks/queries'
-import { AppShell } from '../layout/AppShell'
-import { FirstLoad } from '../layout/FirstLoad'
 import { PublicSiteLayout } from '../layout/PublicSiteLayout'
 
 type Item = { title: string; body: string }
@@ -72,6 +70,36 @@ const SECTIONS: { id: SectionId; icon: LucideIcon }[] = [
   { id: 'istilah', icon: ListChecks },
   { id: 'privasi', icon: LockKeyhole },
 ]
+
+/** "Mulai dari peran Anda": each kind of reader jumps straight to their own part. */
+const START: { id: 'peserta' | 'penguji' | 'admin' | 'super-admin'; icon: LucideIcon }[] = [
+  { id: 'peserta', icon: QrCode },
+  { id: 'penguji', icon: FlaskConical },
+  { id: 'admin', icon: Presentation },
+  { id: 'super-admin', icon: UserCog },
+]
+
+/** A long page: after scrolling, one tap leads back to the contents. */
+function BackToContents() {
+  const { t } = useTranslation()
+  const [show, setShow] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > 900)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  if (!show) return null
+  return (
+    <a
+      href="#daftar-isi"
+      className="fixed right-4 bottom-4 z-20 inline-flex h-12 animate-pop-in items-center gap-2 rounded-full bg-brand-700 px-5 text-sm font-semibold text-white shadow-lg hover:bg-brand-800 sm:right-6 sm:bottom-6"
+    >
+      <ArrowUp aria-hidden="true" className="size-4" />
+      {t('guide.backToContents')}
+    </a>
+  )
+}
 
 function Section({
   id,
@@ -152,20 +180,12 @@ function Faq({ items }: { items: { q: string; a: string }[] }) {
 }
 
 /**
- * "Panduan" opens in the frame the reader is already in: inside the app (sidebar and all)
- * for signed-in users, in the public frame for visitors and table participants, so the
- * screen never suddenly looks like another website (owner feedback 2026-11-24).
+ * "Panduan" is one reading page for everyone (owner, 2026-11-24: the guide next to the
+ * work panel looked odd): the same header and footer as the rest of the website, no work
+ * panel, one centred column. Signed-in readers get back with "Buka TestBoard" in the
+ * header (or the browser's back button), table participants with "Kembali ke meja".
  */
 export function GuidePage() {
-  const me = useCurrentUser()
-  if (me.isPending) return <FirstLoad />
-  if (me.data && me.data.account_kind !== 'TABLE') {
-    return (
-      <AppShell>
-        <GuideContent />
-      </AppShell>
-    )
-  }
   return (
     <PublicSiteLayout>
       <GuideContent />
@@ -187,288 +207,315 @@ function GuideContent() {
   const list = <T,>(key: string) => tx(key, { returnObjects: true }) as T[]
 
   return (
-    <>
-      <header className="max-w-3xl">
+    <div className="mx-auto max-w-4xl">
+      <header className="text-center">
         <p className="text-sm font-semibold tracking-wide text-teal-700 uppercase">
           {t('guide.eyebrow')}
         </p>
         <h1 className="mt-1 text-4xl font-bold text-brand-800">{t('guide.title')}</h1>
-        <p className="mt-3 text-lg text-ink-muted">{t('guide.subtitle')}</p>
+        <p className="mx-auto mt-3 max-w-2xl text-lg text-ink-muted">{t('guide.subtitle')}</p>
       </header>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[16rem_minmax(0,1fr)]">
-        <nav aria-label={t('guide.toc')} className="lg:sticky lg:top-24 lg:self-start">
-          <p className="mb-2 text-sm font-semibold text-ink-muted">{t('guide.toc')}</p>
-          <ul className="space-y-0.5">
-            {SECTIONS.map((section) => (
-              <li key={section.id}>
-                <a
-                  href={`#${section.id}`}
-                  className="flex min-h-11 items-center gap-2 rounded-lg px-3 font-medium hover:bg-brand-50"
-                >
-                  <section.icon aria-hidden="true" className="size-5 text-brand-700" />
-                  {t(`guide.sections.${section.id}`)}
-                </a>
+      <section aria-labelledby="mulai-peran" className="mt-8">
+        <h2
+          id="mulai-peran"
+          className="text-center text-sm font-semibold tracking-wide text-ink-muted uppercase"
+        >
+          {t('guide.start.title')}
+        </h2>
+        <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {START.map((card) => (
+            <li key={card.id}>
+              <a
+                href={`#${card.id}`}
+                className="flex h-full flex-col gap-2 rounded-2xl card-pasker p-4 hover:ring-2 hover:ring-brand-200"
+              >
+                <span className="inline-flex size-11 items-center justify-center rounded-xl chip-gradient">
+                  <card.icon aria-hidden="true" className="size-6" />
+                </span>
+                <span className="text-lg font-semibold text-brand-800">
+                  {t(`guide.start.cards.${card.id}.title`)}
+                </span>
+                <span className="text-sm text-ink-muted">
+                  {t(`guide.start.cards.${card.id}.body`)}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <nav
+        id="daftar-isi"
+        aria-label={t('guide.toc')}
+        className="mt-6 scroll-mt-24 rounded-2xl border border-line bg-surface p-4"
+      >
+        <p className="mb-3 text-center text-sm font-semibold text-ink-muted">{t('guide.toc')}</p>
+        <ul className="flex flex-wrap justify-center gap-2">
+          {SECTIONS.map((section) => (
+            <li key={section.id}>
+              <a
+                href={`#${section.id}`}
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line px-4 text-sm font-medium hover:bg-brand-50"
+              >
+                <section.icon aria-hidden="true" className="size-4 text-brand-700" />
+                {t(`guide.sections.${section.id}`)}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div className="mt-8 space-y-8">
+        <Section
+          id="cara-kerja"
+          icon={BookOpen}
+          title={t('guide.sections.cara-kerja')}
+          intro={t('guide.flow.intro')}
+        >
+          <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {FLOW.map((step, index) => (
+              <li key={step.key} className="rounded-2xl border border-line bg-surface p-4">
+                <span className="flex items-center gap-3">
+                  <span className="inline-flex size-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+                    <step.icon aria-hidden="true" className="size-5" />
+                  </span>
+                  <span className="text-sm font-semibold text-ink-muted">
+                    {t('guide.stepNumber', { n: index + 1 })}
+                  </span>
+                </span>
+                <p className="mt-2 text-lg font-semibold">{t(`guide.flow.${step.key}.title`)}</p>
+                <p className="text-sm font-medium text-teal-700">
+                  {t(`guide.flow.${step.key}.menu`)}
+                </p>
+                <p className="mt-1 text-ink-muted">{t(`guide.flow.${step.key}.body`)}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-5 rounded-xl bg-info-soft p-4 text-info">{t('guide.flow.example')}</p>
+        </Section>
+
+        <Section
+          id="masuk"
+          icon={LogIn}
+          title={t('guide.sections.masuk')}
+          intro={t('guide.signIn.intro')}
+          aside={<WelcomeIllustration className="w-full" />}
+        >
+          <div className="grid gap-6 xl:grid-cols-2">
+            <div>
+              <h3 className="mb-3 flex items-center gap-2 text-xl font-semibold">
+                <QrCode aria-hidden="true" className="size-5 text-brand-700" />
+                {t('guide.signIn.tableTitle')}
+              </h3>
+              <Steps items={list<Item>('guide.signIn.tableSteps')} />
+            </div>
+            <div>
+              <h3 className="mb-3 flex items-center gap-2 text-xl font-semibold">
+                <Users aria-hidden="true" className="size-5 text-brand-700" />
+                {t('guide.signIn.userTitle')}
+              </h3>
+              <Steps items={list<Item>('guide.signIn.userSteps')} />
+            </div>
+          </div>
+          <div className="mt-6 rounded-2xl bg-pastel-sky p-5 text-pastel-sky-ink">
+            <h3 className="text-lg font-semibold">{t('guide.signIn.activationTitle')}</h3>
+            <p className="mt-1">{t('guide.signIn.activationBody')}</p>
+            <ul className="mt-3 space-y-2">
+              {list<Item>('guide.signIn.activationSteps').map((item) => (
+                <li key={item.title}>
+                  <span className="font-semibold">{item.title}: </span>
+                  {item.body}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Link
+            to="/masuk"
+            className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand-700 px-5 font-semibold text-white hover:bg-brand-800"
+          >
+            <LogIn aria-hidden="true" className="size-5" />
+            {t('public.signIn')}
+          </Link>
+        </Section>
+
+        <Section
+          id="peserta"
+          icon={QrCode}
+          title={t('guide.sections.peserta')}
+          intro={t('guide.participant.intro')}
+          aside={<TableGroupIllustration className="w-full" />}
+        >
+          <Steps items={list<Item>('guide.participant.steps')} />
+          <div
+            className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3"
+            aria-label={t('guide.participant.buttons')}
+          >
+            <p className="flex min-h-20 items-center justify-center gap-2 rounded-2xl bg-success p-3 text-lg font-bold text-white">
+              <CircleCheckBig aria-hidden="true" className="size-6" />
+              {t('easy.result.PASSED')}
+            </p>
+            <p className="flex min-h-20 items-center justify-center gap-2 rounded-2xl bg-danger p-3 text-lg font-bold text-white">
+              <CircleX aria-hidden="true" className="size-6" />
+              {t('easy.result.FAILED')}
+            </p>
+            <p className="flex min-h-20 items-center justify-center gap-2 rounded-2xl bg-warning p-3 text-lg font-bold text-white">
+              <CircleSlash aria-hidden="true" className="size-6" />
+              {t('easy.result.BLOCKED')}
+            </p>
+          </div>
+          <ul className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+            <li>{t('guide.participant.passed')}</li>
+            <li>{t('guide.participant.failed')}</li>
+            <li>{t('guide.participant.blocked')}</li>
+          </ul>
+          <h3 className="mt-8 text-xl font-semibold">{t('guide.faqTitle')}</h3>
+          <div className="mt-3">
+            <Faq items={list<{ q: string; a: string }>('guide.participant.faq')} />
+          </div>
+        </Section>
+
+        <Section
+          id="penguji"
+          icon={FlaskConical}
+          title={t('guide.sections.penguji')}
+          intro={t('guide.tester.intro')}
+        >
+          <Steps items={list<Item>('guide.tester.steps')} />
+          <Link
+            to="/tugas"
+            className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand-700 px-5 font-semibold text-white hover:bg-brand-800"
+          >
+            <ClipboardCheck aria-hidden="true" className="size-5" />
+            {t('nav.myTasks')}
+          </Link>
+        </Section>
+
+        <Section
+          id="admin"
+          icon={Presentation}
+          title={t('guide.sections.admin')}
+          intro={t('guide.admin.intro')}
+        >
+          {/* Old links to the facilitator part land here. */}
+          <span id="fasilitator" className="block scroll-mt-24" />
+          <Steps items={list<Item>('guide.admin.steps')} />
+          <ul className="mt-6 space-y-2 rounded-2xl bg-pastel-butter p-5 text-pastel-butter-ink">
+            {list<string>('guide.admin.tips').map((tip) => (
+              <li key={tip} className="flex gap-2">
+                <Sparkles aria-hidden="true" className="mt-1 size-4 shrink-0" />
+                {tip}
               </li>
             ))}
           </ul>
-        </nav>
+        </Section>
 
-        <div className="space-y-8">
-          <Section
-            id="cara-kerja"
-            icon={BookOpen}
-            title={t('guide.sections.cara-kerja')}
-            intro={t('guide.flow.intro')}
-          >
-            <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {FLOW.map((step, index) => (
-                <li key={step.key} className="rounded-2xl border border-line bg-surface p-4">
-                  <span className="flex items-center gap-3">
-                    <span className="inline-flex size-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
-                      <step.icon aria-hidden="true" className="size-5" />
-                    </span>
-                    <span className="text-sm font-semibold text-ink-muted">
-                      {t('guide.stepNumber', { n: index + 1 })}
-                    </span>
-                  </span>
-                  <p className="mt-2 text-lg font-semibold">{t(`guide.flow.${step.key}.title`)}</p>
-                  <p className="text-sm font-medium text-teal-700">
-                    {t(`guide.flow.${step.key}.menu`)}
-                  </p>
-                  <p className="mt-1 text-ink-muted">{t(`guide.flow.${step.key}.body`)}</p>
-                </li>
-              ))}
-            </ol>
-            <p className="mt-5 rounded-xl bg-info-soft p-4 text-info">{t('guide.flow.example')}</p>
-          </Section>
+        <Section
+          id="bug-reporting"
+          icon={Bug}
+          title={t('guide.sections.bug-reporting')}
+          intro={t('guide.bugReporting.intro')}
+          aside={<ReportIllustration className="w-full" />}
+        >
+          {/* Old links to the Developer and Pemantau parts land here. */}
+          <span id="developer" className="block scroll-mt-24" />
+          <span id="pemantau" className="block scroll-mt-24" />
+          <Steps items={list<Item>('guide.bugReporting.steps')} />
+        </Section>
 
-          <Section
-            id="masuk"
-            icon={LogIn}
-            title={t('guide.sections.masuk')}
-            intro={t('guide.signIn.intro')}
-            aside={<WelcomeIllustration className="w-full" />}
-          >
-            <div className="grid gap-6 xl:grid-cols-2">
-              <div>
-                <h3 className="mb-3 flex items-center gap-2 text-xl font-semibold">
-                  <QrCode aria-hidden="true" className="size-5 text-brand-700" />
-                  {t('guide.signIn.tableTitle')}
-                </h3>
-                <Steps items={list<Item>('guide.signIn.tableSteps')} />
-              </div>
-              <div>
-                <h3 className="mb-3 flex items-center gap-2 text-xl font-semibold">
-                  <Users aria-hidden="true" className="size-5 text-brand-700" />
-                  {t('guide.signIn.userTitle')}
-                </h3>
-                <Steps items={list<Item>('guide.signIn.userSteps')} />
-              </div>
-            </div>
-            <div className="mt-6 rounded-2xl bg-pastel-sky p-5 text-pastel-sky-ink">
-              <h3 className="text-lg font-semibold">{t('guide.signIn.activationTitle')}</h3>
-              <p className="mt-1">{t('guide.signIn.activationBody')}</p>
-              <ul className="mt-3 space-y-2">
-                {list<Item>('guide.signIn.activationSteps').map((item) => (
-                  <li key={item.title}>
-                    <span className="font-semibold">{item.title}: </span>
-                    {item.body}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <Link
-              to="/masuk"
-              className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand-700 px-5 font-semibold text-white hover:bg-brand-800"
-            >
-              <LogIn aria-hidden="true" className="size-5" />
-              {t('public.signIn')}
-            </Link>
-          </Section>
-
-          <Section
-            id="peserta"
-            icon={QrCode}
-            title={t('guide.sections.peserta')}
-            intro={t('guide.participant.intro')}
-            aside={<TableGroupIllustration className="w-full" />}
-          >
-            <Steps items={list<Item>('guide.participant.steps')} />
-            <div
-              className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3"
-              aria-label={t('guide.participant.buttons')}
-            >
-              <p className="flex min-h-20 items-center justify-center gap-2 rounded-2xl bg-success p-3 text-lg font-bold text-white">
-                <CircleCheckBig aria-hidden="true" className="size-6" />
-                {t('easy.result.PASSED')}
-              </p>
-              <p className="flex min-h-20 items-center justify-center gap-2 rounded-2xl bg-danger p-3 text-lg font-bold text-white">
-                <CircleX aria-hidden="true" className="size-6" />
-                {t('easy.result.FAILED')}
-              </p>
-              <p className="flex min-h-20 items-center justify-center gap-2 rounded-2xl bg-warning p-3 text-lg font-bold text-white">
-                <CircleSlash aria-hidden="true" className="size-6" />
-                {t('easy.result.BLOCKED')}
-              </p>
-            </div>
-            <ul className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
-              <li>{t('guide.participant.passed')}</li>
-              <li>{t('guide.participant.failed')}</li>
-              <li>{t('guide.participant.blocked')}</li>
-            </ul>
-            <h3 className="mt-8 text-xl font-semibold">{t('guide.faqTitle')}</h3>
-            <div className="mt-3">
-              <Faq items={list<{ q: string; a: string }>('guide.participant.faq')} />
-            </div>
-          </Section>
-
-          <Section
-            id="penguji"
-            icon={FlaskConical}
-            title={t('guide.sections.penguji')}
-            intro={t('guide.tester.intro')}
-          >
-            <Steps items={list<Item>('guide.tester.steps')} />
-            <Link
-              to="/tugas"
-              className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand-700 px-5 font-semibold text-white hover:bg-brand-800"
-            >
-              <ClipboardCheck aria-hidden="true" className="size-5" />
-              {t('nav.myTasks')}
-            </Link>
-          </Section>
-
-          <Section
-            id="admin"
-            icon={Presentation}
-            title={t('guide.sections.admin')}
-            intro={t('guide.admin.intro')}
-          >
-            {/* Old links to the facilitator part land here. */}
-            <span id="fasilitator" className="block scroll-mt-24" />
-            <Steps items={list<Item>('guide.admin.steps')} />
-            <ul className="mt-6 space-y-2 rounded-2xl bg-pastel-butter p-5 text-pastel-butter-ink">
-              {list<string>('guide.admin.tips').map((tip) => (
-                <li key={tip} className="flex gap-2">
-                  <Sparkles aria-hidden="true" className="mt-1 size-4 shrink-0" />
-                  {tip}
-                </li>
-              ))}
-            </ul>
-          </Section>
-
-          <Section
-            id="bug-reporting"
-            icon={Bug}
-            title={t('guide.sections.bug-reporting')}
-            intro={t('guide.bugReporting.intro')}
-            aside={<ReportIllustration className="w-full" />}
-          >
-            {/* Old links to the Developer and Pemantau parts land here. */}
-            <span id="developer" className="block scroll-mt-24" />
-            <span id="pemantau" className="block scroll-mt-24" />
-            <Steps items={list<Item>('guide.bugReporting.steps')} />
-          </Section>
-
-          <Section
-            id="peran"
-            icon={ShieldCheck}
-            title={t('guide.sections.peran')}
-            intro={t('guide.roles.intro')}
-          >
-            <div className="overflow-x-auto rounded-2xl border border-line">
-              <table className="w-full min-w-[36rem] text-left">
-                <thead className="bg-brand-50 text-sm text-brand-800">
-                  <tr>
-                    <th scope="col" className="p-3">
-                      {t('guide.roles.head.role')}
+        <Section
+          id="peran"
+          icon={ShieldCheck}
+          title={t('guide.sections.peran')}
+          intro={t('guide.roles.intro')}
+        >
+          <div className="overflow-x-auto rounded-2xl border border-line">
+            <table className="w-full min-w-[36rem] text-left">
+              <thead className="bg-brand-50 text-sm text-brand-800">
+                <tr>
+                  <th scope="col" className="p-3">
+                    {t('guide.roles.head.role')}
+                  </th>
+                  <th scope="col" className="p-3">
+                    {t('guide.roles.head.who')}
+                  </th>
+                  <th scope="col" className="p-3">
+                    {t('guide.roles.head.can')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line bg-surface">
+                {list<{ role: string; who: string; can: string }>('guide.roles.rows').map((row) => (
+                  <tr key={row.role} className="align-top">
+                    <th scope="row" className="p-3 font-semibold">
+                      {row.role}
                     </th>
-                    <th scope="col" className="p-3">
-                      {t('guide.roles.head.who')}
-                    </th>
-                    <th scope="col" className="p-3">
-                      {t('guide.roles.head.can')}
-                    </th>
+                    <td className="p-3 text-ink-muted">{row.who}</td>
+                    <td className="p-3">{row.can}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-line bg-surface">
-                  {list<{ role: string; who: string; can: string }>('guide.roles.rows').map(
-                    (row) => (
-                      <tr key={row.role} className="align-top">
-                        <th scope="row" className="p-3 font-semibold">
-                          {row.role}
-                        </th>
-                        <td className="p-3 text-ink-muted">{row.who}</td>
-                        <td className="p-3">{row.can}</td>
-                      </tr>
-                    ),
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </Section>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Section>
 
-          <Section
-            id="publik"
-            icon={Globe}
-            title={t('guide.sections.publik')}
-            intro={t('guide.publish.intro')}
-          >
-            <Steps items={list<Item>('guide.publish.steps')} />
-            <p className="mt-5 rounded-xl bg-success-soft p-4 text-success">
-              {t('guide.publish.sees')}
-            </p>
-          </Section>
+        <Section
+          id="publik"
+          icon={Globe}
+          title={t('guide.sections.publik')}
+          intro={t('guide.publish.intro')}
+        >
+          <Steps items={list<Item>('guide.publish.steps')} />
+          <p className="mt-5 rounded-xl bg-success-soft p-4 text-success">
+            {t('guide.publish.sees')}
+          </p>
+        </Section>
 
-          <Section
-            id="super-admin"
-            icon={UserCog}
-            title={t('guide.sections.super-admin')}
-            intro={t('guide.superAdmin.intro')}
-          >
-            <Steps items={list<Item>('guide.superAdmin.steps')} />
-          </Section>
+        <Section
+          id="super-admin"
+          icon={UserCog}
+          title={t('guide.sections.super-admin')}
+          intro={t('guide.superAdmin.intro')}
+        >
+          <Steps items={list<Item>('guide.superAdmin.steps')} />
+        </Section>
 
-          <Section
-            id="istilah"
-            icon={ListChecks}
-            title={t('guide.sections.istilah')}
-            intro={t('guide.glossary.intro')}
-          >
-            <dl className="grid gap-3 md:grid-cols-2">
-              {list<{ term: string; original: string; meaning: string }>('guide.glossary.rows').map(
-                (row) => (
-                  <div key={row.term} className="rounded-2xl border border-line bg-surface p-4">
-                    <dt className="font-semibold">
-                      {row.term}
-                      <span className="ml-2 text-xs font-normal text-ink-muted">
-                        ({row.original})
-                      </span>
-                    </dt>
-                    <dd className="mt-1 text-ink-muted">{row.meaning}</dd>
-                  </div>
-                ),
-              )}
-            </dl>
-          </Section>
+        <Section
+          id="istilah"
+          icon={ListChecks}
+          title={t('guide.sections.istilah')}
+          intro={t('guide.glossary.intro')}
+        >
+          <dl className="grid gap-3 md:grid-cols-2">
+            {list<{ term: string; original: string; meaning: string }>('guide.glossary.rows').map(
+              (row) => (
+                <div key={row.term} className="rounded-2xl border border-line bg-surface p-4">
+                  <dt className="font-semibold">
+                    {row.term}
+                    <span className="ml-2 text-xs font-normal text-ink-muted">
+                      ({row.original})
+                    </span>
+                  </dt>
+                  <dd className="mt-1 text-ink-muted">{row.meaning}</dd>
+                </div>
+              ),
+            )}
+          </dl>
+        </Section>
 
-          <Section id="privasi" icon={LockKeyhole} title={t('guide.sections.privasi')}>
-            <ul className="space-y-2">
-              {list<string>('guide.privacy.points').map((point) => (
-                <li key={point} className="flex gap-2">
-                  <ShieldCheck
-                    aria-hidden="true"
-                    className="mt-0.5 size-5 shrink-0 text-teal-700"
-                  />
-                  {point}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-6 text-ink-muted">{t('guide.help')}</p>
-          </Section>
-        </div>
+        <Section id="privasi" icon={LockKeyhole} title={t('guide.sections.privasi')}>
+          <ul className="space-y-2">
+            {list<string>('guide.privacy.points').map((point) => (
+              <li key={point} className="flex gap-2">
+                <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-teal-700" />
+                {point}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 text-ink-muted">{t('guide.help')}</p>
+        </Section>
       </div>
-    </>
+      <BackToContents />
+    </div>
   )
 }

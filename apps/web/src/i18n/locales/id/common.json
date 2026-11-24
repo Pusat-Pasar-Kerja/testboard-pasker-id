@@ -1605,7 +1605,7 @@
     "nav": "Menu utama",
     "guide": "Panduan",
     "tableSignIn": "Masuk dengan Kartu Meja",
-    "footer": "Pusat Pasar Kerja · Kementerian Ketenagakerjaan Republik Indonesia",
+    "footer": "Pusat Pasar Kerja · Kementerian Ketenagakerjaan",
     "period": "{{from}} - {{to}}",
     "eyebrow": "Uji Penerimaan Pengguna (UAT) bersama",
     "title": "Bersama memastikan layanan Pasar Kerja siap dipakai masyarakat",
@@ -2230,7 +2230,7 @@
   "guide": {
     "eyebrow": "Panduan penggunaan",
     "title": "Panduan TestBoard",
-    "subtitle": "Semua yang perlu Anda ketahui untuk memakai TestBoard: alurnya, cara masuk, dan yang dikerjakan setiap orang. Pilih bagian di daftar isi.",
+    "subtitle": "Semua yang perlu Anda ketahui untuk memakai TestBoard. Mulai dari peran Anda, atau pilih bagian di daftar isi.",
     "toc": "Daftar isi",
     "faqTitle": "Pertanyaan yang sering muncul",
     "help": "Masih bingung? Hubungi Admin proyek Anda.",
@@ -2606,6 +2606,28 @@
           "body": "Tim memperbaiki dan mengubah statusnya; Pengguna UAT mengecek ulang sampai beres."
         }
       ]
+    },
+    "backToContents": "Ke daftar isi",
+    "start": {
+      "title": "Mulai dari peran Anda",
+      "cards": {
+        "peserta": {
+          "title": "Peserta di meja",
+          "body": "Masuk dengan kartu meja, coba fiturnya, lalu tekan Sesuai, Tidak sesuai, atau Tidak bisa dicoba."
+        },
+        "penguji": {
+          "title": "Pengguna UAT",
+          "body": "Kerjakan skenario di UAT tempat Anda ditambahkan, lalu laporkan masalah yang ditemukan."
+        },
+        "admin": {
+          "title": "Admin",
+          "body": "Siapkan Fase, folder fitur, UAT, peserta, dan kelompok, lalu pantau hasilnya."
+        },
+        "super-admin": {
+          "title": "Super Admin",
+          "body": "Kelola proyek, pengguna, permintaan akun, dan pengaturan situs."
+        }
+      }
     }
   },
   "signIn": {
@@ -3483,6 +3505,7 @@
     }
   },
   "footer": {
-    "publicHome": "Beranda publik"
+    "publicHome": "Beranda publik",
+    "version": "Versi {{version}}"
   }
 }

@@ -1,7 +1,15 @@
 /// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { readFileSync } from 'node:fs'
 import { defaultClientConditions, defineConfig, loadEnv, type Plugin } from 'vite'
+
+/** The release number shown in the footer ("Versi 1.0.0"), from this package. */
+const APP_VERSION = (
+  JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
+    version: string
+  }
+).version
 
 /** The live address; used when the build is not told its own (local builds, demo). */
 const LIVE_URL = 'https://paskerid.kemnaker.go.id/testboard/'
@@ -30,6 +38,7 @@ export default defineConfig(({ mode }) => {
     // '/' for a dedicated subdomain, '/testboard/' for a subpath deploy (DEC-16, still open).
     base: env.VITE_BASE_PATH || '/',
     plugins: [react(), tailwindcss(), sharePreview(env.VITE_SITE_URL)],
+    define: { __APP_VERSION__: JSON.stringify(APP_VERSION) },
     resolve: {
       // Consume @testboard/shared straight from TypeScript source.
       conditions: ['source', ...defaultClientConditions],

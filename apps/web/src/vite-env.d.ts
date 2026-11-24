@@ -11,3 +11,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+/** The release number (apps/web/package.json), filled in by vite.config.ts. */
+declare const __APP_VERSION__: string

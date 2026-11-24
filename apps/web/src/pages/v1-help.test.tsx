@@ -31,13 +31,23 @@ describe('help on every page', () => {
     expect(helpKeyOf('/projects/DEMO-KARIR/bugs')).toBe('bugs')
   })
 
-  it('shows the guide by role inside the app, with the roles table and the glossary', async () => {
+  it('shows the guide as one reading page by role, with the roles table and the glossary', async () => {
     renderRoute('/panduan')
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Panduan TestBoard' }),
     ).toBeInTheDocument()
-    // Inside the app frame: the project menu link "Tugas saya" is there.
-    expect(screen.getAllByRole('link', { name: /Tugas saya/ }).length).toBeGreaterThan(0)
+    // A reading page (owner, 2026-11-24): no work panel next to it, a way back in the header.
+    expect(screen.queryByRole('navigation', { name: 'Navigasi utama' })).toBeNull()
+    expect(await screen.findByRole('link', { name: /Buka TestBoard/ })).toBeInTheDocument()
+    // Each reader starts from their own role.
+    expect(screen.getByRole('link', { name: /^Peserta di meja/ })).toHaveAttribute(
+      'href',
+      '#peserta',
+    )
+    expect(screen.getByRole('link', { name: /^Super Admin/ })).toHaveAttribute(
+      'href',
+      '#super-admin',
+    )
     for (const title of [
       'Untuk Pengguna UAT',
       'Untuk Admin',
