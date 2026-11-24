@@ -1,4 +1,4 @@
-import { Accessibility, RotateCcw, X } from 'lucide-react'
+import { CirclePersonArmsSpread, RotateCcw, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -103,7 +103,8 @@ export function AccessibilityMenu() {
         data-tour="a11y"
         className={`inline-flex ${HEADER_ICON}`}
       >
-        <Accessibility aria-hidden="true" className="size-5" />
+        {/* The universal access symbol (a person in a circle), not a wheelchair (owner). */}
+        <CirclePersonArmsSpread aria-hidden="true" className="size-5" />
       </button>
       {open &&
         createPortal(

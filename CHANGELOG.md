@@ -2,6 +2,12 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.24.1] - 2026-11-24
+
+### Diubah
+
+- **Ikon Aksesibilitas** di kepala halaman sekarang simbol akses universal: sosok manusia dengan tangan terbuka di dalam lingkaran, menggantikan ikon kursi roda. Bentuknya senada dengan ikon Bantuan di sebelahnya.
+
 ## [0.24.0] - 2026-11-24
 
 Masukan pemilik di Beranda proyek: kepala halaman satu baris, bahasa masuk Aksesibilitas, kepala dan kaki halaman sama di semua halaman. Tanpa migration.
