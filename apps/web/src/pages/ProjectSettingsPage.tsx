@@ -323,8 +323,12 @@ export function ProjectSettingsPage() {
   return (
     <>
       <PageHeader
-        title={t('pages.members.title')}
-        subtitle={can('module.manage') ? undefined : t('pages.projectSettings.readOnly')}
+        title={t('nav.settings')}
+        subtitle={
+          can('module.manage')
+            ? t('pages.projectSettings.subtitle')
+            : t('pages.projectSettings.readOnly')
+        }
         crumbs={[{ label: code, to: projectPath(code) }, { label: t('nav.settings') }]}
       />
       <TeamTabs code={code} />

@@ -2,6 +2,19 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.24.0] - 2026-11-24
+
+Masukan pemilik di Beranda proyek: kepala halaman satu baris, bahasa masuk Aksesibilitas, kepala dan kaki halaman sama di semua halaman. Tanpa migration.
+
+### Diubah
+
+- **Kepala halaman selalu satu baris**, juga di layar laptop, tablet, dan ponsel. Susunannya bercermin: logo │ proyek dan pencarian … ikon Aksesibilitas, Bantuan, Administrasi │ akun. Tombol berupa ikon bulat yang tenang dengan label kecil saat disorot; nama dan peran akun pindah ke dalam menu akun (inisial saja di kepala).
+- Di aplikasi, logo berada di atas panel kiri (garisnya menyambung), dan pemilih proyek sejajar dengan judul halaman.
+- **Pilihan bahasa ID/EN pindah ke Aksesibilitas** (paling atas, "Bahasa · Language"), tidak lagi sebagai tombol terpisah di kepala, kaki, atau menu ponsel.
+- **Satu kaki halaman untuk semua halaman** (publik, aplikasi, layar meja): navy Kemnaker, rata tengah, berisi logo, tautan Beranda publik · Panduan, dan nama Pusat Pasar Kerja · Kemnaker.
+- Layar meja (Mode Mudah) memakai kepala yang sama: logo, nama kelompok dan UAT, ikon Aksesibilitas dan Bantuan, lalu tombol Keluar.
+- Panel kiri: judul "4. Pengaturan" yang tertinggal diganti **"Kelola proyek"**, dan "Fitur & kelompok" menjadi **"Pengaturan proyek"** (agar tidak tertukar dengan Kelompok di UAT).
+
 ## [0.23.0] - 2026-11-24
 
 Masukan pemilik setelah v0.22.0 live: penugasan fitur, pindah folder fitur yang mudah, dan tampilan simetris (ADR 0020, migration `0016`).

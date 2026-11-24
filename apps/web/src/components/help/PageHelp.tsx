@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router'
+import { HEADER_ICON } from '../../layout/header-styles'
 import { GUIDE_SECTION, helpKeyOf, startTour } from './tour-state'
 
 /**
@@ -38,13 +39,11 @@ export function PageHelp() {
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-label={t('help.button')}
+        data-tip={t('help.button')}
         data-tour="page-help"
-        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+        className={`inline-flex ${HEADER_ICON}`}
       >
         <CircleHelp aria-hidden="true" className="size-5" />
-        <span aria-hidden="true" className="hidden sm:inline">
-          {t('help.button')}
-        </span>
       </button>
       {open &&
         createPortal(

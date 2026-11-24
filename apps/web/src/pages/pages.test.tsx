@@ -32,7 +32,12 @@ describe('routing & shell', () => {
     renderRoute(`${P}/dashboard`)
     await screen.findByRole('heading', { level: 1, name: 'Beranda proyek' })
 
-    await user.click(screen.getAllByRole('button', { name: /English/ })[0] as HTMLElement)
+    // The language lives in Aksesibilitas (owner, 2026-11-24).
+    await user.click(screen.getByRole('button', { name: 'Aksesibilitas' }))
+    const panel = await screen.findByRole('dialog', { name: 'Aksesibilitas' })
+    expect(within(panel).getByRole('radio', { name: 'Bahasa Indonesia' })).toBeChecked()
+    await user.click(within(panel).getByRole('radio', { name: 'English' }))
+    await user.click(within(panel).getByRole('button', { name: 'Done' }))
 
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Project home' }),

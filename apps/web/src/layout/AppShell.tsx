@@ -6,15 +6,17 @@ import { AccessibilityMenu } from '../components/a11y/AccessibilityMenu'
 import { AnnouncementBanner } from '../components/AnnouncementBanner'
 import { PageHelp } from '../components/help/PageHelp'
 import { Tour } from '../components/help/Tour'
-import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { useCurrentUser, usePublicSettings, useRecoverySummary } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
+import { HEADER_FIELD, HEADER_ICON } from './header-styles'
 import { MobileDrawer } from './MobileDrawer'
 import { ProjectSwitcher } from './ProjectSwitcher'
 import { SidebarNav } from './SidebarNav'
+import { SiteFooter } from './SiteFooter'
 import { TopBar } from './TopBar'
 import { UserMenu } from './UserMenu'
 
+/** The search field in the top bar (wide screens; smaller screens get the search icon). */
 function TopbarSearch({ projectCode }: { projectCode: string }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -22,7 +24,7 @@ function TopbarSearch({ projectCode }: { projectCode: string }) {
   return (
     <form
       role="search"
-      className="hidden max-w-xs min-w-56 flex-1 2xl:block"
+      className="hidden max-w-sm min-w-0 flex-1 xl:block"
       onSubmit={(event) => {
         event.preventDefault()
         const q = value.trim()
@@ -35,14 +37,14 @@ function TopbarSearch({ projectCode }: { projectCode: string }) {
         <span className="sr-only">{t('shell.searchLabel')}</span>
         <Search
           aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-muted"
+          className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-ink-muted"
         />
         <input
           type="search"
           value={value}
           onChange={(event) => setValue(event.target.value)}
           placeholder={t('shell.search')}
-          className="min-h-11 w-full rounded-lg border border-line-strong bg-canvas pr-3 pl-9 text-sm"
+          className={`${HEADER_FIELD} pr-4`}
         />
       </label>
     </form>
@@ -57,21 +59,22 @@ function AdminLink() {
   const summary = useRecoverySummary(role === 'SUPER_ADMIN')
   if (!role) return null
   const open = summary.data?.open_requests ?? 0
+  const label = t('nav.adminSection')
   return (
     <Link
       to={role === 'SUPER_ADMIN' ? '/admin/users' : '/admin/projects'}
-      aria-label={t('nav.adminSection')}
+      aria-label={open > 0 ? `${label} (${open} ${t('nav.openRequests')})` : label}
+      data-tip={label}
       data-tour="admin"
-      className="relative inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+      className={`hidden sm:inline-flex ${HEADER_ICON}`}
     >
       <Settings aria-hidden="true" className="size-5" />
-      <span aria-hidden="true" className="hidden xl:inline">
-        {t('nav.adminSection')}
-      </span>
       {open > 0 && (
-        <span className="absolute top-0.5 right-0.5 min-w-5 rounded-full bg-danger px-1 text-center text-[11px] leading-5 font-bold text-white tabular-nums">
+        <span
+          aria-hidden="true"
+          className="absolute top-0.5 right-0.5 min-w-5 rounded-full bg-danger px-1 text-center text-[11px] leading-5 font-bold text-white tabular-nums"
+        >
           {open}
-          <span className="sr-only"> {t('nav.openRequests')}</span>
         </span>
       )}
     </Link>
@@ -79,10 +82,11 @@ function AdminLink() {
 }
 
 /**
- * Application frame, like Google Drive (owner, 2026-11-24): one full-width top bar (logo,
- * project, search, accessibility, help, administration, language, account) and below it
- * the left panel with only the current context. The same top bar is used on the public
- * pages and the table screen, so the website feels like one place.
+ * Application frame, like Google Drive (owner, 2026-11-24): one top bar in a single row
+ * (logo above the left panel; project and search; accessibility with the language, help,
+ * administration; the account) and below it the left panel with only the current context.
+ * The same top bar and footer are used on the public pages and the table screen, so the
+ * website feels like one place.
  * Renders the matched child route, or `children` for a page that picks its frame itself
  * (the guide).
  */
@@ -105,6 +109,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
       </a>
 
       <TopBar
+        frame="app"
         home="/projects"
         homeLabel={siteName}
         menuButton={
@@ -112,21 +117,21 @@ export function AppShell({ children }: { children?: ReactNode }) {
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-expanded={menuOpen}
-            className="-ml-2 inline-flex size-11 items-center justify-center rounded-lg hover:bg-neutral-soft lg:hidden"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-ink-muted hover:bg-brand-50 hover:text-brand-700 lg:hidden"
           >
             <Menu aria-hidden="true" className="size-5" />
             <span className="sr-only">{t('nav.openMenu')}</span>
           </button>
         }
-        middle={
-          projectCode && (
+        context={
+          projectCode ? (
             <>
-              <div className="order-last w-full md:order-none md:w-auto">
+              <div className="hidden shrink-0 md:block">
                 <ProjectSwitcher projectCode={projectCode} />
               </div>
               <TopbarSearch projectCode={projectCode} />
             </>
-          )
+          ) : undefined
         }
         actions={
           <>
@@ -134,7 +139,8 @@ export function AppShell({ children }: { children?: ReactNode }) {
               <Link
                 to={projectPath(projectCode, 'search')}
                 aria-label={t('search.title')}
-                className="inline-flex size-11 items-center justify-center rounded-lg text-brand-700 hover:bg-brand-50 2xl:hidden"
+                data-tip={t('search.title')}
+                className={`inline-flex xl:hidden ${HEADER_ICON}`}
               >
                 <Search aria-hidden="true" className="size-5" />
               </Link>
@@ -142,12 +148,9 @@ export function AppShell({ children }: { children?: ReactNode }) {
             <AccessibilityMenu />
             <PageHelp />
             <AdminLink />
-            <span className="hidden md:inline-flex">
-              <LanguageSwitcher />
-            </span>
-            <UserMenu />
           </>
         }
+        account={<UserMenu />}
       />
       <AnnouncementBanner />
 
@@ -166,9 +169,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
               {children ?? <Outlet />}
             </div>
           </main>
-          <footer className="border-t border-line px-4 py-4 text-xs text-ink-muted sm:px-6 lg:px-8">
-            {t('public.footer', { name: siteName })}
-          </footer>
+          <SiteFooter />
         </div>
       </div>
 

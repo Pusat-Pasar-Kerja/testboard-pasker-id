@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router'
 import { useProjects } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
+import { HEADER_FIELD } from './header-styles'
 
 /** Switches project while staying in the same section (detail pages fall back to the list). */
 export function ProjectSwitcher({ projectCode }: { projectCode: string }) {
@@ -19,8 +20,11 @@ export function ProjectSwitcher({ projectCode }: { projectCode: string }) {
   }
 
   return (
-    <div className="flex min-w-0 items-center gap-2">
-      <FolderKanban aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
+    <div className="relative w-52 lg:w-56 xl:w-64">
+      <FolderKanban
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-ink-muted"
+      />
       <label htmlFor={id} className="sr-only">
         {t('shell.project')}
       </label>
@@ -28,7 +32,7 @@ export function ProjectSwitcher({ projectCode }: { projectCode: string }) {
         id={id}
         value={projectCode}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-11 w-full min-w-0 rounded-lg border border-line-strong bg-surface px-3 text-sm font-semibold md:w-64"
+        className={`${HEADER_FIELD} truncate font-semibold`}
       >
         {(projects.data ?? []).map((project) => (
           <option key={project.project_code} value={project.project_code}>

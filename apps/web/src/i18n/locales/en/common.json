@@ -4,10 +4,9 @@
     "tagline": "Where Pusat Pasar Kerja tests its services together: test scenarios, results, photo evidence and problem reports."
   },
   "language": {
-    "label": "Language",
     "id": "Indonesia",
     "en": "English",
-    "switchTo": "Switch language to {{language}}"
+    "title": "Bahasa · Language"
   },
   "mode": {
     "demo": "DEMO - fictitious sample data",
@@ -30,7 +29,7 @@
     "closeMenu": "Close navigation menu",
     "profile": "My profile",
     "adminUsers": "Administration",
-    "settings": "Features & groups",
+    "settings": "Project settings",
     "members": "Members",
     "adminSection": "Administration",
     "adminProjects": "Projects",
@@ -60,10 +59,7 @@
       "bugReporting": "Problem reports"
     },
     "group": {
-      "prepare": "1. Preparation",
-      "run": "2. Testing",
-      "results": "3. Results & reports",
-      "manage": "4. Settings"
+      "manage": "Manage project"
     },
     "projectList": "My projects",
     "adminEyebrow": "Website management",
@@ -656,7 +652,8 @@
       "editModule": "Edit",
       "editModuleTitle": "Edit feature {{code}}",
       "moduleCodeEditHint": "Existing test scenarios keep their current code (e.g. UAT-LPL-001); new test scenarios use the new feature code. Use the new feature code when importing.",
-      "moduleSaved": "Feature {{code}} saved."
+      "moduleSaved": "Feature {{code}} saved.",
+      "subtitle": "The features and scenario groups of this project."
     },
     "profile": {
       "title": "My profile",
@@ -1674,7 +1671,6 @@
     "signIn": "Sign in",
     "backToTable": "Back to the table",
     "footerNav": "Footer links",
-    "footerAbout": "{{name}} is where Pusat Pasar Kerja tests its services with users before the public uses them.",
     "totals": {
       "title": "Summary of every open UAT",
       "subtitle": "Combined figures of the UATs and Bug Reporting open to the public. Updated automatically every minute.",
@@ -1901,7 +1897,6 @@
       "rejected_other": "{{count}} answers could not be sent (the UAT may be closed). Tell the organisers:",
       "dismiss": "Close"
     },
-    "footer": "TestBoard PASKER ID · Pusat Pasar Kerja, Ministry of Manpower",
     "activate": {
       "offer": "The organisers made accounts for some of you. Activate yours so you can sign in yourself later.",
       "open": "Activate my account",
@@ -2436,7 +2431,7 @@
       "tips": [
         "A phase may have several UATs, and a person may take part in UAT 1 and UAT 2 when added.",
         "Important changes, like starting a UAT, locking results or throwing away a report, always ask for confirmation.",
-        "The Help button in the top bar explains the page you are on; the Accessibility button sets text size and theme."
+        "The Help button in the top bar explains the page you are on; the Accessibility button sets the language, text size and theme."
       ]
     },
     "roles": {
@@ -2831,7 +2826,7 @@
         ]
       },
       "settings": {
-        "title": "Features & groups",
+        "title": "Project settings",
         "what": "The features (parts of the service under test) and scenario groups of this project.",
         "steps": [
           "Add features before writing test scenarios.",
@@ -2936,7 +2931,7 @@
       },
       "a11y": {
         "title": "Accessibility",
-        "body": "Make the text bigger, choose a dark or high-contrast theme, and set comfortable reading spacing."
+        "body": "Change the language, make the text bigger, choose a dark or high-contrast theme, and set comfortable reading spacing."
       },
       "admin": {
         "title": "Administration",
@@ -3141,7 +3136,7 @@
   "a11y": {
     "button": "Accessibility",
     "title": "Accessibility",
-    "subtitle": "Adjust the display so it is comfortable to read. Your choices apply at once and are saved on this device.",
+    "subtitle": "Choose the language and adjust the display so it is comfortable to read. Your choices apply at once and are saved on this device.",
     "close": "Close accessibility",
     "reset": "Back to the defaults",
     "done": "Done",
@@ -3477,5 +3472,8 @@
       "savedOn": "Bug Reporting is public.",
       "savedOff": "Bug Reporting is hidden from the public."
     }
+  },
+  "footer": {
+    "publicHome": "Public home"
   }
 }

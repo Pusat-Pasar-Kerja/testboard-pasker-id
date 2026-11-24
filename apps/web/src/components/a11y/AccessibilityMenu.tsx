@@ -2,7 +2,9 @@ import { Accessibility, RotateCcw, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
+import { HEADER_ICON } from '../../layout/header-styles'
 import { TEXT_SIZES, THEMES, useA11y, type A11ySettings, type Theme } from '../../lib/a11y'
+import { LanguageChoice } from './LanguageChoice'
 
 /** Small picture of each theme so the choice can be made without reading. */
 const THEME_SWATCH: Record<Theme, { bg: string; bar: string; text: string }> = {
@@ -66,11 +68,11 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 }
 
 /**
- * "Aksesibilitas" in the top bar (owner, 2026-11-24): one place for text size, theme
- * (light, dark, high contrast, follow the device), spacing, readable letters, underlined
- * links and less motion. Changes apply at once and stay on this device.
+ * "Aksesibilitas" in the top bar (owner, 2026-11-24): one place for the language, text size,
+ * theme (light, dark, high contrast, follow the device), spacing, readable letters,
+ * underlined links and less motion. Changes apply at once and stay on this device.
  */
-export function AccessibilityMenu({ compact = false }: { compact?: boolean }) {
+export function AccessibilityMenu() {
   const { t } = useTranslation()
   const { settings, update, reset, changed } = useA11y()
   const [open, setOpen] = useState(false)
@@ -97,15 +99,11 @@ export function AccessibilityMenu({ compact = false }: { compact?: boolean }) {
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-label={t('a11y.button')}
+        data-tip={t('a11y.button')}
         data-tour="a11y"
-        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+        className={`inline-flex ${HEADER_ICON}`}
       >
         <Accessibility aria-hidden="true" className="size-5" />
-        {!compact && (
-          <span aria-hidden="true" className="hidden xl:inline">
-            {t('a11y.button')}
-          </span>
-        )}
       </button>
       {open &&
         createPortal(
@@ -141,6 +139,10 @@ export function AccessibilityMenu({ compact = false }: { compact?: boolean }) {
               </div>
 
               <div className="flex-1 space-y-6 p-5">
+                <Group title={t('language.title')}>
+                  <LanguageChoice />
+                </Group>
+
                 <Group title={t('a11y.size.title')}>
                   <div
                     role="radiogroup"

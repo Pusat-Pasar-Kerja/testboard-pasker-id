@@ -4,7 +4,6 @@ import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, Outlet, useNavigate } from 'react-router'
 import { AnnouncementBanner } from '../components/AnnouncementBanner'
-import { TestBoardMark } from '../components/brand/TestBoardMark'
 import { AccessibilityMenu } from '../components/a11y/AccessibilityMenu'
 import { ConfirmDialog } from '../components/ui/Dialog'
 import { ErrorState, LoadingState } from '../components/ui/States'
@@ -12,7 +11,9 @@ import { useCurrentUser } from '../hooks/queries'
 import { useWorkshopSession } from '../hooks/workshop-queries'
 import { ApiClientError } from '../services/api-client'
 import { useDataSource } from '../services/use-data-source'
+import { HEADER_ICON, HEADER_PILL_QUIET } from './header-styles'
 import { OutboxProvider } from './outbox-context'
+import { SiteFooter } from './SiteFooter'
 import { SessionContext } from './table-session'
 import { TopBar } from './TopBar'
 import { groupLabel } from '../lib/uat'
@@ -42,7 +43,8 @@ function CardClosed({ reason }: { reason: string }) {
 
 /**
  * Mode Mudah (ADR 0016): the screens of a table card. Large text and buttons, one thing
- * per screen, a header that always says which table this is and how to leave.
+ * per screen. The header and footer are the ones of the whole website; the header always
+ * says which group this is, and the right end is how to leave.
  */
 export function EasyLayout({ children }: { children?: ReactNode }) {
   const { t } = useTranslation()
@@ -95,49 +97,45 @@ export function EasyLayout({ children }: { children?: ReactNode }) {
           home="/meja/kerja"
           homeLabel={data.table.name}
           width="max-w-4xl"
-          logo={
-            <span className="flex min-w-0 items-center gap-3">
-              <TestBoardMark className="size-10 shrink-0 text-brand-mark" />
-              <span className="min-w-0">
-                <span className="block text-xl leading-tight font-bold">
-                  {groupLabel(t, data.table)}
-                </span>
-                <span className="block truncate text-sm text-ink-muted">
-                  {data.run?.name ?? data.cycle.title} · {data.project.name}
-                </span>
-              </span>
-            </span>
+          context={
+            <div className="min-w-0 leading-tight">
+              <p className="truncate text-base font-bold text-ink">{groupLabel(t, data.table)}</p>
+              <p className="truncate text-xs text-ink-muted">
+                {data.run?.name ?? data.cycle.title} · {data.project.name}
+              </p>
+            </div>
           }
           actions={
             <>
               <AccessibilityMenu />
               <Link
                 to="/panduan#peserta"
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 font-semibold text-brand-700 hover:bg-brand-50"
+                aria-label={t('easy.help')}
+                data-tip={t('easy.help')}
+                className={`inline-flex ${HEADER_ICON}`}
               >
                 <CircleHelp aria-hidden="true" className="size-5" />
-                {t('easy.help')}
               </Link>
-              <button
-                type="button"
-                onClick={() => setConfirmLeave(true)}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 font-semibold text-ink hover:bg-neutral-soft"
-              >
-                <LogOut aria-hidden="true" className="size-5" />
-                {t('easy.leave')}
-              </button>
             </>
+          }
+          account={
+            <button
+              type="button"
+              onClick={() => setConfirmLeave(true)}
+              className={`inline-flex ${HEADER_PILL_QUIET}`}
+            >
+              <LogOut aria-hidden="true" className="size-4" />
+              {t('easy.leave')}
+            </button>
           }
         />
         <AnnouncementBanner />
         <OutboxProvider tableId={data.table.id}>
-          <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">
+          <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:px-6">
             {children ?? <Outlet />}
           </main>
         </OutboxProvider>
-        <footer className="bg-brand-800 px-4 py-4 text-center text-sm text-white/80">
-          {t('easy.footer')}
-        </footer>
+        <SiteFooter />
         <ConfirmDialog
           open={confirmLeave}
           title={t('easy.leaveTitle', { name: data.table.name })}

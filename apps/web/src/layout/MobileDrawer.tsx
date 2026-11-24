@@ -1,13 +1,12 @@
 import { X } from 'lucide-react'
 import { useRef, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { TestBoardLogo } from '../components/brand/TestBoardLogo'
 import { useFocusTrap } from '../hooks/use-focus-trap'
 
 /**
  * Modal navigation drawer for < lg screens: focus trap, Esc to close, focus restore. The
- * language choice lives here on phones (the top bar has no room for it).
+ * language is in Aksesibilitas in the top bar, on every screen size.
  */
 export function MobileDrawer({
   open,
@@ -42,16 +41,13 @@ export function MobileDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex size-11 items-center justify-center rounded-lg hover:bg-neutral-soft"
+            className="inline-flex size-11 items-center justify-center rounded-full text-ink-muted hover:bg-neutral-soft"
           >
             <X aria-hidden="true" className="size-5" />
             <span className="sr-only">{t('nav.closeMenu')}</span>
           </button>
         </div>
         <div className="min-h-0 flex-1">{children}</div>
-        <div className="border-t border-line p-3 md:hidden">
-          <LanguageSwitcher />
-        </div>
       </div>
     </div>
   )

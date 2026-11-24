@@ -4,10 +4,9 @@
     "tagline": "Tempat menguji layanan Pusat Pasar Kerja bersama-sama: skenario uji, hasil uji, foto bukti, dan laporan masalah."
   },
   "language": {
-    "label": "Bahasa",
     "id": "Indonesia",
     "en": "English",
-    "switchTo": "Ganti bahasa ke {{language}}"
+    "title": "Bahasa · Language"
   },
   "mode": {
     "demo": "DEMO - data contoh fiktif",
@@ -30,7 +29,7 @@
     "closeMenu": "Tutup menu navigasi",
     "profile": "Profil saya",
     "adminUsers": "Administrasi",
-    "settings": "Fitur & kelompok",
+    "settings": "Pengaturan proyek",
     "members": "Anggota",
     "adminSection": "Administrasi",
     "adminProjects": "Proyek",
@@ -60,10 +59,7 @@
       "bugReporting": "Laporan masalah"
     },
     "group": {
-      "prepare": "1. Persiapan",
-      "run": "2. Pelaksanaan",
-      "results": "3. Hasil & laporan",
-      "manage": "4. Pengaturan"
+      "manage": "Kelola proyek"
     },
     "projectList": "Proyek saya",
     "adminEyebrow": "Pengelolaan situs",
@@ -656,7 +652,8 @@
       "editModule": "Ubah",
       "editModuleTitle": "Ubah fitur {{code}}",
       "moduleCodeEditHint": "Skenario uji yang sudah ada tetap memakai kodenya sekarang (mis. UAT-LPL-001); skenario uji baru memakai kode fitur yang baru. Saat impor, isi kode fitur yang baru.",
-      "moduleSaved": "Fitur {{code}} disimpan."
+      "moduleSaved": "Fitur {{code}} disimpan.",
+      "subtitle": "Daftar fitur dan kelompok skenario proyek ini."
     },
     "profile": {
       "title": "Profil saya",
@@ -1674,7 +1671,6 @@
     "signIn": "Masuk",
     "backToTable": "Kembali ke meja",
     "footerNav": "Tautan di kaki halaman",
-    "footerAbout": "{{name}} adalah tempat Pusat Pasar Kerja menguji layanan bersama para pengguna sebelum layanan dipakai masyarakat.",
     "totals": {
       "title": "Ringkasan semua UAT yang dibuka",
       "subtitle": "Angka gabungan dari UAT dan Bug Reporting yang dibuka untuk umum. Diperbarui otomatis setiap menit.",
@@ -1901,7 +1897,6 @@
       "rejected_other": "{{count}} jawaban tidak bisa dikirim (UAT mungkin sudah ditutup). Sampaikan ke panitia:",
       "dismiss": "Tutup"
     },
-    "footer": "TestBoard PASKER ID · Pusat Pasar Kerja, Kementerian Ketenagakerjaan",
     "activate": {
       "offer": "Panitia sudah membuatkan akun untuk sebagian anggota. Aktifkan akun Anda agar bisa masuk sendiri nanti.",
       "open": "Aktifkan akun saya",
@@ -2436,7 +2431,7 @@
       "tips": [
         "Satu Fase boleh punya beberapa UAT, dan satu orang boleh ikut UAT 1 dan UAT 2 bila ditambahkan.",
         "Perubahan penting, seperti memulai UAT, mengunci hasil, atau membuang laporan, selalu meminta konfirmasi.",
-        "Tombol Bantuan di bilah atas menjelaskan halaman yang sedang dibuka; tombol Aksesibilitas mengatur ukuran tulisan dan tema."
+        "Tombol Bantuan di bilah atas menjelaskan halaman yang sedang dibuka; tombol Aksesibilitas mengatur bahasa, ukuran tulisan, dan tema."
       ]
     },
     "roles": {
@@ -2837,7 +2832,7 @@
         ]
       },
       "settings": {
-        "title": "Fitur & kelompok",
+        "title": "Pengaturan proyek",
         "what": "Daftar fitur (bagian layanan yang diuji) dan kelompok skenario di proyek ini.",
         "steps": [
           "Tambahkan fitur sebelum menulis skenario uji.",
@@ -2945,7 +2940,7 @@
       },
       "a11y": {
         "title": "Aksesibilitas",
-        "body": "Perbesar tulisan, pilih tema gelap atau kontras tinggi, dan atur jarak baca supaya nyaman."
+        "body": "Ganti bahasa, perbesar tulisan, pilih tema gelap atau kontras tinggi, dan atur jarak baca supaya nyaman."
       },
       "admin": {
         "title": "Administrasi",
@@ -3150,7 +3145,7 @@
   "a11y": {
     "button": "Aksesibilitas",
     "title": "Aksesibilitas",
-    "subtitle": "Atur tampilan supaya nyaman dibaca. Pilihan Anda langsung berlaku dan disimpan di perangkat ini.",
+    "subtitle": "Pilih bahasa dan atur tampilan supaya nyaman dibaca. Pilihan Anda langsung berlaku dan disimpan di perangkat ini.",
     "close": "Tutup aksesibilitas",
     "reset": "Kembalikan seperti semula",
     "done": "Selesai",
@@ -3486,5 +3481,8 @@
       "savedOn": "Bug Reporting tampil di publik.",
       "savedOff": "Bug Reporting disembunyikan dari publik."
     }
+  },
+  "footer": {
+    "publicHome": "Beranda publik"
   }
 }

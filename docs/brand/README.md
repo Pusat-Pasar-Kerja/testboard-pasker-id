@@ -46,6 +46,14 @@ Warna status tetap semantik (hijau = lulus, merah = gagal, kuning = terhambat) d
 
 Semua warna ada di `apps/web/src/styles.css` (blok `@theme`); komponen memakai nama token (`brand-*`, `teal-*`, `pastel-*`, `success`, ...), bukan kode warna langsung.
 
+## Kepala dan kaki halaman (2026-11-24)
+
+Satu kepala dan satu kaki halaman untuk seluruh situs: halaman publik, aplikasi, dan layar meja (Mode Mudah).
+
+- **Kepala** (`TopBar`): selalu **satu baris** dan tidak pernah turun ke baris kedua. Susunannya bercermin: kiri = logo, garis tipis, lalu konteks (pemilih proyek dan pencarian, menu publik, atau nama kelompok); kanan = tombol ikon bulat, garis tipis, lalu akun (inisial nama, atau satu tombol pil: Masuk / Buka TestBoard / Keluar). Semua kontrol setinggi 44 px; ikon abu-abu tenang dan menjadi biru saat disentuh, dengan label kecil saat disorot atau difokus (`header-tip`). Di aplikasi, logo berada di kolom selebar panel kiri sehingga pemilih proyek sejajar dengan judul halaman.
+- **Bahasa** (ID/EN) ada di dalam **Aksesibilitas**, paling atas, bersama ukuran teks dan tema.
+- **Kaki** (`SiteFooter`): navy Kemnaker, semua di tengah: logo putih, tautan Beranda publik · Panduan (· Masuk bila belum masuk), dan "© tahun Pusat Pasar Kerja · Kementerian Ketenagakerjaan Republik Indonesia".
+
 ## Hal yang perlu dikonfirmasi pemilik brand
 
 - Teks endorsement "oleh PASKER ID" (alternatif: "oleh Kemnaker").
