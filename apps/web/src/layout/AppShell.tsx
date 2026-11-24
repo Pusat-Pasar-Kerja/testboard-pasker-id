@@ -1,17 +1,18 @@
-import { Menu, Search } from 'lucide-react'
+import { Menu, Search, Settings } from 'lucide-react'
 import { useCallback, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet, useLocation, useNavigate, useParams } from 'react-router'
+import { AccessibilityMenu } from '../components/a11y/AccessibilityMenu'
 import { AnnouncementBanner } from '../components/AnnouncementBanner'
-import { TestBoardLogo } from '../components/brand/TestBoardLogo'
-import { FontSizeControl } from '../components/FontSizeControl'
 import { PageHelp } from '../components/help/PageHelp'
 import { Tour } from '../components/help/Tour'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { useCurrentUser, usePublicSettings, useRecoverySummary } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
 import { MobileDrawer } from './MobileDrawer'
 import { ProjectSwitcher } from './ProjectSwitcher'
 import { SidebarNav } from './SidebarNav'
+import { TopBar } from './TopBar'
 import { UserMenu } from './UserMenu'
 
 function TopbarSearch({ projectCode }: { projectCode: string }) {
@@ -48,8 +49,40 @@ function TopbarSearch({ projectCode }: { projectCode: string }) {
   )
 }
 
+/** "Administrasi" in the top bar, with the count of new account-recovery requests. */
+function AdminLink() {
+  const { t } = useTranslation()
+  const me = useCurrentUser()
+  const role = me.data?.system_role ?? null
+  const summary = useRecoverySummary(role === 'SUPER_ADMIN')
+  if (!role) return null
+  const open = summary.data?.open_requests ?? 0
+  return (
+    <Link
+      to={role === 'SUPER_ADMIN' ? '/admin/users' : '/admin/projects'}
+      aria-label={t('nav.adminSection')}
+      data-tour="admin"
+      className="relative inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+    >
+      <Settings aria-hidden="true" className="size-5" />
+      <span aria-hidden="true" className="hidden xl:inline">
+        {t('nav.adminSection')}
+      </span>
+      {open > 0 && (
+        <span className="absolute top-0.5 right-0.5 min-w-5 rounded-full bg-danger px-1 text-center text-[11px] leading-5 font-bold text-white tabular-nums">
+          {open}
+          <span className="sr-only"> {t('nav.openRequests')}</span>
+        </span>
+      )}
+    </Link>
+  )
+}
+
 /**
- * Responsive application frame: sidebar (lg+), drawer (< lg), topbar, main landmark.
+ * Application frame, like Google Drive (owner, 2026-11-24): one full-width top bar (logo,
+ * project, search, accessibility, help, administration, language, account) and below it
+ * the left panel with only the current context. The same top bar is used on the public
+ * pages and the table screen, so the website feels like one place.
  * Renders the matched child route, or `children` for a page that picks its frame itself
  * (the guide).
  */
@@ -57,12 +90,13 @@ export function AppShell({ children }: { children?: ReactNode }) {
   const { t } = useTranslation()
   const { projectCode } = useParams()
   const { pathname } = useLocation()
+  const siteName = usePublicSettings().data?.['site.name'] ?? 'TestBoard PASKER ID'
   const [menuOpen, setMenuOpen] = useState(false)
   // Every drawer link calls closeMenu, so navigation from the drawer always closes it.
   const closeMenu = useCallback(() => setMenuOpen(false), [])
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
+    <div className="flex min-h-dvh flex-col">
       <a
         href="#main"
         className="sr-only z-50 rounded-lg bg-brand-700 px-4 py-2 text-white focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
@@ -70,61 +104,72 @@ export function AppShell({ children }: { children?: ReactNode }) {
         {t('shell.skipToContent')}
       </a>
 
-      <aside className="sticky top-0 hidden h-dvh border-r border-line bg-surface lg:block">
-        <SidebarNav projectCode={projectCode} />
-      </aside>
-
-      <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
-          <div className="flex min-h-16 flex-wrap items-center gap-x-2 gap-y-2 px-4 py-2 sm:gap-x-3 sm:px-6 lg:px-8">
-            <button
-              type="button"
-              onClick={() => setMenuOpen(true)}
-              aria-expanded={menuOpen}
-              className="-ml-2 inline-flex size-11 items-center justify-center rounded-lg hover:bg-neutral-soft lg:hidden"
-            >
-              <Menu aria-hidden="true" className="size-5" />
-              <span className="sr-only">{t('nav.openMenu')}</span>
-            </button>
-            <span className="lg:hidden">
-              <TestBoardLogo size="sm" showTagline={false} />
-            </span>
-            {projectCode && (
+      <TopBar
+        home="/projects"
+        homeLabel={siteName}
+        menuButton={
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-expanded={menuOpen}
+            className="-ml-2 inline-flex size-11 items-center justify-center rounded-lg hover:bg-neutral-soft lg:hidden"
+          >
+            <Menu aria-hidden="true" className="size-5" />
+            <span className="sr-only">{t('nav.openMenu')}</span>
+          </button>
+        }
+        middle={
+          projectCode && (
+            <>
               <div className="order-last w-full md:order-none md:w-auto">
                 <ProjectSwitcher projectCode={projectCode} />
               </div>
+              <TopbarSearch projectCode={projectCode} />
+            </>
+          )
+        }
+        actions={
+          <>
+            {projectCode && (
+              <Link
+                to={projectPath(projectCode, 'search')}
+                aria-label={t('search.title')}
+                className="inline-flex size-11 items-center justify-center rounded-lg text-brand-700 hover:bg-brand-50 2xl:hidden"
+              >
+                <Search aria-hidden="true" className="size-5" />
+              </Link>
             )}
-            {projectCode && <TopbarSearch projectCode={projectCode} />}
-            <div className="ml-auto flex items-center gap-2">
-              <span data-tour="font-size" className="hidden md:inline-flex">
-                <FontSizeControl />
-              </span>
-              {projectCode && (
-                <Link
-                  to={projectPath(projectCode, 'search')}
-                  aria-label={t('search.title')}
-                  className="inline-flex size-11 items-center justify-center rounded-lg hover:bg-neutral-soft 2xl:hidden"
-                >
-                  <Search aria-hidden="true" className="size-5" />
-                </Link>
-              )}
-              <PageHelp />
+            <AccessibilityMenu />
+            <PageHelp />
+            <AdminLink />
+            <span className="hidden md:inline-flex">
               <LanguageSwitcher />
-              <UserMenu />
-            </div>
-          </div>
-        </header>
-        <AnnouncementBanner />
+            </span>
+            <UserMenu />
+          </>
+        }
+      />
+      <AnnouncementBanner />
 
-        <main
-          id="main"
-          tabIndex={-1}
-          className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 sm:px-6 lg:px-8"
-        >
-          <div key={pathname} className="animate-page-in">
-            {children ?? <Outlet />}
-          </div>
-        </main>
+      <div className="flex-1 lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
+        <aside className="sticky top-[calc(4.25rem+1px)] hidden h-[calc(100dvh-4.25rem-1px)] border-r border-line bg-surface lg:block">
+          <SidebarNav projectCode={projectCode} />
+        </aside>
+
+        <div className="flex min-w-0 flex-col">
+          <main
+            id="main"
+            tabIndex={-1}
+            className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 sm:px-6 lg:px-8"
+          >
+            <div key={pathname} className="animate-page-in">
+              {children ?? <Outlet />}
+            </div>
+          </main>
+          <footer className="border-t border-line px-4 py-4 text-xs text-ink-muted sm:px-6 lg:px-8">
+            {t('public.footer', { name: siteName })}
+          </footer>
+        </div>
       </div>
 
       <Tour />

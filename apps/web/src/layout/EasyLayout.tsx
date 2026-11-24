@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, Navigate, Outlet, useNavigate } from 'react-router'
 import { AnnouncementBanner } from '../components/AnnouncementBanner'
 import { TestBoardMark } from '../components/brand/TestBoardMark'
-import { FontSizeControl } from '../components/FontSizeControl'
+import { AccessibilityMenu } from '../components/a11y/AccessibilityMenu'
 import { ConfirmDialog } from '../components/ui/Dialog'
 import { ErrorState, LoadingState } from '../components/ui/States'
 import { useCurrentUser } from '../hooks/queries'
@@ -14,6 +14,7 @@ import { ApiClientError } from '../services/api-client'
 import { useDataSource } from '../services/use-data-source'
 import { OutboxProvider } from './outbox-context'
 import { SessionContext } from './table-session'
+import { TopBar } from './TopBar'
 
 /** Shown when the card was blocked, renewed or has expired: a calm way back in. */
 function CardClosed({ reason }: { reason: string }) {
@@ -89,9 +90,12 @@ export function EasyLayout({ children }: { children?: ReactNode }) {
   return (
     <SessionContext.Provider value={data}>
       <div className="flex min-h-dvh flex-col bg-canvas text-[1.0625rem]">
-        <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
-          <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-            <Link to="/meja/kerja" className="flex min-w-0 items-center gap-3">
+        <TopBar
+          home="/meja/kerja"
+          homeLabel={data.table.name}
+          width="max-w-4xl"
+          logo={
+            <span className="flex min-w-0 items-center gap-3">
               <TestBoardMark className="size-10 shrink-0 text-brand-mark" />
               <span className="min-w-0">
                 <span className="block text-xl leading-tight font-bold">{data.table.name}</span>
@@ -99,9 +103,11 @@ export function EasyLayout({ children }: { children?: ReactNode }) {
                   {data.cycle.title} · {data.project.name}
                 </span>
               </span>
-            </Link>
-            <div className="flex items-center gap-2">
-              <FontSizeControl />
+            </span>
+          }
+          actions={
+            <>
+              <AccessibilityMenu />
               <Link
                 to="/panduan#peserta"
                 className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 font-semibold text-brand-700 hover:bg-brand-50"
@@ -117,9 +123,9 @@ export function EasyLayout({ children }: { children?: ReactNode }) {
                 <LogOut aria-hidden="true" className="size-5" />
                 {t('easy.leave')}
               </button>
-            </div>
-          </div>
-        </header>
+            </>
+          }
+        />
         <AnnouncementBanner />
         <OutboxProvider tableId={data.table.id}>
           <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">

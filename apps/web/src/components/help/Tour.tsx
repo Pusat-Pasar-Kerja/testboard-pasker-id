@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { markTourDone, onTourStart, tourDone } from './tour-state'
 
-type StepKey = 'myTasks' | 'projectMenu' | 'startHere' | 'pageHelp' | 'guide' | 'fontSize'
+type StepKey = 'myTasks' | 'projectMenu' | 'startHere' | 'pageHelp' | 'a11y' | 'admin'
 
 /** The parts of the screen the tour points at, in order (data-tour attributes). */
 const STEPS: { key: StepKey; target: string }[] = [
@@ -10,8 +11,8 @@ const STEPS: { key: StepKey; target: string }[] = [
   { key: 'projectMenu', target: 'project-menu' },
   { key: 'startHere', target: 'start-here' },
   { key: 'pageHelp', target: 'page-help' },
-  { key: 'guide', target: 'guide' },
-  { key: 'fontSize', target: 'font-size' },
+  { key: 'a11y', target: 'a11y' },
+  { key: 'admin', target: 'admin' },
 ]
 
 interface Box {
@@ -106,7 +107,8 @@ export function Tour() {
     : Math.min(Math.max(16, box.left), window.innerWidth - cardWidth - 16)
   const last = index === steps.length - 1
 
-  return (
+  // Portal: a sticky, blurred header or an animated page would trap a fixed overlay.
+  return createPortal(
     <div className="fixed inset-0 z-[60]" aria-live="polite">
       <div
         aria-hidden="true"
@@ -167,6 +169,7 @@ export function Tour() {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

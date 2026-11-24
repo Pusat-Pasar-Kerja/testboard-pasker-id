@@ -3,10 +3,11 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink } from 'react-router'
 import { AnnouncementBanner } from '../components/AnnouncementBanner'
+import { AccessibilityMenu } from '../components/a11y/AccessibilityMenu'
 import { TestBoardLogo } from '../components/brand/TestBoardLogo'
-import { FontSizeControl } from '../components/FontSizeControl'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { useCurrentUser, usePublicSettings } from '../hooks/queries'
+import { TopBar } from './TopBar'
 
 /** The main button in the header: sign in, or go back to where this device is signed in. */
 function HeaderAction() {
@@ -59,16 +60,16 @@ export function PublicSiteLayout({
       >
         {t('shell.skipToContent')}
       </a>
-      <header className="sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
-        {/* Phone: logo + main button, then the menu and text size. Wider: one row. */}
-        <div className={`mx-auto flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 ${width}`}>
-          <Link to="/" aria-label={siteName} className="order-1 mr-auto shrink-0">
-            <TestBoardLogo size="md" />
-          </Link>
-          <div className="order-2 md:order-4">
-            <HeaderAction />
-          </div>
-          <nav aria-label={t('public.nav')} className="order-3 flex items-center gap-1 md:order-2">
+      {/* The same top bar as the application (owner: public and admin must feel as one). */}
+      <TopBar
+        home="/"
+        homeLabel={siteName}
+        width={width}
+        middle={
+          <nav
+            aria-label={t('public.nav')}
+            className="order-last flex w-full items-center gap-1 md:order-none md:w-auto"
+          >
             <NavLink to="/publik" className={navClass}>
               <House aria-hidden="true" className="size-4" />
               {t('public.home')}
@@ -78,14 +79,17 @@ export function PublicSiteLayout({
               {t('public.guide')}
             </NavLink>
           </nav>
-          <div className="order-4 ml-auto flex items-center gap-2 md:order-3 md:ml-0">
-            <FontSizeControl />
+        }
+        actions={
+          <>
+            <AccessibilityMenu />
             <span className="hidden md:inline-flex">
               <LanguageSwitcher />
             </span>
-          </div>
-        </div>
-      </header>
+            <HeaderAction />
+          </>
+        }
+      />
       <AnnouncementBanner />
       <main id="isi" className={`mx-auto w-full flex-1 px-4 py-8 sm:py-10 ${width}`}>
         {children}

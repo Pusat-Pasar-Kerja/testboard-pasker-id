@@ -362,7 +362,7 @@ export function SignInPage({ way: fixedWay }: { way?: SignInWay }) {
   return (
     <PublicSiteLayout>
       <div className="mx-auto grid max-w-5xl overflow-hidden rounded-[28px] card-pasker lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-        <aside className="hidden flex-col justify-between gap-8 bg-gradient-to-br from-brand-50 via-white to-teal-50 p-10 lg:flex">
+        <aside className="hidden flex-col justify-between gap-8 bg-gradient-to-br from-brand-50 via-surface to-teal-50 p-10 lg:flex">
           <div>
             <p className="text-sm font-semibold tracking-wide text-teal-700 uppercase">
               {t('signIn.welcome.eyebrow')}
@@ -373,7 +373,7 @@ export function SignInPage({ way: fixedWay }: { way?: SignInWay }) {
           <WelcomeIllustration className="mx-auto w-full max-w-sm" />
           <Link
             to="/panduan#masuk"
-            className="inline-flex items-center gap-2 self-start rounded-full bg-white px-4 py-2 text-sm font-semibold text-brand-700 shadow-xs ring-1 ring-brand-100 hover:bg-brand-50"
+            className="inline-flex items-center gap-2 self-start rounded-full bg-surface px-4 py-2 text-sm font-semibold text-brand-700 shadow-xs ring-1 ring-brand-100 hover:bg-brand-50"
           >
             <BookOpen aria-hidden="true" className="size-4" />
             {t('signIn.welcome.guide')}

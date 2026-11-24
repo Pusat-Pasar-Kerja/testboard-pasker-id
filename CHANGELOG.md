@@ -2,6 +2,26 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.21.0] - 2026-11-24
+
+Perombakan tahap 8 (masukan pemilik setelah v0.20.0): satu tampilan untuk seluruh situs, logo baru, dan paket aksesibilitas.
+
+### Ditambahkan
+
+- **Paket Aksesibilitas** di bilah atas setiap halaman (publik, aplikasi, dan layar meja): ukuran teks 5 tingkat; tema Terang, Gelap, Kontras tinggi, atau Ikuti perangkat; jarak baca lebih lega; huruf mudah dibaca (Atkinson Hyperlegible, dibundel di situs); garis bawah tautan; dan kurangi gerakan. Pilihan disimpan di perangkat dan langsung berlaku saat halaman dibuka, tanpa kedip putih.
+
+### Diubah
+
+- **Logo dan favicon baru "Siklus uji"**: satu busur tebal dan satu titik toska, mengikuti keluarga logo hub Kemnaker (Karirhub, Maganghub, Skillhub), tanpa centang.
+- **Satu bilah atas untuk seluruh situs**: halaman publik, aplikasi, dan layar meja memakai bilah atas yang sama (logo, garis biru-toska, aksesibilitas, bahasa, akun).
+- **Panel kiri tidak dicampur lagi** (seperti Google Drive): di dalam proyek hanya isi proyek, di halaman Administrasi hanya menu Administrasi, dan di luar proyek daftar proyek. Bantuan dan Administrasi pindah ke bilah atas; panduan lengkap, tur singkat, dan halaman publik ada di panel Bantuan.
+- Tombol A−/A/A+ diganti paket Aksesibilitas; ukuran huruf yang sudah dipilih tetap terbawa.
+
+### Diperbaiki
+
+- Panel **Bantuan** di halaman Administrasi dan halaman aplikasi lain tampil terpotong di bilah atas. Sekarang terbuka penuh di sisi kanan.
+- Pengguna yang bukan Admin tidak lagi melihat menu Administrasi bila membuka alamat `/admin`.
+
 ## [0.20.0] - 2026-11-24
 
 Perombakan tahap 7: **sisa temuan audit** diselesaikan (`docs/audit/2026-11-24-audit-menyeluruh.md`).

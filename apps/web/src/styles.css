@@ -227,3 +227,189 @@ select:not([multiple]):not([size]) {
     background-image: linear-gradient(180deg, #1f6cbc, #10a493);
   }
 }
+
+/* ------------------------------------------------------------------------------------------
+ * Accessibility ("Aksesibilitas", owner 2026-11-24). Set on <html> by src/lib/a11y.ts and
+ * public/a11y-boot.js. Unlayered on purpose: these must win over every utility.
+ * ---------------------------------------------------------------------------------------- */
+
+/* Readable letters: Atkinson Hyperlegible (b/d, I/l/1 and O/0 cannot be confused). */
+html[data-readable='on'] {
+  --font-sans:
+    'Atkinson Hyperlegible', 'Inter Variable', Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+/* More room between lines, letters and words. */
+html[data-spacing='on'] body {
+  letter-spacing: 0.03em;
+  word-spacing: 0.12em;
+}
+html[data-spacing='on'] :is(p, li, dd, dt, td, th, label, blockquote, summary) {
+  line-height: 1.8;
+}
+html[data-spacing='on'] :is(h1, h2, h3, h4) {
+  line-height: 1.45;
+}
+
+/* Every link underlined, also in menus and cards. */
+html[data-underline='on'] a {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+/* No movement, like the operating system's "reduce motion". */
+html[data-reduce-motion='on'] {
+  scroll-behavior: auto;
+}
+html[data-reduce-motion='on'] *,
+html[data-reduce-motion='on'] ::before,
+html[data-reduce-motion='on'] ::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/*
+ * Dark theme: the same Kemnaker blues on a deep navy canvas. Neutral and tint tokens flip;
+ * blue/status tokens keep their role as button fills (white text stays >= 4.5:1), and the
+ * text utilities that use them are lifted to light shades below.
+ */
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --color-brand-50: #13283f;
+  --color-brand-100: #173252;
+  --color-brand-200: #21456f;
+  --color-brand-300: #346699;
+  --color-brand-500: #5d9fe3;
+  --color-brand-600: #3f86d2;
+  --color-brand-700: #2a73c2;
+  --color-brand-800: #1b4b7a;
+  --color-brand-900: #081a2d;
+  --color-brand-mark: #6aaef0;
+  --color-teal-50: #0f2b29;
+  --color-teal-100: #123a35;
+  --color-pastel-lavender: #1a2b47;
+  --color-pastel-lavender-ink: #bcd0f2;
+  --color-pastel-mint: #11322a;
+  --color-pastel-mint-ink: #a3e2c6;
+  --color-pastel-peach: #3a2419;
+  --color-pastel-peach-ink: #f3c3a8;
+  --color-pastel-butter: #33290f;
+  --color-pastel-butter-ink: #f0d78f;
+  --color-pastel-sky: #10303f;
+  --color-pastel-sky-ink: #a8daf1;
+  --color-logo-ink: #e8f0fa;
+  --color-logo-muted: #9fb2c8;
+  --color-ink: #e6edf6;
+  --color-ink-muted: #a9b8ca;
+  --color-canvas: #0b1624;
+  --color-surface: #122136;
+  --color-line: #233750;
+  --color-line-strong: #34506f;
+  --color-danger-soft: #3b1715;
+  --color-warning-soft: #36290c;
+  --color-success-soft: #0f2f20;
+  --color-info-soft: #112a42;
+  --color-neutral: #a9b8ca;
+  --color-neutral-soft: #1a2c44;
+  --color-chart-track: #273c55;
+  --color-chart-skipped: #7d8a9c;
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 8px 24px -10px rgb(0 0 0 / 0.6), 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 18px 44px -14px rgb(0 0 0 / 0.7), 0 2px 6px 0 rgb(0 0 0 / 0.4);
+}
+html[data-theme='dark'] :is(.text-brand-500, .text-brand-600, .text-brand-700) {
+  color: #8fc2f3;
+}
+html[data-theme='dark'] .hover\:text-brand-700:hover {
+  color: #b5d7f8;
+}
+html[data-theme='dark'] :is(.text-brand-800, .text-brand-900) {
+  color: #d7e8fa;
+}
+html[data-theme='dark'] :is(.text-teal-600, .text-teal-700) {
+  color: #62d5c3;
+}
+html[data-theme='dark'] :is(.text-danger, .hover\:text-danger:hover) {
+  color: #ff9d93;
+}
+html[data-theme='dark'] .text-warning {
+  color: #f4c56a;
+}
+html[data-theme='dark'] .text-success {
+  color: #6fd7a4;
+}
+html[data-theme='dark'] .text-info {
+  color: #8fc6f3;
+}
+html[data-theme='dark'] .card-pasker {
+  background-image: linear-gradient(165deg, #152842, #122136);
+  border-color: rgb(143 194 243 / 0.16);
+}
+html[data-theme='dark'] select:not([multiple]):not([size]) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a9b8ca' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/*
+ * High contrast: pure white and black, darker blues and status colours (all text >= 7:1),
+ * strong borders, a thick black-and-yellow focus ring, and plain links underlined.
+ */
+html[data-theme='contrast'] {
+  --color-brand-50: #e9f1fb;
+  --color-brand-100: #d3e3f6;
+  --color-brand-200: #7fa6d3;
+  --color-brand-300: #3a6aa0;
+  --color-brand-500: #0d4f91;
+  --color-brand-600: #0a4785;
+  --color-brand-700: #083b70;
+  --color-brand-800: #052a52;
+  --color-brand-900: #031b36;
+  --color-brand-mark: #0a4785;
+  --color-teal-500: #087064;
+  --color-teal-600: #065f55;
+  --color-teal-700: #04483f;
+  --color-pastel-lavender-ink: #13325e;
+  --color-pastel-mint-ink: #0b4a2f;
+  --color-pastel-peach-ink: #6b2f10;
+  --color-pastel-butter-ink: #4f3a00;
+  --color-pastel-sky-ink: #083f5c;
+  --color-logo-ink: #031b36;
+  --color-logo-muted: #1f2a37;
+  --color-ink: #000000;
+  --color-ink-muted: #1f2a37;
+  --color-canvas: #ffffff;
+  --color-surface: #ffffff;
+  --color-line: #4a5a6e;
+  --color-line-strong: #111a26;
+  --color-danger: #8e1910;
+  --color-warning: #5f3700;
+  --color-success: #0b5130;
+  --color-info: #0a426e;
+  --color-neutral: #1f2a37;
+  --color-neutral-soft: #e9eef4;
+  --color-chart-passed: #137a4c;
+  --color-chart-failed: #a32b2b;
+  --color-chart-blocked: #a87100;
+  --color-chart-progress: #0a4785;
+  --color-chart-skipped: #4a5a6e;
+  --color-chart-track: #c8d3e0;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-lg: 0 0 0 2px #111a26;
+}
+html[data-theme='contrast'] :focus-visible {
+  outline: 3px solid #000000;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px #ffd400;
+}
+html[data-theme='contrast'] .card-pasker {
+  background-image: none;
+  background-color: #ffffff;
+  border: 2px solid #111a26;
+  box-shadow: none;
+}
+html[data-theme='contrast'] a:not([class*='bg-']) {
+  text-decoration-line: underline;
+  text-underline-offset: 0.2em;
+}

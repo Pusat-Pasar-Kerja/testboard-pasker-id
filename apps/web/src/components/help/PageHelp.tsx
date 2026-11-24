@@ -1,5 +1,6 @@
-import { BookOpen, CircleHelp, Compass, X } from 'lucide-react'
+import { BookOpen, CircleHelp, Compass, Globe, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router'
 import { GUIDE_SECTION, helpKeyOf, startTour } from './tour-state'
@@ -45,81 +46,92 @@ export function PageHelp() {
           {t('help.button')}
         </span>
       </button>
-      {open && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <button
-            type="button"
-            aria-label={t('help.close')}
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-brand-900/40 animate-fade-in"
-          />
-          <aside
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="bantuan-judul"
-            className="relative flex h-full w-full max-w-md animate-drawer-in flex-col overflow-y-auto bg-surface shadow-lg"
-          >
-            <div className="flex items-start justify-between gap-3 border-b border-line bg-gradient-to-br from-brand-50 to-teal-50 p-5">
-              <div>
-                <p className="text-xs font-semibold tracking-wider text-teal-700 uppercase">
-                  {t('help.eyebrow')}
-                </p>
-                <h2 id="bantuan-judul" className="mt-1 text-xl font-bold text-brand-800">
-                  {t(`help.pages.${key}.title`)}
-                </h2>
-              </div>
-              <button
-                ref={closeRef}
-                type="button"
-                onClick={() => setOpen(false)}
-                className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-white/70"
-              >
-                <X aria-hidden="true" className="size-5" />
-                <span className="sr-only">{t('help.close')}</span>
-              </button>
-            </div>
-            <div className="space-y-5 p-5">
-              <p className="text-ink">{t(`help.pages.${key}.what`)}</p>
-              {stepList.length > 0 && (
+      {open &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex justify-end">
+            <button
+              type="button"
+              aria-label={t('help.close')}
+              onClick={() => setOpen(false)}
+              className="absolute inset-0 bg-brand-900/40 animate-fade-in"
+            />
+            <aside
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="bantuan-judul"
+              className="relative flex h-full w-full max-w-md animate-drawer-in flex-col overflow-y-auto bg-surface shadow-lg"
+            >
+              <div className="flex items-start justify-between gap-3 border-b border-line bg-gradient-to-br from-brand-50 to-teal-50 p-5">
                 <div>
-                  <h3 className="text-sm font-semibold text-ink-muted">{t('help.stepsTitle')}</h3>
-                  <ol className="mt-2 space-y-3">
-                    {stepList.map((step, index) => (
-                      <li key={step} className="flex gap-3">
-                        <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full chip-gradient text-sm font-bold">
-                          {index + 1}
-                        </span>
-                        <span>{step}</span>
-                      </li>
-                    ))}
-                  </ol>
+                  <p className="text-xs font-semibold tracking-wider text-teal-700 uppercase">
+                    {t('help.eyebrow')}
+                  </p>
+                  <h2 id="bantuan-judul" className="mt-1 text-xl font-bold text-brand-800">
+                    {t(`help.pages.${key}.title`)}
+                  </h2>
                 </div>
-              )}
-              <div className="flex flex-col gap-2 border-t border-line pt-5">
-                <Link
-                  to={`/panduan#${GUIDE_SECTION[key]}`}
-                  onClick={() => setOpen(false)}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand-700 px-4 font-semibold text-white hover:bg-brand-800"
-                >
-                  <BookOpen aria-hidden="true" className="size-5" />
-                  {t('help.fullGuide')}
-                </Link>
                 <button
+                  ref={closeRef}
                   type="button"
-                  onClick={() => {
-                    setOpen(false)
-                    startTour()
-                  }}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-4 font-semibold hover:bg-brand-50"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-surface/70"
                 >
-                  <Compass aria-hidden="true" className="size-5" />
-                  {t('help.tour')}
+                  <X aria-hidden="true" className="size-5" />
+                  <span className="sr-only">{t('help.close')}</span>
                 </button>
               </div>
-            </div>
-          </aside>
-        </div>
-      )}
+              <div className="space-y-5 p-5">
+                <p className="text-ink">{t(`help.pages.${key}.what`)}</p>
+                {stepList.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-ink-muted">{t('help.stepsTitle')}</h3>
+                    <ol className="mt-2 space-y-3">
+                      {stepList.map((step, index) => (
+                        <li key={step} className="flex gap-3">
+                          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full chip-gradient text-sm font-bold">
+                            {index + 1}
+                          </span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+                <div className="flex flex-col gap-2 border-t border-line pt-5">
+                  <Link
+                    to={`/panduan#${GUIDE_SECTION[key]}`}
+                    onClick={() => setOpen(false)}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand-700 px-4 font-semibold text-white hover:bg-brand-800"
+                  >
+                    <BookOpen aria-hidden="true" className="size-5" />
+                    {t('help.fullGuide')}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false)
+                      startTour()
+                    }}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-4 font-semibold hover:bg-brand-50"
+                  >
+                    <Compass aria-hidden="true" className="size-5" />
+                    {t('help.tour')}
+                  </button>
+                  {/* Moved here from the left panel (owner: no help items in the menu). */}
+                  <Link
+                    to="/publik"
+                    onClick={() => setOpen(false)}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-4 font-semibold hover:bg-brand-50"
+                  >
+                    <Globe aria-hidden="true" className="size-5" />
+                    {t('help.publicSite')}
+                  </Link>
+                </div>
+              </div>
+            </aside>
+          </div>,
+          document.body,
+        )}
     </>
   )
 }

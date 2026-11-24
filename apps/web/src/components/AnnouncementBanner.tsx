@@ -34,7 +34,7 @@ function Banner({ text }: { text: string }) {
             // private mode: dismissed for this view only
           }
         }}
-        className="-my-1 inline-flex size-8 shrink-0 items-center justify-center rounded-lg hover:bg-ink/5"
+        className="-my-1 inline-flex size-8 shrink-0 items-center justify-center rounded-lg hover:bg-neutral-soft"
       >
         <X aria-hidden="true" className="size-4" />
         <span className="sr-only">{t('shell.dismiss')}</span>

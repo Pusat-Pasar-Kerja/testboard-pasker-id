@@ -12,9 +12,14 @@ import { createHttpDataSource } from './services/data-source'
 import { DataSourceProvider } from './services/data-source-context'
 import { createMockDataSource } from './services/mock-data-source'
 import '@fontsource-variable/inter/wght.css'
+// Readable letters for the accessibility option; downloaded only when switched on.
+import '@fontsource/atkinson-hyperlegible/latin-400.css'
+import '@fontsource/atkinson-hyperlegible/latin-700.css'
+import { startA11y } from './lib/a11y'
 import { SiteDefaultLocale } from './components/SiteDefaultLocale'
 import './styles.css'
 
+startA11y()
 const i18n = createI18n(readStoredLocale() ?? webEnv.defaultLocale)
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false, retry: 1 } },

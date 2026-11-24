@@ -277,12 +277,22 @@ describe('answers kept on the device when the internet drops', () => {
 })
 
 describe('guide and public preview for staff', () => {
-  it('shows the guide and the public site in the staff navigation', async () => {
+  it('offers the guide and the public site under Bantuan, not in the project menu', async () => {
+    const user = userEvent.setup()
     const { dataSource } = setup()
     renderRoute('/projects/DEMO-KARIR/dashboard', { dataSource })
-    const guideLinks = await screen.findAllByRole('link', { name: 'Panduan' })
-    expect(guideLinks.some((link) => link.getAttribute('href')?.startsWith('/panduan'))).toBe(true)
-    expect(screen.getAllByRole('link', { name: 'Halaman publik' }).length).toBeGreaterThan(0)
+    const menu = await screen.findByRole('navigation', { name: 'Navigasi utama' })
+    expect(within(menu).queryByRole('link', { name: /Panduan|Halaman publik/ })).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Bantuan' }))
+    const panel = await screen.findByRole('dialog')
+    expect(within(panel).getByRole('link', { name: /panduan lengkap/i })).toHaveAttribute(
+      'href',
+      expect.stringMatching(/^\/panduan/),
+    )
+    expect(within(panel).getByRole('link', { name: 'Lihat halaman publik' })).toHaveAttribute(
+      'href',
+      '/publik',
+    )
   })
 
   it('previews a closed Fase with the chosen data before publishing', async () => {

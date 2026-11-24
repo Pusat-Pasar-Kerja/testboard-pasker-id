@@ -11,8 +11,8 @@ describe('routing & shell', () => {
     const { router } = renderRoute('/')
     expect(await screen.findByRole('heading', { level: 1, name: 'Proyek' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/projects')
-    expect(await screen.findByText('Demo Portal Karier')).toBeInTheDocument()
-    expect(screen.getByText('Demo Portal Pelatihan')).toBeInTheDocument()
+    expect((await screen.findAllByText('Demo Portal Karier')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Demo Portal Pelatihan').length).toBeGreaterThan(0)
   })
 
   it('shows a not-found page for a project the user cannot see, without leaking data', async () => {

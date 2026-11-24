@@ -1,14 +1,14 @@
 import type { MemberRole } from '@testboard/shared'
 import {
-  BookOpen,
   Bug,
   CalendarRange,
   ChartColumn,
+  ChevronLeft,
   ClipboardCheck,
   FileUp,
+  Folder,
   FolderCog,
   FolderKanban,
-  Globe,
   History,
   Images,
   KeyRound,
@@ -23,9 +23,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, NavLink } from 'react-router'
-import { TestBoardLogo } from '../components/brand/TestBoardLogo'
-import { useCurrentUser, useProject, useRecoverySummary } from '../hooks/queries'
+import { Link, NavLink, useLocation } from 'react-router'
+import { useCurrentUser, useProject, useProjects, useRecoverySummary } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
 
 /** Who sees a menu item: Admin (website role, or a legacy lead row) or a User's task. */
@@ -124,6 +123,182 @@ function GroupTitle({ children }: { children: string }) {
   )
 }
 
+function PanelHeader({
+  back,
+  backLabel,
+  eyebrow,
+  title,
+  note,
+  onNavigate,
+}: {
+  back?: string
+  backLabel?: string
+  eyebrow: string
+  title: string
+  note?: string | null
+  onNavigate?: () => void
+}) {
+  return (
+    <div className="mb-3 space-y-2">
+      {back && backLabel && (
+        <Link
+          to={back}
+          onClick={onNavigate}
+          className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+        >
+          <ChevronLeft aria-hidden="true" className="size-4" />
+          {backLabel}
+        </Link>
+      )}
+      <div className="rounded-xl bg-gradient-to-br from-brand-50 to-teal-50 px-3 py-2 ring-1 ring-brand-100">
+        <p className="text-[11px] font-semibold tracking-wider text-teal-700 uppercase">
+          {eyebrow}
+        </p>
+        <p className="truncate font-semibold text-brand-800">{title}</p>
+        {note && <p className="text-xs text-ink-muted">{note}</p>}
+      </div>
+    </div>
+  )
+}
+
+/** Outside a project: my work and every project, like the top level of Google Drive. */
+function HomeNav({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useTranslation()
+  const projects = useProjects()
+  const list = projects.data ?? []
+  return (
+    <>
+      <ul className="space-y-1">
+        <li>
+          <NavLink to="/tugas" className={linkClass} onClick={onNavigate} data-tour="my-tasks">
+            <ClipboardCheck aria-hidden="true" className="size-5 shrink-0" />
+            <span>{t('nav.myTasks')}</span>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/projects" end className={linkClass} onClick={onNavigate}>
+            <FolderKanban aria-hidden="true" className="size-5 shrink-0" />
+            <span>{t('nav.projects')}</span>
+          </NavLink>
+        </li>
+      </ul>
+      {list.length > 0 && (
+        <>
+          <GroupTitle>{t('nav.projectList')}</GroupTitle>
+          <ul className="space-y-0.5" data-tour="project-menu">
+            {list.slice(0, 15).map((p) => (
+              <li key={p.id}>
+                <NavLink
+                  to={projectPath(p.project_code)}
+                  className={linkClass}
+                  onClick={onNavigate}
+                >
+                  <Folder aria-hidden="true" className="size-5 shrink-0 text-brand-600" />
+                  <span className="min-w-0 flex-1 truncate">{p.name}</span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </>
+  )
+}
+
+/** Inside a project: only that project's contents (owner: never mixed with help or admin). */
+function ProjectNav({ projectCode, onNavigate }: { projectCode: string; onNavigate?: () => void }) {
+  const { t } = useTranslation()
+  const me = useCurrentUser()
+  const project = useProject(projectCode)
+  const siteRole = me.data?.system_role ?? null
+  const who = whoOf(project.data?.role_code, Boolean(siteRole))
+  return (
+    <div data-tour="project-menu">
+      <PanelHeader
+        back="/projects"
+        backLabel={t('nav.projects')}
+        eyebrow={t('nav.thisProject')}
+        title={project.data?.name ?? projectCode}
+        note={who && who !== 'ADMIN' ? t('nav.yourTask', { task: t(`codes.role.${who}`) }) : null}
+        onNavigate={onNavigate}
+      />
+      {GROUPS.map((group) => {
+        const items = group.items.filter((item) => who && item.who.includes(who))
+        if (items.length === 0) return null
+        return (
+          <div key={group.key ?? 'home'} data-tour={group.key ? `group-${group.key}` : 'home'}>
+            {group.key && <GroupTitle>{t(`nav.group.${group.key}`)}</GroupTitle>}
+            <ul className="space-y-0.5">
+              {items.map((item) => (
+                <li key={item.key}>
+                  <NavLink
+                    to={projectPath(projectCode, item.path)}
+                    className={linkClass}
+                    onClick={onNavigate}
+                  >
+                    <item.icon aria-hidden="true" className="size-5 shrink-0" />
+                    <span className="min-w-0 flex-1 leading-tight">
+                      <span className="block truncate">{t(`nav.${item.key}`)}</span>
+                      <span className="block truncate text-[11px] font-normal text-ink-muted">
+                        {t(`nav.term.${item.key}`)}
+                      </span>
+                    </span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/** The website administration has its own panel (ADR 0011, 0017). */
+function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useTranslation()
+  const me = useCurrentUser()
+  const siteRole = me.data?.system_role ?? null
+  // New "Lupa kata sandi / email" requests: shown as a badge (no e-mail is sent).
+  const recoverySummary = useRecoverySummary(siteRole === 'SUPER_ADMIN')
+  const openRequests = recoverySummary.data?.open_requests ?? 0
+  return (
+    <>
+      <PanelHeader
+        back="/projects"
+        backLabel={t('nav.projects')}
+        eyebrow={t('nav.adminEyebrow')}
+        title={t('nav.adminSection')}
+        note={siteRole ? t(`codes.systemRole.${siteRole}`) : null}
+        onNavigate={onNavigate}
+      />
+      <ul className="space-y-0.5">
+        {ADMIN_ITEMS.filter(
+          (item) => siteRole === 'SUPER_ADMIN' || item.key === 'adminProjects',
+        ).map((item) => (
+          <li key={item.key}>
+            <NavLink to={item.path} className={linkClass} onClick={onNavigate}>
+              <item.icon aria-hidden="true" className="size-5 shrink-0" />
+              <span>{t(`nav.${item.key}`)}</span>
+              {item.key === 'adminRecovery' && openRequests > 0 && (
+                <span className="ml-auto rounded-full bg-danger px-1.5 text-xs font-semibold text-white tabular-nums">
+                  {openRequests}
+                  <span className="sr-only"> {t('nav.openRequests')}</span>
+                </span>
+              )}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+
+/**
+ * The left panel (owner, 2026-11-24: like Google Drive, one thing at a time): the project's
+ * contents inside a project, the administration under /admin, otherwise my work and the
+ * list of projects. Help, accessibility, administration and the account live in the top bar.
+ */
 export function SidebarNav({
   projectCode,
   onNavigate,
@@ -132,121 +307,19 @@ export function SidebarNav({
   onNavigate?: () => void
 }) {
   const { t } = useTranslation()
+  const { pathname } = useLocation()
   const me = useCurrentUser()
-  const project = useProject(projectCode ?? '')
-  const siteRole = me.data?.system_role ?? null
-  const who = projectCode ? whoOf(project.data?.role_code, Boolean(siteRole)) : null
-  // New "Lupa kata sandi / email" requests: shown as a badge (no e-mail is sent).
-  const recoverySummary = useRecoverySummary(siteRole === 'SUPER_ADMIN')
-  const openRequests = recoverySummary.data?.open_requests ?? 0
-
+  // Only Admins and Super Admins get the administration panel; anyone else sees home.
+  const admin = pathname.startsWith('/admin') && Boolean(me.data?.system_role)
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center border-b border-line px-5">
-        <Link to="/projects" onClick={onNavigate} aria-label="TestBoard PASKER ID">
-          <TestBoardLogo size="md" />
-        </Link>
-      </div>
-      <nav aria-label={t('nav.main')} className="flex-1 overflow-y-auto px-3 py-4">
-        <ul className="space-y-1">
-          <li>
-            <NavLink to="/tugas" className={linkClass} onClick={onNavigate} data-tour="my-tasks">
-              <ClipboardCheck aria-hidden="true" className="size-5 shrink-0" />
-              <span>{t('nav.myTasks')}</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/projects" end className={linkClass} onClick={onNavigate}>
-              <FolderKanban aria-hidden="true" className="size-5 shrink-0" />
-              <span>{t('nav.projects')}</span>
-            </NavLink>
-          </li>
-        </ul>
-
-        {projectCode && (
-          <div className="mt-4 border-t border-line pt-4" data-tour="project-menu">
-            <div className="mb-2 rounded-xl bg-gradient-to-br from-brand-50 to-teal-50 px-3 py-2 ring-1 ring-brand-100">
-              <p className="text-[11px] font-semibold tracking-wider text-teal-700 uppercase">
-                {t('nav.thisProject')}
-              </p>
-              <p className="truncate font-semibold text-brand-800">
-                {project.data?.name ?? projectCode}
-              </p>
-              {who && who !== 'ADMIN' && (
-                <p className="text-xs text-ink-muted">
-                  {t('nav.yourTask', { task: t(`codes.role.${who}`) })}
-                </p>
-              )}
-            </div>
-            {GROUPS.map((group) => {
-              const items = group.items.filter((item) => who && item.who.includes(who))
-              if (items.length === 0) return null
-              return (
-                <div
-                  key={group.key ?? 'home'}
-                  data-tour={group.key ? `group-${group.key}` : 'home'}
-                >
-                  {group.key && <GroupTitle>{t(`nav.group.${group.key}`)}</GroupTitle>}
-                  <ul className="space-y-0.5">
-                    {items.map((item) => (
-                      <li key={item.key}>
-                        <NavLink
-                          to={projectPath(projectCode, item.path)}
-                          className={linkClass}
-                          onClick={onNavigate}
-                        >
-                          <item.icon aria-hidden="true" className="size-5 shrink-0" />
-                          <span className="min-w-0 flex-1 leading-tight">
-                            <span className="block truncate">{t(`nav.${item.key}`)}</span>
-                            <span className="block truncate text-[11px] font-normal text-ink-muted">
-                              {t(`nav.term.${item.key}`)}
-                            </span>
-                          </span>
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        <div className="mt-4 border-t border-line pt-4">
-          <GroupTitle>{t('nav.group.help')}</GroupTitle>
-          <NavLink to="/panduan" className={linkClass} onClick={onNavigate} data-tour="guide">
-            <BookOpen aria-hidden="true" className="size-5 shrink-0" />
-            <span>{t('nav.guide')}</span>
-          </NavLink>
-          <NavLink to="/publik" className={linkClass} onClick={onNavigate}>
-            <Globe aria-hidden="true" className="size-5 shrink-0" />
-            <span>{t('nav.publicSite')}</span>
-          </NavLink>
-          {siteRole && (
-            <>
-              <GroupTitle>{t('nav.adminSection')}</GroupTitle>
-              <ul className="space-y-0.5">
-                {ADMIN_ITEMS.filter(
-                  (item) => siteRole === 'SUPER_ADMIN' || item.key === 'adminProjects',
-                ).map((item) => (
-                  <li key={item.key}>
-                    <NavLink to={item.path} className={linkClass} onClick={onNavigate}>
-                      <item.icon aria-hidden="true" className="size-5 shrink-0" />
-                      <span>{t(`nav.${item.key}`)}</span>
-                      {item.key === 'adminRecovery' && openRequests > 0 && (
-                        <span className="ml-auto rounded-full bg-danger px-1.5 text-xs font-semibold text-white tabular-nums">
-                          {openRequests}
-                          <span className="sr-only"> {t('nav.openRequests')}</span>
-                        </span>
-                      )}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
-      </nav>
-    </div>
+    <nav aria-label={t('nav.main')} className="h-full overflow-y-auto px-3 py-4">
+      {admin ? (
+        <AdminNav onNavigate={onNavigate} />
+      ) : projectCode ? (
+        <ProjectNav projectCode={projectCode} onNavigate={onNavigate} />
+      ) : (
+        <HomeNav onNavigate={onNavigate} />
+      )}
+    </nav>
   )
 }

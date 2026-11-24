@@ -40,7 +40,7 @@ export function FormDialog({
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-4 sm:items-center">
       <div
         aria-hidden="true"
-        className="absolute inset-0 animate-fade-in bg-ink/30 backdrop-blur-[2px]"
+        className="absolute inset-0 animate-fade-in bg-brand-900/45 backdrop-blur-[2px]"
         onClick={busy ? undefined : onCancel}
       />
       <div

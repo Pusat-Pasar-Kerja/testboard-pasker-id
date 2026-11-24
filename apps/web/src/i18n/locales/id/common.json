@@ -62,9 +62,10 @@
       "prepare": "1. Persiapan",
       "run": "2. Pelaksanaan",
       "results": "3. Hasil & laporan",
-      "manage": "4. Pengaturan",
-      "help": "Bantuan"
-    }
+      "manage": "4. Pengaturan"
+    },
+    "projectList": "Proyek saya",
+    "adminEyebrow": "Pengelolaan situs"
   },
   "shell": {
     "skipToContent": "Lewati ke konten utama",
@@ -1561,12 +1562,6 @@
     "summary": "{{created}} masalah dibuat · {{skipped}} baris dilewati · {{linked}} ditautkan ke hasil uji · {{images}} tangkapan layar",
     "openBugs": "Buka Daftar masalah"
   },
-  "fontSize": {
-    "label": "Ukuran huruf",
-    "smaller": "Perkecil huruf",
-    "normal": "Ukuran huruf biasa",
-    "larger": "Perbesar huruf"
-  },
   "progress": {
     "summary": "{{tried}} dari {{total}} skenario sudah dicoba",
     "of": "dari {{total}} skenario sudah dicoba",
@@ -2908,7 +2903,9 @@
           "Bila hasilnya banyak, tekan \"Lihat semua\" untuk membuka daftar lengkap yang sudah tersaring."
         ]
       }
-    }
+    },
+    "publicSite": "Lihat halaman publik",
+    "more": "Bantuan lainnya"
   },
   "tour": {
     "counter": "Tur singkat · {{n}} dari {{total}}",
@@ -2922,24 +2919,24 @@
         "body": "Semua pekerjaan yang ditugaskan kepada Anda, dari semua proyek, ada di sini."
       },
       "projectMenu": {
-        "title": "Menu sesuai urutan kerja",
-        "body": "1. Persiapan, 2. Pelaksanaan, 3. Hasil & laporan, 4. Pengaturan. Anda hanya melihat bagian yang sesuai dengan tugas Anda."
+        "title": "Panel kiri",
+        "body": "Panel kiri hanya berisi isi yang sedang Anda buka: daftar proyek, isi satu proyek, atau menu Administrasi. Tidak dicampur."
       },
       "startHere": {
         "title": "Mulai di sini",
         "body": "Ikuti langkah ini dari atas ke bawah untuk menyiapkan dan menjalankan pengujian."
       },
       "pageHelp": {
-        "title": "Bantuan di setiap halaman",
-        "body": "Tekan Bantuan kapan saja untuk penjelasan singkat halaman yang sedang Anda buka."
+        "title": "Bantuan",
+        "body": "Tekan Bantuan kapan saja untuk penjelasan halaman ini, panduan lengkap, tur singkat, dan halaman publik."
       },
-      "guide": {
-        "title": "Panduan lengkap",
-        "body": "Panduan bergambar, disusun menurut peran: peserta, Penguji, Admin, Developer, dan Pemantau."
+      "a11y": {
+        "title": "Aksesibilitas",
+        "body": "Perbesar tulisan, pilih tema gelap atau kontras tinggi, dan atur jarak baca supaya nyaman."
       },
-      "fontSize": {
-        "title": "Ukuran huruf",
-        "body": "Tulisan terlalu kecil? Tekan A+ untuk memperbesar huruf di seluruh situs."
+      "admin": {
+        "title": "Administrasi",
+        "body": "Khusus Admin dan Super Admin: kelola proyek, pengguna, dan pengaturan situs di sini."
       }
     }
   },
@@ -3136,5 +3133,49 @@
     "allBugs": "Lihat semua {{count}} masalah",
     "allRuns": "Buka daftar lembar uji",
     "hintTitle": "Ketik yang ingin dicari"
+  },
+  "a11y": {
+    "button": "Aksesibilitas",
+    "title": "Aksesibilitas",
+    "subtitle": "Atur tampilan supaya nyaman dibaca. Pilihan Anda langsung berlaku dan disimpan di perangkat ini.",
+    "close": "Tutup aksesibilitas",
+    "reset": "Kembalikan seperti semula",
+    "done": "Selesai",
+    "size": {
+      "title": "Ukuran teks",
+      "levels": {
+        "0": "Teks kecil (90%)",
+        "1": "Teks biasa (100%)",
+        "2": "Teks besar (113%)",
+        "3": "Teks lebih besar (125%)",
+        "4": "Teks paling besar (140%)"
+      }
+    },
+    "theme": {
+      "title": "Tema",
+      "light": "Terang",
+      "dark": "Gelap",
+      "contrast": "Kontras tinggi",
+      "system": "Ikuti perangkat"
+    },
+    "reading": {
+      "title": "Kenyamanan membaca",
+      "spacing": {
+        "label": "Jarak lebih lega",
+        "hint": "Baris, huruf, dan kata diberi jarak lebih."
+      },
+      "readable": {
+        "label": "Huruf mudah dibaca",
+        "hint": "Huruf yang tidak mudah tertukar, misalnya I, l, dan 1."
+      },
+      "underline": {
+        "label": "Garis bawah tautan",
+        "hint": "Semua tautan diberi garis bawah supaya mudah dikenali."
+      },
+      "reduceMotion": {
+        "label": "Kurangi gerakan",
+        "hint": "Tanpa animasi dan gulir halus."
+      }
+    }
   }
 }

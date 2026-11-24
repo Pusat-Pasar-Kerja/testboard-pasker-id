@@ -28,7 +28,7 @@ export function Lightbox({
   const go = (delta: number) => onIndex((index + delta + files.length) % files.length)
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-ink/80 p-3 sm:p-6">
+    <div className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-brand-900/85 p-3 sm:p-6">
       <div aria-hidden="true" className="absolute inset-0" onClick={onClose} />
       <div
         ref={ref}

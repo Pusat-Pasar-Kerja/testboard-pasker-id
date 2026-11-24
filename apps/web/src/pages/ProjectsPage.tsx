@@ -41,7 +41,7 @@ export function ProjectsPage() {
         actions={createButton}
       />
       {me.data && (
-        <section className="mb-6 flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-brand-50 via-white to-teal-50 p-5 ring-1 ring-brand-100 sm:flex-row sm:items-center sm:p-6">
+        <section className="mb-6 flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-brand-50 via-surface to-teal-50 p-5 ring-1 ring-brand-100 sm:flex-row sm:items-center sm:p-6">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold tracking-wide text-teal-700 uppercase">
               {me.data.system_role

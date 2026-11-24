@@ -62,9 +62,10 @@
       "prepare": "1. Preparation",
       "run": "2. Testing",
       "results": "3. Results & reports",
-      "manage": "4. Settings",
-      "help": "Help"
-    }
+      "manage": "4. Settings"
+    },
+    "projectList": "My projects",
+    "adminEyebrow": "Website management"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -1561,12 +1562,6 @@
     "summary": "{{created}} problems created · {{skipped}} rows skipped · {{linked}} linked to results · {{images}} screenshots",
     "openBugs": "Open the problem list"
   },
-  "fontSize": {
-    "label": "Text size",
-    "smaller": "Smaller text",
-    "normal": "Normal text size",
-    "larger": "Larger text"
-  },
   "progress": {
     "summary": "{{tried}} of {{total}} scenarios tried",
     "of": "of {{total}} scenarios tried",
@@ -2899,7 +2894,9 @@
           "When there are many results, press \"See all\" to open the full, already filtered list."
         ]
       }
-    }
+    },
+    "publicSite": "View the public pages",
+    "more": "More help"
   },
   "tour": {
     "counter": "Short tour · {{n}} of {{total}}",
@@ -2913,24 +2910,24 @@
         "body": "Everything assigned to you, from every project, is here."
       },
       "projectMenu": {
-        "title": "A menu in the order of the work",
-        "body": "1. Preparation, 2. Testing, 3. Results & reports, 4. Settings. You only see the parts that fit your task."
+        "title": "Left panel",
+        "body": "The left panel only shows what you have open: the list of projects, one project's contents, or the Administration menu. Never mixed."
       },
       "startHere": {
         "title": "Start here",
         "body": "Follow these steps from top to bottom to prepare and run the testing."
       },
       "pageHelp": {
-        "title": "Help on every page",
-        "body": "Press Help any time for a short explanation of the page you are on."
+        "title": "Help",
+        "body": "Press Help at any time for an explanation of this page, the full guide, the short tour and the public pages."
       },
-      "guide": {
-        "title": "The full guide",
-        "body": "An illustrated guide arranged by role: participants, Testers, Admins, Developers and Observers."
+      "a11y": {
+        "title": "Accessibility",
+        "body": "Make the text bigger, choose a dark or high-contrast theme, and set comfortable reading spacing."
       },
-      "fontSize": {
-        "title": "Text size",
-        "body": "Text too small? Press A+ to make the letters bigger on the whole website."
+      "admin": {
+        "title": "Administration",
+        "body": "For Admins and Super Admins only: manage projects, users and website settings here."
       }
     }
   },
@@ -3127,5 +3124,49 @@
     "allBugs": "See all {{count}} problems",
     "allRuns": "Open the list of test sheets",
     "hintTitle": "Type what you are looking for"
+  },
+  "a11y": {
+    "button": "Accessibility",
+    "title": "Accessibility",
+    "subtitle": "Adjust the display so it is comfortable to read. Your choices apply at once and are saved on this device.",
+    "close": "Close accessibility",
+    "reset": "Back to the defaults",
+    "done": "Done",
+    "size": {
+      "title": "Text size",
+      "levels": {
+        "0": "Small text (90%)",
+        "1": "Normal text (100%)",
+        "2": "Large text (113%)",
+        "3": "Larger text (125%)",
+        "4": "Largest text (140%)"
+      }
+    },
+    "theme": {
+      "title": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "contrast": "High contrast",
+      "system": "Follow the device"
+    },
+    "reading": {
+      "title": "Reading comfort",
+      "spacing": {
+        "label": "More spacing",
+        "hint": "More room between lines, letters and words."
+      },
+      "readable": {
+        "label": "Easy-to-read letters",
+        "hint": "Letters that are hard to confuse, such as I, l and 1."
+      },
+      "underline": {
+        "label": "Underline links",
+        "hint": "Every link is underlined so it is easy to spot."
+      },
+      "reduceMotion": {
+        "label": "Reduce motion",
+        "hint": "No animations or smooth scrolling."
+      }
+    }
   }
 }
