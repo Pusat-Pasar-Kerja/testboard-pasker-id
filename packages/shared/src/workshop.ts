@@ -145,7 +145,10 @@ const isoDateTime = z.iso.datetime({ offset: true })
 export const workshopTableCreateSchema = z
   .object({
     name: z.string().trim().min(1).max(120),
-    run_id: idString.nullable(),
+    /** Nomor meja printed on the card (ADR 0019). */
+    table_number: z.number().int().min(1).max(999).nullable().optional(),
+    /** Set by the UAT the group belongs to; kept for the old cycle routes. */
+    run_id: idString.nullable().optional(),
     module_ids: z.array(idString).max(200),
     members: tableMembersSchema.default([]),
     valid_from: isoDateTime.nullable().optional(),
@@ -160,6 +163,7 @@ export type WorkshopTableInput = z.input<typeof workshopTableCreateSchema>
 export const workshopTableUpdateSchema = z
   .object({
     name: z.string().trim().min(1).max(120).optional(),
+    table_number: z.number().int().min(1).max(999).nullable().optional(),
     run_id: idString.nullable().optional(),
     module_ids: z.array(idString).max(200).optional(),
     members: tableMembersSchema.optional(),
@@ -322,6 +326,8 @@ export interface TableSessionMember {
 export interface WorkshopTableDto {
   id: IdString
   name: string
+  /** Nomor meja (ADR 0019). */
+  table_number: number | null
   cycle: { id: IdString; cycle_code: string; title: string }
   run: { id: IdString; run_code: string; name: string; status_code: RunStatus } | null
   modules: ModuleRef[]
@@ -346,7 +352,13 @@ export interface WorkshopFeatureDto {
 }
 
 export interface WorkshopSessionDto {
-  table: { id: IdString; name: string; member_names: string[]; members: TableSessionMember[] }
+  table: {
+    id: IdString
+    name: string
+    table_number: number | null
+    member_names: string[]
+    members: TableSessionMember[]
+  }
   project: { code: string; name: string }
   cycle: { id: IdString; cycle_code: string; title: string }
   run: { id: IdString; name: string; status_code: RunStatus } | null
@@ -412,6 +424,7 @@ export interface WorkshopResultSaved {
 export interface WorkshopBoardTable {
   id: IdString
   name: string
+  table_number: number | null
   member_names: string[]
   state: WorkshopTableState
   modules: ModuleRef[]
@@ -420,11 +433,17 @@ export interface WorkshopBoardTable {
   last_activity_at: string | null
 }
 
+/** The UAT a board, a group or a public page belongs to (ADR 0019: UAT = one test run). */
+export interface UatRef {
+  id: IdString
+  name: string
+  run_code: string
+  status_code: RunStatus
+  phase: { id: IdString; cycle_code: string; title: string } | null
+}
+
 export interface WorkshopBoardDto {
-  cycle: {
-    id: IdString
-    cycle_code: string
-    title: string
+  uat: UatRef & {
     is_public: boolean
     public_fields: PublicField[]
     public_intro: string | null
@@ -451,21 +470,20 @@ export interface WorkshopInboxItem extends WorkshopBugDto {
 
 // ---- Public pages ------------------------------------------------------------------------
 
-export interface PublicCycleSummary {
+/** A UAT on the public pages (ADR 0019); only the fields an Admin switched on are filled. */
+export interface PublicUatSummary {
   id: IdString
   project: { code: string; name: string }
-  cycle_code: string
-  title: string
+  name: string
+  phase: { cycle_code: string; title: string } | null
   intro: string | null
-  status_code: string
+  status_code: RunStatus
   description?: string | null
   period?: { starts_on: string | null; ends_on: string | null }
   progress?: ResultCounts
-  /** Only with "bugs.list": problems reported in the Fase (duplicates counted once). */
-  bug_count?: number
-  /** Only with "bugs.list": of those, the ones not finished yet. */
-  bug_open?: number
   fields: PublicField[]
+  /** The project's Bug Reporting is public too (link to its problem list). */
+  bug_reporting_public: boolean
 }
 
 /** Problem statuses the public pages count as finished. */
@@ -480,7 +498,7 @@ export interface PublicFeatureDto {
   tables?: { name: string; members?: string[] }[]
 }
 
-export interface PublicCycleDetail extends PublicCycleSummary {
+export interface PublicUatDetail extends PublicUatSummary {
   features?: PublicFeatureDto[]
 }
 
@@ -524,10 +542,11 @@ export function newAccessCode(random: () => number = Math.random): string {
 // ---- "Tugas saya" (a User's own work, owner 2026-11-24) -----------------------------------
 
 export interface MyTableTask {
-  table: { id: IdString; name: string }
+  table: { id: IdString; name: string; table_number: number | null }
   member: { id: IdString; name: string }
   project: { code: string; name: string }
   cycle: { id: IdString; title: string }
+  uat: { id: IdString; name: string } | null
   valid_from: string | null
   valid_until: string
   state: WorkshopTableState

@@ -230,8 +230,8 @@ describe('runs and executions (Milestone 3, same rules as the API)', () => {
     expect(detail.attempts.map((a) => a.result_status)).toEqual(['PASSED', 'FAILED'])
   })
 
-  it('only records while ACTIVE and only for the assigned tester', async () => {
-    const { db, source, freshCase } = setup()
+  it('only records while ACTIVE and only for people of the UAT (and their group)', async () => {
+    const { db, source, runOf, freshCase } = setup()
     const completed = db.runCases.find(
       (x) => x.runId === db.runs.find((r) => r.status_code === 'COMPLETED')?.id,
     )
@@ -239,14 +239,33 @@ describe('runs and executions (Milestone 3, same rules as the API)', () => {
       source.createExecution(MAIN, completed?.id ?? '', { result_status: 'PASSED' }, 'k-3'),
     ).rejects.toMatchObject({ status: 409 })
 
+    // A Pengguna of the UAT without a group answers any of its scenarios (ADR 0019).
     db.currentUserId = '3'
     const others = freshCase('RUN-S2-20261109', '4')
-    await expect(
-      source.createExecution(MAIN, others.id, { result_status: 'PASSED' }, 'k-4'),
-    ).rejects.toMatchObject({ status: 403 })
-    const mine = freshCase('RUN-S2-20261109', '3')
-    const saved = await source.createExecution(MAIN, mine.id, { result_status: 'PASSED' }, 'k-5')
+    const saved = await source.createExecution(MAIN, others.id, { result_status: 'PASSED' }, 'k-4')
     expect(saved.tester?.id).toBe('3')
+
+    // In a group, only the scenarios of the group's features.
+    const run = runOf('RUN-S2-20261109')
+    const meja3 = db.tables.find((t) => t.runId === run.id && t.name === 'Meja 3')!
+    const seat = db.participants.find((p) => p.runId === run.id && p.userId === '3')!
+    seat.tableId = meja3.id
+    const outside = db.runCases.find(
+      (rc) =>
+        rc.runId === run.id &&
+        rc.assignedTo !== '3' &&
+        !meja3.moduleIds.includes(db.cases.find((c) => c.id === rc.caseId)?.moduleId ?? ''),
+    )!
+    await expect(
+      source.createExecution(MAIN, outside.id, { result_status: 'PASSED' }, 'k-5'),
+    ).rejects.toMatchObject({ status: 403 })
+
+    // Someone who does not take part in the UAT may not answer at all.
+    db.currentUserId = '5'
+    const fresh = freshCase('RUN-S2-20261109')
+    await expect(
+      source.createExecution(MAIN, fresh.id, { result_status: 'PASSED' }, 'k-6'),
+    ).rejects.toMatchObject({ status: 403 })
   })
 
   it('refuses to remove a run case that already has results', async () => {
@@ -398,9 +417,12 @@ describe('evidence (Milestone 5, simulated pipeline in the demo)', () => {
     await expect(source.deleteFile(MAIN, id)).rejects.toMatchObject({ status: 409 })
   })
 
-  it('does not let viewers upload', async () => {
+  it('does not let a legacy Pemantau (VIEWER) row upload', async () => {
     const db = createMockDb()
     db.currentUserId = '6'
+    // VIEWER rows became Pengguna (migration 0015); an old row keeps its old rights.
+    const member = db.projects[0]!.members.find((m) => m.userId === '6')!
+    member.role = 'VIEWER'
     const source = createMockDataSource({ latencyMs: 0, db, superAdmin: false })
     await expect(source.uploadFile(MAIN, png())).rejects.toMatchObject({ status: 403 })
   })

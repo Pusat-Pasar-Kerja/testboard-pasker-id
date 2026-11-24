@@ -10,17 +10,18 @@ async function setup() {
   const db = createMockDb()
   const dataSource = createMockDataSource({ latencyMs: 0, db, superAdmin: true })
   const project = db.projects.find((p) => p.project_code === 'DEMO-KARIR')!
-  const cycle = db.cycles.find((c) => c.projectId === project.id)!
-  const tables = await dataSource.listWorkshopTables(project.project_code, cycle.id)
+  // The workshop UAT of the demo (ADR 0019): its groups are the table cards.
+  const uat = db.runs.find((r) => r.projectId === project.id && r.status_code === 'ACTIVE')!
+  const tables = await dataSource.listWorkshopTables(project.project_code, uat.id)
   const table = tables.find((t) => t.name === 'Meja 1')!
-  // An Admin lists Pak Budi with his e-mail: he becomes a Penguji account, not activated.
-  const saved = await dataSource.updateWorkshopTable(project.project_code, cycle.id, table.id, {
+  // An Admin lists Pak Budi with his e-mail: he becomes a Pengguna account, not activated.
+  const saved = await dataSource.updateWorkshopTable(project.project_code, uat.id, table.id, {
     members: [
       { name: 'Pak Budi', email: 'budi.meja@demo.invalid' },
       { name: 'Bu Sri', email: null },
     ],
   })
-  return { db, dataSource, project, cycle, table: saved }
+  return { db, dataSource, project, uat, table: saved }
 }
 
 describe('people at a table with their own account', () => {
@@ -67,11 +68,11 @@ describe('people at a table with their own account', () => {
     const db = createMockDb()
     const dataSource = createMockDataSource({ latencyMs: 0, db, superAdmin: false })
     const project = db.projects.find((p) => p.project_code === 'DEMO-KARIR')!
-    const cycle = db.cycles.find((c) => c.projectId === project.id)!
+    const uat = db.runs.find((r) => r.projectId === project.id && r.status_code === 'ACTIVE')!
     // The demo user is listed at Meja 2 with their own e-mail.
-    const tables = await dataSource.listWorkshopTables(project.project_code, cycle.id)
+    const tables = await dataSource.listWorkshopTables(project.project_code, uat.id)
     const meja2 = tables.find((t) => t.name === 'Meja 2')!
-    await dataSource.updateWorkshopTable(project.project_code, cycle.id, meja2.id, {
+    await dataSource.updateWorkshopTable(project.project_code, uat.id, meja2.id, {
       members: [
         { name: 'Demo Saya', email: db.users.find((u) => u.id === db.currentUserId)!.email },
       ],

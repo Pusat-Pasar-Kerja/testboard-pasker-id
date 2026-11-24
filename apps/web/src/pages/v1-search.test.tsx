@@ -40,7 +40,7 @@ describe('one search for the whole project (audit 2026-11-24)', () => {
     const { db, project, dataSource } = setup()
     const run = db.runs.find((r) => r.projectId === project.id)!
     renderRoute(`${P}/search?q=${encodeURIComponent(run.run_code)}`, { dataSource })
-    const sheets = (await screen.findByRole('heading', { name: /^Lembar uji/ })).closest(
+    const sheets = (await screen.findByRole('heading', { name: /^UAT/ })).closest(
       'section',
     ) as HTMLElement
     expect(

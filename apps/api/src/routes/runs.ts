@@ -14,6 +14,7 @@ import { iso, select, type Db } from '../db/tx.js'
 import { AppError } from '../lib/errors.js'
 import { idParam } from '../lib/validation.js'
 import type { AppEnv } from '../types.js'
+import { assertUatAccess, managesProject, myUatIds } from '../uat/service.js'
 
 interface RunRow {
   id: string
@@ -90,13 +91,23 @@ export function runRoutes(pool: Pool) {
   const routes = new Hono<AppEnv>()
 
   routes.get('/', requirePermission('project.read'), async (c) => {
-    const runs = await runSummaries(pool, c.get('project').id)
-    return c.json(runs.map(({ environment_url: _url, ...summary }) => summary))
+    const project = c.get('project')
+    const runs = await runSummaries(pool, project.id)
+    // A Pengguna sees only the UATs they take part in (ADR 0019).
+    const mine = managesProject(project)
+      ? null
+      : await myUatIds(pool, project.id, c.get('auth')?.userId ?? '')
+    return c.json(
+      runs
+        .filter((run) => !mine || mine.has(run.id))
+        .map(({ environment_url: _url, ...summary }) => summary),
+    )
   })
 
   routes.get('/:runId', requirePermission('project.read'), async (c) => {
     const project = c.get('project')
     const runId = idParam(c, 'runId')
+    await assertUatAccess(c, pool, runId)
     const [run] = await runSummaries(pool, project.id, runId)
     if (!run) throw new AppError(404, 'NOT_FOUND', 'Not found.')
 

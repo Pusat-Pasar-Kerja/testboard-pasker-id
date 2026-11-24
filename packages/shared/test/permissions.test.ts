@@ -8,9 +8,11 @@ import {
 } from '../src/index.js'
 
 describe('permission matrix (doc 09)', () => {
-  it('lets every member read, but only leads change test case definitions', () => {
-    for (const role of MEMBER_ROLES) expect(roleCan(role, 'case.read')).toBe(true)
+  it('keeps the scenario library with the managers; a Pengguna works inside a UAT (ADR 0019)', () => {
+    expect(MEMBER_ROLES.filter((r) => roleCan(r, 'case.read'))).toEqual(['ADMIN', 'QA_LEAD'])
     expect(MEMBER_ROLES.filter((r) => roleCan(r, 'case.write'))).toEqual(['ADMIN', 'QA_LEAD'])
+    expect(roleCan('TESTER', 'execution.run')).toBe(true)
+    expect(roleCan('TESTER', 'defect.create')).toBe(true)
   })
 
   it('keeps member management and project settings with ADMIN only', () => {
@@ -18,14 +20,9 @@ describe('permission matrix (doc 09)', () => {
     expect(PERMISSIONS['project.update']).toEqual(['ADMIN'])
   })
 
-  it('never lets VIEWER (Pemantau) write anything; downloading reports is allowed', () => {
-    const writes = Object.keys(PERMISSIONS).filter(
-      (p) => !/\.read$/.test(p) && p !== 'report.export',
-    )
-    for (const permission of writes) {
-      expect(roleCan('VIEWER', permission as keyof typeof PERMISSIONS), permission).toBe(false)
-    }
-    expect(roleCan('VIEWER', 'report.export')).toBe(true)
+  it('lets only managers download reports or read the activity log', () => {
+    expect(MEMBER_ROLES.filter((r) => roleCan(r, 'report.export'))).toEqual(['ADMIN', 'QA_LEAD'])
+    expect(MEMBER_ROLES.filter((r) => roleCan(r, 'audit.read'))).toEqual(['ADMIN', 'QA_LEAD'])
   })
 })
 

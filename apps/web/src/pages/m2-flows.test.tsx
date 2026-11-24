@@ -96,32 +96,27 @@ describe('test case create / edit / archive (mock mode)', () => {
     expect(await screen.findByRole('button', { name: 'Pulihkan' })).toBeInTheDocument()
   })
 
-  it('hides write actions from a VIEWER', async () => {
+  it('keeps the scenario library away from a Pengguna (ADR 0019)', async () => {
     const db = createMockDb()
-    db.currentUserId = '6' // Demo Pemantau = VIEWER
+    db.currentUserId = '6' // a Pengguna (the old Pemantau)
     renderRoute(`${P}/test-cases`, {
       dataSource: createMockDataSource({ latencyMs: 0, db, superAdmin: false }),
     })
-    await screen.findByRole('table')
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Halaman tidak ditemukan' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Buat skenario uji' })).not.toBeInTheDocument()
   })
 })
 
 describe('team, profile and user administration', () => {
-  it('changes a member task after confirming it', async () => {
-    const user = userEvent.setup()
+  it('lists every member as a Pengguna, with nothing to choose (ADR 0019)', async () => {
     renderRoute(`${P}/members`)
-    const select = await screen.findByLabelText('Tugas Demo Penguji 2')
-    // Only the three User tasks are offered (ADR 0017).
-    expect(Array.from(select.querySelectorAll('option')).map((option) => option.value)).toEqual([
-      'TESTER',
-      'DEVELOPER',
-      'VIEWER',
-    ])
-    await user.selectOptions(select, 'VIEWER')
-    const dialog = await screen.findByRole('alertdialog', { name: 'Ubah tugas Demo Penguji 2?' })
-    await user.click(within(dialog).getByRole('button', { name: 'Ubah tugas' }))
-    expect(await screen.findByText('Tugas Demo Penguji 2 sekarang Pemantau.')).toBeInTheDocument()
+    const row = (await screen.findByText('Demo Penguji 2')).closest('li') as HTMLElement
+    expect(within(row).getByText('Pengguna')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Tugas Demo Penguji 2')).not.toBeInTheDocument()
+    expect(within(row).queryByRole('combobox')).not.toBeInTheDocument()
   })
 
   it('creates an account for a new e-mail when an Admin adds a member by name', async () => {
@@ -131,7 +126,7 @@ describe('team, profile and user administration', () => {
     await user.click(screen.getByRole('button', { name: 'Tambah' }))
     await user.type(await screen.findByLabelText(/^Nama lengkap/), 'Warga Baru')
     await user.click(screen.getByRole('button', { name: 'Tambah' }))
-    expect(await screen.findByText('Warga Baru ditambahkan sebagai Penguji.')).toBeInTheDocument()
+    expect(await screen.findByText('Warga Baru ditambahkan sebagai Pengguna.')).toBeInTheDocument()
     expect(await screen.findByText('Belum aktif')).toBeInTheDocument()
   })
 

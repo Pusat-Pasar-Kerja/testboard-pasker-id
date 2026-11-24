@@ -38,10 +38,15 @@ function TableCard({ table }: { table: WorkshopTableDto }) {
         <p className="text-sm font-semibold tracking-widest uppercase">
           {t('workshop.print.cardTitle')}
         </p>
-        <p className="text-sm">{table.cycle.title}</p>
+        <p className="text-sm">{table.run?.name ?? table.cycle.title}</p>
       </header>
       <div className="flex flex-1 gap-6 px-6 py-4">
         <div className="flex min-w-0 flex-1 flex-col">
+          {table.table_number !== null && (
+            <p className="text-lg font-bold tracking-wide uppercase">
+              {t('uat.groups.tableNumber', { number: table.table_number })}
+            </p>
+          )}
           <h2 className="text-5xl leading-none font-extrabold">{table.name}</h2>
           <p className="mt-3 text-sm font-semibold text-[#4b5563] uppercase">
             {t('workshop.print.features')}
@@ -95,10 +100,10 @@ function TableCard({ table }: { table: WorkshopTableDto }) {
 /** Printable table cards (2 per A4 page), all tables or one (?meja=<id>). */
 export function PrintCardsPage() {
   const { t } = useTranslation()
-  const { projectCode = '', cycleId = '' } = useParams()
+  const { projectCode = '', uatId = '' } = useParams()
   const [params] = useSearchParams()
   const only = params.get('meja')
-  const tables = useWorkshopTables(projectCode, cycleId)
+  const tables = useWorkshopTables(projectCode, uatId)
   if (tables.isPending)
     return (
       <div className="p-8">
@@ -129,10 +134,10 @@ export function PrintCardsPage() {
 export function PrintSheetPage() {
   const { t } = useTranslation()
   const ds = useDataSource()
-  const { projectCode = '', cycleId = '', tableId = '' } = useParams()
+  const { projectCode = '', uatId = '', tableId = '' } = useParams()
   const sheet = useQuery({
-    queryKey: ['workshop-sheet', projectCode, cycleId, tableId],
-    queryFn: () => ds.getWorkshopSheet(projectCode, cycleId, tableId),
+    queryKey: ['workshop-sheet', projectCode, uatId, tableId],
+    queryFn: () => ds.getWorkshopSheet(projectCode, uatId, tableId),
   })
   if (sheet.isPending)
     return (
@@ -158,7 +163,10 @@ export function PrintSheetPage() {
           {t('workshop.print.sheetTitle')}
         </p>
         <h1 className="text-3xl font-extrabold">
-          {table.name} · {table.cycle.title}
+          {table.name}
+          {table.table_number !== null &&
+            ` · ${t('uat.groups.tableNumber', { number: table.table_number })}`}{' '}
+          · {table.run?.name ?? table.cycle.title}
         </h1>
         <p className="mt-1">{t('workshop.print.sheetIntro')}</p>
         <p className="mt-2 text-sm">

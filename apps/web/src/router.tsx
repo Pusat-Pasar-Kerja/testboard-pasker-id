@@ -39,13 +39,22 @@ const signedIn = (load: () => Promise<ComponentType>) =>
 
 /** Sitemap from docs/blueprint/docs/04_SITEMAP_AND_SCREEN_SPECS.md. */
 const pages: RouteObject[] = [
-  // Front page: the public Fases for visitors; staff go to their projects, a table card to
-  // Mode Mudah (ADR 0016).
+  // Front page: the public UATs and Bug Reporting for visitors; staff go to their projects,
+  // a group card to Mode Mudah (ADR 0016, 0019).
   { path: '/', element: <HomeGate /> },
   { path: '/publik', element: <PublicHomePage /> },
   {
+    path: '/publik/uat/:uatId',
+    ...page(async () => (await import('./pages/PublicUatPage')).PublicUatPage),
+  },
+  {
+    path: '/publik/masalah/:projectCode',
+    ...page(async () => (await import('./pages/PublicBugsPage')).PublicBugsPage),
+  },
+  // Links printed before UATs existed point at a Fase.
+  {
     path: '/publik/:cycleId',
-    ...page(async () => (await import('./pages/PublicCyclePage')).PublicCyclePage),
+    ...page(async () => (await import('./pages/PublicUatPage')).PublicCycleRedirect),
   },
   { path: '/panduan', ...page(async () => (await import('./pages/GuidePage')).GuidePage) },
   // One sign-in page with two ways in (owner, 2026-11-24). Printed QR cards point to /meja.
@@ -65,15 +74,15 @@ const pages: RouteObject[] = [
   { path: '/recover', element: <RecoverPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
   {
-    path: '/layar/:projectCode/:cycleId',
+    path: '/layar/:projectCode/:uatId',
     ...signedIn(async () => (await import('./pages/BigScreenPage')).BigScreenPage),
   },
   {
-    path: '/cetak/kartu/:projectCode/:cycleId',
+    path: '/cetak/kartu/:projectCode/:uatId',
     ...signedIn(async () => (await import('./pages/PrintPages')).PrintCardsPage),
   },
   {
-    path: '/cetak/lembar/:projectCode/:cycleId/:tableId',
+    path: '/cetak/lembar/:projectCode/:uatId/:tableId',
     ...signedIn(async () => (await import('./pages/PrintPages')).PrintSheetPage),
   },
   {
@@ -123,6 +132,26 @@ const pages: RouteObject[] = [
             path: 'search',
             ...page(async () => (await import('./pages/SearchPage')).SearchPage),
           },
+          // Fase > Fitur > Skenario, like folders in Google Drive (ADR 0019).
+          { path: 'fase', ...page(async () => (await import('./pages/PhasesPage')).PhasesPage) },
+          {
+            path: 'fase/:cycleId',
+            ...page(async () => (await import('./pages/PhasePage')).PhasePage),
+          },
+          {
+            path: 'fase/:cycleId/fitur/:moduleId',
+            ...page(async () => (await import('./pages/FeaturePage')).FeaturePage),
+          },
+          // UAT: a Fase with chosen features, people, groups and its own public page.
+          { path: 'uat', ...page(async () => (await import('./pages/UatListPage')).UatListPage) },
+          {
+            path: 'uat/baru',
+            ...page(async () => (await import('./pages/UatCreatePage')).UatCreatePage),
+          },
+          {
+            path: 'uat/:uatId',
+            ...page(async () => (await import('./pages/UatPage')).UatPage),
+          },
           {
             path: 'test-cases',
             ...page(async () => (await import('./pages/TestCasesPage')).TestCasesPage),
@@ -153,16 +182,9 @@ const pages: RouteObject[] = [
               }
             }),
           },
-          { path: 'runs', ...page(async () => (await import('./pages/RunsPage')).RunsPage) },
-          {
-            path: 'runs/new',
-            ...page(async () => {
-              const { RunFormPage } = await import('./pages/RunFormPage')
-              return function NewRunPage() {
-                return <RunFormPage mode="create" />
-              }
-            }),
-          },
+          // A test run is a UAT now; the scenario list and the attempts stay under runs/.
+          { path: 'runs', element: <Navigate to="../uat" replace /> },
+          { path: 'runs/new', element: <Navigate to="../uat/baru" replace /> },
           {
             path: 'runs/:runId',
             ...page(async () => (await import('./pages/RunDetailPage')).RunDetailPage),
@@ -203,15 +225,10 @@ const pages: RouteObject[] = [
               }
             }),
           },
-          { path: 'cycles', ...page(async () => (await import('./pages/CyclesPage')).CyclesPage) },
-          {
-            path: 'workshop',
-            ...page(async () => (await import('./pages/WorkshopPage')).WorkshopIndexPage),
-          },
-          {
-            path: 'workshop/:cycleId',
-            ...page(async () => (await import('./pages/WorkshopPage')).WorkshopPage),
-          },
+          // Old menu items: Fase and Mode Workshop live in the Fase folders and the UATs now.
+          { path: 'cycles', element: <Navigate to="../fase" replace /> },
+          { path: 'workshop', element: <Navigate to="../uat" replace /> },
+          { path: 'workshop/:cycleId', element: <Navigate to="../uat" replace /> },
           {
             path: 'evidence',
             ...page(async () => (await import('./pages/EvidencePage')).EvidencePage),

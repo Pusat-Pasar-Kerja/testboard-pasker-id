@@ -62,22 +62,20 @@ export type DefectSeverity = (typeof DEFECT_SEVERITIES)[number]
 export const DEFECT_PRIORITIES = ['URGENT', 'HIGH', 'MEDIUM', 'LOW'] as const
 export type DefectPriority = (typeof DEFECT_PRIORITIES)[number]
 
-export const DEFECT_SOURCE_KINDS = ['UAT', 'USER_REPORT', 'OTHER'] as const
+/** PUBLIC = sent through the public report form; hidden from the public until reviewed. */
+export const DEFECT_SOURCE_KINDS = ['UAT', 'USER_REPORT', 'OTHER', 'PUBLIC'] as const
 export type DefectSourceKind = (typeof DEFECT_SOURCE_KINDS)[number]
 
 export const MEMBER_ROLES = ['ADMIN', 'QA_LEAD', 'TESTER', 'DEVELOPER', 'VIEWER'] as const
 export type MemberRole = (typeof MEMBER_ROLES)[number]
 
 /**
- * The tasks a User can be given in a project (owner, 2026-11-24): Penguji (default),
- * Developer, Pemantau. Managing projects belongs to the website roles Admin and Super Admin
- * (SYSTEM_ROLES), so ADMIN and QA_LEAD rows are legacy (migration 0013) and never offered.
+ * Only three kinds of people (owner, 2026-11-24, second round; ADR 0019): Super Admin and
+ * Admin manage (SYSTEM_ROLES); everyone else is a Pengguna (TESTER) who takes part in the
+ * UATs they were added to. ADMIN/QA_LEAD rows are legacy (migration 0013) and DEVELOPER/
+ * VIEWER rows became TESTER (migration 0015); none of them is offered any more.
  */
-export const MEMBER_TASKS = [
-  'TESTER',
-  'DEVELOPER',
-  'VIEWER',
-] as const satisfies readonly MemberRole[]
+export const MEMBER_TASKS = ['TESTER'] as const satisfies readonly MemberRole[]
 export type MemberTask = (typeof MEMBER_TASKS)[number]
 
 // Evidence types live in files.ts (the app accepts SCREENSHOT | DOCUMENT | LOG, ADR 0008).

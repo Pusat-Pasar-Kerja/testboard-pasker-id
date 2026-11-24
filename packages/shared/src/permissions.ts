@@ -3,8 +3,9 @@ import { MEMBER_ROLES, type MemberRole } from './enums.js'
 /**
  * Per-project permission matrix (docs/blueprint/docs/09_AUTH_RBAC_SECURITY.md section 3).
  * Enforced by the API on every route; the web uses the same table only to hide controls.
- * The website roles SUPER_ADMIN and ADMIN (ADR 0017) act as ADMIN in every project; a User
- * gets one task per project: TESTER (Penguji), DEVELOPER or VIEWER (Pemantau).
+ * The website roles SUPER_ADMIN and ADMIN (ADR 0017) act as ADMIN in every project; everyone
+ * else is a Pengguna (TESTER) who takes part in the UATs they were added to (ADR 0019). The
+ * DEVELOPER/VIEWER rows are gone (migration 0015); they stay in the table for old data only.
  */
 const ALL: readonly MemberRole[] = MEMBER_ROLES
 const LEADS: readonly MemberRole[] = ['ADMIN', 'QA_LEAD']
@@ -17,7 +18,9 @@ export const PERMISSIONS = {
   'settings.manage': ['ADMIN'],
   'module.manage': LEADS,
   'suite.write': LEADS,
-  'case.read': ALL,
+  // The scenario library (Fase > Fitur > Skenario) is for the people who manage the project;
+  // a Pengguna sees scenarios inside their own UAT only (ADR 0019).
+  'case.read': LEADS,
   // DEVELOPER/TESTER/VIEWER can never change a case definition (TB-RBAC-003).
   'case.write': LEADS,
   'case.archive': LEADS,
@@ -36,8 +39,7 @@ export const PERMISSIONS = {
   // attach routes check the entity). VIEWER never uploads.
   'file.upload': ['ADMIN', 'QA_LEAD', 'TESTER', 'DEVELOPER'],
   'report.read': ALL,
-  // Pemantau (leaders) may download reports too.
-  'report.export': ['ADMIN', 'QA_LEAD', 'VIEWER'],
+  'report.export': LEADS,
   'audit.read': LEADS,
 } as const satisfies Record<string, readonly MemberRole[]>
 

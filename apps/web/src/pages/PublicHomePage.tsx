@@ -1,4 +1,9 @@
-import { emptyCounts, type PublicCycleSummary, type ResultCounts } from '@testboard/shared'
+import {
+  emptyCounts,
+  type PublicBugReportingDto,
+  type PublicUatSummary,
+  type ResultCounts,
+} from '@testboard/shared'
 import {
   ArrowRight,
   BookOpen,
@@ -7,6 +12,7 @@ import {
   CircleCheckBig,
   ClipboardCheck,
   Layers,
+  MessageSquarePlus,
   QrCode,
   UsersRound,
   type LucideIcon,
@@ -14,50 +20,104 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { StatTile } from '../components/charts/StatTile'
-import { CycleStatusBadge } from '../components/status/StatusBadges'
+import { RunStatusBadge } from '../components/status/StatusBadges'
 import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
 import { ProgressMeter } from '../components/workshop/ProgressMeter'
-import { usePublicCycles } from '../hooks/workshop-queries'
+import { usePublicBugReportingList, usePublicUats } from '../hooks/workshop-queries'
 import { PublicSiteLayout } from '../layout/PublicSiteLayout'
 import { formatDate, formatNumber, toLocale } from '../lib/format'
 import { triedPercent } from '../lib/workshop'
 
-function Period({ cycle }: { cycle: PublicCycleSummary }) {
+export function Period({ uat }: { uat: PublicUatSummary }) {
   const { t, i18n } = useTranslation()
   const locale = toLocale(i18n.resolvedLanguage)
-  if (!cycle.period || (!cycle.period.starts_on && !cycle.period.ends_on)) return null
-  const from = cycle.period.starts_on ? formatDate(cycle.period.starts_on, locale) : '…'
-  const to = cycle.period.ends_on ? formatDate(cycle.period.ends_on, locale) : '…'
+  if (!uat.period || (!uat.period.starts_on && !uat.period.ends_on)) return null
+  const from = uat.period.starts_on ? formatDate(uat.period.starts_on, locale) : '…'
+  const to = uat.period.ends_on ? formatDate(uat.period.ends_on, locale) : '…'
   return <p className="text-sm text-ink-muted">{t('public.period', { from, to })}</p>
 }
 
-function CycleCard({ cycle }: { cycle: PublicCycleSummary }) {
+function UatCard({ uat }: { uat: PublicUatSummary }) {
   const { t } = useTranslation()
   return (
     <li className="flex flex-col rounded-2xl border border-line bg-surface p-6 shadow-xs transition-shadow hover:shadow-md">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <p className="text-sm font-semibold text-brand-700">{cycle.project.name}</p>
-        <CycleStatusBadge status={cycle.status_code as 'PLANNED' | 'ACTIVE' | 'COMPLETED'} />
+        <p className="text-sm font-semibold text-brand-700">
+          {[uat.project.name, uat.phase?.title].filter(Boolean).join(' · ')}
+        </p>
+        <RunStatusBadge status={uat.status_code} />
       </div>
-      <h3 className="mt-1 text-2xl leading-tight font-bold">{cycle.title}</h3>
-      <Period cycle={cycle} />
-      {cycle.intro && <p className="mt-3 whitespace-pre-line text-ink">{cycle.intro}</p>}
-      {cycle.description && (
-        <p className="mt-2 text-sm whitespace-pre-line text-ink-muted">{cycle.description}</p>
+      <h3 className="mt-1 text-2xl leading-tight font-bold">{uat.name}</h3>
+      <Period uat={uat} />
+      {uat.intro && <p className="mt-3 whitespace-pre-line text-ink">{uat.intro}</p>}
+      {uat.description && (
+        <p className="mt-2 text-sm whitespace-pre-line text-ink-muted">{uat.description}</p>
       )}
-      {cycle.progress && (
+      {uat.progress && (
         <div className="mt-4">
-          <ProgressMeter counts={cycle.progress} />
+          <ProgressMeter counts={uat.progress} />
         </div>
       )}
-      <div className="mt-auto pt-5">
+      <div className="mt-auto flex flex-wrap gap-2 pt-5">
         <Link
-          to={`/publik/${cycle.id}`}
+          to={`/publik/uat/${uat.id}`}
           className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-5 text-base font-semibold text-white hover:bg-brand-800 sm:w-auto"
         >
-          {t('public.openCycle')}
+          {t('public.openUat')}
           <ArrowRight aria-hidden="true" className="size-5" />
         </Link>
+        {uat.bug_reporting_public && (
+          <Link
+            to={`/publik/masalah/${encodeURIComponent(uat.project.code)}`}
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-line-strong px-5 text-base font-semibold text-ink hover:bg-neutral-soft sm:w-auto"
+          >
+            <Bug aria-hidden="true" className="size-5" />
+            {t('public.openBugs')}
+          </Link>
+        )}
+      </div>
+    </li>
+  )
+}
+
+/** A project's public Bug Reporting: its problem list and, when open, the report form. */
+function BugReportingCard({ item }: { item: PublicBugReportingDto }) {
+  const { t, i18n } = useTranslation()
+  const locale = toLocale(i18n.resolvedLanguage)
+  const path = `/publik/masalah/${encodeURIComponent(item.project.code)}`
+  return (
+    <li className="flex flex-col rounded-2xl border border-line bg-surface p-6 shadow-xs">
+      <p className="text-sm font-semibold text-brand-700">{t('public.bugReporting')}</p>
+      <h3 className="mt-1 text-2xl leading-tight font-bold">{item.project.name}</h3>
+      {item.intro && <p className="mt-3 whitespace-pre-line text-ink">{item.intro}</p>}
+      {item.fields.includes('bugs.list') && (
+        <p className="mt-3 text-ink-muted">
+          {t('public.bugCounts', {
+            count: item.bug_count,
+            total: formatNumber(item.bug_count, locale),
+            open: formatNumber(item.bug_open, locale),
+          })}
+        </p>
+      )}
+      <div className="mt-auto flex flex-wrap gap-2 pt-5">
+        {item.fields.includes('bugs.list') && (
+          <Link
+            to={path}
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-line-strong px-5 text-base font-semibold text-ink hover:bg-neutral-soft sm:w-auto"
+          >
+            <Bug aria-hidden="true" className="size-5" />
+            {t('public.openBugs')}
+          </Link>
+        )}
+        {item.accept_reports && (
+          <Link
+            to={`${path}#lapor`}
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-5 text-base font-semibold text-white hover:bg-brand-800 sm:w-auto"
+          >
+            <MessageSquarePlus aria-hidden="true" className="size-5" />
+            {t('public.report.open')}
+          </Link>
+        )}
       </div>
     </li>
   )
@@ -73,24 +133,28 @@ const add = (a: ResultCounts, b: ResultCounts): ResultCounts => ({
 })
 
 /**
- * Totals over every public Fase (audit 2026-11-24: leaders saw no overall numbers). Each
- * figure only counts the Fases that chose to show that part, so nothing hidden leaks out.
+ * Totals over every public UAT and Bug Reporting (audit 2026-11-24: leaders saw no overall
+ * numbers). Each figure only counts what chose to show that part, so nothing hidden leaks.
  */
-function PublicTotals({ cycles }: { cycles: PublicCycleSummary[] }) {
+function PublicTotals({
+  uats,
+  reporting,
+}: {
+  uats: PublicUatSummary[]
+  reporting: PublicBugReportingDto[]
+}) {
   const { t, i18n } = useTranslation()
   const locale = toLocale(i18n.resolvedLanguage)
   const n = (value: number) => formatNumber(value, locale)
-  const projects = new Set(cycles.map((c) => c.project.code)).size
-  const withProgress = cycles.filter((c) => c.progress)
+  const projects = new Set(uats.map((c) => c.project.code)).size
+  const withProgress = uats.filter((c) => c.progress)
   const progress = withProgress.reduce((sum, c) => add(sum, c.progress!), emptyCounts())
-  const withBugs = cycles.filter((c) => c.bug_count !== undefined)
-  const bugs = withBugs.reduce((sum, c) => sum + (c.bug_count ?? 0), 0)
-  const open = withBugs.reduce((sum, c) => sum + (c.bug_open ?? 0), 0)
+  const withBugs = reporting.filter((r) => r.fields.includes('bugs.list'))
+  const bugs = withBugs.reduce((sum, r) => sum + r.bug_count, 0)
+  const open = withBugs.reduce((sum, r) => sum + r.bug_open, 0)
   const passedShare =
     progress.tried === 0 ? 0 : Math.round((progress.passed / progress.tried) * 100)
-  const partial =
-    (withProgress.length > 0 && withProgress.length < cycles.length) ||
-    (withBugs.length > 0 && withBugs.length < cycles.length)
+  const partial = withProgress.length > 0 && withProgress.length < uats.length
 
   return (
     <section aria-labelledby="ringkasan" className="mt-10">
@@ -100,8 +164,8 @@ function PublicTotals({ cycles }: { cycles: PublicCycleSummary[] }) {
       <p className="mt-1 text-ink-muted">{t('public.totals.subtitle')}</p>
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile
-          label={t('public.totals.cycles')}
-          value={n(cycles.length)}
+          label={t('public.totals.uats')}
+          value={n(uats.length)}
           hint={t('public.totals.projects', { count: projects })}
           icon={Layers}
           tone="sky"
@@ -154,10 +218,14 @@ const STEPS: { key: 'gather' | 'scan' | 'answer' | 'photo'; icon: LucideIcon; to
   { key: 'photo', icon: Camera, tone: 'bg-pastel-peach text-pastel-peach-ink' },
 ]
 
-/** Front page for everyone: the Fases open to the public and how to join a table. */
+/**
+ * Front page for everyone: the UATs open to the public, the projects whose Bug Reporting is
+ * public (with the report form when open), and how to join a group.
+ */
 export function PublicHomePage() {
   const { t } = useTranslation()
-  const cycles = usePublicCycles()
+  const uats = usePublicUats()
+  const reporting = usePublicBugReportingList()
 
   return (
     <PublicSiteLayout>
@@ -192,30 +260,44 @@ export function PublicHomePage() {
         </div>
       </section>
 
-      {cycles.isSuccess && cycles.data.length > 0 && <PublicTotals cycles={cycles.data} />}
+      {uats.isSuccess && (uats.data.length > 0 || (reporting.data?.length ?? 0) > 0) && (
+        <PublicTotals uats={uats.data} reporting={reporting.data ?? []} />
+      )}
 
-      <section aria-labelledby="fase" className="mt-10">
-        <h2 id="fase" className="text-2xl font-bold">
-          {t('public.cyclesTitle')}
+      <section aria-labelledby="uat" className="mt-10">
+        <h2 id="uat" className="text-2xl font-bold">
+          {t('public.uatsTitle')}
         </h2>
-        <p className="mt-1 text-ink-muted">{t('public.cyclesSubtitle')}</p>
+        <p className="mt-1 text-ink-muted">{t('public.uatsSubtitle')}</p>
         <div className="mt-5">
-          {cycles.isPending && <LoadingState rows={3} />}
-          {cycles.isError && (
-            <ErrorState error={cycles.error} onRetry={() => void cycles.refetch()} />
+          {uats.isPending && <LoadingState rows={3} />}
+          {uats.isError && <ErrorState error={uats.error} onRetry={() => void uats.refetch()} />}
+          {uats.isSuccess && uats.data.length === 0 && (
+            <EmptyState description={t('public.noUats')} />
           )}
-          {cycles.isSuccess && cycles.data.length === 0 && (
-            <EmptyState description={t('public.noCycles')} />
-          )}
-          {cycles.isSuccess && cycles.data.length > 0 && (
+          {uats.isSuccess && uats.data.length > 0 && (
             <ul className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              {cycles.data.map((cycle) => (
-                <CycleCard key={cycle.id} cycle={cycle} />
+              {uats.data.map((uat) => (
+                <UatCard key={uat.id} uat={uat} />
               ))}
             </ul>
           )}
         </div>
       </section>
+
+      {reporting.isSuccess && reporting.data.length > 0 && (
+        <section aria-labelledby="masalah" className="mt-10">
+          <h2 id="masalah" className="text-2xl font-bold">
+            {t('public.bugReportingTitle')}
+          </h2>
+          <p className="mt-1 text-ink-muted">{t('public.bugReportingSubtitle')}</p>
+          <ul className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+            {reporting.data.map((item) => (
+              <BugReportingCard key={item.project.code} item={item} />
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section aria-labelledby="cara" className="mt-12">
         <h2 id="cara" className="text-2xl font-bold">

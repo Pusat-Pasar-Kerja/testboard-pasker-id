@@ -1,6 +1,6 @@
 {
   "name": "@testboard/web",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "private": true,
   "description": "TestBoard PASKER ID web frontend (React + TypeScript + Vite)",
   "type": "module",

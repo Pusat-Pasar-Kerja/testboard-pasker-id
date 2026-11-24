@@ -91,7 +91,10 @@ export function AuditEntryList({
         const actor =
           entry.actor?.display_name ??
           (self ? entry.entity_label : null) ??
-          (entry.entity_type === 'recovery_request'
+          // A visitor's request, or a report sent through the public form (ADR 0019).
+          (entry.entity_type === 'recovery_request' ||
+          (entry.entity_type === 'defect' &&
+            entry.changes.some((c) => c.field === 'source_kind' && c.new === 'PUBLIC'))
             ? t('pages.reports.activity.visitor')
             : t('pages.reports.activity.system'))
         const code = projectCode ?? entry.project?.project_code

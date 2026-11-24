@@ -51,6 +51,7 @@ import {
   useTestCases,
 } from '../hooks/queries'
 import { projectPath, useProjectCode, useUrlFilters } from '../hooks/route-state'
+import { useUat } from '../hooks/structure-queries'
 import { apiErrorText } from '../lib/api-errors'
 import {
   formatDateTime,
@@ -443,6 +444,8 @@ export function RunDetailPage() {
   const members = useMembers(code)
   const can = useCan(code)
   const filters = useUrlFilters(['status', 'assignee'] as const)
+  // A Pengguna's own group decides which scenarios are theirs (ADR 0019).
+  const uat = useUat(code, runId, !can('run.write') && Boolean(runId))
   const [adding, setAdding] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const none = t('fields.none')
@@ -466,8 +469,18 @@ export function RunDetailPage() {
   const isLead = canWrite
 
   const assigneeOf = (row: RunCaseRow) => row.assigned_to?.id ?? ''
+  // A Pengguna sees the scenarios of their group's features and those given to them.
+  const groupCodes =
+    !isLead && uat.data?.my_group?.modules
+      ? new Set(uat.data.my_group.modules.map((m) => m.module_code))
+      : null
+  const mine = (row: RunCaseRow) =>
+    !groupCodes ||
+    assigneeOf(row) === myId ||
+    (row.module_code !== null && groupCodes.has(row.module_code))
   const rows = r.run_cases.filter(
     (row) =>
+      mine(row) &&
       (!filters.values.status || row.latest_status === filters.values.status) &&
       (!filters.values.assignee ||
         (filters.values.assignee === 'me'
@@ -479,11 +492,12 @@ export function RunDetailPage() {
   const chosen = r.run_cases.filter((row) => selected.has(row.run_case_id))
   const rate = passRate(r.counts)
   const workspace = (row: RunCaseRow) => projectPath(code, `runs/${r.id}/cases/${row.run_case_id}`)
+  const untried = r.run_cases.filter((row) => row.latest_status === 'NOT_RUN')
   const nextTask =
     r.status_code === 'ACTIVE' && can('execution.run')
-      ? r.run_cases.find(
-          (row) => row.latest_status === 'NOT_RUN' && (isLead || assigneeOf(row) === myId),
-        )
+      ? isLead
+        ? untried[0]
+        : (untried.find((row) => assigneeOf(row) === myId) ?? untried.find(mine))
       : undefined
   const visibleIds = rows.map((row) => row.run_case_id)
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id))
@@ -494,8 +508,9 @@ export function RunDetailPage() {
         title={r.name}
         crumbs={[
           { label: code, to: projectPath(code) },
-          { label: t('pages.runs.title'), to: projectPath(code, 'runs') },
-          { label: r.run_code },
+          { label: t('nav.uat'), to: projectPath(code, 'uat') },
+          { label: r.name, to: projectPath(code, `uat/${r.id}`) },
+          { label: t('uat.scenarios') },
         ]}
         badges={
           <>

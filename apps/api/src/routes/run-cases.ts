@@ -1,6 +1,5 @@
 import {
   executionCreateSchema,
-  roleCan,
   type CaseSnapshot,
   type DefectSeverity,
   type DefectStatus,
@@ -32,6 +31,7 @@ import { AppError } from '../lib/errors.js'
 import { IdempotencyStore } from '../lib/idempotency.js'
 import { idParam, parseBody } from '../lib/validation.js'
 import type { AppEnv } from '../types.js'
+import { assertParticipantCase, assertRunCaseAccess } from '../uat/service.js'
 
 interface RunCaseRow {
   run_case_id: string
@@ -272,6 +272,7 @@ export function runCaseRoutes(pool: Pool) {
 
   routes.get('/:runCaseId', requirePermission('project.read'), async (c) => {
     const project = c.get('project')
+    await assertRunCaseAccess(c, pool, idParam(c, 'runCaseId'))
     const row = await loadRunCase(pool, project.id, idParam(c, 'runCaseId'))
     const [attempts, defects, siblings] = await Promise.all([
       listExecutions(pool, row.run_case_id),
@@ -327,6 +328,7 @@ export function runCaseRoutes(pool: Pool) {
   })
 
   routes.get('/:runCaseId/executions', requirePermission('project.read'), async (c) => {
+    await assertRunCaseAccess(c, pool, idParam(c, 'runCaseId'))
     const row = await loadRunCase(pool, c.get('project').id, idParam(c, 'runCaseId'))
     return c.json(await listExecutions(pool, row.run_case_id))
   })
@@ -349,11 +351,13 @@ export function runCaseRoutes(pool: Pool) {
     if (replay) return c.json(replay.body as ExecutionDto, replay.status as 201)
 
     const input = await parseBody(c, executionCreateSchema)
+    // A Pengguna answers the scenarios of their own UAT and group (ADR 0019); the old
+    // per-scenario assignment no longer limits them.
+    await assertParticipantCase(c, pool, runCaseId)
     const executionId = await withTransaction(pool, (conn) =>
       recordExecution(conn, c, project, runCaseId, input, {
         userId: auth?.userId ?? null,
-        // TESTER may only execute cases assigned to them; leads may execute any (doc 09).
-        anyCase: Boolean(auth?.isAdmin) || roleCan(project.role, 'run.assign'),
+        anyCase: true,
       }),
     )
     const created = (await listExecutions(pool, runCaseId)).find((e) => e.id === executionId)

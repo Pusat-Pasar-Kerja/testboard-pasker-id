@@ -47,6 +47,7 @@ import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
 import { Tabs } from '../components/ui/Tabs'
 import { useToast } from '../components/ui/toast-context'
 import { useCan } from '../hooks/permissions'
+import { NotFoundPage } from './NotFoundPage'
 import {
   useAuditLogs,
   useCycles,
@@ -635,6 +636,7 @@ export function ReportsPage() {
   const tabs = useUrlFilters(['tab'] as const)
   const showActivity = can('audit.read')
   const active = showActivity && tabs.values.tab === 'activity' ? 'activity' : 'overview'
+  if (!can('run.write')) return <NotFoundPage />
 
   return (
     <>

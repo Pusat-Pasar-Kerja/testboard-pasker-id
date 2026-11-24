@@ -141,9 +141,13 @@ describe('evidence on bugs and in the Evidence Center', () => {
     await waitFor(() => expect(screen.queryByText('tidak-dipakai.png')).toBeNull())
   })
 
-  it('lets viewers browse evidence but not upload', async () => {
+  it('lets legacy viewers browse evidence but not upload', async () => {
     const { dataSource } = withDb((d) => {
       d.currentUserId = '6'
+      // An old VIEWER row that migration 0015 had not converted yet: still read only / limited.
+      d.projects
+        .find((p) => p.project_code === 'DEMO-KARIR')!
+        .members.find((m) => m.userId === '6')!.role = 'VIEWER'
     }, false)
     renderRoute(`${P}/evidence`, { dataSource })
     await screen.findByRole('heading', { level: 1, name: 'Foto & bukti' })

@@ -72,8 +72,8 @@ describe('import wizard (TB-IMP-001)', () => {
       ]),
     )
     await user.click(await screen.findByRole('checkbox', { name: /Pindahkan juga hasil UAT lama/ }))
-    await user.clear(screen.getByLabelText(/^Nama lembar uji/))
-    await user.type(screen.getByLabelText(/^Nama lembar uji/), 'Migrasi UAT lama')
+    await user.clear(screen.getByLabelText(/^Nama UAT/))
+    await user.type(screen.getByLabelText(/^Nama UAT/), 'Migrasi UAT lama')
     await user.click(screen.getByRole('button', { name: 'Periksa' }))
 
     const closed = await screen.findByLabelText(/Status "Closed"/)
@@ -86,10 +86,10 @@ describe('import wizard (TB-IMP-001)', () => {
         name: 'Terapkan impor',
       }),
     )
-    expect(await screen.findByText(/Lembar uji RUN-\d{8}-\d+: 1 hasil uji/)).toBeInTheDocument()
+    expect(await screen.findByText(/UAT RUN-\d{8}-\d+: 1 hasil uji/)).toBeInTheDocument()
     const run = db.runs.find((r) => r.name === 'Migrasi UAT lama')
     expect(run?.status_code).toBe('COMPLETED')
-    expect(screen.getByRole('link', { name: 'Buka lembar uji' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Buka UAT' })).toHaveAttribute(
       'href',
       `${P}/runs/${run?.id}`,
     )

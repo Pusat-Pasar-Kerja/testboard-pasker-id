@@ -1,4 +1,4 @@
-import type { CycleDto, WorkshopTableDto, WorkshopTableState } from '@testboard/shared'
+import type { UatDetailDto, WorkshopTableDto, WorkshopTableState } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Ban,
@@ -12,19 +12,20 @@ import {
   Smartphone,
   Trash2,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { useModules, useRun, useRuns } from '../../../hooks/queries'
 import { useWorkshopTables } from '../../../hooks/workshop-queries'
+import { invalidateStructure } from '../../../hooks/structure-queries'
 import { apiErrorText, apiFieldErrors } from '../../../lib/api-errors'
 import { formatShortDateTime, toLocale } from '../../../lib/format'
+import { groupLabel } from '../../../lib/uat'
 import { fromLocalInput, spacedCode, toLocalInput } from '../../../lib/workshop'
 import { useDataSource } from '../../../services/use-data-source'
 import { Badge, type Tone } from '../../ui/Badge'
 import { Button } from '../../ui/Button'
 import { ConfirmDialog } from '../../ui/Dialog'
-import { FormAlert, SelectField, TextField } from '../../ui/Form'
+import { FormAlert, TextField } from '../../ui/Form'
 import { FormDialog } from '../../ui/FormDialog'
 import { EmptyState, ErrorState, LoadingState } from '../../ui/States'
 import { TableMembersEditor, type MemberRowState } from './TableMembersEditor'
@@ -38,12 +39,10 @@ const STATE_TONE: Record<WorkshopTableState, Tone> = {
   REVOKED: 'danger',
 }
 
-/** Default card validity: the Fase dates (07.00 - 23.59 local), else now + 2 days. */
-function defaultWindow(cycle: CycleDto) {
-  const from = cycle.starts_on ? new Date(`${cycle.starts_on}T07:00`) : new Date()
-  const until = cycle.ends_on
-    ? new Date(`${cycle.ends_on}T23:59`)
-    : new Date(Date.now() + 2 * 24 * 3_600_000)
+/** Default card validity: the UAT dates (else from now), at least two days ahead. */
+function defaultWindow(uat: UatDetailDto) {
+  const from = uat.starts_at ? new Date(uat.starts_at) : new Date()
+  const until = uat.ends_at ? new Date(uat.ends_at) : new Date(Date.now() + 2 * 24 * 3_600_000)
   return {
     from: toLocalInput(from.toISOString()),
     until: toLocalInput(
@@ -52,38 +51,36 @@ function defaultWindow(cycle: CycleDto) {
   }
 }
 
-/** Features (modules) that have scenarios in the chosen run. */
-function useRunFeatures(code: string, runId: string) {
-  const run = useRun(code, runId, Boolean(runId))
-  const modules = useModules(code)
-  return useMemo(() => {
-    const codes = new Set((run.data?.run_cases ?? []).map((rc) => rc.module_code).filter(Boolean))
-    return (modules.data ?? []).filter((m) => codes.has(m.module_code))
-  }, [run.data, modules.data])
+/** Parse the "Nomor meja" field: empty = no number. */
+const tableNumber = (value: string): number | null => {
+  const n = Number.parseInt(value, 10)
+  return Number.isFinite(n) && n >= 1 && n <= 999 ? n : null
 }
 
 function TableFormDialog({
   code,
-  cycle,
+  uat,
   table,
+  nextNumber,
   onClose,
 }: {
   code: string
-  cycle: CycleDto
+  uat: UatDetailDto
   table?: WorkshopTableDto
+  nextNumber: number
   onClose: () => void
 }) {
   const { t } = useTranslation()
   const ds = useDataSource()
   const toast = useToast()
   const queryClient = useQueryClient()
-  const runs = useRuns(code)
-  const cycleRuns = (runs.data ?? []).filter((r) => r.cycle?.id === cycle.id)
-  const window = defaultWindow(cycle)
+  const window = defaultWindow(uat)
+  const features = uat.feature_list.map((f) => f.module)
   const [form, setForm] = useState({
     name: table?.name ?? '',
-    run_id: table?.run?.id ?? (cycleRuns.length === 1 ? (cycleRuns[0]?.id ?? '') : ''),
-    module_ids: table?.modules.map((m) => m.id) ?? [],
+    table_number: table ? String(table.table_number ?? '') : String(nextNumber),
+    // A new group tests every feature of the UAT until the Admin narrows it down.
+    module_ids: table?.modules.map((m) => m.id) ?? features.map((m) => m.id),
     members: (table?.members ?? []).map((m): MemberRowState => ({
       name: m.name,
       email: m.email ?? '',
@@ -93,8 +90,6 @@ function TableFormDialog({
     valid_from: table ? toLocalInput(table.valid_from) : window.from,
     valid_until: table ? toLocalInput(table.valid_until) : window.until,
   })
-  const runId = form.run_id || (cycleRuns.length === 1 ? (cycleRuns[0]?.id ?? '') : '')
-  const features = useRunFeatures(code, runId)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [alert, setAlert] = useState<string | null>(null)
 
@@ -102,7 +97,7 @@ function TableFormDialog({
     mutationFn: () => {
       const input = {
         name: form.name.trim(),
-        run_id: runId || null,
+        table_number: tableNumber(form.table_number),
         module_ids: form.module_ids,
         members: form.members
           .filter((m) => m.name.trim())
@@ -111,12 +106,11 @@ function TableFormDialog({
         valid_until: fromLocalInput(form.valid_until) ?? '',
       }
       return table
-        ? ds.updateWorkshopTable(code, cycle.id, table.id, input)
-        : ds.createWorkshopTable(code, cycle.id, input)
+        ? ds.updateWorkshopTable(code, uat.id, table.id, input)
+        : ds.createWorkshopTable(code, uat.id, input)
     },
     onSuccess: async (saved) => {
-      await queryClient.invalidateQueries({ queryKey: ['workshop-tables', code, cycle.id] })
-      await queryClient.invalidateQueries({ queryKey: ['workshop-board', code, cycle.id] })
+      await invalidateStructure(queryClient, code)
       toast.show(
         t(table ? 'workshop.tables.saved' : 'workshop.tables.created', { name: saved.name }),
       )
@@ -141,6 +135,9 @@ function TableFormDialog({
     const next: Record<string, string> = {}
     if (!form.name.trim()) next.name = t('form.required')
     if (!fromLocalInput(form.valid_until)) next.valid_until = t('form.required')
+    if (form.table_number.trim() && tableNumber(form.table_number) === null) {
+      next.table_number = t('uat.groups.numberHint')
+    }
     setErrors(next)
     if (Object.keys(next).length === 0) save.mutate()
   }
@@ -167,26 +164,28 @@ function TableFormDialog({
       onSubmit={submit}
       onCancel={onClose}
     >
-      <TextField
-        label={t('workshop.tables.name')}
-        required
-        value={form.name}
-        maxLength={120}
-        placeholder={t('workshop.tables.namePlaceholder')}
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
-        error={errors.name}
-      />
-      <SelectField
-        label={t('workshop.tables.run')}
-        hint={cycleRuns.length === 0 ? t('workshop.tables.noRuns') : t('workshop.tables.runHint')}
-        value={runId}
-        onChange={(e) => setForm({ ...form, run_id: e.target.value, module_ids: [] })}
-        options={[
-          { value: '', label: t('workshop.tables.noRun') },
-          ...cycleRuns.map((r) => ({ value: r.id, label: `${r.run_code} - ${r.name}` })),
-        ]}
-        error={errors.run_id}
-      />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <TextField
+          label={t('workshop.tables.name')}
+          required
+          value={form.name}
+          maxLength={120}
+          placeholder={t('workshop.tables.namePlaceholder')}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          error={errors.name}
+        />
+        <TextField
+          label={t('uat.groups.number')}
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={999}
+          value={form.table_number}
+          onChange={(e) => setForm({ ...form, table_number: e.target.value })}
+          hint={t('uat.groups.numberHint')}
+          error={errors.table_number}
+        />
+      </div>
       <fieldset>
         <legend className="mb-1 text-sm font-medium">{t('workshop.tables.features')}</legend>
         {features.length === 0 ? (
@@ -204,9 +203,7 @@ function TableFormDialog({
                   checked={form.module_ids.includes(m.id)}
                   onChange={() => toggle(m.id)}
                 />
-                <span className="text-sm">
-                  <span className="font-semibold">{m.module_code}</span> {m.name}
-                </span>
+                <span className="text-sm">{m.name}</span>
               </label>
             ))}
           </div>
@@ -238,15 +235,15 @@ function TableFormDialog({
   )
 }
 
-/** Many tables at once: "Meja 1" ... "Meja N", same run and validity. */
+/** Many groups at once: "Kelompok 1" ... "Kelompok N" at tables 1 ... N, every feature. */
 function BulkDialog({
   code,
-  cycle,
+  uat,
   existing,
   onClose,
 }: {
   code: string
-  cycle: CycleDto
+  uat: UatDetailDto
   existing: string[]
   onClose: () => void
 }) {
@@ -254,12 +251,9 @@ function BulkDialog({
   const ds = useDataSource()
   const toast = useToast()
   const queryClient = useQueryClient()
-  const runs = useRuns(code)
-  const cycleRuns = (runs.data ?? []).filter((r) => r.cycle?.id === cycle.id)
-  const window = defaultWindow(cycle)
+  const window = defaultWindow(uat)
   const [count, setCount] = useState('10')
   const [prefix, setPrefix] = useState(t('workshop.tables.defaultPrefix'))
-  const [runId, setRunId] = useState(cycleRuns.length === 1 ? (cycleRuns[0]?.id ?? '') : '')
   const [until, setUntil] = useState(window.until)
   const [alert, setAlert] = useState<string | null>(null)
   const create = useMutation({
@@ -269,10 +263,10 @@ function BulkDialog({
       for (let i = 1; made < total && i < 500; i += 1) {
         const name = `${prefix.trim()} ${i}`
         if (existing.includes(name)) continue
-        await ds.createWorkshopTable(code, cycle.id, {
+        await ds.createWorkshopTable(code, uat.id, {
           name,
-          run_id: (runId || cycleRuns[0]?.id) ?? null,
-          module_ids: [],
+          table_number: i <= 999 ? i : null,
+          module_ids: uat.feature_list.map((f) => f.module.id),
           members: [],
           valid_from: fromLocalInput(window.from),
           valid_until: fromLocalInput(until) ?? '',
@@ -282,8 +276,7 @@ function BulkDialog({
       return made
     },
     onSuccess: async (made) => {
-      await queryClient.invalidateQueries({ queryKey: ['workshop-tables', code, cycle.id] })
-      await queryClient.invalidateQueries({ queryKey: ['workshop-board', code, cycle.id] })
+      await invalidateStructure(queryClient, code)
       toast.show(t('workshop.tables.bulkDone', { count: made }))
       onClose()
     },
@@ -316,15 +309,6 @@ function BulkDialog({
           onChange={(e) => setCount(e.target.value)}
         />
       </div>
-      <SelectField
-        label={t('workshop.tables.run')}
-        value={runId}
-        onChange={(e) => setRunId(e.target.value)}
-        options={[
-          { value: '', label: t('workshop.tables.noRun') },
-          ...cycleRuns.map((r) => ({ value: r.id, label: `${r.run_code} - ${r.name}` })),
-        ]}
-      />
       <TextField
         type="datetime-local"
         label={t('workshop.tables.validUntil')}
@@ -339,31 +323,30 @@ function BulkDialog({
 
 type Pending = { kind: 'code' | 'revoke' | 'restore' | 'delete'; table: WorkshopTableDto }
 
-/** Tables (meja) of a Fase: cards to print, codes, validity, features and members. */
-export function TablesTab({ code, cycle }: { code: string; cycle: CycleDto }) {
+/** Groups (kelompok) of a UAT with their table number: cards to print, codes, features, people. */
+export function TablesTab({ code, uat }: { code: string; uat: UatDetailDto }) {
   const { t, i18n } = useTranslation()
   const locale = toLocale(i18n.resolvedLanguage)
   const ds = useDataSource()
   const toast = useToast()
   const queryClient = useQueryClient()
-  const tables = useWorkshopTables(code, cycle.id)
+  const tables = useWorkshopTables(code, uat.id)
   const [dialog, setDialog] = useState<{ table?: WorkshopTableDto } | null>(null)
   const [bulk, setBulk] = useState(false)
   const [pending, setPending] = useState<Pending | null>(null)
   const act = useMutation({
     mutationFn: async (p: Pending) => {
-      if (p.kind === 'delete') return ds.deleteWorkshopTable(code, cycle.id, p.table.id)
+      if (p.kind === 'delete') return ds.deleteWorkshopTable(code, uat.id, p.table.id)
       return ds.updateWorkshopTable(
         code,
-        cycle.id,
+        uat.id,
         p.table.id,
         p.kind === 'code' ? { regenerate_code: true } : { revoked: p.kind === 'revoke' },
       )
     },
     onSuccess: async (_result, p) => {
       setPending(null)
-      await queryClient.invalidateQueries({ queryKey: ['workshop-tables', code, cycle.id] })
-      await queryClient.invalidateQueries({ queryKey: ['workshop-board', code, cycle.id] })
+      await invalidateStructure(queryClient, code)
       toast.show(t(`workshop.tables.done.${p.kind}`, { name: p.table.name }))
     },
     onError: (error) => {
@@ -386,7 +369,7 @@ export function TablesTab({ code, cycle }: { code: string; cycle: CycleDto }) {
           </Button>
           {(tables.data?.length ?? 0) > 0 && (
             <Link
-              to={`/cetak/kartu/${encodeURIComponent(code)}/${cycle.id}`}
+              to={`/cetak/kartu/${encodeURIComponent(code)}/${uat.id}`}
               target="_blank"
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-4 text-sm font-semibold hover:bg-neutral-soft"
             >
@@ -409,13 +392,21 @@ export function TablesTab({ code, cycle }: { code: string; cycle: CycleDto }) {
               className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 shadow-xs"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <p className="text-lg font-semibold">{table.name}</p>
-                  <p className="text-sm text-ink-muted">
-                    {table.run
-                      ? `${table.run.run_code} - ${table.run.name}`
-                      : t('workshop.tables.noRun')}
-                  </p>
+                <div className="flex items-center gap-3">
+                  {table.table_number !== null && (
+                    <span
+                      className="inline-flex size-11 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-700 text-white"
+                      aria-hidden="true"
+                    >
+                      <span className="text-[9px] leading-none font-semibold uppercase">
+                        {t('uat.groups.tableShort')}
+                      </span>
+                      <span className="text-lg leading-none font-bold tabular-nums">
+                        {table.table_number}
+                      </span>
+                    </span>
+                  )}
+                  <p className="text-lg font-semibold">{groupLabel(t, table)}</p>
                 </div>
                 <Badge
                   tone={STATE_TONE[table.state]}
@@ -454,7 +445,7 @@ export function TablesTab({ code, cycle }: { code: string; cycle: CycleDto }) {
                   {t('workshop.tables.edit')}
                 </Button>
                 <Link
-                  to={`/cetak/kartu/${encodeURIComponent(code)}/${cycle.id}?meja=${table.id}`}
+                  to={`/cetak/kartu/${encodeURIComponent(code)}/${uat.id}?meja=${table.id}`}
                   target="_blank"
                   className="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-brand-700 hover:bg-brand-50"
                 >
@@ -462,7 +453,7 @@ export function TablesTab({ code, cycle }: { code: string; cycle: CycleDto }) {
                   {t('workshop.tables.printCard')}
                 </Link>
                 <Link
-                  to={`/cetak/lembar/${encodeURIComponent(code)}/${cycle.id}/${table.id}`}
+                  to={`/cetak/lembar/${encodeURIComponent(code)}/${uat.id}/${table.id}`}
                   target="_blank"
                   className="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-brand-700 hover:bg-brand-50"
                 >
@@ -508,15 +499,16 @@ export function TablesTab({ code, cycle }: { code: string; cycle: CycleDto }) {
       {dialog && (
         <TableFormDialog
           code={code}
-          cycle={cycle}
+          uat={uat}
           table={dialog.table}
+          nextNumber={Math.max(0, ...(tables.data ?? []).map((x) => x.table_number ?? 0)) + 1}
           onClose={() => setDialog(null)}
         />
       )}
       {bulk && (
         <BulkDialog
           code={code}
-          cycle={cycle}
+          uat={uat}
           existing={(tables.data ?? []).map((x) => x.name)}
           onClose={() => setBulk(false)}
         />

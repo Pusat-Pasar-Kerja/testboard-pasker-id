@@ -22,7 +22,10 @@ export function TableHomePage() {
           {t('easy.home.welcome', { name: session.table.name })}
         </h1>
         <p className="mt-2 text-lg">
-          {t('easy.home.intro', { cycle: session.cycle.title, project: session.project.name })}
+          {t('easy.home.intro', {
+            cycle: session.run?.name ?? session.cycle.title,
+            project: session.project.name,
+          })}
         </p>
         <p className="mt-1 text-sm text-ink-muted">
           {t('easy.home.validUntil', { date: formatDateTime(session.valid_until, locale) })}

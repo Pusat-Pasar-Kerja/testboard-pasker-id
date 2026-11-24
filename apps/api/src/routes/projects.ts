@@ -39,7 +39,9 @@ import { runRoutes } from './runs.js'
 import { runWriteRoutes } from './runs-write.js'
 import { suiteRoutes } from './suites.js'
 import { testCaseRoutes } from './test-cases.js'
-import { workshopAdminRoutes } from './workshop-admin.js'
+import { bugReportingRoutes } from './bug-reporting.js'
+import { phaseRoutes } from './phases.js'
+import { uatRoutes } from './uats.js'
 
 interface ProjectRow {
   id: string
@@ -189,7 +191,9 @@ export function projectRoutes(
   scoped.route('/suites', suiteRoutes(pool))
   scoped.route('/test-cases', testCaseRoutes(pool))
   scoped.route('/cycles', cycleRoutes(pool))
-  scoped.route('/cycles', workshopAdminRoutes(pool))
+  scoped.route('/phases', phaseRoutes(pool))
+  scoped.route('/uats', uatRoutes(pool))
+  scoped.route('/bug-reporting', bugReportingRoutes(pool))
   scoped.route('/runs', runRoutes(pool))
   scoped.route('/runs', runWriteRoutes(pool))
   scoped.route('/run-cases', runCaseRoutes(pool))

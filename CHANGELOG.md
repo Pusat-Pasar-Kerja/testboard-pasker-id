@@ -2,6 +2,32 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.22.0] - 2026-11-24
+
+Perombakan tahap 9 (wawancara pemilik setelah v0.21.0): proyek disusun **seperti Google Drive**, dengan UAT dan Bug Reporting yang saling terhubung (ADR 0019, migration `0015`).
+
+### Ditambahkan
+
+- **Fase › Fitur › Skenario seperti folder Google Drive.** Panel kiri proyek berisi Ringkasan, folder Fase yang bisa dibuka sampai folder Fitur, daftar UAT, Bug Reporting, lalu menu Kelola. Skenario yang belum punya Fase dikumpulkan di "Belum masuk Fase", jadi tidak ada yang hilang.
+- **Salin ke Fase / Pindahkan ke Fase** untuk skenario yang dicentang, seperti di Drive. Salinan membawa foto layarnya dan tetap Siap.
+- **UAT** sebagai bagian tersendiri: buat UAT dari sebuah Fase dalam tiga langkah (pilih Fase, pilih fitur, beri nama). Skenario Siap dari fitur itu masuk otomatis, termasuk yang ditandai Siap belakangan. Satu Fase boleh punya UAT 1, UAT 2, dan seterusnya.
+- Halaman UAT dengan tab **Ringkasan, Peserta, Kelompok & meja, Fitur, Masalah masuk, Tampilan publik**, langkah persiapan yang tercoret otomatis, serta tombol Mulai / Selesaikan / Buka lagi / Kunci hasil (selalu dengan konfirmasi).
+- **Peserta UAT**: tambahkan banyak orang sekaligus (nama, e-mail bila ada), pindahkan antarkelompok, kirim tautan aktivasi, keluarkan dari UAT. Orang yang sama tidak pernah tercatat dua kali.
+- **Nomor meja** untuk setiap kelompok, tercetak besar di kartu dan lembar cetak, serta tampil di papan, Mode Mudah, dan "Tugas saya".
+- **UAT saya** untuk Pengguna: hanya UAT yang ia ikuti, lengkap dengan kelompok dan nomor mejanya.
+- **Bug Reporting** per proyek dengan tab Daftar masalah, Laporan publik, dan Tampilan publik, serta **saklar ON/OFF publik** sendiri.
+- **Formulir lapor untuk masyarakat** (setelah go-live), dengan saklarnya sendiri. Setiap laporan menunggu tinjauan Admin sebelum tampil; Admin bisa menandai ditinjau, menggabungkan dengan masalah yang sama, atau membuangnya. Dilindungi jebakan robot dan batas jumlah laporan per perangkat.
+- Halaman publik baru: **halaman UAT** dan **halaman masalah proyek** (dengan saringan fitur dan formulir lapor). Halaman depan publik menampilkan UAT yang dibuka dan Bug Reporting yang publik beserta jumlahnya.
+- Filter tombol (chip) yang lebih mudah, mis. status skenario dan status UAT.
+
+### Diubah
+
+- **Hanya tiga jenis orang**: Super Admin, Admin, dan Pengguna. Developer dan Pemantau menjadi Pengguna. Pengguna tidak lagi membuka pustaka skenario; ia bekerja di dalam UAT yang ia ikuti.
+- Istilah di seluruh aplikasi: "Lembar uji" menjadi **UAT**, "Fase uji" menjadi **Fase**, "Meja workshop" menjadi **Kelompok** dengan nomor meja.
+- Tampilan publik dipisah: data UAT di UAT, data masalah di Bug Reporting.
+- Panduan, Bantuan per halaman, kartu "Mulai di sini", dan tur singkat mengikuti alur baru.
+- Alamat lama tetap bekerja: menu Fase uji, Lembar uji, dan Workshop diarahkan ke halaman barunya; tautan publik lama `/publik/<fase>` membuka UAT publik Fase tersebut.
+
 ## [0.21.0] - 2026-11-24
 
 Perombakan tahap 8 (masukan pemilik setelah v0.20.0): satu tampilan untuk seluruh situs, logo baru, dan paket aksesibilitas.

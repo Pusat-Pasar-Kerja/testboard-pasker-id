@@ -28,6 +28,7 @@ import { select, selectOne } from '../db/tx.js'
 import { auditEntries, type AuditLogRow } from '../lib/audit-entries.js'
 import { writeAudit } from '../lib/audit.js'
 import { AppError } from '../lib/errors.js'
+import { managesProject, myUatIds } from '../uat/service.js'
 import { pageParams, parseWith } from '../lib/validation.js'
 import { reportOverview, reportRecords } from '../reports/queries.js'
 import type { AppEnv } from '../types.js'
@@ -47,7 +48,11 @@ export function reportRoutes(pool: Pool) {
     const project = c.get('project')
     const runIdParam = c.req.query('run_id')
     const runId = runIdParam && /^\d{1,20}$/.test(runIdParam) ? runIdParam : undefined
-    const runs = await runSummaries(pool, project.id)
+    // A Pengguna sees the UATs they take part in, never the others (ADR 0019).
+    const mine = managesProject(project)
+      ? null
+      : await myUatIds(pool, project.id, c.get('auth')?.userId ?? '0')
+    const runs = (await runSummaries(pool, project.id)).filter((r) => !mine || mine.has(r.id))
     const scoped = runId ? runs.filter((r) => r.id === runId) : runs
     if (runId && scoped.length === 0) throw new AppError(404, 'NOT_FOUND', 'Not found.')
 
@@ -82,7 +87,8 @@ export function reportRoutes(pool: Pool) {
   })
 
   /** Report screen aggregates for the chosen filters (S09). */
-  routes.get('/overview', requirePermission('report.read'), async (c) => {
+  /** The report page is for the people who manage the project (ADR 0019). */
+  routes.get('/overview', requirePermission('run.write'), async (c) => {
     const project = c.get('project')
     const filter = parseWith(reportFilterSchema, queryOf(c.req.query()))
     return c.json(await reportOverview(pool, project, filter))

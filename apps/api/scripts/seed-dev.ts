@@ -303,6 +303,55 @@ try {
         )
       }
     }
+
+    // The Drive-like structure (ADR 0019), filled the same way migration 0015 fills it:
+    // scenarios sit in the Fase of their UAT, a UAT tests the features of its scenarios, and
+    // the people who were given scenarios take part in that UAT.
+    await execute(
+      conn,
+      `UPDATE test_cases tc
+         JOIN (SELECT rc.test_case_id, MIN(r.cycle_id) AS cycle_id
+                 FROM test_run_cases rc JOIN test_runs r ON r.id = rc.test_run_id
+                WHERE r.cycle_id IS NOT NULL
+                GROUP BY rc.test_case_id) x ON x.test_case_id = tc.id
+          SET tc.cycle_id = x.cycle_id
+        WHERE tc.cycle_id IS NULL`,
+    )
+    await execute(
+      conn,
+      `UPDATE test_cases tc
+         JOIN (SELECT project_id, MIN(id) AS cycle_id FROM test_cycles
+                GROUP BY project_id HAVING COUNT(*) = 1) one ON one.project_id = tc.project_id
+          SET tc.cycle_id = one.cycle_id
+        WHERE tc.cycle_id IS NULL`,
+    )
+    await execute(
+      conn,
+      `INSERT IGNORE INTO uat_features (run_id, module_id, state_code)
+       SELECT DISTINCT rc.test_run_id, tc.module_id, 'OPEN'
+         FROM test_run_cases rc JOIN test_cases tc ON tc.id = rc.test_case_id
+        WHERE tc.module_id IS NOT NULL`,
+    )
+    await execute(
+      conn,
+      "UPDATE project_members SET role_code = 'TESTER' WHERE role_code IN ('DEVELOPER', 'VIEWER')",
+    )
+    await execute(
+      conn,
+      `INSERT INTO workshop_table_members (run_id, table_id, sort_order, display_name, user_id)
+       SELECT x.run_id, NULL, 0, LEFT(u.display_name, 100), u.id
+         FROM (SELECT trc.test_run_id AS run_id, trc.assigned_to AS user_id
+                 FROM test_run_cases trc WHERE trc.assigned_to IS NOT NULL
+               UNION
+               SELECT trc.test_run_id, e.tester_id
+                 FROM test_executions e JOIN test_run_cases trc ON trc.id = e.run_case_id
+                WHERE e.tester_id IS NOT NULL) x
+         JOIN users u ON u.id = x.user_id
+         JOIN test_runs r ON r.id = x.run_id
+         JOIN project_members pm
+           ON pm.project_id = r.project_id AND pm.user_id = u.id AND pm.role_code = 'TESTER'
+        WHERE NOT EXISTS (SELECT 1 FROM user_system_roles s WHERE s.user_id = u.id)`,
+    )
   })
 
   const dir = new URL('../../../.local-db/', import.meta.url)

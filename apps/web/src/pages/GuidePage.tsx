@@ -2,12 +2,10 @@ import {
   BookOpen,
   Bug,
   CalendarRange,
-  ChartColumn,
   CircleCheckBig,
   CircleSlash,
   CircleX,
   ClipboardCheck,
-  Eye,
   FlaskConical,
   Globe,
   ListChecks,
@@ -20,7 +18,6 @@ import {
   Sparkles,
   UserCog,
   Users,
-  Wrench,
   type LucideIcon,
 } from 'lucide-react'
 import { useEffect, type ReactNode } from 'react'
@@ -38,14 +35,15 @@ import { PublicSiteLayout } from '../layout/PublicSiteLayout'
 
 type Item = { title: string; body: string }
 
-type FlowKey = 'cycle' | 'cases' | 'plan' | 'test' | 'bugs' | 'report'
+type FlowKey = 'phase' | 'features' | 'uat' | 'people' | 'test' | 'bugs'
+/** The Drive-like order of the work (ADR 0019): Fase > Fitur > Skenario, then UAT. */
 const FLOW: { key: FlowKey; icon: LucideIcon }[] = [
-  { key: 'cycle', icon: CalendarRange },
-  { key: 'cases', icon: ListChecks },
-  { key: 'plan', icon: PlayCircle },
+  { key: 'phase', icon: CalendarRange },
+  { key: 'features', icon: ListChecks },
+  { key: 'uat', icon: PlayCircle },
+  { key: 'people', icon: QrCode },
   { key: 'test', icon: Sparkles },
   { key: 'bugs', icon: Bug },
-  { key: 'report', icon: ChartColumn },
 ]
 
 type SectionId =
@@ -54,8 +52,7 @@ type SectionId =
   | 'peserta'
   | 'penguji'
   | 'admin'
-  | 'developer'
-  | 'pemantau'
+  | 'bug-reporting'
   | 'peran'
   | 'publik'
   | 'super-admin'
@@ -68,8 +65,7 @@ const SECTIONS: { id: SectionId; icon: LucideIcon }[] = [
   { id: 'peserta', icon: QrCode },
   { id: 'penguji', icon: FlaskConical },
   { id: 'admin', icon: Presentation },
-  { id: 'developer', icon: Wrench },
-  { id: 'pemantau', icon: Eye },
+  { id: 'bug-reporting', icon: Bug },
   { id: 'peran', icon: ShieldCheck },
   { id: 'publik', icon: Globe },
   { id: 'super-admin', icon: UserCog },
@@ -363,22 +359,16 @@ function GuideContent() {
           </Section>
 
           <Section
-            id="developer"
-            icon={Wrench}
-            title={t('guide.sections.developer')}
-            intro={t('guide.developer.intro')}
-          >
-            <Steps items={list<Item>('guide.developer.steps')} />
-          </Section>
-
-          <Section
-            id="pemantau"
-            icon={Eye}
-            title={t('guide.sections.pemantau')}
-            intro={t('guide.observer.intro')}
+            id="bug-reporting"
+            icon={Bug}
+            title={t('guide.sections.bug-reporting')}
+            intro={t('guide.bugReporting.intro')}
             aside={<ReportIllustration className="w-full" />}
           >
-            <Steps items={list<Item>('guide.observer.steps')} />
+            {/* Old links to the Developer and Pemantau parts land here. */}
+            <span id="developer" className="block scroll-mt-24" />
+            <span id="pemantau" className="block scroll-mt-24" />
+            <Steps items={list<Item>('guide.bugReporting.steps')} />
           </Section>
 
           <Section

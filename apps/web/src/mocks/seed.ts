@@ -23,6 +23,7 @@ import type {
   TestCasePriority,
   TestCaseStatus,
   TestType,
+  WorkshopFeatureState,
 } from '@testboard/shared'
 
 export interface MockUser {
@@ -58,6 +59,8 @@ export interface MockCase {
   projectId: string
   /** Archived because it was merged into this case (ADR 0013). */
   mergedInto?: string | null
+  /** The Fase the scenario is saved in (ADR 0019); null = not in a Fase yet. */
+  cycleId: string | null
   moduleId: string
   suiteName: string
   case_code: string
@@ -85,6 +88,7 @@ export interface MockCase {
   files?: MockFileLink[]
 }
 
+/** A test run; since ADR 0019 every run is a UAT of the Fase in `cycleId` ('' = no Fase). */
 export interface MockRun {
   id: string
   projectId: string
@@ -97,6 +101,10 @@ export interface MockRun {
   status_code: RunStatus
   starts_at: string | null
   ends_at: string | null
+  /** The UAT's own public view (ADR 0019): on the front page, field by field. */
+  is_public?: boolean
+  public_fields?: string[]
+  public_intro?: string | null
 }
 
 export interface MockCycle {
@@ -108,10 +116,67 @@ export interface MockCycle {
   status_code?: CycleStatus
   starts_on?: string | null
   ends_on?: string | null
-  /** Mode Workshop (ADR 0016): shown on the public front page, field by field. */
+  /**
+   * Legacy public view of a whole Fase (ADR 0016). Migration 0015 copied it to the UATs of the
+   * Fase and to Bug Reporting; nothing reads it for the public pages any more.
+   */
   is_public?: boolean
   public_fields?: string[]
   public_intro?: string | null
+}
+
+/** A feature tested in a UAT and what its public page shows for it (uat_features). */
+export interface MockUatFeature {
+  runId: string
+  moduleId: string
+  state: WorkshopFeatureState
+}
+
+/** A feature folder an Admin added to a Fase, possibly still empty (workshop_features). */
+export interface MockPhaseFeature {
+  cycleId: string
+  moduleId: string
+}
+
+/** A group (kelompok, meja) of a UAT with its printed table card (ADR 0016, 0019). */
+export interface MockTable {
+  id: string
+  projectId: string
+  cycleId: string
+  runId: string | null
+  /**
+   * The card's own sign-in account. The data source creates these WORKSHOP users, so the
+   * seed's user list only holds people (and the local dev seed never turns a card into one).
+   */
+  userId: string
+  name: string
+  /** Nomor meja printed on the card; null = none. */
+  tableNumber: number | null
+  moduleIds: string[]
+  code: string
+  validFrom: string | null
+  validUntil: string
+  revokedAt: string | null
+}
+
+/** A person taking part in a UAT, in a group or not yet (workshop_table_members). */
+export interface MockParticipant {
+  id: string
+  runId: string | null
+  tableId: string | null
+  sortOrder: number
+  name: string
+  /** Their User account (an Admin entered an e-mail); null = a name only. */
+  userId: string | null
+}
+
+/** Bug Reporting of a project (project_settings "bugs.*"); a missing row = all off. */
+export interface MockBugReporting {
+  projectId: string
+  is_public: boolean
+  public_fields: string[]
+  public_intro: string | null
+  accept_reports: boolean
 }
 
 export interface MockRunCase {
@@ -212,8 +277,10 @@ export interface MockDefect {
   files?: MockFileLink[]
   /** Closed as the same problem as this bug (Mode Workshop review). */
   duplicateOf?: string | null
-  /** Reviewed by a facilitator in "Masalah masuk". */
+  /** Reviewed by a facilitator in "Masalah masuk", or an Admin (public reports). */
   reviewedAt?: string | null
+  /** How to reach someone who used the public report form; never shown publicly. */
+  reporterContact?: string | null
 }
 
 export interface MockDb {
@@ -228,6 +295,12 @@ export interface MockDb {
   executions: MockExecution[]
   defects: MockDefect[]
   files: MockFile[]
+  /** ADR 0019: Fase > Fitur > Skenario, UATs with people and groups, Bug Reporting. */
+  phaseFeatures: MockPhaseFeature[]
+  uatFeatures: MockUatFeature[]
+  tables: MockTable[]
+  participants: MockParticipant[]
+  bugReporting: MockBugReporting[]
 }
 
 /** Small deterministic PRNG (mulberry32). */
@@ -273,13 +346,17 @@ const USERS: MockUser[] = [
   { id: '6', display_name: 'Demo Pemantau', email: 'pemantau@demo.invalid' },
 ]
 
+/**
+ * Only three kinds of people (ADR 0019): the ADMIN/QA_LEAD rows are legacy manager rows, and
+ * the former Developer and Pemantau are Pengguna (TESTER) now, like migration 0015 made them.
+ */
 const MEMBERS: MockProject['members'] = [
   { userId: '1', role: 'ADMIN' },
   { userId: '2', role: 'QA_LEAD' },
   { userId: '3', role: 'TESTER' },
   { userId: '4', role: 'TESTER' },
-  { userId: '5', role: 'DEVELOPER' },
-  { userId: '6', role: 'VIEWER' },
+  { userId: '5', role: 'TESTER' },
+  { userId: '6', role: 'TESTER' },
 ]
 
 const LOGIN_PRE = 'Akun uji (fiktif) aktif dan dapat login.'
@@ -776,6 +853,158 @@ const PRIORITY_FOR: Record<DefectSeverity, DefectPriority> = {
   INFO: 'LOW',
 }
 
+/**
+ * The workshop Fase of the main project was public (ADR 0016) with these fields. Like
+ * migration 0015, its UATs now carry the view (without the problem fields) and the problem
+ * fields became the project's public Bug Reporting.
+ */
+const WORKSHOP_PUBLIC = {
+  uatFields: [
+    'cycle.description',
+    'cycle.period',
+    'cycle.progress',
+    'features.list',
+    'features.progress',
+    'features.tables',
+  ],
+  bugFields: ['bugs.list', 'bugs.code', 'bugs.feature'],
+  intro: 'Forum workshop UAT bersama. Peserta masuk dengan kartu meja.',
+}
+
+/** The three demo tables (meja) of the workshop UAT: people at the table, by name only. */
+const WORKSHOP_TABLES = [
+  { name: 'Meja 1', code: '246810', people: ['Bu Sri', 'Pak Budi', 'Bu Ani'] },
+  { name: 'Meja 2', code: '135791', people: ['Pak Joko', 'Bu Rina'] },
+  { name: 'Meja 3', code: '112233', people: ['Pak Dedi', 'Bu Wati', 'Pak Agus'] },
+]
+
+/** Nomor meja from the first number in a table name ("Meja 3" -> 3), like migration 0015. */
+export function tableNumberOf(name: string): number | null {
+  const match = /[0-9]{1,3}/.exec(name)
+  return match ? Number(match[0]) : null
+}
+
+const byNumericId = (a: string, b: string) => Number(a) - Number(b)
+
+/**
+ * Fill the Drive-like structure (ADR 0019) the way migration 0015 fills it from older data:
+ * scenarios sit in a Fase, every UAT has its features, its public view and its people, and
+ * the main project's public problem list became its Bug Reporting. Runs after the base data
+ * so no existing id or random draw moves.
+ */
+function addStructure(db: MockDb, id: () => string) {
+  const caseOf = (caseId: string) => db.cases.find((c) => c.id === caseId)
+  const runCasesOf = (runId: string) =>
+    db.runCases.filter((rc) => rc.runId === runId).sort((a, b) => a.sort_order - b.sort_order)
+
+  // 1. A scenario sits in the Fase of the UATs it was used in (the first Fase when several),
+  //    else in the project's only Fase.
+  for (const testCase of db.cases) {
+    const phases = db.runCases
+      .filter((rc) => rc.caseId === testCase.id)
+      .map((rc) => db.runs.find((r) => r.id === rc.runId)?.cycleId ?? '')
+      .filter(Boolean)
+      .sort(byNumericId)
+    const only = db.cycles.filter((cy) => cy.projectId === testCase.projectId)
+    testCase.cycleId = phases[0] ?? (only.length === 1 ? (only[0]?.id ?? null) : null)
+  }
+
+  // 2. A UAT tests the features of its scenarios (state: the Fase had none, so OPEN).
+  for (const run of db.runs) {
+    const seen = new Set<string>()
+    for (const rc of runCasesOf(run.id)) {
+      const moduleId = caseOf(rc.caseId)?.moduleId
+      if (!moduleId || seen.has(moduleId)) continue
+      seen.add(moduleId)
+      db.uatFeatures.push({ runId: run.id, moduleId, state: 'OPEN' })
+    }
+  }
+
+  // 3. The public workshop Fase: its UATs show the same view, its problems Bug Reporting.
+  const main = db.projects[0]
+  const mainCycle = db.cycles.find((cy) => cy.projectId === main?.id)
+  if (!main || !mainCycle) return
+  for (const run of db.runs.filter((r) => r.cycleId === mainCycle.id)) {
+    run.is_public = true
+    run.public_fields = [...WORKSHOP_PUBLIC.uatFields]
+    run.public_intro = WORKSHOP_PUBLIC.intro
+  }
+  db.bugReporting.push({
+    projectId: main.id,
+    is_public: true,
+    public_fields: [...WORKSHOP_PUBLIC.bugFields],
+    public_intro: null,
+    accept_reports: false,
+  })
+
+  // 4. The groups (meja) of the workshop UAT, each with a table number and its people.
+  const workshopRun = db.runs.find((r) => r.cycleId === mainCycle.id && r.status_code === 'ACTIVE')
+  if (workshopRun) {
+    const moduleIds = [
+      ...new Set(
+        runCasesOf(workshopRun.id)
+          .map((rc) => caseOf(rc.caseId)?.moduleId)
+          .filter((x): x is string => Boolean(x)),
+      ),
+    ]
+    const split = [moduleIds.slice(0, 2), moduleIds.slice(2, 4), moduleIds.slice(4)]
+    WORKSHOP_TABLES.forEach((plan, index) => {
+      const ids = split[index] ?? []
+      if (ids.length === 0) return
+      const table: MockTable = {
+        id: id(),
+        projectId: main.id,
+        cycleId: mainCycle.id,
+        runId: workshopRun.id,
+        userId: id(),
+        name: plan.name,
+        tableNumber: tableNumberOf(plan.name),
+        moduleIds: ids,
+        code: plan.code,
+        validFrom: null,
+        validUntil: '2099-12-31T16:59:00.000Z',
+        revokedAt: null,
+      }
+      db.tables.push(table)
+      plan.people.forEach((name, order) => {
+        db.participants.push({
+          id: id(),
+          runId: workshopRun.id,
+          tableId: table.id,
+          sortOrder: order,
+          name,
+          userId: null,
+        })
+      })
+    })
+  }
+
+  // 5. People who were given scenarios or recorded results take part in that UAT (Pengguna
+  //    only: managers reach every UAT anyway), without a group.
+  for (const run of db.runs) {
+    const project = db.projects.find((p) => p.id === run.projectId)
+    const runCases = runCasesOf(run.id)
+    const runCaseIds = new Set(runCases.map((rc) => rc.id))
+    const people = new Set<string>([
+      ...runCases.map((rc) => rc.assignedTo ?? ''),
+      ...db.executions.filter((e) => runCaseIds.has(e.runCaseId)).map((e) => e.testerId),
+    ])
+    for (const userId of [...people].filter(Boolean).sort(byNumericId)) {
+      const user = db.users.find((u) => u.id === userId && u.kind !== 'TABLE')
+      const tester = project?.members.some((m) => m.userId === userId && m.role === 'TESTER')
+      if (!user || !tester) continue
+      db.participants.push({
+        id: id(),
+        runId: run.id,
+        tableId: null,
+        sortOrder: 0,
+        name: user.display_name.slice(0, 100),
+        userId,
+      })
+    }
+  }
+}
+
 export function createMockDb(seed = 20261120): MockDb {
   const random = createRandom(seed)
   const pick = <T>(items: readonly T[]): T => items[Math.floor(random() * items.length)] as T
@@ -794,6 +1023,11 @@ export function createMockDb(seed = 20261120): MockDb {
     executions: [],
     defects: [],
     files: [],
+    phaseFeatures: [],
+    uatFeatures: [],
+    tables: [],
+    participants: [],
+    bugReporting: [],
   }
 
   PROJECTS.forEach((blueprint, projectIndex) => {
@@ -826,6 +1060,7 @@ export function createMockDb(seed = 20261120): MockDb {
         const testCase: MockCase = {
           id: id(),
           projectId: project.id,
+          cycleId: null,
           moduleId: moduleRow.id,
           suiteName: mod.suite,
           case_code: `UAT-${mod.code}-${String(index + 1).padStart(3, '0')}`,
@@ -1058,6 +1293,8 @@ export function createMockDb(seed = 20261120): MockDb {
         id: id(),
         projectId: project.id,
         moduleId: testCase.moduleId,
+        // Found in a UAT: the bug belongs to that UAT's Fase.
+        cycleId: run.cycleId || null,
         bug_code: nextBugCode(),
         title: `${testCase.title}: ${(exec.actual_result ?? '').replace(/\.$/, '').toLowerCase()}`,
         description: `Ditemukan saat ${run.name} pada test case ${testCase.case_code}.`,
@@ -1135,6 +1372,8 @@ export function createMockDb(seed = 20261120): MockDb {
         id: id(),
         projectId: project.id,
         moduleId: null,
+        // The workshop Fase collected the main project's reports too (its public problem list).
+        cycleId: isMain ? cycle.id : null,
         bug_code: nextBugCode(),
         title,
         description: 'Laporan pengguna setelah UAT (contoh fiktif).',
@@ -1160,5 +1399,6 @@ export function createMockDb(seed = 20261120): MockDb {
     })
   })
 
+  addStructure(db, id)
   return db
 }

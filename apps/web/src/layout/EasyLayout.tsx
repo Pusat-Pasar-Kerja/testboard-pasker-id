@@ -15,6 +15,7 @@ import { useDataSource } from '../services/use-data-source'
 import { OutboxProvider } from './outbox-context'
 import { SessionContext } from './table-session'
 import { TopBar } from './TopBar'
+import { groupLabel } from '../lib/uat'
 
 /** Shown when the card was blocked, renewed or has expired: a calm way back in. */
 function CardClosed({ reason }: { reason: string }) {
@@ -98,9 +99,11 @@ export function EasyLayout({ children }: { children?: ReactNode }) {
             <span className="flex min-w-0 items-center gap-3">
               <TestBoardMark className="size-10 shrink-0 text-brand-mark" />
               <span className="min-w-0">
-                <span className="block text-xl leading-tight font-bold">{data.table.name}</span>
+                <span className="block text-xl leading-tight font-bold">
+                  {groupLabel(t, data.table)}
+                </span>
                 <span className="block truncate text-sm text-ink-muted">
-                  {data.cycle.title} · {data.project.name}
+                  {data.run?.name ?? data.cycle.title} · {data.project.name}
                 </span>
               </span>
             </span>

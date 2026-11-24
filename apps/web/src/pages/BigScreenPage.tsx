@@ -80,8 +80,8 @@ function Bar({ counts }: { counts: ResultCounts }) {
 export function BigScreenPage() {
   const { t, i18n } = useTranslation()
   const locale = toLocale(i18n.resolvedLanguage)
-  const { projectCode = '', cycleId = '' } = useParams()
-  const board = useWorkshopBoard(projectCode, cycleId, 10_000)
+  const { projectCode = '', uatId = '' } = useParams()
+  const board = useWorkshopBoard(projectCode, uatId, 10_000)
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000)
@@ -114,7 +114,7 @@ export function BigScreenPage() {
           <TestBoardMark className="size-14 text-white" />
           <div>
             <p className="text-lg text-[#cfe3f7]">{t('workshop.screen.eyebrow')}</p>
-            <h1 className="text-4xl font-bold">{data.cycle.title}</h1>
+            <h1 className="text-4xl font-bold">{data.uat.name}</h1>
           </div>
         </div>
         <div className="flex items-center gap-4">

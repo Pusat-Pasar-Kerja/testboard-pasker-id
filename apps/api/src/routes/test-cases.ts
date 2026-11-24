@@ -44,6 +44,7 @@ import {
   type Db,
 } from '../db/tx.js'
 import { writeAudit } from '../lib/audit.js'
+import { syncPhaseUats } from '../uat/service.js'
 import { AppError } from '../lib/errors.js'
 import { idParam, pageParams, parseBody } from '../lib/validation.js'
 import type { AppEnv } from '../types.js'
@@ -78,13 +79,18 @@ export interface CaseRow {
   created_by_name: string | null
   updated_by: string | null
   updated_by_name: string | null
+  cycle_id: string | null
+  cycle_code: string | null
+  cycle_title: string | null
 }
 
 const CASE_SELECT = `
   SELECT tc.*, m.module_code, m.name AS module_name, s.name AS suite_name,
-         cu.display_name AS created_by_name, uu.display_name AS updated_by_name
+         cu.display_name AS created_by_name, uu.display_name AS updated_by_name,
+         cy.cycle_code, cy.title AS cycle_title
     FROM test_cases tc
     LEFT JOIN modules m ON m.id = tc.module_id
+    LEFT JOIN test_cycles cy ON cy.id = tc.cycle_id
     LEFT JOIN test_suites s ON s.id = tc.suite_id
     LEFT JOIN users cu ON cu.id = tc.created_by
     LEFT JOIN users uu ON uu.id = tc.updated_by`
@@ -97,6 +103,9 @@ function toListItem(row: CaseRow): TestCaseListItem {
     id: String(row.id),
     case_code: row.case_code,
     title: row.title,
+    cycle: row.cycle_id
+      ? { id: String(row.cycle_id), cycle_code: row.cycle_code ?? '', title: row.cycle_title ?? '' }
+      : null,
     module: row.module_id
       ? {
           id: String(row.module_id),
@@ -162,6 +171,98 @@ async function resolveModule(db: Db, projectId: string, moduleCode: string | nul
   return String(row.id)
 }
 
+/** The Fase a scenario is saved in must be a Fase of the same project (ADR 0019). */
+async function assertCycle(db: Db, projectId: string, cycleId: string | null | undefined) {
+  if (!cycleId) return
+  const row = await selectOne(db, 'SELECT 1 FROM test_cycles WHERE id = ? AND project_id = ?', [
+    cycleId,
+    projectId,
+  ])
+  if (!row) {
+    throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+      { field: 'cycle_id', message: 'Cycle not found in this project' },
+    ])
+  }
+}
+
+/**
+ * After a scenario lands in a Fase: its feature becomes a folder of that Fase, and every open
+ * UAT of the Fase that tests the feature picks it up once it is Ready.
+ */
+async function followPhase(conn: PoolConnection, projectId: string, row: CaseRow) {
+  if (!row.cycle_id) return
+  if (row.module_id) {
+    await execute(
+      conn,
+      'INSERT IGNORE INTO workshop_features (cycle_id, module_id, state_code) VALUES (?, ?, ?)',
+      [row.cycle_id, row.module_id, 'OPEN'],
+    )
+  }
+  if (row.case_status === 'READY') await syncPhaseUats(conn, projectId, String(row.cycle_id))
+}
+
+/**
+ * Copy a scenario (Drive "Buat salinan"): a new code, Draft, the same definition and reference
+ * files, saved in the given Fase.
+ */
+async function copyCase(
+  conn: PoolConnection,
+  c: Context<AppEnv>,
+  sourceId: string,
+  options: { cycleId: string | null; code?: string | null; keepStatus?: boolean },
+): Promise<string> {
+  const project = c.get('project')
+  const source = await loadCase(conn, project.id, sourceId)
+  const code = options.code ?? (await nextCaseCode(conn, project.id, source.module_code))
+  let id: string
+  try {
+    const result = await execute(
+      conn,
+      `INSERT INTO test_cases
+         (project_id, module_id, cycle_id, suite_id, case_code, category, title, requirement_refs,
+          priority_code, test_type_code, actor_label, preconditions, test_steps_text,
+          expected_result, source_locale, case_status, source_kind, current_version,
+          created_by, updated_by)
+       SELECT project_id, module_id, ?, suite_id, ?, category, title, requirement_refs,
+              priority_code, test_type_code, actor_label, preconditions, test_steps_text,
+              expected_result, source_locale,
+              CASE WHEN ? = 1 AND case_status = 'READY' THEN 'READY' ELSE 'DRAFT' END,
+              'MANUAL', 1, ?, ?
+         FROM test_cases WHERE id = ? AND project_id = ?`,
+      [
+        options.cycleId,
+        code,
+        options.keepStatus ? 1 : 0,
+        userIdOf(c),
+        userIdOf(c),
+        sourceId,
+        project.id,
+      ],
+    )
+    id = insertedId(result)
+  } catch (error) {
+    if (isDuplicateKey(error)) throw duplicateCode()
+    throw error
+  }
+  await execute(
+    conn,
+    `INSERT INTO test_case_files (test_case_id, file_object_id, caption)
+     SELECT ?, file_object_id, caption FROM test_case_files WHERE test_case_id = ?`,
+    [id, sourceId],
+  )
+  const created = await loadCase(conn, project.id, id)
+  await insertRevision(conn, created, userIdOf(c), `Cloned from ${source.case_code}`)
+  await writeAudit(conn, c, {
+    projectId: project.id,
+    entityType: 'test_case',
+    entityId: id,
+    action: 'CREATE',
+    newValues: { ...snapshot(created), cloned_from: source.case_code },
+  })
+  await followPhase(conn, project.id, created)
+  return id
+}
+
 async function assertSuite(db: Db, projectId: string, suiteId: string | null | undefined) {
   if (!suiteId) return
   const row = await selectOne(db, 'SELECT 1 FROM test_suites WHERE id = ? AND project_id = ?', [
@@ -220,6 +321,7 @@ function duplicateCode(): AppError {
 
 const EDITABLE = [
   'module_id',
+  'cycle_id',
   'suite_id',
   'sequence_number',
   'category',
@@ -274,9 +376,11 @@ async function applyCaseUpdate(
   }
   const moduleId = await resolveModule(conn, project.id, input.module_code)
   await assertSuite(conn, project.id, input.suite_id)
+  await assertCycle(conn, project.id, input.cycle_id)
 
   const next: Record<(typeof EDITABLE)[number], unknown> = {
     module_id: moduleId === undefined ? before.module_id : moduleId,
+    cycle_id: input.cycle_id === undefined ? before.cycle_id : input.cycle_id,
     suite_id: input.suite_id === undefined ? before.suite_id : input.suite_id,
     sequence_number:
       input.sequence_number === undefined ? before.sequence_number : input.sequence_number,
@@ -318,6 +422,7 @@ async function applyCaseUpdate(
   if (before.case_status === 'ARCHIVED' && after.case_status !== 'ARCHIVED') {
     await execute(conn, 'UPDATE test_cases SET merged_into_id = NULL WHERE id = ?', [caseId])
   }
+  await followPhase(conn, project.id, after)
   await insertRevision(conn, after, userIdOf(c), reason)
   await writeAudit(conn, c, {
     projectId: project.id,
@@ -373,6 +478,12 @@ export function testCaseRoutes(pool: Pool) {
     if (q) {
       where.push('(tc.case_code LIKE ? OR tc.title LIKE ?)')
       params.push(`%${escapeLike(q)}%`, `%${escapeLike(q)}%`)
+    }
+    const cycle = c.req.query('cycle')
+    if (cycle === 'none') where.push('tc.cycle_id IS NULL')
+    else if (cycle && /^\d+$/.test(cycle)) {
+      where.push('tc.cycle_id = ?')
+      params.push(cycle)
     }
     const moduleCode = c.req.query('module')
     if (moduleCode) {
@@ -586,6 +697,7 @@ export function testCaseRoutes(pool: Pool) {
     const caseId = await withTransaction(pool, async (conn) => {
       const moduleId = (await resolveModule(conn, project.id, input.module_code)) ?? null
       await assertSuite(conn, project.id, input.suite_id)
+      await assertCycle(conn, project.id, input.cycle_id)
       const code =
         input.case_code ?? (await nextCaseCode(conn, project.id, input.module_code ?? null))
       let id: string
@@ -593,14 +705,15 @@ export function testCaseRoutes(pool: Pool) {
         const result = await execute(
           conn,
           `INSERT INTO test_cases
-             (project_id, module_id, suite_id, case_code, sequence_number, category, title,
-              requirement_refs, priority_code, test_type_code, actor_label, preconditions,
+             (project_id, module_id, cycle_id, suite_id, case_code, sequence_number, category,
+              title, requirement_refs, priority_code, test_type_code, actor_label, preconditions,
               test_steps_text, expected_result, source_locale, case_status, source_kind,
               current_version, created_by, updated_by)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MANUAL', 1, ?, ?)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MANUAL', 1, ?, ?)`,
           [
             project.id,
             moduleId,
+            input.cycle_id ?? null,
             input.suite_id ?? null,
             code,
             input.sequence_number ?? null,
@@ -633,6 +746,7 @@ export function testCaseRoutes(pool: Pool) {
         action: 'CREATE',
         newValues: snapshot(created),
       })
+      await followPhase(conn, project.id, created)
       return id
     })
     return c.json(toListItem(await loadCase(pool, project.id, caseId)), 201)
@@ -722,6 +836,9 @@ export function testCaseRoutes(pool: Pool) {
     const result: BulkResult = { updated: 0, unchanged: 0, skipped: [] }
     await withTransaction(pool, async (conn) => {
       if (body.action === 'set_module') await resolveModule(conn, project.id, body.module_code)
+      if (body.action === 'move_to_phase' || body.action === 'copy_to_phase') {
+        await assertCycle(conn, project.id, body.cycle_id)
+      }
       const found = await select<{ id: string; case_code: string }>(
         conn,
         `SELECT id, case_code FROM test_cases
@@ -739,16 +856,21 @@ export function testCaseRoutes(pool: Pool) {
           const changed =
             body.action === 'archive'
               ? await applyCaseArchive(conn, c, id)
-              : await applyCaseUpdate(
-                  conn,
-                  c,
-                  id,
-                  body.action === 'set_status'
-                    ? { case_status: body.case_status }
-                    : body.action === 'set_module'
-                      ? { module_code: body.module_code }
-                      : { priority_code: body.priority_code },
-                )
+              : body.action === 'copy_to_phase'
+                ? // A copy for the next Fase is ready to test there, like the original.
+                  Boolean(await copyCase(conn, c, id, { cycleId: body.cycle_id, keepStatus: true }))
+                : await applyCaseUpdate(
+                    conn,
+                    c,
+                    id,
+                    body.action === 'set_status'
+                      ? { case_status: body.case_status }
+                      : body.action === 'set_module'
+                        ? { module_code: body.module_code }
+                        : body.action === 'move_to_phase'
+                          ? { cycle_id: body.cycle_id }
+                          : { priority_code: body.priority_code },
+                  )
           if (changed) result.updated += 1
           else result.unchanged += 1
         } catch (error) {
@@ -771,37 +893,10 @@ export function testCaseRoutes(pool: Pool) {
     const input = await parseBody(c, testCaseCloneSchema)
     const newId = await withTransaction(pool, async (conn) => {
       const source = await loadCase(conn, project.id, sourceId)
-      const code = input.case_code ?? (await nextCaseCode(conn, project.id, source.module_code))
-      let id: string
-      try {
-        const result = await execute(
-          conn,
-          `INSERT INTO test_cases
-             (project_id, module_id, suite_id, case_code, category, title, requirement_refs,
-              priority_code, test_type_code, actor_label, preconditions, test_steps_text,
-              expected_result, source_locale, case_status, source_kind, current_version,
-              created_by, updated_by)
-           SELECT project_id, module_id, suite_id, ?, category, title, requirement_refs,
-                  priority_code, test_type_code, actor_label, preconditions, test_steps_text,
-                  expected_result, source_locale, 'DRAFT', 'MANUAL', 1, ?, ?
-             FROM test_cases WHERE id = ? AND project_id = ?`,
-          [code, userIdOf(c), userIdOf(c), sourceId, project.id],
-        )
-        id = insertedId(result)
-      } catch (error) {
-        if (isDuplicateKey(error)) throw duplicateCode()
-        throw error
-      }
-      const created = await loadCase(conn, project.id, id)
-      await insertRevision(conn, created, userIdOf(c), `Cloned from ${source.case_code}`)
-      await writeAudit(conn, c, {
-        projectId: project.id,
-        entityType: 'test_case',
-        entityId: id,
-        action: 'CREATE',
-        newValues: { ...snapshot(created), cloned_from: source.case_code },
+      return copyCase(conn, c, sourceId, {
+        cycleId: source.cycle_id === null ? null : String(source.cycle_id),
+        code: input.case_code ?? null,
       })
-      return id
     })
     return c.json(toListItem(await loadCase(pool, project.id, newId)), 201)
   })

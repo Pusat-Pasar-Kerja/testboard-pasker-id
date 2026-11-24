@@ -1,11 +1,23 @@
 import type {
+  BugReportingSettings,
   CyclePublicInput,
   DefectReviewInput,
   ModuleRef,
+  PhaseFeatureInput,
+  PhaseTreeDto,
   PublicBugDto,
-  PublicCycleDetail,
-  PublicCycleSummary,
+  PublicBugReportInput,
+  PublicBugReportingDto,
   PublicField,
+  PublicReportItem,
+  PublicUatDetail,
+  PublicUatSummary,
+  UatCreateInput,
+  UatDetailDto,
+  UatParticipantDto,
+  UatParticipantsInput,
+  UatSummaryDto,
+  UatUpdateInput,
   WorkshopBoardDto,
   WorkshopBugDto,
   WorkshopBugInput,
@@ -103,6 +115,8 @@ export interface PageQuery {
 
 export interface TestCaseQuery extends PageQuery {
   q?: string
+  /** A Fase id, or 'none' for scenarios outside every Fase (ADR 0019). */
+  cycle?: string
   module?: string
   priority?: TestCasePriority
   type?: TestType
@@ -124,6 +138,8 @@ export interface DefectQuery extends PageQuery {
 /** Editable test case fields (mirrors the API create/update schemas). */
 export interface TestCaseInput {
   case_code?: string
+  /** The Fase the scenario is saved in (ADR 0019); null = not in a Fase yet. */
+  cycle_id?: string | null
   module_code?: string | null
   suite_id?: string | null
   category?: string | null
@@ -474,22 +490,29 @@ export interface DataSource {
   issueResetLink(userId: string, input?: ResetLinkIssueInput): Promise<IssuedResetLink>
   revokeResetLink(userId: string): Promise<void>
 
-  // Mode Workshop (ADR 0016) ------------------------------------------------------------
-  /** Public pages: anyone, signed out; only the fields a lead switched on. */
-  listPublicCycles(): Promise<PublicCycleSummary[]>
-  /** `preview`: a lead sees the page before it is published (optionally unsaved fields). */
-  getPublicCycle(cycleId: string, preview?: PublicPreview): Promise<PublicCycleDetail>
+  // Public pages (ADR 0016, 0019) -------------------------------------------------------
+  /** Public UATs: anyone, signed out; only the fields an Admin switched on. */
+  listPublicUats(): Promise<PublicUatSummary[]>
+  /** `preview`: an Admin sees the page before it is published (optionally unsaved fields). */
+  getPublicUat(uatId: string, preview?: PublicPreview): Promise<PublicUatDetail>
+  /** Links printed before UATs existed point at a Fase: its public UAT. */
+  findPublicUatOfCycle(cycleId: string): Promise<{ id: string }>
+  /** Every project whose Bug Reporting is public (front page). */
+  listPublicBugReporting(): Promise<PublicBugReportingDto[]>
+  getPublicBugReporting(projectCode: string, preview?: boolean): Promise<PublicBugReportingDto>
   listPublicBugs(
-    cycleId: string,
+    projectCode: string,
     query?: PublicBugQuery,
-    preview?: PublicPreview,
+    preview?: boolean,
   ): Promise<Paginated<PublicBugDto>>
   publicFileUrl(
-    cycleId: string,
+    projectCode: string,
     fileId: string,
     kind: 'thumbnail' | 'preview',
-    preview?: PublicPreview,
+    preview?: boolean,
   ): string
+  /** The public report form (after go-live); an Admin reviews every report first. */
+  sendPublicBugReport(projectCode: string, input: PublicBugReportInput): Promise<{ received: true }>
 
   /** Table card (meja): sign in with the 6-digit code, then Mode Mudah only. */
   joinWorkshop(code: string): Promise<WorkshopSessionDto>
@@ -512,47 +535,90 @@ export interface DataSource {
   getWorkshopFileStatus(fileId: string): Promise<Pick<FileDto, 'processing_status' | 'scan_status'>>
   workshopFileUrl(fileId: string, kind: 'thumbnail' | 'preview'): string
 
-  /** Facilitator side, inside a project. */
-  getWorkshopBoard(projectCode: string, cycleId: string): Promise<WorkshopBoardDto>
-  updateCyclePublic(
+  // Fase > Fitur > Skenario (ADR 0019) ------------------------------------------------
+  getPhaseTree(projectCode: string): Promise<PhaseTreeDto>
+  addPhaseFeature(
     projectCode: string,
     cycleId: string,
+    input: PhaseFeatureInput,
+  ): Promise<PhaseTreeDto>
+
+  // UAT (ADR 0019): a Pengguna gets only the UATs they take part in ------------------------
+  listUats(projectCode: string): Promise<UatSummaryDto[]>
+  getUat(projectCode: string, uatId: string): Promise<UatDetailDto>
+  createUat(projectCode: string, input: UatCreateInput): Promise<UatDetailDto>
+  updateUat(projectCode: string, uatId: string, input: UatUpdateInput): Promise<UatDetailDto>
+  listUatParticipants(projectCode: string, uatId: string): Promise<UatParticipantDto[]>
+  addUatParticipants(
+    projectCode: string,
+    uatId: string,
+    input: UatParticipantsInput,
+  ): Promise<UatParticipantDto[]>
+  updateUatParticipant(
+    projectCode: string,
+    uatId: string,
+    participantId: string,
+    input: { name?: string; group_id?: string | null },
+  ): Promise<UatParticipantDto>
+  removeUatParticipant(projectCode: string, uatId: string, participantId: string): Promise<void>
+  getWorkshopBoard(projectCode: string, uatId: string): Promise<WorkshopBoardDto>
+  updateUatPublic(
+    projectCode: string,
+    uatId: string,
     input: CyclePublicInput,
   ): Promise<{ is_public: boolean; public_fields: PublicField[]; public_intro: string | null }>
   updateWorkshopFeature(
     projectCode: string,
-    cycleId: string,
+    uatId: string,
     input: { module_id: string; state_code: WorkshopFeatureState },
   ): Promise<WorkshopFeatureDto[]>
-  listWorkshopTables(projectCode: string, cycleId: string): Promise<WorkshopTableDto[]>
+  listWorkshopTables(projectCode: string, uatId: string): Promise<WorkshopTableDto[]>
   createWorkshopTable(
     projectCode: string,
-    cycleId: string,
+    uatId: string,
     input: WorkshopTableInput,
   ): Promise<WorkshopTableDto>
   updateWorkshopTable(
     projectCode: string,
-    cycleId: string,
+    uatId: string,
     tableId: string,
     input: WorkshopTableUpdate,
   ): Promise<WorkshopTableDto>
-  deleteWorkshopTable(projectCode: string, cycleId: string, tableId: string): Promise<void>
-  getWorkshopSheet(projectCode: string, cycleId: string, tableId: string): Promise<WorkshopSheet>
-  listWorkshopInbox(projectCode: string, cycleId: string): Promise<WorkshopInboxItem[]>
+  deleteWorkshopTable(projectCode: string, uatId: string, tableId: string): Promise<void>
+  getWorkshopSheet(projectCode: string, uatId: string, tableId: string): Promise<WorkshopSheet>
+  listWorkshopInbox(projectCode: string, uatId: string): Promise<WorkshopInboxItem[]>
   reviewWorkshopBug(
     projectCode: string,
-    cycleId: string,
+    uatId: string,
     defectId: string,
     input: DefectReviewInput,
   ): Promise<WorkshopBugDto>
+
+  // Bug Reporting (ADR 0019) -----------------------------------------------------------
+  getBugReporting(projectCode: string): Promise<BugReportingSettings>
+  updateBugReporting(
+    projectCode: string,
+    input: BugReportingSettings,
+  ): Promise<BugReportingSettings>
+  listPublicReports(projectCode: string): Promise<PublicReportItem[]>
+  reviewPublicReport(projectCode: string, defectId: string, input: DefectReviewInput): Promise<void>
+  deletePublicReport(projectCode: string, defectId: string): Promise<void>
 }
 
 export interface PublicPreview {
   fields?: PublicField[]
 }
 
+const bugPreviewQuery = (preview?: boolean) => (preview ? { preview: '1' } : {})
+
+/** 'none' keeps an empty choice (every field off) from falling back to the saved fields. */
 const previewQuery = (preview?: PublicPreview) =>
-  preview ? { preview: '1', fields: preview.fields?.join(',') } : {}
+  preview
+    ? {
+        preview: '1',
+        fields: preview.fields ? preview.fields.join(',') || 'none' : undefined,
+      }
+    : {}
 
 export interface PublicBugQuery extends PageQuery {
   q?: string
@@ -756,17 +822,25 @@ export function createHttpDataSource(client: ApiClient): DataSource {
       client.post(`/admin/users/${seg(userId)}/reset-link`, input),
     revokeResetLink: (userId) => client.delete(`/admin/users/${seg(userId)}/reset-link`),
 
-    listPublicCycles: () => client.get('/public/cycles'),
-    getPublicCycle: (id, preview) =>
-      client.get(`/public/cycles/${seg(id)}${toQueryString(previewQuery(preview))}`),
-    listPublicBugs: (id, query = {}, preview) =>
+    listPublicUats: () => client.get('/public/uats'),
+    getPublicUat: (id, preview) =>
+      client.get(`/public/uats/${seg(id)}${toQueryString(previewQuery(preview))}`),
+    findPublicUatOfCycle: (cycleId) => client.get(`/public/cycles/${seg(cycleId)}/uat`),
+    listPublicBugReporting: () => client.get('/public/bug-reporting'),
+    getPublicBugReporting: (code, preview) =>
       client.get(
-        `/public/cycles/${seg(id)}/bugs${toQueryString({ ...query, ...previewQuery(preview) })}`,
+        `/public/projects/${seg(code)}/bug-reporting${toQueryString(bugPreviewQuery(preview))}`,
       ),
-    publicFileUrl: (cycleId, fileId, kind, preview) =>
+    listPublicBugs: (code, query = {}, preview) =>
+      client.get(
+        `/public/projects/${seg(code)}/bugs${toQueryString({ ...query, ...bugPreviewQuery(preview) })}`,
+      ),
+    publicFileUrl: (code, fileId, kind, preview) =>
       client.url(
-        `/public/cycles/${seg(cycleId)}/files/${seg(fileId)}/${kind}${toQueryString(previewQuery(preview))}`,
+        `/public/projects/${seg(code)}/files/${seg(fileId)}/${kind}${toQueryString(bugPreviewQuery(preview))}`,
       ),
+    sendPublicBugReport: (code, input) =>
+      client.post(`/public/projects/${seg(code)}/reports`, input),
 
     joinWorkshop: (code) => client.post('/workshop/join', { code }),
     getWorkshopSession: () => client.get('/workshop/session'),
@@ -789,22 +863,45 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     getWorkshopFileStatus: (id) => client.get(`/workshop/files/${seg(id)}/status`),
     workshopFileUrl: (id, kind) => client.url(`/workshop/files/${seg(id)}/${kind}`),
 
-    getWorkshopBoard: (code, cycleId) => client.get(`${p(code)}/cycles/${seg(cycleId)}/workshop`),
-    updateCyclePublic: (code, cycleId, input) =>
-      client.put(`${p(code)}/cycles/${seg(cycleId)}/public`, input),
-    updateWorkshopFeature: (code, cycleId, input) =>
-      client.put(`${p(code)}/cycles/${seg(cycleId)}/features`, input),
-    listWorkshopTables: (code, cycleId) => client.get(`${p(code)}/cycles/${seg(cycleId)}/tables`),
-    createWorkshopTable: (code, cycleId, input) =>
-      client.post(`${p(code)}/cycles/${seg(cycleId)}/tables`, input),
-    updateWorkshopTable: (code, cycleId, tableId, input) =>
-      client.patch(`${p(code)}/cycles/${seg(cycleId)}/tables/${seg(tableId)}`, input),
-    deleteWorkshopTable: (code, cycleId, tableId) =>
-      client.delete(`${p(code)}/cycles/${seg(cycleId)}/tables/${seg(tableId)}`),
-    getWorkshopSheet: (code, cycleId, tableId) =>
-      client.get(`${p(code)}/cycles/${seg(cycleId)}/tables/${seg(tableId)}/sheet`),
-    listWorkshopInbox: (code, cycleId) => client.get(`${p(code)}/cycles/${seg(cycleId)}/inbox`),
-    reviewWorkshopBug: (code, cycleId, defectId, input) =>
-      client.post(`${p(code)}/cycles/${seg(cycleId)}/inbox/${seg(defectId)}`, input),
+    getPhaseTree: (code) => client.get(`${p(code)}/phases`),
+    addPhaseFeature: (code, cycleId, input) =>
+      client.post(`${p(code)}/phases/${seg(cycleId)}/features`, input),
+
+    listUats: (code) => client.get(`${p(code)}/uats`),
+    getUat: (code, uatId) => client.get(`${p(code)}/uats/${seg(uatId)}`),
+    createUat: (code, input) => client.post(`${p(code)}/uats`, input),
+    updateUat: (code, uatId, input) => client.patch(`${p(code)}/uats/${seg(uatId)}`, input),
+    listUatParticipants: (code, uatId) => client.get(`${p(code)}/uats/${seg(uatId)}/participants`),
+    addUatParticipants: (code, uatId, input) =>
+      client.post(`${p(code)}/uats/${seg(uatId)}/participants`, input),
+    updateUatParticipant: (code, uatId, participantId, input) =>
+      client.patch(`${p(code)}/uats/${seg(uatId)}/participants/${seg(participantId)}`, input),
+    removeUatParticipant: (code, uatId, participantId) =>
+      client.delete(`${p(code)}/uats/${seg(uatId)}/participants/${seg(participantId)}`),
+    getWorkshopBoard: (code, uatId) => client.get(`${p(code)}/uats/${seg(uatId)}/board`),
+    updateUatPublic: (code, uatId, input) =>
+      client.put(`${p(code)}/uats/${seg(uatId)}/public`, input),
+    updateWorkshopFeature: (code, uatId, input) =>
+      client.put(`${p(code)}/uats/${seg(uatId)}/features`, input),
+    listWorkshopTables: (code, uatId) => client.get(`${p(code)}/uats/${seg(uatId)}/groups`),
+    createWorkshopTable: (code, uatId, input) =>
+      client.post(`${p(code)}/uats/${seg(uatId)}/groups`, input),
+    updateWorkshopTable: (code, uatId, tableId, input) =>
+      client.patch(`${p(code)}/uats/${seg(uatId)}/groups/${seg(tableId)}`, input),
+    deleteWorkshopTable: (code, uatId, tableId) =>
+      client.delete(`${p(code)}/uats/${seg(uatId)}/groups/${seg(tableId)}`),
+    getWorkshopSheet: (code, uatId, tableId) =>
+      client.get(`${p(code)}/uats/${seg(uatId)}/groups/${seg(tableId)}/sheet`),
+    listWorkshopInbox: (code, uatId) => client.get(`${p(code)}/uats/${seg(uatId)}/inbox`),
+    reviewWorkshopBug: (code, uatId, defectId, input) =>
+      client.post(`${p(code)}/uats/${seg(uatId)}/inbox/${seg(defectId)}`, input),
+
+    getBugReporting: (code) => client.get(`${p(code)}/bug-reporting`),
+    updateBugReporting: (code, input) => client.put(`${p(code)}/bug-reporting`, input),
+    listPublicReports: (code) => client.get(`${p(code)}/bug-reporting/reports`),
+    reviewPublicReport: (code, defectId, input) =>
+      client.post(`${p(code)}/bug-reporting/reports/${seg(defectId)}`, input),
+    deletePublicReport: (code, defectId) =>
+      client.delete(`${p(code)}/bug-reporting/reports/${seg(defectId)}`),
   }
 }

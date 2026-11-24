@@ -138,7 +138,8 @@ import {
   type MockAuditEntry,
 } from './mock-reports'
 import { createMockRecovery } from './mock-recovery'
-import { createMockWorkshop } from './mock-workshop'
+import { createMockUat, mayAnswer, takesPart } from './mock-uat'
+import { createMockWorkshop, type WorkshopDeps } from './mock-workshop'
 import type {
   AddRunCasesResult,
   DataSource,
@@ -292,6 +293,12 @@ export function createMockDataSource(
     id: c.id,
     case_code: c.case_code,
     title: c.title,
+    cycle: (() => {
+      const cy = db.cycles.find((x) => x.id === c.cycleId)
+      return c.cycleId
+        ? { id: c.cycleId, cycle_code: cy?.cycle_code ?? '', title: cy?.title ?? '' }
+        : null
+    })(),
     module: moduleDto(c.moduleId),
     category: c.category,
     priority_code: c.priority_code,
@@ -786,6 +793,8 @@ export function createMockDataSource(
         target = {
           id: newId(),
           projectId: job.projectId,
+          // Like the API: an imported scenario is not in a Fase yet (ADR 0019).
+          cycleId: null,
           moduleId: mod.id,
           suiteName: v.suite_name ?? '',
           case_code:
@@ -1345,21 +1354,24 @@ export function createMockDataSource(
     return delay(() => ({ files: [created], rejected: [] }))
   }
 
-  const workshop = createMockWorkshop({
+  const workshopDeps: WorkshopDeps = {
     db,
     delay,
     newId,
     now,
     project,
     requireRole,
+    manages: (projectId) => isLeadIn(projectId),
     nextBugCode,
     storeUpload,
     fileUrl: (fileId) => db.files.find((f) => f.id === fileId)?.url ?? '',
+    snapshotOfCase: (testCase) => snapshotOfCase(testCase),
     people: {
-      // Same as the API: an e-mail becomes a User account (not activated) and a Penguji.
+      // Same as the API: an e-mail becomes a User account (not activated) and a Pengguna.
       ensurePerson: (email, name, projectId) => {
         const address = email.trim().toLowerCase()
         let person = db.users.find((u) => u.email === address)
+        if (person?.kind === 'TABLE') fail(422, 'VALIDATION_ERROR', 'email', 'NOT_A_PERSON')
         if (!person) {
           person = { id: newId(), display_name: name, email: address }
           db.users.push(person)
@@ -1380,8 +1392,101 @@ export function createMockDataSource(
       emailOf: (userId) => db.users.find((u) => u.id === userId)?.email ?? null,
       currentUserId: () => db.currentUserId,
     },
-  })
-  workshop.seedDemo()
+  }
+  const workshop = createMockWorkshop(workshopDeps)
+  /** Fase > Fitur > Skenario and the UATs (ADR 0019); shares the workshop helpers. */
+  const uat = createMockUat(workshopDeps, workshop.core)
+  /** A Pengguna reaches only the UATs (runs) they take part in; managers reach every one. */
+  const reachesRun = (projectId: string, runId: string) =>
+    isLeadIn(projectId) || takesPart(db, runId, db.currentUserId)
+
+  /** The Fase a scenario is saved in must be a Fase of the same project (ADR 0019). */
+  const assertCycle = (projectId: string, cycleId: string | null | undefined) => {
+    if (cycleId && !db.cycles.some((cy) => cy.id === cycleId && cy.projectId === projectId)) {
+      fail(422, 'VALIDATION_ERROR', 'cycle_id', 'Cycle not found in this project')
+    }
+  }
+
+  /**
+   * One scenario edit (a new version + revision). Everything is checked before anything
+   * changes; a scenario that lands in a Fase follows it (feature folder, open UATs).
+   */
+  const applyCaseUpdate = (projectId: string, c: MockCase, input: unknown) => {
+    const parsed = testCaseUpdateSchema.safeParse(input)
+    if (!parsed.success) return validationError(parsed.error.issues)
+    const data = parsed.data
+    if (data.expected_version !== undefined && data.expected_version !== c.current_version) {
+      fail(409, 'CONFLICT', 'expected_version', `Current version is ${c.current_version}`)
+    }
+    const contentKeys = Object.keys(data).filter(
+      (k) => !['case_status', 'change_reason', 'expected_version'].includes(k),
+    )
+    if (c.case_status === 'ARCHIVED' && contentKeys.length > 0) {
+      throw new ApiClientError(
+        409,
+        'CONFLICT',
+        'Restore the archived test case before editing it.',
+        'mock-request',
+      )
+    }
+    const moduleId = moduleIdByCode(projectId, data.module_code)
+    const suiteName =
+      data.suite_id === undefined ? undefined : (suiteNameOf(projectId, data.suite_id) ?? '')
+    assertCycle(projectId, data.cycle_id)
+    if (moduleId !== undefined) c.moduleId = moduleId ?? ''
+    if (suiteName !== undefined) c.suiteName = suiteName
+    if (data.cycle_id !== undefined) c.cycleId = data.cycle_id
+    if (data.title !== undefined) c.title = data.title
+    if (data.category !== undefined) c.category = data.category ?? ''
+    if (data.requirement_refs !== undefined) c.requirement_refs = data.requirement_refs
+    if (data.priority_code) c.priority_code = data.priority_code
+    if (data.test_type_code) c.test_type_code = data.test_type_code
+    if (data.actor_label !== undefined) c.actor_label = data.actor_label ?? ''
+    if (data.preconditions !== undefined) c.preconditions = data.preconditions ?? ''
+    if (data.test_steps_text !== undefined) {
+      c.steps = stepsFromText(data.test_steps_text).map((step) => step.instruction)
+    }
+    if (data.expected_result !== undefined) c.expected_result = data.expected_result
+    if (data.case_status) c.case_status = data.case_status
+    if (c.case_status !== 'ARCHIVED') c.mergedInto = null
+    c.current_version += 1
+    c.updated_at = now()
+    c.updatedBy = db.currentUserId
+    addRevision(c, data.change_reason ?? 'Updated')
+    uat.followPhase(c)
+  }
+
+  /**
+   * Copy a scenario (Drive "Buat salinan"): a new code, the same definition and reference
+   * files, saved in the given Fase. A copy is a Draft, unless `keepStatus` and it was Ready.
+   */
+  const copyCase = (
+    projectId: string,
+    source: MockCase,
+    options: { cycleId: string | null; keepStatus?: boolean },
+  ): MockCase => {
+    const at = now()
+    const copy: MockCase = {
+      ...source,
+      id: newId(),
+      cycleId: options.cycleId,
+      mergedInto: null,
+      case_code: nextCode(projectId, moduleDto(source.moduleId)?.module_code ?? null),
+      case_status: options.keepStatus && source.case_status === 'READY' ? 'READY' : 'DRAFT',
+      current_version: 1,
+      steps: [...source.steps],
+      files: (source.files ?? []).map((link) => ({ ...link })),
+      created_at: at,
+      updated_at: at,
+      createdBy: db.currentUserId,
+      updatedBy: db.currentUserId,
+      revisions: [],
+    }
+    addRevision(copy, `Cloned from ${source.case_code}`)
+    db.cases.push(copy)
+    uat.followPhase(copy)
+    return copy
+  }
 
   const api: DataSource = {
     kind: 'mock',
@@ -1533,10 +1638,12 @@ export function createMockDataSource(
     createTestCase: (code, input: TestCaseInput) =>
       delay(() => {
         const p = project(code)
+        requireRole(p.id, 'case.write')
         const parsed = testCaseCreateSchema.safeParse(input)
         if (!parsed.success) return validationError(parsed.error.issues)
         const data = parsed.data
         const moduleId = moduleIdByCode(p.id, data.module_code) ?? null
+        assertCycle(p.id, data.cycle_id)
         const caseCode = data.case_code ?? nextCode(p.id, data.module_code ?? null)
         if (db.cases.some((c) => c.projectId === p.id && c.case_code === caseCode)) {
           fail(409, 'CONFLICT', 'case_code', 'Already used')
@@ -1544,6 +1651,7 @@ export function createMockDataSource(
         const created: MockCase = {
           id: newId(),
           projectId: p.id,
+          cycleId: data.cycle_id ?? null,
           moduleId: moduleId ?? '',
           suiteName: suiteNameOf(p.id, data.suite_id) ?? '',
           case_code: caseCode,
@@ -1566,54 +1674,22 @@ export function createMockDataSource(
         }
         addRevision(created, 'Created')
         db.cases.push(created)
+        uat.followPhase(created)
         return caseListItem(created)
       }),
     updateTestCase: (code, caseId, input) =>
       delay(() => {
         const p = project(code)
+        requireRole(p.id, 'case.write')
         const c = caseIn(p.id, caseId)
-        const parsed = testCaseUpdateSchema.safeParse(input)
-        if (!parsed.success) return validationError(parsed.error.issues)
-        const data = parsed.data
-        if (data.expected_version !== undefined && data.expected_version !== c.current_version) {
-          fail(409, 'CONFLICT', 'expected_version', `Current version is ${c.current_version}`)
-        }
-        const contentKeys = Object.keys(data).filter(
-          (k) => !['case_status', 'change_reason', 'expected_version'].includes(k),
-        )
-        if (c.case_status === 'ARCHIVED' && contentKeys.length > 0) {
-          throw new ApiClientError(
-            409,
-            'CONFLICT',
-            'Restore the archived test case before editing it.',
-            'mock-request',
-          )
-        }
-        const moduleId = moduleIdByCode(p.id, data.module_code)
-        if (moduleId !== undefined) c.moduleId = moduleId ?? ''
-        if (data.suite_id !== undefined) c.suiteName = suiteNameOf(p.id, data.suite_id) ?? ''
-        if (data.title !== undefined) c.title = data.title
-        if (data.category !== undefined) c.category = data.category ?? ''
-        if (data.requirement_refs !== undefined) c.requirement_refs = data.requirement_refs
-        if (data.priority_code) c.priority_code = data.priority_code
-        if (data.test_type_code) c.test_type_code = data.test_type_code
-        if (data.actor_label !== undefined) c.actor_label = data.actor_label ?? ''
-        if (data.preconditions !== undefined) c.preconditions = data.preconditions ?? ''
-        if (data.test_steps_text !== undefined) {
-          c.steps = stepsFromText(data.test_steps_text).map((step) => step.instruction)
-        }
-        if (data.expected_result !== undefined) c.expected_result = data.expected_result
-        if (data.case_status) c.case_status = data.case_status
-        if (c.case_status !== 'ARCHIVED') c.mergedInto = null
-        c.current_version += 1
-        c.updated_at = now()
-        c.updatedBy = db.currentUserId
-        addRevision(c, data.change_reason ?? 'Updated')
+        applyCaseUpdate(p.id, c, input)
         return caseListItem(c)
       }),
     archiveTestCase: (code, caseId) =>
       delay(() => {
-        const c = caseIn(project(code).id, caseId)
+        const p = project(code)
+        requireRole(p.id, 'case.archive')
+        const c = caseIn(p.id, caseId)
         if (c.case_status !== 'ARCHIVED') {
           c.case_status = 'ARCHIVED'
           c.current_version += 1
@@ -1625,23 +1701,9 @@ export function createMockDataSource(
     cloneTestCase: (code, caseId) =>
       delay(() => {
         const p = project(code)
+        requireRole(p.id, 'case.write')
         const source = caseIn(p.id, caseId)
-        const clone: MockCase = {
-          ...source,
-          id: newId(),
-          case_code: nextCode(p.id, moduleDto(source.moduleId)?.module_code ?? null),
-          case_status: 'DRAFT',
-          current_version: 1,
-          steps: [...source.steps],
-          created_at: now(),
-          updated_at: now(),
-          createdBy: db.currentUserId,
-          updatedBy: db.currentUserId,
-          revisions: [],
-        }
-        addRevision(clone, `Cloned from ${source.case_code}`)
-        db.cases.push(clone)
-        return caseListItem(clone)
+        return caseListItem(copyCase(p.id, source, { cycleId: source.cycleId }))
       }),
 
     listUsers: (q) =>
@@ -1732,7 +1794,9 @@ export function createMockDataSource(
     getDashboard: (code, filter = {}) =>
       delay((): DashboardSummary => {
         const p = project(code)
-        const runs = db.runs.filter((r) => r.projectId === p.id)
+        // A Pengguna sees the UATs they take part in, never the others (ADR 0019); the bug
+        // numbers stay project-wide.
+        const runs = db.runs.filter((r) => r.projectId === p.id && reachesRun(p.id, r.id))
         const scopedRuns = filter.run_id ? runs.filter((r) => r.id === filter.run_id) : runs
         if (filter.run_id && scopedRuns.length === 0) notFound()
         const rows = scopedRuns.flatMap(runCaseRows)
@@ -1759,9 +1823,15 @@ export function createMockDataSource(
     listTestCases: (code, query: TestCaseQuery = {}) =>
       delay(() => {
         const p = project(code)
+        // The scenario library is for the people who manage the project (ADR 0019).
+        requireRole(p.id, 'case.read')
         const q = query.q?.trim().toLowerCase()
+        const cycle = query.cycle
         const items = db.cases
           .filter((c) => c.projectId === p.id)
+          .filter((c) =>
+            cycle === 'none' ? !c.cycleId : !cycle || !/^\d+$/.test(cycle) || c.cycleId === cycle,
+          )
           .filter((c) => !query.module || moduleDto(c.moduleId)?.module_code === query.module)
           .filter((c) => !query.priority || c.priority_code === query.priority)
           .filter((c) => !query.type || c.test_type_code === query.type)
@@ -1779,6 +1849,7 @@ export function createMockDataSource(
     getTestCase: (code, caseId) =>
       delay((): TestCaseDetail => {
         const p = project(code)
+        requireRole(p.id, 'case.read')
         const c = db.cases.find((x) => x.id === caseId && x.projectId === p.id) ?? notFound()
         return {
           ...caseListItem(c),
@@ -1835,6 +1906,7 @@ export function createMockDataSource(
     listSimilarCases: (code, moduleCode) =>
       delay(() => {
         const p = project(code)
+        requireRole(p.id, 'case.read')
         const cases = db.cases
           .filter(
             (c) =>
@@ -1883,8 +1955,9 @@ export function createMockDataSource(
     listRuns: (code) =>
       delay(() => {
         const p = project(code)
+        // A Pengguna sees only the UATs they take part in (ADR 0019).
         return db.runs
-          .filter((r) => r.projectId === p.id)
+          .filter((r) => r.projectId === p.id && reachesRun(p.id, r.id))
           .map(runSummary)
           .sort((a, b) => (b.starts_at ?? '').localeCompare(a.starts_at ?? ''))
       }),
@@ -1892,7 +1965,9 @@ export function createMockDataSource(
     getRun: (code, runId) =>
       delay((): TestRunDetail => {
         const p = project(code)
-        const run = db.runs.find((r) => r.id === runId && r.projectId === p.id) ?? notFound()
+        const run =
+          db.runs.find((r) => r.id === runId && r.projectId === p.id && reachesRun(p.id, r.id)) ??
+          notFound()
         return {
           ...runSummary(run),
           environment_url: run.environment_url,
@@ -2072,6 +2147,7 @@ export function createMockDataSource(
         const p = project(code)
         const rc = db.runCases.find((x) => x.id === runCaseId) ?? notFound()
         const run = runIn(p.id, rc.runId)
+        if (!reachesRun(p.id, run.id)) notFound()
         const testCase = db.cases.find((c) => c.id === rc.caseId) ?? notFound()
         const attempts = attemptsOf(rc.id).sort((a, b) => b.attempt_number - a.attempt_number)
         const executionIds = new Set(attempts.map((e) => e.id))
@@ -2116,29 +2192,24 @@ export function createMockDataSource(
         const replay = replays.get(replayKey)
         if (replay) return replay
         const p = project(code)
+        requireRole(p.id, 'execution.run')
+        const parsed = executionCreateSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const data = parsed.data
+        // A Pengguna answers the scenarios of their own UAT and group (ADR 0019); the old
+        // per-scenario assignment no longer limits them.
+        if (!isLeadIn(p.id) && !mayAnswer(db, p.id, runCaseId, db.currentUserId)) {
+          throw new ApiClientError(
+            403,
+            'FORBIDDEN',
+            'This scenario is not part of your group.',
+            'mock-request',
+          )
+        }
         const rc = db.runCases.find((x) => x.id === runCaseId) ?? notFound()
         const run = runIn(p.id, rc.runId)
         if (run.status_code !== 'ACTIVE')
           conflict('Tests can only be recorded while the run is ACTIVE.')
-        const role = roleIn(p.id)
-        if (
-          !superAdmins.has(db.currentUserId) &&
-          role === 'TESTER' &&
-          rc.assignedTo !== db.currentUserId
-        ) {
-          throw new ApiClientError(
-            403,
-            'FORBIDDEN',
-            'This test case is assigned to someone else.',
-            'mock-request',
-          )
-        }
-        if (!['ADMIN', 'QA_LEAD', 'TESTER'].includes(role) && !superAdmins.has(db.currentUserId)) {
-          throw new ApiClientError(403, 'FORBIDDEN', 'Not allowed.', 'mock-request')
-        }
-        const parsed = executionCreateSchema.safeParse(input)
-        if (!parsed.success) return validationError(parsed.error.issues)
-        const data = parsed.data
         const attempt = attemptsOf(runCaseId).reduce((m, e) => Math.max(m, e.attempt_number), 0) + 1
         const execution: MockExecution = {
           id: newId(),
@@ -2734,6 +2805,8 @@ export function createMockDataSource(
     getReportOverview: (code, filter) =>
       delay(() => {
         const p = project(code)
+        // The report page is for the people who manage the project (ADR 0019).
+        requireRole(p.id, 'run.write')
         const parsed = reportFilterSchema.safeParse(filter)
         if (!parsed.success) validationError(parsed.error.issues)
         return mockReportOverview(db, p, parsed.data)
@@ -2948,6 +3021,7 @@ export function createMockDataSource(
 
     ...recovery.methods,
     ...workshop.methods,
+    ...uat.methods,
 
     // ---- Bulk actions (ADR 0013): each item through the single-item rules -----------
     bulkDefects: async (code, input) => {
@@ -2998,9 +3072,18 @@ export function createMockDataSource(
       if (body.action === 'set_module' && moduleIdByCode(p.id, body.module_code) === undefined) {
         fail(422, 'VALIDATION_ERROR', 'module_code', 'Module not found in this project')
       }
+      if (body.action === 'move_to_phase' || body.action === 'copy_to_phase') {
+        assertCycle(p.id, body.cycle_id)
+      }
       return runBulk(body.case_ids, async (id) => {
         const c = db.cases.find((x) => x.id === id && x.projectId === p.id)
         if (!c) return { code: '', outcome: 'NOT_FOUND' }
+        if (body.action === 'copy_to_phase') {
+          // Like copying files to another folder: the copies get new codes, the originals stay;
+          // a copy for the next Fase is ready to test there, like the original.
+          copyCase(p.id, c, { cycleId: body.cycle_id, keepStatus: true })
+          return { code: c.case_code, outcome: 'updated' }
+        }
         const before = c.current_version
         if (body.action === 'archive') await api.archiveTestCase(code, id)
         else {
@@ -3009,14 +3092,17 @@ export function createMockDataSource(
               ? { case_status: body.case_status }
               : body.action === 'set_module'
                 ? { module_code: body.module_code }
-                : { priority_code: body.priority_code }
+                : body.action === 'move_to_phase'
+                  ? { cycle_id: body.cycle_id }
+                  : { priority_code: body.priority_code }
           const same =
             (body.action === 'set_status' && c.case_status === body.case_status) ||
             (body.action === 'set_priority' && c.priority_code === body.priority_code) ||
             (body.action === 'set_module' &&
-              moduleDto(c.moduleId)?.module_code === body.module_code)
+              moduleDto(c.moduleId)?.module_code === body.module_code) ||
+            (body.action === 'move_to_phase' && c.cycleId === body.cycle_id)
           if (same) return { code: c.case_code, outcome: 'unchanged' }
-          await api.updateTestCase(code, id, change)
+          applyCaseUpdate(p.id, c, change)
         }
         return { code: c.case_code, outcome: c.current_version > before ? 'updated' : 'unchanged' }
       })

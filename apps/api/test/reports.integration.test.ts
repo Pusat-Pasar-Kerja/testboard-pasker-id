@@ -99,7 +99,8 @@ beforeAll(async () => {
 
 describe('report overview', () => {
   it('counts each run case once by its latest attempt, per run, module and tester', async () => {
-    const res = await viewer.get(`${P()}/reports/overview`)
+    expect((await viewer.get(`${P()}/reports/overview`)).status).toBe(403)
+    const res = await lead.get(`${P()}/reports/overview`)
     expect(res.status).toBe(200)
     const o = res.json
     expect(o.timezone).toBe('Asia/Jakarta')
@@ -211,8 +212,9 @@ describe('report export (TB-REPORT-001)', () => {
     expect(rows).toHaveLength(3)
   })
 
-  it('is for Admins and Pemantau (leaders), not testers, and is audited', async () => {
-    expect((await viewer.raw(`${P()}/reports/export?dataset=results`)).status).toBe(200)
+  it('is for Admins only (Pemantau is gone, ADR 0019), and is audited', async () => {
+    expect((await lead.raw(`${P()}/reports/export?dataset=results`)).status).toBe(200)
+    expect((await viewer.raw(`${P()}/reports/export?dataset=results`)).status).toBe(403)
     expect((await tester.raw(`${P()}/reports/export?dataset=results`)).status).toBe(403)
     expect((await lead.raw(`${P()}/reports/export?dataset=nope`)).status).toBe(422)
 

@@ -19,8 +19,8 @@
     "projects": "Semua proyek",
     "dashboard": "Beranda proyek",
     "testCases": "Skenario uji",
-    "cycles": "Fase uji",
-    "runs": "Lembar uji",
+    "cycles": "Fase",
+    "runs": "UAT",
     "bugs": "Masalah",
     "evidence": "Foto & bukti",
     "imports": "Impor dari Excel",
@@ -31,7 +31,7 @@
     "profile": "Profil saya",
     "adminUsers": "Administrasi",
     "settings": "Fitur & kelompok",
-    "members": "Anggota & tugas",
+    "members": "Anggota",
     "adminSection": "Administrasi",
     "adminProjects": "Proyek",
     "adminUsersShort": "Pengguna",
@@ -39,7 +39,7 @@
     "adminAudit": "Log aktivitas",
     "adminRecovery": "Pemulihan akun",
     "openRequests": "permintaan baru",
-    "workshop": "Workshop & meja",
+    "workshop": "UAT",
     "guide": "Panduan",
     "publicSite": "Halaman publik",
     "myTasks": "Tugas saya",
@@ -56,7 +56,8 @@
       "evidence": "Evidence",
       "reports": "Report",
       "members": "Members & Roles",
-      "settings": "Modules & Suites"
+      "settings": "Modules & Suites",
+      "bugReporting": "Laporan masalah"
     },
     "group": {
       "prepare": "1. Persiapan",
@@ -65,12 +66,26 @@
       "manage": "4. Pengaturan"
     },
     "projectList": "Proyek saya",
-    "adminEyebrow": "Pengelolaan situs"
+    "adminEyebrow": "Pengelolaan situs",
+    "phases": "Fase",
+    "allPhases": "Semua Fase",
+    "uat": "UAT",
+    "allUats": "Semua UAT",
+    "myUat": "UAT saya",
+    "uatCount": "UAT",
+    "bugReporting": "Bug Reporting",
+    "collapse": "Tutup folder {{name}}",
+    "expand": "Buka folder {{name}}",
+    "featuresOf": "Fitur di {{name}}",
+    "noFeatures": "Belum ada fitur",
+    "scenarioCount": "skenario",
+    "waitingReports": "laporan publik menunggu ditinjau",
+    "youArePengguna": "Anda Pengguna di proyek ini"
   },
   "shell": {
     "skipToContent": "Lewati ke konten utama",
     "project": "Proyek",
-    "search": "Cari skenario, masalah, lembar uji…",
+    "search": "Cari skenario, masalah, UAT…",
     "searchLabel": "Cari di proyek ini",
     "signedInAs": "Masuk sebagai {{name}}",
     "signOutDemo": "Keluar dari demo",
@@ -123,12 +138,13 @@
     "type": "Jenis",
     "status": "Status",
     "severity": "Tingkat dampak",
-    "run": "Lembar uji",
+    "run": "UAT",
     "all": "Semua",
-    "allRuns": "Semua lembar uji",
+    "allRuns": "Semua UAT",
     "openOnly": "Belum selesai",
     "fileStatus": "Status file",
-    "cycle": "Fase"
+    "cycle": "Fase",
+    "phase": "Fase"
   },
   "codes": {
     "execution": {
@@ -196,7 +212,7 @@
     "role": {
       "ADMIN": "Admin",
       "QA_LEAD": "QA Lead (peran lama)",
-      "TESTER": "Penguji",
+      "TESTER": "Pengguna",
       "DEVELOPER": "Developer",
       "VIEWER": "Pemantau"
     },
@@ -208,7 +224,8 @@
     "defectSource": {
       "UAT": "UAT",
       "USER_REPORT": "Laporan pengguna",
-      "OTHER": "Lainnya"
+      "OTHER": "Lainnya",
+      "PUBLIC": "Laporan publik"
     },
     "cycleStatus": {
       "PLANNED": "Direncanakan",
@@ -255,7 +272,7 @@
     },
     "auditEntity": {
       "test_case": "Skenario uji",
-      "test_run": "Lembar uji",
+      "test_run": "UAT",
       "test_execution": "Hasil uji",
       "test_cycle": "Fase",
       "test_suite": "Kelompok skenario",
@@ -271,7 +288,7 @@
       "system_setting": "Pengaturan situs",
       "recovery_request": "Permintaan pemulihan akun",
       "reset_link": "Tautan ganti kata sandi",
-      "workshop_table": "Meja workshop"
+      "workshop_table": "Kelompok"
     },
     "auditAction": {
       "CREATE": "Dibuat",
@@ -292,7 +309,7 @@
       "ACTIVATE": "Akun diaktifkan"
     },
     "roleHelp": {
-      "TESTER": "Menjalankan skenario uji yang ditugaskan, mencatat hasil, dan melaporkan masalah.",
+      "TESTER": "Membuka UAT tempat ia ditambahkan, mencoba skenarionya, mencatat hasil, dan melaporkan masalah.",
       "DEVELOPER": "Melihat masalah yang dilaporkan, memperbaikinya, dan mengubah status perbaikan.",
       "VIEWER": "Melihat kemajuan, hasil, dan laporan tanpa mengubah apa pun. Cocok untuk pimpinan."
     },
@@ -304,7 +321,7 @@
     "systemRoleHelp": {
       "SUPER_ADMIN": "Kuasa penuh: mengundang pengguna, mengatur situs, dan semua yang bisa dilakukan Admin.",
       "ADMIN": "Membuat dan mengelola semua proyek: fase, fitur, skenario, meja, tampilan publik, dan tinjauan masalah.",
-      "NONE": "Hanya membuka proyek tempat ia menjadi anggota, sesuai tugasnya (Penguji, Developer, atau Pemantau)."
+      "NONE": "Pengguna: hanya membuka UAT tempat ia ditambahkan, mencoba skenarionya, dan melaporkan masalah."
     }
   },
   "fields": {
@@ -345,7 +362,7 @@
     "actualBehavior": "Perilaku aktual",
     "browser": "Browser",
     "fixedIn": "Diperbaiki di versi",
-    "run": "Lembar uji",
+    "run": "UAT",
     "name": "Nama",
     "attempt": "Percobaan #{{n}}",
     "result": "Hasil",
@@ -361,7 +378,7 @@
     "referenceDocument": "Dokumen acuan",
     "referenceVersion": "Versi dokumen",
     "accountStatus": "Status akun",
-    "runCode": "Kode lembar uji",
+    "runCode": "Kode UAT",
     "cycleCode": "Kode fase",
     "startsOn": "Tanggal mulai",
     "endsOn": "Tanggal selesai",
@@ -372,9 +389,11 @@
     "actualResult": "Hasil aktual",
     "executionKind": "Jenis percobaan",
     "tester": "Penguji",
-    "runCount": "Jumlah lembar uji",
+    "runCount": "Jumlah UAT",
     "severityHint": "Seberapa besar akibatnya bagi pengguna. Kritis: layanan tidak bisa dipakai sama sekali.",
-    "priorityHint": "Seberapa cepat perlu diperbaiki. Bisa berbeda dari tingkat dampak."
+    "priorityHint": "Seberapa cepat perlu diperbaiki. Bisa berbeda dari tingkat dampak.",
+    "phase": "Fase",
+    "feature": "Fitur"
   },
   "pages": {
     "login": {
@@ -394,12 +413,12 @@
       "subtitle": "Pilih proyek untuk mulai bekerja. Pengguna hanya melihat proyek tempat ia menjadi anggota.",
       "cases_one": "{{count}} skenario uji",
       "cases_other": "{{count}} skenario uji",
-      "runs_one": "{{count}} lembar uji",
-      "runs_other": "{{count}} lembar uji",
+      "runs_one": "{{count}} UAT",
+      "runs_other": "{{count}} UAT",
       "openBugs_one": "{{count}} masalah terbuka",
       "openBugs_other": "{{count}} masalah terbuka",
       "yourRole": "Tugas Anda: {{role}}",
-      "empty": "Anda belum menjadi anggota proyek mana pun. Minta Admin menambahkan Anda, atau buka Tugas saya bila Anda terdaftar di meja workshop.",
+      "empty": "Anda belum menjadi anggota proyek mana pun. Minta Admin menambahkan Anda, atau buka Tugas saya bila Anda terdaftar di kelompok.",
       "create": "Buat proyek",
       "emptyAdminTitle": "Belum ada proyek",
       "emptyAdmin": "Buat proyek pertama, lalu ikuti langkah \"Mulai di sini\" di beranda proyek.",
@@ -419,20 +438,20 @@
       "kpiOpenBugs": "Masalah terbuka",
       "kpiCriticalHigh": "Masalah kritis & tinggi",
       "statusHeading": "Status terbaru skenario uji",
-      "statusNote": "Dihitung dari percobaan terakhir setiap skenario uji dalam lembar uji. Uji ulang tidak dihitung ganda; Tidak bisa dicoba, Dilewati, dan Belum dicoba tidak dihitung sebagai Sesuai.",
+      "statusNote": "Dihitung dari percobaan terakhir setiap skenario uji dalam UAT. Uji ulang tidak dihitung ganda; Tidak bisa dicoba, Dilewati, dan Belum dicoba tidak dihitung sebagai Sesuai.",
       "statusBarLabel": "Distribusi status terbaru: {{summary}}",
       "severityHeading": "Masalah terbuka per tingkat dampak",
       "severityBarLabel": "{{severity}}: {{count}} masalah terbuka",
-      "runsHeading": "Progres lembar uji",
+      "runsHeading": "Progres UAT",
       "recentBugs": "Masalah terbaru",
-      "noRuns": "Belum ada lembar uji di proyek ini.",
+      "noRuns": "Belum ada UAT di proyek ini.",
       "noBugs": "Belum ada masalah di proyek ini.",
-      "noRunCases": "Belum ada skenario uji yang dijadwalkan dalam lembar uji.",
+      "noRunCases": "Belum ada skenario uji yang dijadwalkan dalam UAT.",
       "subtitle": "Ringkasan kemajuan pengujian dan masalah di proyek ini."
     },
     "cases": {
       "title": "Skenario uji",
-      "subtitle": "Daftar langkah yang harus dicoba beserta hasil yang diharapkan. Hasil percobaan dicatat di Lembar uji atau di meja workshop.",
+      "subtitle": "Daftar langkah yang harus dicoba beserta hasil yang diharapkan. Hasil percobaan dicatat di UAT.",
       "searchPlaceholder": "Cari kode atau judul…",
       "empty": "Belum ada skenario uji di proyek ini.",
       "emptyFiltered": "Tidak ada skenario uji yang cocok dengan filter.",
@@ -441,13 +460,13 @@
     "caseDetail": {
       "tabOverview": "Ringkasan",
       "tabRevisions": "Revisi",
-      "tabRuns": "Dipakai di lembar uji",
+      "tabRuns": "Dipakai di UAT",
       "revision": "Revisi {{n}}",
       "noRevisions": "Belum ada revisi.",
-      "notUsed": "Skenario uji ini belum dipakai di lembar uji mana pun.",
+      "notUsed": "Skenario uji ini belum dipakai di UAT mana pun.",
       "stepsPreserved": "Teks langkah ditampilkan apa adanya dari sumber.",
       "archiveTitle": "Arsipkan {{code}}?",
-      "archiveBody": "Skenario uji disembunyikan dari daftar aktif. Riwayat lembar uji dan revisinya tetap tersimpan, dan bisa dipulihkan.",
+      "archiveBody": "Skenario uji disembunyikan dari daftar aktif. Riwayat UAT dan revisinya tetap tersimpan, dan bisa dipulihkan.",
       "archived": "{{code}} diarsipkan.",
       "restored": "{{code}} dipulihkan sebagai Draf.",
       "cloned": "Duplikat {{code}} dibuat sebagai Draf.",
@@ -455,47 +474,47 @@
       "files": "Dokumen acuan"
     },
     "runs": {
-      "title": "Lembar uji",
-      "subtitle": "Lembar uji berisi skenario yang ditugaskan kepada penguji perorangan. Untuk pengujian berkelompok di meja, gunakan Workshop & meja.",
-      "empty": "Belum ada lembar uji di proyek ini.",
-      "newRun": "Buat lembar uji"
+      "title": "UAT",
+      "subtitle": "UAT berisi skenario yang ditugaskan kepada penguji perorangan. Untuk pengujian berkelompok di meja, gunakan UAT.",
+      "empty": "Belum ada UAT di proyek ini.",
+      "newRun": "Buat UAT"
     },
     "runDetail": {
-      "casesHeading": "Skenario uji dalam lembar uji",
-      "snapshotNote": "Judul dan versi diambil dari salinan saat skenario uji masuk lembar uji, sehingga perubahan skenario uji tidak mengubah hasil lama.",
+      "casesHeading": "Skenario uji dalam UAT",
+      "snapshotNote": "Judul dan versi diambil dari salinan saat skenario uji masuk UAT, sehingga perubahan skenario uji tidak mengubah hasil lama.",
       "emptyFiltered": "Tidak ada skenario uji dengan status ini.",
       "unassigned": "Belum ditugaskan",
-      "empty": "Lembar uji ini belum berisi skenario uji.",
-      "start": "Mulai lembar uji",
-      "complete": "Selesaikan lembar uji",
+      "empty": "UAT ini belum berisi skenario uji.",
+      "start": "Mulai UAT",
+      "complete": "Selesaikan UAT",
       "reopen": "Buka lagi",
-      "lock": "Kunci lembar uji",
+      "lock": "Kunci UAT",
       "confirm": {
-        "ACTIVE": "Mulai lembar uji {{code}}?",
-        "COMPLETED": "Selesaikan lembar uji {{code}}?",
-        "REOPEN": "Buka lagi lembar uji {{code}}?",
-        "LOCKED": "Kunci lembar uji {{code}}?"
+        "ACTIVE": "Mulai UAT {{code}}?",
+        "COMPLETED": "Selesaikan UAT {{code}}?",
+        "REOPEN": "Buka lagi UAT {{code}}?",
+        "LOCKED": "Kunci UAT {{code}}?"
       },
       "confirmBody": {
         "ACTIVE": "Setelah dimulai, penguji dapat mencatat hasil uji. Skenario uji masih bisa ditambahkan.",
-        "COMPLETED": "Hasil uji tidak bisa dicatat lagi sampai lembar uji dibuka kembali.",
-        "REOPEN": "Lembar uji kembali berjalan sehingga penguji dapat melakukan uji ulang.",
-        "LOCKED": "Lembar uji yang dikunci bersifat final: hasil, daftar skenario uji, dan penugasan tidak dapat diubah lagi. Tindakan ini tidak bisa dibatalkan."
+        "COMPLETED": "Hasil uji tidak bisa dicatat lagi sampai UAT dibuka kembali.",
+        "REOPEN": "UAT kembali berjalan sehingga penguji dapat melakukan uji ulang.",
+        "LOCKED": "UAT yang dikunci bersifat final: hasil, daftar skenario uji, dan penugasan tidak dapat diubah lagi. Tindakan ini tidak bisa dibatalkan."
       },
-      "statusChanged": "Status lembar uji sekarang: {{status}}.",
+      "statusChanged": "Status UAT sekarang: {{status}}.",
       "notice": {
-        "PLANNED": "Lembar uji belum dimulai. Tambahkan skenario uji dan tugaskan penguji, lalu mulai lembar uji.",
-        "COMPLETED": "Lembar uji sudah selesai. Buka lagi bila perlu uji ulang, atau kunci bila hasil sudah disetujui.",
-        "LOCKED": "Lembar uji dikunci dan bersifat final."
+        "PLANNED": "UAT belum dimulai. Tambahkan skenario uji dan tugaskan penguji, lalu mulai UAT.",
+        "COMPLETED": "UAT sudah selesai. Buka lagi bila perlu uji ulang, atau kunci bila hasil sudah disetujui.",
+        "LOCKED": "UAT dikunci dan bersifat final."
       },
       "addCases": "Tambah skenario uji",
-      "addHeading": "Tambah skenario uji ke lembar uji",
+      "addHeading": "Tambah skenario uji ke UAT",
       "addHint": "Hanya skenario uji berstatus Siap diuji yang bisa dimasukkan. Definisinya dibekukan sebagai salinan.",
       "addSearch": "Cari kode atau judul",
       "addAssignee": "Tugaskan ke",
       "addSubmit": "Tambahkan ({{count}})",
       "addEmpty": "Tidak ada skenario uji Siap diuji yang cocok.",
-      "inRun": "Sudah di lembar uji",
+      "inRun": "Sudah di UAT",
       "added": "{{added}} skenario uji ditambahkan.",
       "addedSkipped": "{{added}} ditambahkan, {{skipped}} dilewati (sudah ada atau belum Siap diuji).",
       "selectAll": "Pilih semua skenario uji",
@@ -504,11 +523,11 @@
       "assignApply": "Terapkan",
       "assigned": "{{count}} skenario uji ditugaskan ke {{name}}.",
       "unassignedDone": "Penugasan {{count}} skenario uji dilepas.",
-      "removeSelected": "Keluarkan dari lembar uji",
-      "removeTitle": "Keluarkan {{count}} skenario uji dari lembar uji?",
+      "removeSelected": "Keluarkan dari UAT",
+      "removeTitle": "Keluarkan {{count}} skenario uji dari UAT?",
       "removeBody": "Skenario uji kembali bisa dimasukkan nanti. Riwayat skenario uji tidak terhapus.",
       "removeBlocked": "Skenario uji yang sudah punya hasil uji tidak bisa dikeluarkan.",
-      "removed": "{{count}} skenario uji dikeluarkan dari lembar uji.",
+      "removed": "{{count}} skenario uji dikeluarkan dari UAT.",
       "assigneeFilter": "Penugasan",
       "myTasks": "Tugas saya",
       "continueTesting": "Lanjutkan pengujian"
@@ -581,19 +600,20 @@
       "newTitle": "Buat skenario uji",
       "editTitle": "Ubah {{code}}",
       "codeHint": "Kosongkan agar dibuat otomatis, mis. UAT-AUTH-001.",
-      "statusHint": "Draf belum dipakai di lembar uji; Siap boleh dimasukkan ke lembar uji.",
+      "statusHint": "Draf belum dipakai di UAT; Siap boleh dimasukkan ke UAT.",
       "stepsHint": "Satu langkah per baris, diawali nomor (1., 2., ...). Teks disimpan apa adanya.",
       "changeReason": "Alasan perubahan",
       "changeReasonHint": "Tercatat di riwayat revisi.",
-      "versionNote": "Menyimpan membuat versi {{next}}. Lembar uji yang sudah berjalan tetap memakai versi lamanya.",
+      "versionNote": "Menyimpan membuat versi {{next}}. UAT yang sudah berjalan tetap memakai versi lamanya.",
       "noModule": "Tanpa fitur",
       "noSuite": "Tanpa kelompok skenario",
       "created": "Skenario uji {{code}} dibuat.",
-      "saved": "Perubahan disimpan (versi {{version}})."
+      "saved": "Perubahan disimpan (versi {{version}}).",
+      "phaseHint": "Folder Fase tempat skenario ini disimpan. UAT dari Fase itu memakainya otomatis begitu skenario Siap."
     },
     "members": {
-      "title": "Anggota & tugas",
-      "subtitle": "Siapa saja yang ikut di proyek ini dan apa tugasnya.",
+      "title": "Anggota proyek",
+      "subtitle": "Pengguna yang bisa membuka proyek ini. Mereka melihat UAT tempat mereka ditambahkan.",
       "addTitle": "Tambah anggota",
       "emailHint": "Bila orang ini belum punya akun, Anda akan diminta mengisi namanya untuk dibuatkan akun.",
       "added": "{{name}} ditambahkan sebagai {{role}}.",
@@ -603,7 +623,7 @@
       "removed": "{{name}} dikeluarkan dari proyek.",
       "you": "Anda",
       "inactive": "Nonaktif",
-      "readOnly": "Hanya Admin yang bisa mengubah anggota dan tugasnya.",
+      "readOnly": "Hanya Admin yang bisa mengubah anggota.",
       "roleLabel": "Tugas {{name}}",
       "nameLabel": "Nama lengkap",
       "nameHint": "Belum ada akun dengan email ini. Isi namanya, lalu tekan Tambah untuk membuatkan akun. Orangnya mengaktifkan akun dengan tautan aktivasi.",
@@ -612,7 +632,7 @@
       "changeTitle": "Ubah tugas {{name}}?",
       "changeBody": "Tugas baru: {{role}}. {{help}}",
       "change": "Ubah tugas",
-      "tasksTitle": "Tiga tugas yang bisa diberikan",
+      "tasksTitle": "Jenis anggota",
       "adminsNote": "Admin dan Super Admin bisa mengelola semua proyek, jadi tidak perlu ditambahkan di sini."
     },
     "projectSettings": {
@@ -686,39 +706,39 @@
       "roleChange": "Ubah peran"
     },
     "cycles": {
-      "title": "Fase uji",
-      "subtitle": "Fase adalah satu putaran pengujian dalam periode tertentu (mis. UAT Tahap 1). Lembar uji dan meja workshop selalu berada di dalam sebuah fase.",
-      "empty": "Belum ada fase uji di proyek ini.",
+      "title": "Fase",
+      "subtitle": "Fase adalah satu putaran pengujian dalam periode tertentu (mis. UAT Tahap 1). UAT dan kelompok selalu berada di dalam sebuah fase.",
+      "empty": "Belum ada Fase di proyek ini.",
       "newHeading": "Fase baru",
       "codeHint": "Huruf besar, angka, dan tanda hubung. Contoh: FASE-1 atau UAT-TAHAP-1",
       "created": "Fase {{code}} dibuat.",
       "updated": "Fase {{code}} diperbarui.",
       "statusLabel": "Status fase {{code}}",
-      "runs": "{{count}} lembar uji",
+      "runs": "{{count}} UAT",
       "dateOrder": "Tanggal selesai tidak boleh sebelum tanggal mulai.",
       "edit": "Ubah",
       "editTitle": "Ubah fase {{code}}",
-      "editCodeHint": "Huruf, angka, titik, strip, atau garis bawah (mis. FASE-1). Lembar uji dan masalah yang sudah ada tetap terhubung ke fase ini.",
+      "editCodeHint": "Huruf, angka, titik, strip, atau garis bawah (mis. FASE-1). UAT dan masalah yang sudah ada tetap terhubung ke fase ini.",
       "statusConfirmTitle": "Ubah status {{code}} menjadi {{status}}?",
-      "statusConfirmBody": "Status fase menentukan apakah lembar uji dan meja di dalamnya sedang dikerjakan. Status bisa diubah lagi kapan saja.",
+      "statusConfirmBody": "Status fase menentukan apakah UAT dan meja di dalamnya sedang dikerjakan. Status bisa diubah lagi kapan saja.",
       "statusConfirm": "Ubah status"
     },
     "runForm": {
-      "newTitle": "Buat lembar uji",
-      "editTitle": "Ubah lembar uji {{code}}",
+      "newTitle": "Buat UAT",
+      "editTitle": "Ubah UAT {{code}}",
       "codeHint": "Kosongkan agar dibuat otomatis (RUN-YYYYMMDD-N).",
       "noCycle": "Tanpa fase",
       "urlHint": "Alamat situs yang diuji, diawali https://",
       "invalidUrl": "URL harus diawali http:// atau https://",
-      "created": "Lembar uji {{code}} dibuat. Tambahkan skenario uji lalu mulai lembar uji.",
-      "saved": "Perubahan lembar uji disimpan."
+      "created": "UAT {{code}} dibuat. Tambahkan skenario uji lalu mulai UAT.",
+      "saved": "Perubahan UAT disimpan."
     },
     "execution": {
       "scenarioTab": "Skenario",
       "resultTab": "Catat hasil",
       "historyTab": "Riwayat",
       "snapshotVersion": "Salinan versi {{version}}",
-      "newerVersion": "Skenario uji sudah diperbarui ke versi {{current}} setelah masuk lembar uji. Halaman ini tetap memakai salinan versi {{version}} agar hasil konsisten.",
+      "newerVersion": "Skenario uji sudah diperbarui ke versi {{current}} setelah masuk UAT. Halaman ini tetap memakai salinan versi {{version}} agar hasil konsisten.",
       "noSteps": "Langkah tidak dipecah per nomor. Ikuti teks langkah di atas.",
       "stepLabel": "Langkah {{n}}",
       "stepResult": "Hasil langkah {{n}}",
@@ -740,9 +760,9 @@
       "prev": "Skenario uji sebelumnya",
       "next": "Skenario uji berikutnya",
       "locked": {
-        "PLANNED": "Lembar uji belum dimulai. Hasil uji bisa dicatat setelah Admin memulai lembar uji.",
-        "COMPLETED": "Lembar uji sudah selesai. Minta Admin membuka lagi lembar uji untuk uji ulang.",
-        "LOCKED": "Lembar uji dikunci. Hasil uji tidak dapat diubah."
+        "PLANNED": "UAT belum dimulai. Hasil uji bisa dicatat setelah Admin memulai UAT.",
+        "COMPLETED": "UAT sudah selesai. Minta Admin membuka lagi UAT untuk uji ulang.",
+        "LOCKED": "UAT dikunci. Hasil uji tidak dapat diubah."
       },
       "notAssigned": "Skenario uji ini ditugaskan ke {{name}}. Anda hanya dapat mencatat hasil untuk skenario uji yang ditugaskan kepada Anda.",
       "notAssignedNobody": "Skenario uji ini belum ditugaskan. Minta Admin menugaskannya kepada Anda.",
@@ -782,7 +802,7 @@
       "attemptFiles": "Sertakan bukti dari percobaan #{{n}}",
       "newFiles": "Bukti tambahan",
       "noCycle": "Tanpa fase",
-      "cycleFromRun": "Kosongkan untuk mengikuti fase lembar uji tempat masalah ini ditemukan."
+      "cycleFromRun": "Kosongkan untuk mengikuti fase UAT tempat masalah ini ditemukan."
     },
     "evidence": {
       "title": "Foto & bukti",
@@ -870,8 +890,8 @@
       },
       "caseStatus": "Status skenario uji baru",
       "results": "Pindahkan juga hasil UAT lama",
-      "resultsHint": "Status, tanggal, nama penguji (sebagai teks, tanpa membuat akun) dan tangkapan layar tertanam masuk ke lembar uji baru. Skenario uji menjadi Siap diuji.",
-      "runName": "Nama lembar uji",
+      "resultsHint": "Status, tanggal, nama penguji (sebagai teks, tanpa membuat akun) dan tangkapan layar tertanam masuk ke UAT baru. Skenario uji menjadi Siap diuji.",
+      "runName": "Nama UAT",
       "runEnvironment": "Lingkungan",
       "runBuild": "Build/versi",
       "check": "Periksa",
@@ -923,16 +943,16 @@
         "FAILED": "Impor gagal; tidak ada data yang berubah."
       },
       "summary": "{{created}} dibuat · {{updated}} diperbarui · {{unchanged}} tidak berubah · {{skipped}} dilewati",
-      "summaryRun": "Lembar uji {{code}}: {{executions}} hasil uji dan {{images}} tangkapan layar dipindahkan",
+      "summaryRun": "UAT {{code}}: {{executions}} hasil uji dan {{images}} tangkapan layar dipindahkan",
       "imagesNotUsed": "{{count}} gambar tidak dipakai",
-      "openRun": "Buka lembar uji",
+      "openRun": "Buka UAT",
       "openCases": "Lihat skenario uji",
       "failure": {
         "COMMIT_FAILED": "Terjadi kesalahan saat menerapkan; semua perubahan dibatalkan.",
         "INTERRUPTED": "Server berhenti saat menerapkan; semua perubahan dibatalkan."
       },
       "noDataRows": "Tidak ada baris data di bawah header. Pastikan nomor baris header dan sheet yang dipilih sudah benar.",
-      "applyRun": "Hasil uji lama masuk ke lembar uji baru \"{{name}}\" berstatus Selesai.",
+      "applyRun": "Hasil uji lama masuk ke UAT baru \"{{name}}\" berstatus Selesai.",
       "summaryInvalid": "{{count}} tidak valid",
       "codeConflict": "Bila kode sudah dipakai skenario uji lain",
       "codeConflictHint": "Mis. sheet tersembunyi \"... 3\" memakai UAT-LPL-001 untuk isi yang berbeda. Kode baru = nomor berikutnya di fitur itu; kode asal dicatat di riwayat.",
@@ -970,11 +990,11 @@
         "rangeInvalid": "Tanggal akhir lebih awal dari tanggal awal; filter tanggal akhir diabaikan."
       },
       "howTitle": "Cara menghitung",
-      "how1": "Satu skenario uji dalam lembar uji dihitung sekali, memakai percobaan terakhirnya. Uji ulang tidak dihitung dua kali.",
-      "how2": "Persentase sesuai = jumlah Sesuai dibagi semua skenario uji dalam lembar uji. Belum dicoba, Tidak bisa dicoba, dan Dilewati tidak dihitung sebagai Sesuai.",
-      "how3": "Periode memakai hari kalender WIB: lembar uji yang masa berjalannya beririsan dengan periode, percobaan yang diuji, dan masalah yang dilaporkan pada periode itu.",
+      "how1": "Satu skenario uji dalam UAT dihitung sekali, memakai percobaan terakhirnya. Uji ulang tidak dihitung dua kali.",
+      "how2": "Persentase sesuai = jumlah Sesuai dibagi semua skenario uji dalam UAT. Belum dicoba, Tidak bisa dicoba, dan Dilewati tidak dihitung sebagai Sesuai.",
+      "how3": "Periode memakai hari kalender WIB: UAT yang masa berjalannya beririsan dengan periode, percobaan yang diuji, dan masalah yang dilaporkan pada periode itu.",
       "kpi": {
-        "runCases": "Skenario uji dalam lembar uji",
+        "runCases": "Skenario uji dalam UAT",
         "executed": "Sudah dicoba",
         "passRate": "Persentase sesuai",
         "attempts": "Percobaan",
@@ -984,7 +1004,7 @@
       },
       "statusHeading": "Status terbaru",
       "byModule": "Per fitur",
-      "byRun": "Per lembar uji",
+      "byRun": "Per UAT",
       "byTester": "Per penguji",
       "byTesterNote": "Semua percobaan yang dicatat penguji, termasuk uji ulang.",
       "defectsHeading": "Masalah terbuka per tingkat keparahan",
@@ -994,7 +1014,7 @@
         "runCases": "Skenario uji",
         "status": "Status",
         "passRate": "% sesuai",
-        "run": "Lembar uji",
+        "run": "UAT",
         "period": "Periode",
         "tester": "Penguji",
         "attempts": "Percobaan",
@@ -1011,7 +1031,7 @@
         "datasets": {
           "results": {
             "title": "Hasil terbaru per skenario uji",
-            "hint": "Satu baris per skenario uji dalam lembar uji: status terakhir, penguji, dan masalah terkait."
+            "hint": "Satu baris per skenario uji dalam UAT: status terakhir, penguji, dan masalah terkait."
           },
           "attempts": {
             "title": "Semua percobaan",
@@ -1019,7 +1039,7 @@
           },
           "defects": {
             "title": "Daftar masalah",
-            "hint": "Masalah yang dilaporkan pada filter ini, dengan skenario uji dan lembar uji terkait."
+            "hint": "Masalah yang dilaporkan pada filter ini, dengan skenario uji dan UAT terkait."
           },
           "cases": {
             "title": "Pustaka skenario uji",
@@ -1039,7 +1059,7 @@
         "download": "Unduh",
         "downloaded": "Berkas {{name}} diunduh.",
         "tooLarge": "Data terlalu banyak (lebih dari 50.000 baris). Persempit filternya.",
-        "leadsOnly": "Ekspor data hanya bisa dilakukan oleh Admin dan Pemantau."
+        "leadsOnly": "Ekspor data hanya bisa dilakukan oleh Admin."
       },
       "activity": {
         "heading": "Log aktivitas",
@@ -1142,7 +1162,7 @@
     "permanentSuperAdmin": "Super Admin utama tidak bisa dicabut atau dinonaktifkan.",
     "server": {
       "resetLinkActive": "Akun ini sudah punya tautan aktif. Cabut dulu tautan lama, atau pilih \"Cabut & buat tautan baru\".",
-      "runLocked": "Lembar uji ini sudah dikunci, jadi tidak bisa diubah lagi.",
+      "runLocked": "UAT ini sudah dikunci, jadi tidak bisa diubah lagi.",
       "fileTooLarge": "Ukuran file terlalu besar.",
       "chooseFile": "Pilih file terlebih dahulu.",
       "codeUsed": "Kode ini sudah dipakai. Pakai kode lain.",
@@ -1154,13 +1174,13 @@
       "tooManyRows": "Datanya terlalu banyak. Persempit saringan lalu coba lagi.",
       "alreadyMember": "Orang ini sudah menjadi anggota proyek.",
       "assignedToOther": "Skenario ini ditugaskan kepada orang lain.",
-      "tableNoRun": "Meja ini belum punya lembar uji. Hubungi panitia.",
+      "tableNoRun": "Kelompok ini belum masuk UAT. Hubungi panitia.",
       "tableHasAnswers": "Meja ini sudah punya jawaban, jadi tidak bisa dihapus. Nonaktifkan kartunya saja.",
       "projectArchived": "Proyek ini diarsipkan sehingga hanya bisa dibaca.",
       "importNotReady": "Impor ini belum siap diterapkan. Periksa dulu baris yang bermasalah.",
       "importLocked": "Impor ini sudah diterapkan dan disimpan sebagai riwayat, jadi tidak bisa diubah.",
       "fileUnavailable": "File ini sudah tidak tersedia.",
-      "runNotActive": "Hasil hanya bisa dicatat saat lembar uji sedang berjalan.",
+      "runNotActive": "Hasil hanya bisa dicatat saat UAT sedang berjalan.",
       "caseArchived": "Skenario ini diarsipkan. Pulihkan dulu sebelum mengubahnya.",
       "fileNotYours": "Hanya pengunggah atau Admin yang bisa menghapus file ini.",
       "evidenceNotYours": "Anda tidak bisa menambahkan bukti di sini.",
@@ -1479,14 +1499,16 @@
       "draft": "Jadikan Draf",
       "set_module": "Pindahkan ke fitur",
       "set_priority": "Ubah prioritas",
-      "add_to_run": "Tambahkan ke lembar uji",
+      "add_to_run": "Tambahkan ke UAT",
       "archive": "Arsipkan",
-      "merge": "Gabungkan (duplikat)"
+      "merge": "Gabungkan (duplikat)",
+      "copy_to_phase": "Salin ke Fase…",
+      "move_to_phase": "Pindahkan ke Fase…"
     },
-    "noOpenRun": "Belum ada lembar uji yang direncanakan atau aktif",
+    "noOpenRun": "Belum ada UAT yang direncanakan atau aktif",
     "archiveTitle_one": "Arsipkan {{count}} skenario uji?",
     "archiveTitle_other": "Arsipkan {{count}} skenario uji?",
-    "archiveBody": "Skenario uji yang diarsipkan tidak bisa dipakai di lembar uji baru. Hasil uji lama tetap tersimpan, dan skenario uji bisa diaktifkan lagi kapan saja.",
+    "archiveBody": "Skenario uji yang diarsipkan tidak bisa dipakai di UAT baru. Hasil uji lama tetap tersimpan, dan skenario uji bisa diaktifkan lagi kapan saja.",
     "noCode": "Satu data yang dipilih"
   },
   "merge": {
@@ -1500,7 +1522,7 @@
     "submit_other": "Gabungkan {{count}} ke {{code}}",
     "done": "{{codes}} digabung ke {{code}}.",
     "mergedInto": "Skenario uji ini sudah digabung ke",
-    "mergedIntoHint": "Gunakan skenario uji itu untuk lembar uji baru. Bila digabung karena keliru, aktifkan lagi skenario uji ini.",
+    "mergedIntoHint": "Gunakan skenario uji itu untuk UAT baru. Bila digabung karena keliru, aktifkan lagi skenario uji ini.",
     "mergedFrom_one": "Gabungan dari:",
     "mergedFrom_other": "Gabungan dari:"
   },
@@ -1585,14 +1607,10 @@
     "tableSignIn": "Masuk dengan Kartu Meja",
     "footer": "Pusat Pasar Kerja · Kementerian Ketenagakerjaan Republik Indonesia",
     "period": "{{from}} - {{to}}",
-    "openCycle": "Lihat fase ini",
     "eyebrow": "Uji Penerimaan Pengguna (UAT) bersama",
     "title": "Bersama memastikan layanan Pasar Kerja siap dipakai masyarakat",
-    "subtitle": "Di sini terlihat fase uji yang sedang berjalan, fitur yang sedang dicoba, dan masalah yang ditemukan. Peserta workshop masuk dengan kartu meja, tanpa email dan kata sandi.",
+    "subtitle": "Di sini terlihat UAT yang sedang berjalan, fitur yang sedang dicoba, dan masalah yang ditemukan. Peserta masuk dengan kartu meja kelompoknya, tanpa email dan kata sandi.",
     "howTo": "Cara ikut menguji",
-    "cyclesTitle": "Fase yang sedang dibuka",
-    "cyclesSubtitle": "Pilih fase untuk melihat fitur yang perlu dikerjakan dan daftar masalahnya.",
-    "noCycles": "Belum ada fase yang dibuka untuk umum. Silakan kembali lagi nanti.",
     "stepsTitle": "Cara ikut menguji di workshop",
     "stepNumber": "Langkah {{n}}",
     "steps": {
@@ -1638,13 +1656,13 @@
     "bugConfirmations_one": "{{count}} juga mengalami",
     "bugConfirmations_other": "{{count}} juga mengalami",
     "photoOf": "Foto: {{name}}",
-    "notPublic": "Fase ini tidak dibuka untuk umum, atau sudah ditutup.",
-    "back": "Kembali ke daftar fase",
+    "notPublic": "UAT ini tidak dibuka untuk umum, atau sudah ditutup.",
+    "back": "Kembali ke halaman depan",
     "featuresTab": "Fitur yang dikerjakan",
     "bugsTab": "Daftar masalah",
     "noFeatures": "Belum ada fitur yang dibuka di fase ini.",
     "joinAsTable": "Saya peserta: masuk dengan kartu meja",
-    "nothingShared": "Panitia belum membagikan rincian fase ini untuk umum.",
+    "nothingShared": "Panitia belum membagikan rincian ini untuk umum.",
     "tabsLabel": "Isi fase",
     "backToApp": "Buka TestBoard",
     "previewTitle": "Pratinjau.",
@@ -1655,9 +1673,8 @@
     "footerNav": "Tautan di kaki halaman",
     "footerAbout": "{{name}} adalah tempat Pusat Pasar Kerja menguji layanan bersama para pengguna sebelum layanan dipakai masyarakat.",
     "totals": {
-      "title": "Ringkasan semua fase yang dibuka",
-      "subtitle": "Angka gabungan dari fase yang dibuka untuk umum. Diperbarui otomatis setiap menit.",
-      "cycles": "Fase dibuka",
+      "title": "Ringkasan semua UAT yang dibuka",
+      "subtitle": "Angka gabungan dari UAT dan Bug Reporting yang dibuka untuk umum. Diperbarui otomatis setiap menit.",
       "projects_one": "dari {{count}} proyek",
       "projects_other": "dari {{count}} proyek",
       "tried": "Skenario sudah dicoba",
@@ -1667,7 +1684,40 @@
       "bugs": "Masalah dilaporkan",
       "bugsHint_one": "{{open}} masih dikerjakan",
       "bugsHint_other": "{{open}} masih dikerjakan",
-      "partial": "Sebagian fase tidak menampilkan kemajuan atau daftar masalahnya, jadi tidak ikut dihitung."
+      "partial": "Sebagian UAT tidak menampilkan kemajuannya, jadi tidak ikut dihitung.",
+      "uats": "UAT dibuka"
+    },
+    "openUat": "Lihat UAT ini",
+    "openBugs": "Lihat daftar masalah",
+    "uatsTitle": "UAT yang sedang dibuka",
+    "uatsSubtitle": "Pengujian aplikasi bersama pengguna. Data yang tampil dipilih oleh Admin.",
+    "noUats": "Belum ada UAT yang dibuka untuk umum. Silakan kembali lagi nanti.",
+    "bugReporting": "Bug Reporting",
+    "bugReportingTitle": "Laporan masalah",
+    "bugReportingSubtitle": "Masalah yang ditemukan saat UAT dan setelah aplikasi berjalan. Anda juga bisa melapor.",
+    "bugCounts_one": "{{total}} masalah, {{open}} belum selesai",
+    "bugCounts_other": "{{total}} masalah, {{open}} belum selesai",
+    "bugsNotPublic": "Daftar masalah proyek ini tidak dibuka untuk umum.",
+    "report": {
+      "open": "Laporkan masalah",
+      "title2": "Laporkan masalah",
+      "intro": "Ceritakan apa yang terjadi. Tim akan meninjau setiap laporan sebelum tampil di daftar.",
+      "title": "Judul singkat",
+      "titlePlaceholder": "mis. Tombol daftar tidak bisa diklik",
+      "titleHint": "Minimal 5 huruf.",
+      "description": "Apa yang terjadi?",
+      "descriptionHint": "Minimal 10 huruf. Sebutkan langkahnya dan apa yang Anda lihat.",
+      "feature": "Halaman atau fitur (jika tahu)",
+      "featurePlaceholder": "mis. Halaman daftar akun",
+      "name": "Nama Anda",
+      "contact": "E-mail atau nomor HP",
+      "contactHint": "Agar tim bisa bertanya. Tidak ditampilkan.",
+      "privacy": "Nama dan kontak hanya dilihat Admin dan tidak pernah tampil di halaman publik.",
+      "send": "Kirim laporan",
+      "thanks": "Terima kasih, laporan diterima.",
+      "thanksBody": "Tim akan meninjaunya. Setelah ditinjau, laporan bisa muncul di daftar masalah.",
+      "another": "Kirim laporan lain",
+      "tooMany": "Terlalu banyak laporan dari perangkat ini. Coba lagi beberapa menit lagi."
     }
   },
   "easy": {
@@ -1707,7 +1757,7 @@
         "OTHER": "Tidak bisa masuk sekarang. Periksa internet lalu coba lagi."
       },
       "submit": "Masuk",
-      "noCard": "Belum punya kartu meja? Kartu dibagikan panitia di setiap meja workshop."
+      "noCard": "Belum punya kartu meja? Kartu dibagikan panitia di setiap kelompok."
     },
     "members": {
       "title": "Nama anggota meja",
@@ -1727,8 +1777,8 @@
       "welcome": "Selamat datang, {{name}}",
       "intro": "Anda menguji {{cycle}} - {{project}}. Kerjakan fitur di bawah satu per satu.",
       "validUntil": "Kartu meja berlaku sampai {{date}}",
-      "runClosed": "Lembar uji belum dibuka atau sudah ditutup panitia. Tunggu aba-aba panitia, lalu muat ulang halaman ini.",
-      "noRun": "Meja ini belum mendapat lembar uji. Hubungi panitia.",
+      "runClosed": "UAT belum dibuka atau sudah ditutup panitia. Tunggu aba-aba panitia, lalu muat ulang halaman ini.",
+      "noRun": "Kelompok ini belum masuk UAT. Hubungi panitia.",
       "featuresTitle": "Fitur yang dikerjakan meja ini",
       "featuresHint": "Tekan tombol pada fitur untuk mulai. Kemajuan tersimpan otomatis.",
       "noFeatures": "Panitia belum menentukan fitur untuk meja ini.",
@@ -1844,8 +1894,8 @@
       "pending_one": "{{count}} jawaban belum terkirim. Akan dikirim otomatis saat internet tersambung.",
       "pending_other": "{{count}} jawaban belum terkirim. Akan dikirim otomatis saat internet tersambung.",
       "sendNow": "Kirim sekarang",
-      "rejected_one": "{{count}} jawaban tidak bisa dikirim (lembar uji mungkin sudah ditutup). Sampaikan ke panitia:",
-      "rejected_other": "{{count}} jawaban tidak bisa dikirim (lembar uji mungkin sudah ditutup). Sampaikan ke panitia:",
+      "rejected_one": "{{count}} jawaban tidak bisa dikirim (UAT mungkin sudah ditutup). Sampaikan ke panitia:",
+      "rejected_other": "{{count}} jawaban tidak bisa dikirim (UAT mungkin sudah ditutup). Sampaikan ke panitia:",
       "dismiss": "Tutup"
     },
     "footer": "TestBoard PASKER ID · Pusat Pasar Kerja, Kementerian Ketenagakerjaan",
@@ -1869,13 +1919,13 @@
     }
   },
   "workshop": {
-    "title": "Mode Workshop: {{cycle}}",
+    "title": "UAT: {{cycle}}",
     "subtitle": "Atur meja peserta, pantau kemajuan, rapikan masalah yang masuk, dan tentukan apa yang boleh dilihat umum.",
     "publicOn": "Terbuka untuk umum",
     "publicOff": "Tidak publik",
     "bigScreen": "Layar besar",
     "publicPage": "Halaman publik",
-    "tabsLabel": "Bagian Mode Workshop",
+    "tabsLabel": "Bagian UAT",
     "tabs": {
       "board": "Papan",
       "tables": "Meja",
@@ -1884,16 +1934,16 @@
       "features": "Fitur"
     },
     "notFound": "Fase tidak ditemukan.",
-    "indexSubtitle": "Pilih fase yang dikerjakan bersama peserta di meja-meja workshop.",
-    "noCycles": "Belum ada fase. Buat fase dulu di menu Fase uji.",
-    "makeCycle": "Buka Fase uji",
-    "open": "Buka Mode Workshop",
+    "indexSubtitle": "Pilih fase yang dikerjakan bersama peserta di kelompok.",
+    "noCycles": "Belum ada fase. Buat fase dulu di menu Fase.",
+    "makeCycle": "Buka Fase",
+    "open": "Buka UAT",
     "setup": {
       "title": "Persiapan workshop",
       "intro": "Langkah yang belum selesai. Setelah semuanya tercentang, kotak ini hilang.",
       "cases": "Skenario uji sudah ada (Skenario uji atau Impor Data)",
-      "run": "Lembar uji untuk fase ini sudah dibuat",
-      "active": "Lembar uji sudah dimulai (status Berjalan)",
+      "run": "UAT untuk fase ini sudah dibuat",
+      "active": "UAT sudah dimulai (status Berjalan)",
       "tables": "Meja sudah dibuat dan masing-masing punya fitur",
       "public": "Tampilan publik sudah diatur",
       "go": "Kerjakan"
@@ -1918,7 +1968,7 @@
       "recentBug": "Melaporkan masalah: {{title}}",
       "recentConfirm": "Juga mengalami: {{title}}",
       "features": "Kemajuan per fitur",
-      "noFeatures": "Belum ada fitur. Tambahkan skenario ke lembar uji fase ini."
+      "noFeatures": "Belum ada fitur. Pilih fitur yang diuji di tab Fitur."
     },
     "tables": {
       "intro": "Setiap meja mendapat kartu berisi kode QR dan kode 6 angka. Peserta masuk tanpa email dan kata sandi, hanya selama masa berlaku kartu.",
@@ -1930,14 +1980,14 @@
       "createHint": "Kode kartu dibuat otomatis. Nama anggota boleh diisi sekarang atau nanti oleh meja sendiri.",
       "name": "Nama meja",
       "namePlaceholder": "mis. Meja 1",
-      "run": "Lembar uji",
-      "noRuns": "Fase ini belum punya lembar uji. Buat dulu di menu Lembar uji.",
-      "runHint": "Skenario yang dikerjakan meja diambil dari lembar uji ini.",
+      "run": "UAT",
+      "noRuns": "Fase ini belum punya UAT. Buat dulu di menu UAT.",
+      "runHint": "Skenario yang dikerjakan meja diambil dari UAT ini.",
       "noRun": "Belum dipilih",
       "features": "Fitur yang dikerjakan",
-      "featuresEmpty": "Pilih lembar uji dulu; fitur diambil dari skenario di dalamnya.",
+      "featuresEmpty": "UAT ini belum punya fitur. Pilih fiturnya di tab Fitur.",
       "members": "Anggota meja",
-      "membersHint": "Isi nama setiap anggota. Email boleh dikosongkan; bila diisi, orang itu otomatis mendapat akun Pengguna (Penguji) yang ia aktifkan sendiri, dan namanya langsung bisa dipilih di meja.",
+      "membersHint": "Isi nama setiap anggota. Email boleh dikosongkan; bila diisi, orang itu otomatis mendapat akun Pengguna yang ia aktifkan sendiri, dan namanya langsung bisa dipilih di meja.",
       "validFrom": "Berlaku mulai",
       "validUntil": "Berlaku sampai",
       "defaultPrefix": "Meja",
@@ -2019,28 +2069,28 @@
       "openBug": "Buka detail masalah"
     },
     "public": {
-      "savedOn": "Tampilan publik disimpan. Fase ini terlihat di halaman depan.",
-      "savedOff": "Tampilan publik disimpan. Fase ini tidak terlihat oleh umum.",
+      "savedOn": "Tampilan publik disimpan. UAT ini terlihat di halaman depan.",
+      "savedOff": "Tampilan publik disimpan. UAT ini tidak terlihat oleh umum.",
       "mainTitle": "Tampilkan secara publik",
-      "main": "Tampilkan fase ini di halaman depan",
-      "mainOn": "Siapa pun yang membuka alamat situs bisa melihat fase ini dan data yang dicentang di bawah.",
-      "mainOff": "Fase ini tidak terlihat oleh umum. Hanya pengguna yang masuk dan peserta meja yang bisa melihatnya.",
+      "main": "Tampilkan UAT ini di halaman depan",
+      "mainOn": "Siapa pun yang membuka alamat situs bisa melihat UAT ini dan data yang dicentang di bawah.",
+      "mainOff": "UAT ini tidak terlihat oleh umum. Hanya pengguna yang masuk dan peserta kelompok yang bisa melihatnya.",
       "intro": "Pengantar untuk umum",
-      "introHint": "Mis. jadwal dan tempat workshop. Selalu tampil bila fase dibuka untuk umum.",
+      "introHint": "Mis. jadwal dan tempat workshop. Selalu tampil bila UAT dibuka untuk umum.",
       "privacy": "Semua data tersembunyi bawaannya. Centang hanya yang memang boleh dilihat umum. Foto layar dan uraian bisa memuat data pribadi pencari kerja (NIK, nama, nomor HP), jadi periksa dulu sebelum membukanya.",
       "group": {
-        "cycle": "Tentang fase",
+        "cycle": "Tentang UAT",
         "features": "Fitur yang dikerjakan",
         "bugs": "Daftar masalah"
       },
       "field": {
         "cycle": {
           "description": {
-            "label": "Keterangan fase",
-            "hint": "Keterangan yang diisi di Fase uji."
+            "label": "Keterangan Fase",
+            "hint": "Keterangan yang diisi di Fase UAT ini."
           },
           "period": {
-            "label": "Tanggal fase",
+            "label": "Jadwal UAT",
             "hint": "Tanggal mulai dan selesai."
           },
           "progress": {
@@ -2066,8 +2116,8 @@
             "hint": "Nama meja per fitur."
           },
           "members": {
-            "label": "Nama anggota meja",
-            "hint": "Nama peserta di setiap meja."
+            "label": "Nama anggota kelompok",
+            "hint": "Nama peserta di setiap kelompok."
           }
         },
         "bugs": {
@@ -2117,18 +2167,18 @@
       "needs": "Aktifkan dulu \"{{field}}\".",
       "preview": "Lihat halaman publik",
       "save": "Simpan tampilan publik",
-      "howTitle": "Cara membuka fase ini untuk umum",
+      "howTitle": "Cara membuka UAT ini untuk umum",
       "how": {
-        "step1": "Nyalakan tombol \"Tampilkan fase ini di halaman depan\" di bawah.",
-        "step2": "Centang data yang boleh dilihat umum (bawaannya semua tersembunyi). Contoh aman untuk awal: Daftar fitur, Kemajuan per fitur, Daftar masalah.",
+        "step1": "Nyalakan tombol \"Tampilkan UAT ini di halaman depan\" di bawah.",
+        "step2": "Centang data yang boleh dilihat umum (bawaannya semua tersembunyi). Contoh aman untuk awal: Daftar fitur dan Kemajuan per fitur.",
         "step3": "Tekan \"Pratinjau tampilan publik\" untuk melihat hasilnya dulu, lalu tekan \"Simpan tampilan publik\" di paling bawah.",
-        "step4": "Selesai: siapa pun yang membuka paskerid.kemnaker.go.id/testboard/ tanpa login melihat fase ini. Pengguna yang login bisa melihatnya lewat menu \"Halaman publik\"."
+        "step4": "Selesai: siapa pun yang membuka paskerid.kemnaker.go.id/testboard/ tanpa login melihat UAT ini. Daftar masalah diatur terpisah di Bug Reporting."
       },
       "previewButton": "Pratinjau tampilan publik",
       "guideLink": "Penjelasan lengkap di Panduan"
     },
     "features": {
-      "intro": "Fitur diambil dari skenario di lembar uji fase ini. Pilih Selesai bila sudah tuntas, atau Disembunyikan agar tidak tampil di halaman publik. Setiap perubahan dikonfirmasi dulu.",
+      "intro": "Fitur yang diuji di UAT ini. Pilih Selesai bila sudah tuntas, atau Disembunyikan agar tidak tampil di halaman publik. Setiap perubahan dikonfirmasi dulu.",
       "stateFor": "Status fitur {{name}}",
       "state": {
         "OPEN": "Dibuka",
@@ -2169,7 +2219,7 @@
       "orType": "atau ketik kode",
       "validUntil": "Berlaku sampai {{date}}",
       "keepSafe": "Kartu ini hanya untuk meja Anda. Jangan dibagikan ke luar ruangan.",
-      "sheetTitle": "Lembar uji cadangan (kertas)",
+      "sheetTitle": "UAT cadangan (kertas)",
       "sheetIntro": "Dipakai bila internet bermasalah. Centang hasilnya; panitia akan memasukkan ke TestBoard.",
       "filledBy": "Diisi oleh:",
       "date": "Tanggal:",
@@ -2182,7 +2232,7 @@
   "guide": {
     "eyebrow": "Panduan penggunaan",
     "title": "Panduan TestBoard",
-    "subtitle": "Semua yang perlu Anda ketahui untuk memakai TestBoard, disusun menurut peran. Pilih bagian yang sesuai dengan Anda di daftar isi.",
+    "subtitle": "Semua yang perlu Anda ketahui untuk memakai TestBoard: alurnya, cara masuk, dan yang dikerjakan setiap orang. Pilih bagian di daftar isi.",
     "toc": "Daftar isi",
     "faqTitle": "Pertanyaan yang sering muncul",
     "help": "Masih bingung? Hubungi Admin proyek Anda.",
@@ -2192,49 +2242,48 @@
       "cara-kerja": "Cara kerja TestBoard",
       "masuk": "Cara masuk",
       "peserta": "Untuk peserta di meja",
-      "penguji": "Untuk Penguji",
+      "penguji": "Untuk Pengguna UAT",
       "admin": "Untuk Admin",
-      "developer": "Untuk Developer",
-      "pemantau": "Untuk Pemantau dan pimpinan",
       "peran": "Peran dan hak akses",
-      "publik": "Membuka fase untuk publik",
+      "publik": "Membuka UAT dan Bug Reporting untuk publik",
       "super-admin": "Untuk Super Admin",
       "istilah": "Kamus istilah",
-      "privasi": "Privasi dan keamanan"
+      "privasi": "Privasi dan keamanan",
+      "bug-reporting": "Bug Reporting"
     },
     "flow": {
-      "intro": "TestBoard membantu Pusat Pasar Kerja menguji layanan bersama pengguna sebelum layanan dipakai masyarakat. Pekerjaannya selalu mengikuti urutan yang sama, dan menu di sebelah kiri pun disusun menurut urutan ini.",
-      "cycle": {
-        "title": "Fase uji",
-        "menu": "Menu 1. Persiapan › Fase uji",
-        "body": "Satu putaran pengujian dalam periode tertentu, mis. \"UAT Tahap 1, 3-4 Desember\"."
-      },
-      "cases": {
-        "title": "Skenario uji",
-        "menu": "Menu 1. Persiapan › Skenario uji",
-        "body": "Langkah yang harus dicoba beserta hasil yang diharapkan. Bisa ditulis satu per satu atau diimpor dari Excel."
-      },
-      "plan": {
-        "title": "Cara menguji",
-        "menu": "Menu 2. Pelaksanaan",
-        "body": "Lembar uji untuk penguji perorangan, atau meja workshop untuk pengujian berkelompok dengan kartu QR."
-      },
+      "intro": "TestBoard membantu Pusat Pasar Kerja menguji layanan bersama pengguna. Proyek disusun seperti Google Drive: Fase berisi folder Fitur, Fitur berisi Skenario. UAT memakai skenario dari satu Fase, dan semua masalah berkumpul di Bug Reporting.",
       "test": {
         "title": "Mencoba",
-        "menu": "Di Lembar uji atau di layar meja",
-        "body": "Penguji mencoba setiap skenario lalu memilih Sesuai, Tidak sesuai, atau Tidak bisa dicoba."
+        "menu": "UAT saya atau kartu meja",
+        "body": "Peserta mencoba setiap skenario lalu memilih Sesuai, Tidak sesuai, atau Tidak bisa dicoba."
       },
       "bugs": {
-        "title": "Masalah",
-        "menu": "Menu 3. Hasil & laporan › Masalah",
-        "body": "Hasil Tidak sesuai menjadi laporan masalah. Developer memperbaiki, penguji mengecek ulang."
+        "title": "Bug Reporting",
+        "menu": "Panel kiri › Bug Reporting",
+        "body": "Hasil Tidak sesuai masuk ke sini. Setelah go-live, masyarakat juga bisa melapor; Admin meninjau dulu sebelum tampil."
       },
-      "report": {
-        "title": "Laporan",
-        "menu": "Menu 3. Hasil & laporan › Laporan",
-        "body": "Ringkasan untuk pimpinan yang bisa diunduh sebagai Excel atau CSV."
+      "example": "Contoh: proyek Karirhub punya Fase \"UAT Tahap 1\" dengan fitur Lapor Loker dan Gig Workers. Admin membuat \"UAT 1\" dari Fase itu, menambahkan 30 peserta dalam 10 kelompok bernomor meja, lalu memulai UAT. Setiap jawaban Tidak sesuai otomatis masuk ke Bug Reporting dan ditinjau Admin.",
+      "phase": {
+        "title": "Fase",
+        "menu": "Panel kiri › Fase",
+        "body": "Folder besar untuk satu tahap, mis. \"UAT Tahap 1\" atau \"Setelah go-live\"."
       },
-      "example": "Contoh: fase \"UAT Karirhub Tahap 1\" berisi 120 skenario uji. Sepuluh meja workshop mengerjakan fitur yang berbeda. Setiap jawaban Tidak sesuai otomatis menjadi masalah yang ditinjau Admin dan diperbaiki Developer, lalu kemajuannya terlihat di Laporan."
+      "features": {
+        "title": "Fitur dan skenario",
+        "menu": "Fase › folder Fitur",
+        "body": "Setiap fitur berisi skenario uji beserta foto layarnya. Tulis satu per satu atau impor dari Excel. Salin ke Fase berikutnya bila perlu."
+      },
+      "uat": {
+        "title": "UAT",
+        "menu": "Panel kiri › UAT › UAT baru",
+        "body": "Pilih Fase, pilih fiturnya, beri nama. Skenario yang Siap ikut otomatis. Satu Fase boleh punya UAT 1, UAT 2, dan seterusnya."
+      },
+      "people": {
+        "title": "Peserta dan kelompok",
+        "menu": "UAT › Peserta, Kelompok & meja",
+        "body": "Tambahkan Pengguna UAT, bagi ke kelompok dengan nomor meja, lalu cetak kartu kelompoknya."
+      }
     },
     "signIn": {
       "intro": "Halaman masuk punya dua pilihan. Pilih yang sesuai dengan Anda.",
@@ -2277,7 +2326,7 @@
         },
         {
           "title": "Lewat layar meja",
-          "body": "Saat di meja workshop, tekan \"Aktifkan akun saya\", pilih nama Anda, lalu buat kata sandi. Cukup sekali."
+          "body": "Saat di kelompok, tekan \"Aktifkan akun saya\", pilih nama Anda, lalu buat kata sandi. Cukup sekali."
         }
       ]
     },
@@ -2329,15 +2378,15 @@
       ]
     },
     "tester": {
-      "intro": "Sebagai Penguji, Anda mencoba skenario yang ditugaskan kepada Anda dan melaporkan masalah yang ditemukan.",
+      "intro": "Sebagai Pengguna UAT, Anda mencoba skenario di UAT tempat Anda ditambahkan (UAT 1, UAT 2, dan seterusnya) dan melaporkan masalah yang ditemukan.",
       "steps": [
         {
-          "title": "Buka Tugas saya",
-          "body": "Semua pekerjaan Anda ada di sana: meja tempat Anda terdaftar, lembar uji yang ditugaskan, dan masalah yang Anda laporkan."
+          "title": "Buka UAT saya",
+          "body": "Di panel kiri proyek, bagian UAT saya berisi UAT yang Anda ikuti beserta kelompok dan nomor meja Anda."
         },
         {
-          "title": "Lanjutkan lembar uji",
-          "body": "Tekan \"Lanjutkan\" untuk membuka skenario berikutnya yang belum dicoba."
+          "title": "Kerjakan skenario",
+          "body": "Tekan \"Kerjakan skenario\", lalu buka skenario yang belum dicoba. Bila Anda dalam kelompok, Anda juga bisa memakai Mode Mudah kelompok dari Tugas saya."
         },
         {
           "title": "Catat hasilnya",
@@ -2345,7 +2394,7 @@
         },
         {
           "title": "Laporkan masalah",
-          "body": "Dari hasil Tidak sesuai, tekan \"Laporkan masalah\". Isinya terisi otomatis dari percobaan Anda."
+          "body": "Dari hasil Tidak sesuai, tekan \"Laporkan masalah\". Isinya terisi otomatis dan masuk ke Bug Reporting."
         },
         {
           "title": "Cek ulang setelah diperbaiki",
@@ -2354,83 +2403,41 @@
       ]
     },
     "admin": {
-      "intro": "Sebagai Admin, Anda menyiapkan dan mengelola proyek. Ikuti kartu \"Mulai di sini\" di beranda proyek; langkahnya sama dengan di bawah ini.",
+      "intro": "Sebagai Admin, Anda menyiapkan dan mengelola proyek. Ikuti kartu \"Mulai di sini\" di Ringkasan proyek; langkahnya sama dengan di bawah ini.",
       "steps": [
         {
           "title": "Buat proyek",
           "body": "Di halaman Proyek, tekan \"Buat proyek\". Isi kode singkat (mis. KARIRHUB) dan nama."
         },
         {
-          "title": "Buat fase uji",
-          "body": "Menu 1. Persiapan › Fase uji. Isi nama dan periode, mis. \"UAT Tahap 1\"."
+          "title": "Buat Fase",
+          "body": "Panel kiri › Fase › tanda +. Isi nama dan periode, mis. \"UAT Tahap 1\"."
         },
         {
-          "title": "Siapkan skenario uji",
-          "body": "Tulis satu per satu di Skenario uji, atau masukkan sekaligus lewat Impor dari Excel. Setiap baris Excel diperiksa dulu sebelum disimpan."
+          "title": "Isi folder Fitur dengan skenario",
+          "body": "Buka Fase, tambahkan folder fitur, lalu tulis skenarionya atau impor dari Excel. Tandai Siap bila sudah benar. Untuk tahap berikutnya, centang skenario lalu \"Salin ke Fase\"."
         },
         {
-          "title": "Pilih cara menguji",
-          "body": "Buat Lembar uji untuk penguji perorangan, lalu tugaskan skenarionya. Untuk workshop, buka Workshop & meja, buat meja, isi nama (dan bila ada, email) anggota, lalu cetak kartu meja."
+          "title": "Buat UAT",
+          "body": "Panel kiri › UAT › tanda +. Pilih Fase, pilih fiturnya, beri nama. Skenario yang Siap ikut otomatis."
         },
         {
-          "title": "Tambahkan orang",
-          "body": "Menu 4. Pengaturan › Anggota & tugas. Cukup email; bila belum punya akun, isi namanya dan kirim tautan aktivasi lewat tombol \"Tautan aktivasi\"."
+          "title": "Tambahkan peserta dan kelompok",
+          "body": "Di UAT, tab Peserta: tulis nama (dan e-mail bila ada). Tab Kelompok & meja: buat kelompok bernomor meja, lalu cetak kartunya."
         },
         {
-          "title": "Pantau dan tinjau",
-          "body": "Saat pengujian berjalan, pantau papan Workshop & meja, tinjau Masalah yang masuk, lalu bagikan Laporan kepada pimpinan."
+          "title": "Mulai, pantau, tinjau",
+          "body": "Tekan \"Mulai UAT\". Pantau Ringkasan, tinjau Masalah masuk, atur Tampilan publik, dan bagikan Laporan kepada pimpinan."
         }
       ],
       "tips": [
-        "Kode (proyek, fase, fitur) bisa diubah kapan saja; tautan lama tetap mengarah ke data yang sama.",
-        "Perubahan penting, seperti mengubah tugas seseorang atau mengunci lembar uji, selalu meminta konfirmasi.",
-        "Tombol Bantuan di pojok kanan atas menjelaskan halaman yang sedang dibuka."
-      ]
-    },
-    "developer": {
-      "intro": "Sebagai Developer, Anda menindaklanjuti masalah yang dilaporkan.",
-      "steps": [
-        {
-          "title": "Buka Masalah",
-          "body": "Saring menurut tingkat dampak atau yang ditugaskan kepada Anda."
-        },
-        {
-          "title": "Mulai perbaiki",
-          "body": "Ubah status menjadi Sedang diperbaiki agar tim tahu masalah sedang ditangani."
-        },
-        {
-          "title": "Tandai sudah diperbaiki",
-          "body": "Setelah selesai, ubah menjadi Sudah diperbaiki lalu Siap diuji ulang, dan isi versi perbaikannya."
-        },
-        {
-          "title": "Tunggu hasil cek ulang",
-          "body": "Penguji mengecek ulang. Bila masih terjadi, statusnya menjadi Muncul lagi dan kembali kepada Anda."
-        }
-      ]
-    },
-    "observer": {
-      "intro": "Sebagai Pemantau, Anda melihat semua kemajuan tanpa mengubah apa pun. Cocok untuk pimpinan.",
-      "steps": [
-        {
-          "title": "Beranda proyek",
-          "body": "Ringkasan jumlah skenario yang sudah dicoba, persentase Sesuai, dan masalah terbuka per tingkat dampak."
-        },
-        {
-          "title": "Laporan",
-          "body": "Rincian per fitur, per lembar uji, dan per penguji. Bisa diunduh sebagai Excel atau CSV."
-        },
-        {
-          "title": "Masalah",
-          "body": "Daftar masalah beserta statusnya; buka satu masalah untuk melihat riwayat dan foto buktinya."
-        },
-        {
-          "title": "Halaman publik",
-          "body": "Bila fase dibuka untuk publik, kemajuannya juga bisa dilihat tanpa masuk."
-        }
+        "Satu Fase boleh punya beberapa UAT, dan satu orang boleh ikut UAT 1 dan UAT 2 bila ditambahkan.",
+        "Perubahan penting, seperti memulai UAT, mengunci hasil, atau membuang laporan, selalu meminta konfirmasi.",
+        "Tombol Bantuan di bilah atas menjelaskan halaman yang sedang dibuka; tombol Aksesibilitas mengatur ukuran tulisan dan tema."
       ]
     },
     "roles": {
-      "intro": "Ada tiga tingkat peran. Pengunjung halaman publik dan kartu meja bukan pengguna.",
+      "intro": "Hanya ada tiga jenis orang. Peserta dengan kartu meja dan pengunjung halaman publik tidak perlu akun.",
       "rows": [
         {
           "role": "Super Admin",
@@ -2439,23 +2446,13 @@
         },
         {
           "role": "Admin",
-          "who": "Tim penyelenggara UAT",
-          "can": "Membuat dan mengelola semua proyek: fase, skenario uji, impor, meja workshop, tampilan publik, tinjauan masalah, serta anggota dan tugasnya."
+          "who": "Pengelola proyek dan penyelenggara UAT",
+          "can": "Mengelola semua proyek: Fase, Fitur, Skenario, impor, UAT beserta peserta dan kelompoknya, tampilan publik, Bug Reporting, dan laporan."
         },
         {
-          "role": "Pengguna - Penguji",
-          "who": "Penguji, peserta workshop yang berakun",
-          "can": "Mencoba skenario yang ditugaskan, mencatat hasil, dan melaporkan masalah di proyek tempat ia menjadi anggota."
-        },
-        {
-          "role": "Pengguna - Developer",
-          "who": "Tim pengembang",
-          "can": "Melihat masalah dan mengubah status perbaikannya."
-        },
-        {
-          "role": "Pengguna - Pemantau",
-          "who": "Pimpinan",
-          "can": "Melihat semua kemajuan, hasil, dan laporan tanpa mengubah apa pun, serta mengunduh laporan."
+          "role": "Pengguna",
+          "who": "Peserta UAT yang berakun",
+          "can": "Membuka UAT tempat ia ditambahkan (UAT 1, UAT 2, ...), mencoba skenarionya, mencatat hasil, dan melaporkan masalah."
         }
       ],
       "head": {
@@ -2465,23 +2462,23 @@
       }
     },
     "publish": {
-      "intro": "Setiap fase bisa dibuka untuk umum (tanpa masuk). Bawaannya semua tersembunyi; Admin memilih sendiri data apa saja yang boleh dilihat.",
+      "intro": "UAT dan Bug Reporting masing-masing bisa dibuka untuk umum (tanpa masuk), dengan saklarnya sendiri. Bawaannya semua tersembunyi; Admin memilih data apa saja yang boleh dilihat.",
       "steps": [
         {
-          "title": "Buka Workshop & meja",
-          "body": "Pilih fase, lalu buka tab Tampilan publik."
+          "title": "UAT: buka tab Tampilan publik",
+          "body": "Di halaman UAT, pilih data yang ditampilkan (fitur, kemajuan, kelompok), lalu nyalakan \"Tampilkan secara publik\"."
         },
         {
-          "title": "Pilih data yang ditampilkan",
-          "body": "Setiap data punya tombol sendiri. Data yang bisa memuat data pribadi diberi tanda."
+          "title": "Bug Reporting: buka tab Tampilan publik",
+          "body": "Nyalakan saklar Bug Reporting, pilih data masalah yang boleh dilihat, dan bila perlu buka formulir lapor."
         },
         {
           "title": "Lihat pratinjau",
           "body": "Tekan \"Pratinjau tampilan publik\" untuk melihat persis apa yang dilihat umum."
         },
         {
-          "title": "Nyalakan dan simpan",
-          "body": "Nyalakan \"Tampilkan secara publik\", lalu simpan. Fase muncul di halaman depan."
+          "title": "Simpan",
+          "body": "Setelah disimpan, UAT dan Bug Reporting muncul di halaman depan publik."
         }
       ],
       "sees": "Pengunjung hanya melihat data yang dinyalakan, tidak pernah data lain."
@@ -2516,69 +2513,69 @@
       },
       "rows": [
         {
-          "term": "Fase uji",
-          "original": "Test Cycle",
-          "meaning": "Satu putaran pengujian dalam periode tertentu."
-        },
-        {
-          "term": "Skenario uji",
-          "original": "Test Case",
-          "meaning": "Langkah yang harus dicoba dan hasil yang diharapkan."
+          "term": "Fase",
+          "original": "Phase / Test Cycle",
+          "meaning": "Folder besar untuk satu tahap pengujian, mis. UAT Tahap 1."
         },
         {
           "term": "Fitur",
           "original": "Module",
-          "meaning": "Bagian layanan yang diuji, mis. Lapor Loker."
+          "meaning": "Folder di dalam Fase untuk satu bagian layanan, mis. Lapor Loker."
         },
         {
-          "term": "Kelompok skenario",
-          "original": "Suite",
-          "meaning": "Kumpulan skenario dalam satu fitur, mis. per sub-menu."
+          "term": "Skenario uji",
+          "original": "Test Case",
+          "meaning": "Langkah yang harus dicoba dan hasil yang diharapkan, beserta foto layarnya."
         },
         {
-          "term": "Lembar uji",
-          "original": "Test Run",
-          "meaning": "Daftar skenario yang ditugaskan untuk dicoba dalam satu fase."
+          "term": "Siap / Draf",
+          "original": "Ready / Draft",
+          "meaning": "Hanya skenario Siap yang ikut ke UAT."
         },
         {
-          "term": "Workshop & meja",
-          "original": "UAT Workshop",
-          "meaning": "Pengujian berkelompok per meja dengan kartu QR."
+          "term": "UAT",
+          "original": "User Acceptance Test",
+          "meaning": "Pengujian satu Fase bersama pengguna: fitur terpilih, peserta, kelompok, dan halaman publiknya."
+        },
+        {
+          "term": "Pengguna UAT",
+          "original": "UAT participant",
+          "meaning": "Orang yang menguji di UAT tertentu."
+        },
+        {
+          "term": "Kelompok dan nomor meja",
+          "original": "Group / table",
+          "meaning": "Peserta yang menguji bersama di satu meja dengan satu kartu."
         },
         {
           "term": "Kartu meja",
           "original": "Table card",
-          "meaning": "Kartu berisi QR dan 6 angka untuk masuk ke layar meja."
+          "meaning": "Kartu berisi QR dan 6 angka untuk masuk ke Mode Mudah kelompok."
+        },
+        {
+          "term": "Bug Reporting",
+          "original": "Bug Reporting",
+          "meaning": "Daftar masalah proyek, dari UAT dan dari laporan publik setelah go-live."
+        },
+        {
+          "term": "Laporan publik",
+          "original": "Public report",
+          "meaning": "Laporan masyarakat lewat formulir publik; tampil setelah ditinjau Admin."
         },
         {
           "term": "Sesuai / Tidak sesuai / Tidak bisa dicoba",
           "original": "Passed / Failed / Blocked",
-          "meaning": "Tiga jawaban hasil uji."
+          "meaning": "Tiga jawaban hasil mencoba satu skenario."
         },
         {
-          "term": "Masalah",
-          "original": "Bug / Defect",
-          "meaning": "Sesuatu yang tidak berjalan seperti seharusnya."
+          "term": "Salin / Pindahkan ke Fase",
+          "original": "Copy / Move",
+          "meaning": "Seperti di Google Drive: menyalin skenario ke Fase lain, atau memindahkannya."
         },
         {
-          "term": "Tingkat dampak",
-          "original": "Severity",
-          "meaning": "Seberapa besar akibat masalah bagi pengguna: Kritis, Berat, Sedang, Ringan."
-        },
-        {
-          "term": "Prioritas",
-          "original": "Priority",
-          "meaning": "Seberapa cepat masalah perlu diperbaiki: Segera, Tinggi, Sedang, Rendah."
-        },
-        {
-          "term": "Uji ulang",
-          "original": "Retest",
-          "meaning": "Mencoba lagi setelah masalah diperbaiki."
-        },
-        {
-          "term": "Foto & bukti",
-          "original": "Evidence",
-          "meaning": "Tangkapan layar, dokumen, atau catatan sebagai bukti hasil uji."
+          "term": "Tampilan publik",
+          "original": "Public view",
+          "meaning": "Halaman tanpa masuk; hanya data yang dinyalakan Admin."
         }
       ]
     },
@@ -2589,6 +2586,27 @@
         "Layar meja tidak pernah menampilkan email lengkap anggota.",
         "Kata sandi disimpan dalam bentuk acak (hash). Tidak ada orang, termasuk Admin, yang bisa melihatnya.",
         "Foto dan file diperiksa dan dikecilkan otomatis, serta hanya bisa dibuka anggota proyek."
+      ]
+    },
+    "bugReporting": {
+      "intro": "Bug Reporting berdiri sendiri di setiap proyek. Isinya masalah dari UAT dan, setelah aplikasi berjalan, laporan dari masyarakat. Bug Reporting punya saklar publik ON/OFF sendiri.",
+      "steps": [
+        {
+          "title": "Daftar masalah",
+          "body": "Semua masalah beserta tingkat dampak, prioritas, dan status perbaikannya. Centang beberapa untuk mengubahnya bersama-sama."
+        },
+        {
+          "title": "Laporan publik",
+          "body": "Laporan dari formulir publik menunggu di tab Laporan publik. Tandai sudah ditinjau, gabungkan dengan masalah yang sama, atau buang bila bukan masalah."
+        },
+        {
+          "title": "Tampilan publik",
+          "body": "Nyalakan saklar untuk menampilkan daftar masalah di halaman publik, pilih datanya, dan bila perlu buka formulir lapor untuk masyarakat."
+        },
+        {
+          "title": "Perbaikan dan cek ulang",
+          "body": "Tim memperbaiki dan mengubah statusnya; Pengguna UAT mengecek ulang sampai beres."
+        }
       ]
     }
   },
@@ -2601,7 +2619,7 @@
     },
     "pengguna": {
       "title": "Akun Pengguna",
-      "who": "Untuk Admin, Penguji, Developer, dan Pemantau yang sudah punya akun."
+      "who": "Untuk Admin dan Pengguna yang sudah punya akun."
     },
     "user": {
       "intro": "Masuk dengan email dan kata sandi akun Anda.",
@@ -2628,14 +2646,14 @@
   "tasks": {
     "title": "Tugas saya",
     "subtitle": "Semua pekerjaan yang ditugaskan kepada Anda, dari semua proyek tempat Anda menjadi anggota.",
-    "tablesTitle": "Meja saya (Mode Workshop)",
+    "tablesTitle": "Kelompok saya (UAT)",
     "tablesHint": "Meja tempat Anda terdaftar sebagai anggota. Buka meja untuk menguji bersama kelompok.",
     "tableLine": "Sebagai {{name}} · {{cycle}} · {{project}}",
     "validUntil": "Kartu meja berlaku sampai {{date}}",
     "openTable": "Buka meja ini",
     "openTitle": "Buka {{table}} di perangkat ini?",
     "openBody": "Perangkat ini beralih ke layar meja dengan nama {{name}} sudah terpilih. Akun Anda keluar dari perangkat ini; masuk lagi kapan saja dengan email dan kata sandi.",
-    "runsTitle": "Lembar uji yang ditugaskan kepada saya",
+    "runsTitle": "UAT yang ditugaskan kepada saya",
     "runsHint": "Skenario uji yang harus Anda coba sendiri, lalu catat hasilnya.",
     "runLine": "{{project}} · {{done}} dari {{total}} skenario sudah dicoba",
     "progress": "Kemajuan",
@@ -2656,32 +2674,32 @@
     "done": "sudah selesai",
     "steps": {
       "cycle": {
-        "title": "Buat fase uji",
-        "body": "Fase adalah satu putaran pengujian, mis. \"UAT Tahap 1, 3-4 Desember\".",
-        "action": "Buat fase"
+        "title": "Buat Fase",
+        "body": "Fase adalah folder untuk satu tahap, mis. \"UAT Tahap 1, 3-4 Desember\".",
+        "action": "Buat Fase"
       },
       "cases": {
-        "title": "Siapkan skenario uji",
-        "body": "Tulis langkah yang harus dicoba dan hasil yang diharapkan, satu per satu atau sekaligus dari Excel.",
-        "action": "Tulis skenario",
+        "title": "Isi folder Fitur dengan skenario",
+        "body": "Di dalam Fase, buat folder fitur lalu tulis skenarionya, atau impor sekaligus dari Excel.",
+        "action": "Buka folder Fase",
         "alt": "Impor dari Excel"
       },
       "plan": {
-        "title": "Pilih cara menguji",
-        "body": "Lembar uji untuk penguji perorangan, atau meja workshop untuk pengujian berkelompok dengan kartu QR.",
-        "action": "Buat lembar uji",
-        "alt": "Siapkan meja workshop"
+        "title": "Buat UAT",
+        "body": "Pilih Fase dan fiturnya, lalu tambahkan peserta dan kelompok bernomor meja.",
+        "action": "Buat UAT",
+        "alt": "Lihat semua UAT"
       },
       "test": {
-        "title": "Jalankan pengujian",
-        "body": "Penguji mencoba setiap skenario lalu memilih Sesuai, Tidak sesuai, atau Tidak bisa dicoba.",
-        "action": "Lihat lembar uji"
+        "title": "Jalankan UAT",
+        "body": "Tekan Mulai UAT. Peserta mencoba setiap skenario lalu memilih Sesuai, Tidak sesuai, atau Tidak bisa dicoba.",
+        "action": "Buka UAT"
       },
       "review": {
-        "title": "Tinjau masalah yang masuk",
+        "title": "Tinjau di Bug Reporting",
         "body_one": "Ada {{count}} masalah yang masih perlu ditangani.",
         "body_other": "Ada {{count}} masalah yang masih perlu ditangani.",
-        "action": "Buka daftar masalah"
+        "action": "Buka Bug Reporting"
       },
       "report": {
         "title": "Lihat laporan",
@@ -2691,23 +2709,14 @@
     },
     "task": {
       "TESTER": {
-        "title": "Tugas Anda: Penguji",
-        "body": "Coba skenario yang ditugaskan kepada Anda, catat hasilnya, dan laporkan bila ada masalah. Semua tugas Anda ada di halaman Tugas saya."
-      },
-      "DEVELOPER": {
-        "title": "Tugas Anda: Developer",
-        "body": "Lihat masalah yang dilaporkan, perbaiki, lalu ubah statusnya menjadi Sudah diperbaiki agar penguji bisa mengujinya ulang."
-      },
-      "VIEWER": {
-        "title": "Tugas Anda: Pemantau",
-        "body": "Anda bisa melihat semua kemajuan, hasil, dan laporan proyek ini tanpa mengubah apa pun. Ringkasan ada di bawah; laporan lengkap bisa diunduh."
+        "title": "Anda: Pengguna UAT",
+        "body": "Buka UAT saya di panel kiri, kerjakan skenarionya, catat hasilnya, dan laporkan bila ada masalah."
       }
     },
     "links": {
-      "myTasks": "Buka Tugas saya",
       "reportBug": "Laporkan masalah",
-      "bugs": "Lihat masalah",
-      "reports": "Buka laporan"
+      "bugs": "Lihat Bug Reporting",
+      "myUat": "Buka UAT saya"
     }
   },
   "help": {
@@ -2729,10 +2738,10 @@
       },
       "tasks": {
         "title": "Tugas saya",
-        "what": "Semua yang ditugaskan kepada Anda dari semua proyek: meja workshop, lembar uji, dan masalah yang Anda laporkan.",
+        "what": "Semua yang menjadi bagian Anda dari semua proyek: UAT dan kelompok Anda, skenario yang ditugaskan, dan masalah yang Anda laporkan.",
         "steps": [
           "Tekan Buka meja ini untuk menguji bersama kelompok; nama Anda langsung terpilih.",
-          "Tekan Lanjutkan untuk mencoba skenario berikutnya di lembar uji.",
+          "Tekan Lanjutkan untuk mencoba skenario berikutnya.",
           "Tekan Lihat untuk memantau masalah yang Anda laporkan."
         ]
       },
@@ -2745,30 +2754,21 @@
         ]
       },
       "dashboard": {
-        "title": "Beranda proyek",
+        "title": "Ringkasan proyek",
         "what": "Ringkasan proyek: berapa skenario sudah dicoba, berapa yang sesuai, dan masalah yang masih terbuka.",
         "steps": [
           "Admin: ikuti kartu Mulai di sini dari atas ke bawah.",
-          "Saring menurut lembar uji untuk melihat satu putaran saja.",
+          "Pilih satu UAT untuk melihat hasilnya saja.",
           "Tekan angka atau grafik untuk membuka rinciannya."
         ]
       },
-      "cycles": {
-        "title": "Fase uji",
-        "what": "Fase adalah satu putaran pengujian dalam periode tertentu. Lembar uji dan meja workshop selalu berada di dalam sebuah fase.",
-        "steps": [
-          "Tekan Buat fase, isi nama dan periodenya.",
-          "Ubah status menjadi Berjalan saat pengujian dimulai.",
-          "Kode fase bisa diubah kapan saja."
-        ]
-      },
       "testCases": {
-        "title": "Skenario uji",
-        "what": "Daftar langkah yang harus dicoba beserta hasil yang diharapkan. Hasil percobaannya dicatat di Lembar uji atau di meja workshop.",
+        "title": "Semua skenario",
+        "what": "Semua skenario uji proyek dalam satu daftar. Biasanya lebih mudah lewat folder Fase dan Fitur di panel kiri.",
         "steps": [
-          "Tekan Buat skenario uji untuk menulis satu skenario.",
-          "Untuk banyak skenario sekaligus, pakai Impor dari Excel.",
-          "Centang beberapa skenario untuk mengubahnya bersama-sama."
+          "Saring dengan Fase, Fitur, atau tombol status (Siap, Draf, Arsip).",
+          "Centang skenario untuk Salin ke Fase, Pindahkan ke Fase, atau tandai Siap.",
+          "Untuk banyak skenario sekaligus, pakai Impor dari Excel."
         ]
       },
       "imports": {
@@ -2780,22 +2780,13 @@
           "Tekan Terapkan untuk menyimpan."
         ]
       },
-      "workshop": {
-        "title": "Workshop & meja",
-        "what": "Pengujian berkelompok per meja dengan kartu QR. Di sini Anda menyiapkan meja, memantau kemajuan, meninjau masalah yang masuk, dan mengatur tampilan publik.",
-        "steps": [
-          "Buat meja, pilih fitur yang dikerjakan, dan isi nama (serta email bila ada) anggotanya.",
-          "Cetak kartu meja dan bagikan ke setiap meja.",
-          "Pantau papan kemajuan dan tinjau Masalah masuk selama workshop."
-        ]
-      },
       "runs": {
-        "title": "Lembar uji",
-        "what": "Lembar uji berisi skenario yang ditugaskan kepada penguji perorangan untuk dicoba dalam satu fase.",
+        "title": "Skenario UAT",
+        "what": "Daftar skenario di satu UAT beserta hasil terakhirnya. Dari sini Anda membuka skenario untuk mencobanya.",
         "steps": [
-          "Buat lembar uji, lalu tambahkan skenario uji.",
-          "Tugaskan skenario kepada penguji, lalu tekan Mulai.",
-          "Setelah selesai, kunci lembar uji bila hasilnya sudah disetujui."
+          "Buka skenario yang belum dicoba.",
+          "Catat hasilnya: Sesuai, Tidak sesuai, atau Tidak bisa dicoba.",
+          "Untuk Tidak sesuai, laporkan masalahnya; masalah masuk ke Bug Reporting."
         ]
       },
       "execution": {
@@ -2808,12 +2799,12 @@
         ]
       },
       "bugs": {
-        "title": "Masalah",
-        "what": "Semua masalah yang ditemukan, beserta tingkat dampak, prioritas, dan status perbaikannya.",
+        "title": "Bug Reporting",
+        "what": "Semua masalah proyek: dari UAT dan, setelah go-live, dari masyarakat. Admin meninjau laporan publik dan mengatur tampilan publiknya dengan saklar ON/OFF sendiri.",
         "steps": [
           "Buka satu masalah untuk melihat rincian, foto, dan riwayatnya.",
-          "Developer mengubah status saat memperbaiki; penguji mengecek ulang.",
-          "Centang beberapa masalah untuk mengubahnya bersama-sama."
+          "Tab Laporan publik: tinjau laporan masyarakat sebelum tampil.",
+          "Tab Tampilan publik: nyalakan saklar dan pilih data yang boleh dilihat."
         ]
       },
       "evidence": {
@@ -2834,12 +2825,12 @@
         ]
       },
       "members": {
-        "title": "Anggota & tugas",
-        "what": "Siapa saja yang ikut di proyek ini dan apa tugasnya: Penguji, Developer, atau Pemantau.",
+        "title": "Anggota proyek",
+        "what": "Pengguna yang bisa membuka proyek ini. Admin dan Super Admin mengelola semua proyek, jadi tidak perlu ditambahkan. Peserta UAT biasanya ditambahkan langsung di tab Peserta pada UAT.",
         "steps": [
           "Tambahkan orang dengan emailnya; bila belum punya akun, isi namanya.",
           "Kirim tautan aktivasi kepada akun yang belum aktif.",
-          "Ubah tugas seseorang; Anda akan diminta konfirmasi."
+          "Untuk mengikutkan seseorang dalam UAT, buka UAT lalu tab Peserta."
         ]
       },
       "settings": {
@@ -2896,11 +2887,29 @@
       },
       "search": {
         "title": "Cari di proyek ini",
-        "what": "Mencari skenario uji, masalah, dan lembar uji sekaligus menurut judul atau kodenya.",
+        "what": "Mencari skenario uji, masalah, dan UAT sekaligus menurut judul atau kodenya.",
         "steps": [
           "Ketik sebagian judul atau kode, mis. \"login\" atau \"BUG-KAR-0012\".",
           "Tekan salah satu hasil untuk membukanya.",
           "Bila hasilnya banyak, tekan \"Lihat semua\" untuk membuka daftar lengkap yang sudah tersaring."
+        ]
+      },
+      "phases": {
+        "title": "Fase",
+        "what": "Proyek disusun seperti Google Drive: setiap Fase adalah folder, di dalamnya folder Fitur, dan di dalam Fitur ada skenario uji beserta foto layarnya.",
+        "steps": [
+          "Tekan Fase baru untuk membuat folder tahap, mis. UAT Tahap 1.",
+          "Buka Fase, tambahkan folder fitur, lalu isi skenarionya atau impor dari Excel.",
+          "Untuk tahap berikutnya, centang skenario lalu pilih Salin ke Fase."
+        ]
+      },
+      "uat": {
+        "title": "UAT",
+        "what": "Satu UAT menguji satu Fase: fitur yang dipilih, peserta dan kelompoknya dengan nomor meja, masalah yang masuk, dan halaman publiknya sendiri.",
+        "steps": [
+          "UAT baru: pilih Fase, pilih fitur, beri nama.",
+          "Tab Peserta dan Kelompok & meja: tambahkan orang, bagi ke kelompok, cetak kartunya.",
+          "Tekan Mulai UAT, lalu pantau Ringkasan dan tinjau Masalah masuk."
         ]
       }
     },
@@ -2920,7 +2929,7 @@
       },
       "projectMenu": {
         "title": "Panel kiri",
-        "body": "Panel kiri hanya berisi isi yang sedang Anda buka: daftar proyek, isi satu proyek, atau menu Administrasi. Tidak dicampur."
+        "body": "Seperti Google Drive: Fase berisi folder Fitur, lalu UAT dan Bug Reporting. Panel ini hanya berisi isi proyek yang sedang dibuka."
       },
       "startHere": {
         "title": "Mulai di sini",
@@ -3065,10 +3074,10 @@
       "revoked": "Kartu dicabut",
       "role_code": "Tugas di proyek",
       "rows": "Jumlah baris",
-      "run": "Lembar uji",
+      "run": "UAT",
       "run_case_ids": "Skenario uji",
-      "run_code": "Kode lembar uji",
-      "run_id": "Lembar uji",
+      "run_code": "Kode UAT",
+      "run_id": "UAT",
       "scope": "Cakupan",
       "scope_description": "Cakupan pengujian",
       "sequence_number": "Nomor urut",
@@ -3116,7 +3125,7 @@
   },
   "search": {
     "title": "Cari di proyek ini",
-    "subtitle": "Satu pencarian untuk skenario uji, masalah, dan lembar uji. Ketik sebagian judul atau kodenya.",
+    "subtitle": "Satu pencarian untuk skenario uji, masalah, dan UAT. Ketik sebagian judul atau kodenya.",
     "label": "Kata atau kode yang dicari",
     "placeholder": "mis. login, BUG-KAR-0012, atau UAT-PKI-001",
     "submit": "Cari",
@@ -3127,11 +3136,11 @@
     "groups": {
       "cases": "Skenario uji",
       "bugs": "Masalah",
-      "runs": "Lembar uji"
+      "runs": "UAT"
     },
     "allCases": "Lihat semua {{count}} skenario uji",
     "allBugs": "Lihat semua {{count}} masalah",
-    "allRuns": "Buka daftar lembar uji",
+    "allRuns": "Buka daftar UAT",
     "hintTitle": "Ketik yang ingin dicari"
   },
   "a11y": {
@@ -3176,6 +3185,254 @@
         "label": "Kurangi gerakan",
         "hint": "Tanpa animasi dan gulir halus."
       }
+    }
+  },
+  "phases": {
+    "title": "Fase",
+    "subtitle": "Seperti folder di Google Drive: buka sebuah Fase, lalu folder Fitur, lalu skenarionya.",
+    "new": "Fase baru",
+    "newIntro": "Fase adalah folder besar, misalnya \"UAT Tahap 1\" atau \"Setelah go-live\". Skenario disimpan di dalamnya per fitur.",
+    "create": "Buat Fase",
+    "created": "Fase {{name}} dibuat.",
+    "updated": "Fase {{name}} disimpan.",
+    "edit": "Ubah Fase",
+    "editTitle": "Ubah Fase {{name}}",
+    "name": "Nama Fase",
+    "namePlaceholder": "mis. UAT Tahap 1",
+    "code": "Kode singkat",
+    "codeHint": "Huruf besar, angka, titik atau strip; mis. FASE-1.",
+    "status": "Status Fase",
+    "empty": "Belum ada Fase. Buat Fase pertama, lalu tambahkan folder fitur dan skenarionya.",
+    "emptyTitle": "Mulai dari Fase",
+    "unassigned": "Belum masuk Fase",
+    "unassignedHint": "Skenario yang belum disimpan di Fase mana pun.",
+    "unassignedFeaturesHint": "Buka sebuah fitur, centang skenarionya, lalu pakai \"Pindahkan ke Fase\" atau \"Salin ke Fase\".",
+    "featuresHeading": "Folder fitur",
+    "featuresHint": "Setiap fitur adalah folder berisi skenario uji beserta foto layarnya.",
+    "noFeatures": "Belum ada folder fitur di sini.",
+    "addFeature": "Folder fitur baru",
+    "addFeatureTitle": "Folder fitur baru di {{phase}}",
+    "addFeatureIntro": "Pilih fitur yang sudah ada di proyek, atau buat fitur baru.",
+    "chooseFeature": "Pilih fitur…",
+    "newFeature": "+ Fitur baru",
+    "featureName": "Nama fitur",
+    "featureNamePlaceholder": "mis. Lapor Lowongan",
+    "featureCode": "Kode fitur",
+    "featureCodeHint": "Huruf besar atau angka, mis. LOKER.",
+    "featureAdded": "Folder fitur ditambahkan ke {{phase}}.",
+    "featureCount_one": "{{count}} fitur",
+    "featureCount_other": "{{count}} fitur",
+    "scenarioCount_one": "{{count}} skenario",
+    "scenarioCount_other": "{{count}} skenario",
+    "readyCount_one": "{{count}} siap",
+    "readyCount_other": "{{count}} siap",
+    "allScenarios": "Semua skenario",
+    "import": "Impor dari Excel",
+    "openFolders": "Buka folder Fase",
+    "listScenarios": "Daftar skenario",
+    "uatsHeading": "UAT di Fase ini",
+    "uatsHint": "Satu Fase boleh punya beberapa UAT, misalnya UAT 1 dan UAT 2.",
+    "noUats": "Belum ada UAT untuk Fase ini.",
+    "manageHeading": "Kelola Fase",
+    "notFound": "Fase ini tidak ditemukan.",
+    "featureNotFound": "Folder fitur ini tidak ditemukan di Fase tersebut.",
+    "featureSubtitle_one": "Di {{phase}} · {{count}} skenario, {{ready}} siap",
+    "featureSubtitle_other": "Di {{phase}} · {{count}} skenario, {{ready}} siap",
+    "featureHint": "Centang skenario untuk menyalinnya ke Fase berikutnya (Salin ke Fase) atau memindahkannya (Pindahkan ke Fase), seperti di Google Drive.",
+    "featureEmpty": "Folder fitur ini masih kosong. Tulis skenario baru atau impor dari Excel.",
+    "unsorted_one": "{{count}} skenario di sini belum punya fitur.",
+    "unsorted_other": "{{count}} skenario di sini belum punya fitur."
+  },
+  "uat": {
+    "title": "UAT",
+    "subtitle": "Setiap UAT menguji satu Fase: fitur yang dipilih, peserta dan kelompoknya, serta halaman publiknya sendiri.",
+    "new": "UAT baru",
+    "newForPhase": "UAT baru untuk Fase ini",
+    "created": "UAT {{name}} dibuat. Sekarang tambahkan peserta.",
+    "saved": "UAT disimpan.",
+    "edit": "Ubah UAT",
+    "editTitle": "Ubah {{name}}",
+    "name": "Nama UAT",
+    "startsAt": "Mulai",
+    "endsAt": "Selesai",
+    "empty": "Belum ada UAT. Buat UAT dari sebuah Fase: pilih fiturnya, lalu tambahkan peserta.",
+    "emptyTitle": "Belum ada UAT",
+    "emptyFiltered": "Tidak ada UAT yang cocok dengan pilihan ini.",
+    "count_one": "{{count}} UAT",
+    "count_other": "{{count}} UAT",
+    "featureCount_one": "{{count}} fitur",
+    "featureCount_other": "{{count}} fitur",
+    "participantCount_one": "{{count}} peserta",
+    "participantCount_other": "{{count}} peserta",
+    "groupCount_one": "{{count}} kelompok",
+    "groupCount_other": "{{count}} kelompok",
+    "publicOn": "Tampil di publik",
+    "publicOff": "Tidak publik",
+    "scenarios": "Daftar skenario",
+    "groupWithTable": "{{name}} · Meja {{number}}",
+    "yourGroup": "Kelompok Anda: {{group}}",
+    "noGroupYet": "Anda belum masuk kelompok. Admin akan menempatkan Anda.",
+    "tabsLabel": "Bagian UAT",
+    "tabs": {
+      "board": "Ringkasan",
+      "people": "Peserta",
+      "groups": "Kelompok & meja",
+      "features": "Fitur",
+      "inbox": "Masalah masuk",
+      "public": "Tampilan publik"
+    },
+    "setup": {
+      "title": "Langkah menyiapkan UAT",
+      "intro": "Ikuti dari atas ke bawah. Yang sudah beres dicoret otomatis.",
+      "features": "Pilih fitur yang diuji (skenario Siap ikut otomatis)",
+      "people": "Tambahkan peserta UAT",
+      "groups": "Bagi peserta ke kelompok dan beri nomor meja",
+      "start": "Mulai UAT (tombol \"Mulai UAT\" di atas)",
+      "public": "Pilih yang tampil di halaman publik (boleh dilewati)"
+    },
+    "status": {
+      "action": {
+        "PLANNED_ACTIVE": "Mulai UAT",
+        "ACTIVE_COMPLETED": "Selesaikan UAT",
+        "COMPLETED_ACTIVE": "Buka lagi",
+        "COMPLETED_LOCKED": "Kunci hasil"
+      },
+      "confirm": {
+        "ACTIVE": "Peserta bisa mulai mengisi hasil uji.",
+        "COMPLETED": "Pengisian hasil ditutup. UAT bisa dibuka lagi bila perlu.",
+        "LOCKED": "Hasil dikunci permanen dan tidak bisa diubah lagi."
+      },
+      "done": {
+        "ACTIVE": "{{name}} sedang berjalan.",
+        "COMPLETED": "{{name}} selesai.",
+        "LOCKED": "Hasil {{name}} dikunci."
+      }
+    },
+    "mine": {
+      "title": "UAT Anda",
+      "subtitle": "UAT yang Anda ikuti. Pilih salah satu untuk mulai menguji.",
+      "start": "Kerjakan skenario",
+      "easyMode": "Buka Mode Mudah kelompok",
+      "report": "Laporkan masalah",
+      "features": "Fitur yang diuji",
+      "empty": "Anda belum ditambahkan ke UAT mana pun. Hubungi Admin proyek.",
+      "emptyTitle": "Belum ada UAT untuk Anda"
+    },
+    "features": {
+      "summary_one": "UAT ini menguji {{count}} fitur dari {{phase}}.",
+      "summary_other": "UAT ini menguji {{count}} fitur dari {{phase}}.",
+      "edit": "Ubah fitur yang diuji",
+      "editTitle": "Fitur yang diuji di UAT ini",
+      "editHint": "Skenario Siap dari fitur yang dicentang ikut otomatis. Fitur yang dilepas membawa skenario yang belum dicoba; hasil yang sudah ada tetap tersimpan.",
+      "saved": "Fitur UAT disimpan."
+    },
+    "create": {
+      "subtitle": "Tiga langkah: pilih Fase, pilih fiturnya, beri nama.",
+      "step1": "Pilih Fase",
+      "step1Hint": "UAT menguji skenario dari satu Fase.",
+      "step2": "Pilih fitur",
+      "step2Hint": "Skenario Siap dari fitur ini ikut otomatis, termasuk yang nanti ditandai Siap.",
+      "step3": "Nama dan jadwal",
+      "step3Hint": "Jadwal boleh dikosongkan.",
+      "pickPhaseFirst": "Pilih Fase dulu di langkah 1.",
+      "noFeatures": "Fase ini belum punya folder fitur. Tambahkan fitur dan skenario di Fase tersebut.",
+      "noReady": "Belum ada skenario Siap",
+      "readyOf_one": "{{ready}} siap dari {{count}} skenario",
+      "readyOf_other": "{{ready}} siap dari {{count}} skenario",
+      "all": "Pilih semua",
+      "none": "Kosongkan",
+      "willTake_one": "{{count}} skenario Siap akan masuk ke UAT ini.",
+      "willTake_other": "{{count}} skenario Siap akan masuk ke UAT ini.",
+      "defaultName": "UAT {{n}} – {{phase}}",
+      "nameHint": "Kosongkan untuk memakai \"{{name}}\".",
+      "choosePhase": "Pilih Fase dulu.",
+      "chooseFeatures": "Pilih minimal satu fitur.",
+      "dateOrder": "Waktu selesai harus setelah waktu mulai.",
+      "submit": "Buat UAT",
+      "noPhasesTitle": "Belum ada Fase",
+      "noPhases": "UAT dibuat dari sebuah Fase. Buat Fase dan isi skenarionya dulu."
+    },
+    "groups": {
+      "number": "Nomor meja",
+      "numberHint": "Angka 1–999, tercetak di kartu. Boleh kosong.",
+      "tableNumber": "Meja {{number}}",
+      "tableShort": "Meja"
+    },
+    "people": {
+      "title_one": "Peserta ({{count}})",
+      "title_other": "Peserta ({{count}})",
+      "intro": "Orang yang menguji di UAT ini. Yang punya e-mail mendapat akun dan melihat UAT ini di \"UAT saya\"; yang tanpa e-mail memakai kartu kelompoknya.",
+      "none": "Belum ada peserta. Tambahkan lewat formulir di samping.",
+      "listLabel": "Daftar peserta",
+      "noEmail": "Tanpa e-mail (pakai kartu kelompok)",
+      "notActivated": "Akun belum aktif",
+      "groupOf": "Kelompok {{name}}",
+      "noGroup": "Belum masuk kelompok",
+      "remove": "Keluarkan {{name}} dari UAT",
+      "removeTitle": "Keluarkan {{name}} dari UAT ini?",
+      "removeBody": "Hasil uji yang sudah diisi tetap tersimpan. Akunnya tidak dihapus.",
+      "removed": "{{name}} dikeluarkan dari UAT.",
+      "moved": "{{name}} masuk {{group}}.",
+      "ungrouped": "{{name}} dikeluarkan dari kelompok.",
+      "addTitle": "Tambah peserta",
+      "addHint": "Satu orang per baris: nama, lalu e-mail bila ada.",
+      "list": "Nama dan e-mail",
+      "listPlaceholder": "Bu Sri, sri@contoh.go.id\nPak Budi",
+      "listHint": "Orang yang sudah ada tidak ditambahkan dua kali.",
+      "intoGroup": "Masukkan ke kelompok",
+      "add": "Tambahkan",
+      "added_one": "{{count}} peserta ditambahkan.",
+      "added_other": "{{count}} peserta ditambahkan.",
+      "empty": "Tulis minimal satu nama.",
+      "duplicate": "Baris {{row}}: nama atau e-mail ini sudah ada di daftar.",
+      "invalidRow": "Baris {{row}} belum benar. Periksa nama dan e-mail."
+    },
+    "public": {
+      "bugsElsewhere": "Daftar masalah tampil lewat Bug Reporting, dengan saklar ON/OFF sendiri.",
+      "bugsLink": "Atur Bug Reporting publik"
+    }
+  },
+  "bugReporting": {
+    "title": "Bug Reporting",
+    "subtitle": "Semua masalah proyek di satu tempat: dari UAT dan, setelah go-live, dari masyarakat.",
+    "tabsLabel": "Bagian Bug Reporting",
+    "tabs": {
+      "list": "Daftar masalah",
+      "reports": "Laporan publik",
+      "public": "Tampilan publik"
+    },
+    "publicOn": "Publik: ON",
+    "publicOff": "Publik: OFF",
+    "reports": {
+      "intro": "Laporan dari formulir publik. Tidak ada yang tampil sebelum Anda tinjau: tandai sudah ditinjau, gabungkan dengan masalah yang sama, atau buang bila bukan masalah.",
+      "empty": "Tidak ada laporan publik yang menunggu.",
+      "anonymous": "Pengunjung (tanpa nama)",
+      "contact": "kontak",
+      "discard": "Buang laporan",
+      "discardTitle": "Buang laporan {{code}}?",
+      "discardBody": "Laporan ini dihapus dan tidak akan tampil. Pakai untuk laporan iseng, uji coba, atau salah tempat.",
+      "discarded": "Laporan {{code}} dibuang."
+    },
+    "public": {
+      "howTitle": "Cara membuka Bug Reporting untuk publik",
+      "how": {
+        "step1": "Nyalakan saklar \"Tampilkan Bug Reporting\".",
+        "step2": "Pilih data masalah yang boleh dilihat (mulai dari \"Daftar masalah\").",
+        "step3": "Bila perlu, buka formulir lapor agar masyarakat bisa melapor. Setiap laporan Anda tinjau dulu."
+      },
+      "mainTitle": "Saklar publik",
+      "main": "Tampilkan Bug Reporting di halaman publik",
+      "mainOn": "Masyarakat bisa melihat daftar masalah sesuai pilihan di bawah.",
+      "mainOff": "Tersembunyi. Hanya Admin yang bisa melihat.",
+      "form": "Buka formulir lapor untuk publik",
+      "formOn": "Masyarakat bisa mengirim laporan. Laporan tampil setelah Anda tinjau.",
+      "formOff": "Formulir lapor tertutup.",
+      "formNeedsPublic": "Formulir lapor hanya terlihat bila Bug Reporting ditampilkan di publik.",
+      "intro": "Pengantar untuk pengunjung",
+      "introHint": "Mis. cara melapor, jam layanan, atau kapan masalah ditanggapi.",
+      "privacy": "Nama dan kontak pelapor publik tidak pernah tampil. Nyalakan \"Pelapor\" atau \"Foto layar\" hanya bila aman.",
+      "savedOn": "Bug Reporting tampil di publik.",
+      "savedOff": "Bug Reporting disembunyikan dari publik."
     }
   }
 }

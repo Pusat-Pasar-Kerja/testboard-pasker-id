@@ -1,15 +1,6 @@
 import { MEMBER_TASKS, type MemberDto, type MemberRole, type MemberTask } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  Eye,
-  FlaskConical,
-  Info,
-  KeyRound,
-  UserMinus,
-  UserPlus,
-  Wrench,
-  type LucideIcon,
-} from 'lucide-react'
+import { FlaskConical, Info, KeyRound, UserMinus, UserPlus, type LucideIcon } from 'lucide-react'
 import { useId, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router'
@@ -34,8 +25,6 @@ const isTask = (role: MemberRole): role is MemberTask =>
 
 const TASK_ICONS: Record<MemberTask, LucideIcon> = {
   TESTER: FlaskConical,
-  DEVELOPER: Wrench,
-  VIEWER: Eye,
 }
 
 /** Two-tab link bar shared by the members and project settings pages. */
@@ -131,7 +120,11 @@ function AddMemberForm({ code }: { code: string }) {
         event.preventDefault()
         if (email.trim() && (!needsName || name.trim())) add.mutate()
       }}
-      className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_12rem_auto]"
+      className={`grid grid-cols-1 items-end gap-3 ${
+        MEMBER_TASKS.length > 1
+          ? 'sm:grid-cols-[minmax(0,1fr)_12rem_auto]'
+          : 'sm:grid-cols-[minmax(0,1fr)_auto]'
+      }`}
     >
       <TextField
         label={t('fields.email')}
@@ -144,19 +137,22 @@ function AddMemberForm({ code }: { code: string }) {
         }}
         hint={t('pages.members.emailHint')}
       />
-      <SelectField
-        label={t('fields.role')}
-        required
-        value={role}
-        onChange={(e) => setRole(e.target.value as MemberTask)}
-        options={MEMBER_TASKS.map((r) => ({ value: r, label: t(`codes.role.${r}`) }))}
-        className="sm:pb-5"
-      />
+      {/* One kind of member (ADR 0019): nothing to choose. */}
+      {MEMBER_TASKS.length > 1 && (
+        <SelectField
+          label={t('fields.role')}
+          required
+          value={role}
+          onChange={(e) => setRole(e.target.value as MemberTask)}
+          options={MEMBER_TASKS.map((r) => ({ value: r, label: t(`codes.role.${r}`) }))}
+          className="sm:pb-5"
+        />
+      )}
       <Button type="submit" icon={UserPlus} loading={add.isPending} className="sm:mb-5">
         {t('actions.add')}
       </Button>
       {needsName && (
-        <div className="space-y-2 sm:col-span-3">
+        <div className="space-y-2 sm:col-span-full">
           <p className="flex gap-2 rounded-xl bg-pastel-sky p-3 text-sm text-pastel-sky-ink">
             <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
             {t('pages.members.nameHint')}
@@ -170,7 +166,7 @@ function AddMemberForm({ code }: { code: string }) {
           />
         </div>
       )}
-      <div className="sm:col-span-3">
+      <div className="sm:col-span-full">
         <FormAlert message={add.isError && !noAccountError ? apiErrorText(t, add.error) : null} />
       </div>
     </form>
@@ -246,30 +242,37 @@ function MemberRow({
       <div className="flex items-center gap-2">
         {manage ? (
           <>
-            <label htmlFor={selectId} className="sr-only">
-              {t('pages.members.roleLabel', { name })}
-            </label>
-            <select
-              id={selectId}
-              value={member.role_code}
-              disabled={changeRole.isPending}
-              onChange={(e) => {
-                const next = e.target.value as MemberRole
-                if (isTask(next) && next !== member.role_code) setPendingRole(next)
-              }}
-              className="min-h-11 rounded-lg border border-line-strong bg-surface px-3 text-sm"
-            >
-              {!isTask(member.role_code) && (
-                <option value={member.role_code} disabled>
-                  {t(`codes.role.${member.role_code}`)}
-                </option>
-              )}
-              {MEMBER_TASKS.map((r) => (
-                <option key={r} value={r}>
-                  {t(`codes.role.${r}`)}
-                </option>
-              ))}
-            </select>
+            {/* One kind of member only (ADR 0019): a task is chosen only to fix an old role. */}
+            {isTask(member.role_code) && MEMBER_TASKS.length === 1 ? (
+              <Badge tone="neutral" label={t(`codes.role.${member.role_code}`)} />
+            ) : (
+              <>
+                <label htmlFor={selectId} className="sr-only">
+                  {t('pages.members.roleLabel', { name })}
+                </label>
+                <select
+                  id={selectId}
+                  value={member.role_code}
+                  disabled={changeRole.isPending}
+                  onChange={(e) => {
+                    const next = e.target.value as MemberRole
+                    if (isTask(next) && next !== member.role_code) setPendingRole(next)
+                  }}
+                  className="min-h-11 rounded-lg border border-line-strong bg-surface px-3 text-sm"
+                >
+                  {!isTask(member.role_code) && (
+                    <option value={member.role_code} disabled>
+                      {t(`codes.role.${member.role_code}`)}
+                    </option>
+                  )}
+                  {MEMBER_TASKS.map((r) => (
+                    <option key={r} value={r}>
+                      {t(`codes.role.${r}`)}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
             {member.user.is_active && !member.user.has_password && (
               <Button variant="secondary" icon={KeyRound} onClick={() => setLinkOpen(true)}>
                 <span className="hidden sm:inline">{t('workshop.tables.activationLink')}</span>

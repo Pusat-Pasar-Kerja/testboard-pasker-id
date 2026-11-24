@@ -151,6 +151,7 @@ async function sessionDto(db: Db, ctx: TableContext): Promise<WorkshopSessionDto
     table: {
       id: tableId,
       name: ctx.table.name,
+      table_number: ctx.table.table_number === null ? null : Number(ctx.table.table_number),
       member_names: members.map((m) => m.display_name),
       members: members.map(sessionMemberDto),
     },

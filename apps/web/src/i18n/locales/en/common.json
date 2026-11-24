@@ -20,7 +20,7 @@
     "dashboard": "Project home",
     "testCases": "Test scenarios",
     "cycles": "Test phases",
-    "runs": "Test sheets",
+    "runs": "UATs",
     "bugs": "Problems",
     "evidence": "Photos & evidence",
     "imports": "Import from Excel",
@@ -31,7 +31,7 @@
     "profile": "My profile",
     "adminUsers": "Administration",
     "settings": "Features & groups",
-    "members": "Members & tasks",
+    "members": "Members",
     "adminSection": "Administration",
     "adminProjects": "Projects",
     "adminUsersShort": "Users",
@@ -39,7 +39,7 @@
     "adminAudit": "Activity log",
     "adminRecovery": "Account recovery",
     "openRequests": "new requests",
-    "workshop": "Workshop & tables",
+    "workshop": "UAT",
     "guide": "Guide",
     "publicSite": "Public site",
     "myTasks": "My tasks",
@@ -56,7 +56,8 @@
       "evidence": "Evidence",
       "reports": "Report",
       "members": "Members & Roles",
-      "settings": "Modules & Suites"
+      "settings": "Modules & Suites",
+      "bugReporting": "Problem reports"
     },
     "group": {
       "prepare": "1. Preparation",
@@ -65,12 +66,26 @@
       "manage": "4. Settings"
     },
     "projectList": "My projects",
-    "adminEyebrow": "Website management"
+    "adminEyebrow": "Website management",
+    "phases": "Phases",
+    "allPhases": "All phases",
+    "uat": "UAT",
+    "allUats": "All UATs",
+    "myUat": "My UATs",
+    "uatCount": "UATs",
+    "bugReporting": "Bug Reporting",
+    "collapse": "Close folder {{name}}",
+    "expand": "Open folder {{name}}",
+    "featuresOf": "Features in {{name}}",
+    "noFeatures": "No features yet",
+    "scenarioCount": "scenarios",
+    "waitingReports": "public reports waiting for review",
+    "youArePengguna": "You are a User in this project"
   },
   "shell": {
     "skipToContent": "Skip to main content",
     "project": "Project",
-    "search": "Search scenarios, problems, test sheets…",
+    "search": "Search scenarios, problems, UATs…",
     "searchLabel": "Search this project",
     "signedInAs": "Signed in as {{name}}",
     "signOutDemo": "Leave demo",
@@ -123,12 +138,13 @@
     "type": "Type",
     "status": "Status",
     "severity": "Impact",
-    "run": "Test sheet",
+    "run": "UAT",
     "all": "All",
-    "allRuns": "All test sheets",
+    "allRuns": "All UATs",
     "openOnly": "Not done yet",
     "fileStatus": "File status",
-    "cycle": "Phase"
+    "cycle": "Phase",
+    "phase": "Phase"
   },
   "codes": {
     "execution": {
@@ -196,7 +212,7 @@
     "role": {
       "ADMIN": "Admin",
       "QA_LEAD": "QA Lead (old role)",
-      "TESTER": "Tester",
+      "TESTER": "User",
       "DEVELOPER": "Developer",
       "VIEWER": "Observer"
     },
@@ -208,7 +224,8 @@
     "defectSource": {
       "UAT": "UAT",
       "USER_REPORT": "User report",
-      "OTHER": "Other"
+      "OTHER": "Other",
+      "PUBLIC": "Public report"
     },
     "cycleStatus": {
       "PLANNED": "Planned",
@@ -255,7 +272,7 @@
     },
     "auditEntity": {
       "test_case": "Test scenario",
-      "test_run": "Test sheet",
+      "test_run": "UAT",
       "test_execution": "Test result",
       "test_cycle": "Test phase",
       "test_suite": "Scenario group",
@@ -271,7 +288,7 @@
       "system_setting": "Site settings",
       "recovery_request": "Account recovery request",
       "reset_link": "Password link",
-      "workshop_table": "Workshop table"
+      "workshop_table": "Group"
     },
     "auditAction": {
       "CREATE": "Created",
@@ -292,7 +309,7 @@
       "ACTIVATE": "Account activated"
     },
     "roleHelp": {
-      "TESTER": "Runs the assigned test scenarios, records results and reports problems.",
+      "TESTER": "Opens the UATs they were added to, tries their scenarios, records results and reports problems.",
       "DEVELOPER": "Sees reported problems, fixes them and updates the fix status.",
       "VIEWER": "Sees progress, results and reports without changing anything. Suits leaders."
     },
@@ -304,7 +321,7 @@
     "systemRoleHelp": {
       "SUPER_ADMIN": "Full power: invites users, configures the website, and everything an Admin can do.",
       "ADMIN": "Creates and manages every project: phases, features, scenarios, tables, public view and problem review.",
-      "NONE": "Only opens the projects they are a member of, according to their task (Tester, Developer or Observer)."
+      "NONE": "User: only opens the UATs they were added to, tries their scenarios and reports problems."
     }
   },
   "fields": {
@@ -345,7 +362,7 @@
     "actualBehavior": "Actual behaviour",
     "browser": "Browser",
     "fixedIn": "Fixed in version",
-    "run": "Test sheet",
+    "run": "UAT",
     "name": "Name",
     "attempt": "Attempt #{{n}}",
     "result": "Result",
@@ -361,7 +378,7 @@
     "referenceDocument": "Reference document",
     "referenceVersion": "Document version",
     "accountStatus": "Account status",
-    "runCode": "Test sheet code",
+    "runCode": "UAT code",
     "cycleCode": "Phase code",
     "startsOn": "Start date",
     "endsOn": "End date",
@@ -372,9 +389,11 @@
     "actualResult": "Actual result",
     "executionKind": "Attempt type",
     "tester": "Tester",
-    "runCount": "Test sheets",
+    "runCount": "UATs",
     "severityHint": "How badly users are affected. Critical: the service cannot be used at all.",
-    "priorityHint": "How soon it must be fixed. It can differ from the impact."
+    "priorityHint": "How soon it must be fixed. It can differ from the impact.",
+    "phase": "Phase",
+    "feature": "Feature"
   },
   "pages": {
     "login": {
@@ -394,12 +413,12 @@
       "subtitle": "Choose a project to start working. Users only see the projects they are a member of.",
       "cases_one": "{{count}} test scenario",
       "cases_other": "{{count}} test scenarios",
-      "runs_one": "{{count}} test sheet",
-      "runs_other": "{{count}} test sheets",
+      "runs_one": "{{count}} UAT",
+      "runs_other": "{{count}} UATs",
       "openBugs_one": "{{count}} open problem",
       "openBugs_other": "{{count}} open problems",
       "yourRole": "Your task: {{role}}",
-      "empty": "You are not a member of any project yet. Ask an Admin to add you, or open My tasks if you are listed at a workshop table.",
+      "empty": "You are not a member of any project yet. Ask an Admin to add you, or open My tasks if you are listed at a group.",
       "create": "Create project",
       "emptyAdminTitle": "No projects yet",
       "emptyAdmin": "Create the first project, then follow the \"Start here\" steps on the project home.",
@@ -419,20 +438,20 @@
       "kpiOpenBugs": "Open problems",
       "kpiCriticalHigh": "Critical & high problems",
       "statusHeading": "Latest test scenario status",
-      "statusNote": "Counted from the latest attempt of each test scenario in a test sheet. Retests are not counted twice; \"Could not try\", \"Skipped\" and \"Not tried yet\" never count as \"As expected\".",
+      "statusNote": "Counted from the latest attempt of each test scenario in a UAT. Retests are not counted twice; \"Could not try\", \"Skipped\" and \"Not tried yet\" never count as \"As expected\".",
       "statusBarLabel": "Latest status distribution: {{summary}}",
       "severityHeading": "Open problems by impact",
       "severityBarLabel": "{{severity}}: {{count}} open problems",
-      "runsHeading": "Test sheet progress",
+      "runsHeading": "UAT progress",
       "recentBugs": "Recent problems",
-      "noRuns": "No test sheets in this project yet.",
+      "noRuns": "No UATs in this project yet.",
       "noBugs": "No problems in this project yet.",
-      "noRunCases": "No test scenarios have been scheduled in a test sheet yet.",
+      "noRunCases": "No test scenarios have been scheduled in a UAT yet.",
       "subtitle": "Summary of the testing progress and problems in this project."
     },
     "cases": {
       "title": "Test scenarios",
-      "subtitle": "The steps to try and the expected results. Results are recorded in Test sheets or at workshop tables.",
+      "subtitle": "The steps to try and the expected result. Results are recorded in a UAT.",
       "searchPlaceholder": "Search code or title…",
       "empty": "No test scenarios in this project yet.",
       "emptyFiltered": "No test scenarios match the filters.",
@@ -441,13 +460,13 @@
     "caseDetail": {
       "tabOverview": "Overview",
       "tabRevisions": "Revisions",
-      "tabRuns": "Used in test sheets",
+      "tabRuns": "Used in UATs",
       "revision": "Revision {{n}}",
       "noRevisions": "No revisions yet.",
-      "notUsed": "This test scenario has not been used in any test sheet yet.",
+      "notUsed": "This test scenario has not been used in any UAT yet.",
       "stepsPreserved": "Step text is shown exactly as in the source.",
       "archiveTitle": "Archive {{code}}?",
-      "archiveBody": "The scenario is hidden from the active list. Its test sheet history and revisions are kept, and it can be restored.",
+      "archiveBody": "The scenario is hidden from the active list. Its UAT history and revisions are kept, and it can be restored.",
       "archived": "{{code}} archived.",
       "restored": "{{code}} restored as Draft.",
       "cloned": "Duplicate {{code}} created as Draft.",
@@ -455,60 +474,60 @@
       "files": "Reference documents"
     },
     "runs": {
-      "title": "Test sheets",
-      "subtitle": "A test sheet holds the scenarios assigned to individual testers. For group testing at tables, use Workshop & tables.",
-      "empty": "No test sheets in this project yet.",
-      "newRun": "New test sheet"
+      "title": "UATs",
+      "subtitle": "A UAT holds the scenarios assigned to individual testers. For group testing at tables, use UAT.",
+      "empty": "No UATs in this project yet.",
+      "newRun": "New UAT"
     },
     "runDetail": {
-      "casesHeading": "Test scenarios in this test sheet",
-      "snapshotNote": "Title and version come from the copy saved when the scenario was added to this test sheet, so later edits never change past results.",
+      "casesHeading": "Test scenarios in this UAT",
+      "snapshotNote": "Title and version come from the copy saved when the scenario was added to this UAT, so later edits never change past results.",
       "emptyFiltered": "No test scenarios with this status.",
       "unassigned": "Unassigned",
-      "empty": "This test sheet has no test scenarios yet.",
-      "start": "Start test sheet",
-      "complete": "Complete test sheet",
+      "empty": "This UAT has no test scenarios yet.",
+      "start": "Start UAT",
+      "complete": "Complete UAT",
       "reopen": "Reopen",
-      "lock": "Lock test sheet",
+      "lock": "Lock UAT",
       "confirm": {
-        "ACTIVE": "Start test sheet {{code}}?",
-        "COMPLETED": "Complete test sheet {{code}}?",
-        "REOPEN": "Reopen test sheet {{code}}?",
-        "LOCKED": "Lock test sheet {{code}}?"
+        "ACTIVE": "Start UAT {{code}}?",
+        "COMPLETED": "Complete UAT {{code}}?",
+        "REOPEN": "Reopen UAT {{code}}?",
+        "LOCKED": "Lock UAT {{code}}?"
       },
       "confirmBody": {
         "ACTIVE": "Once started, testers can record results. Test scenarios can still be added.",
-        "COMPLETED": "Results can no longer be recorded until the test sheet is reopened.",
-        "REOPEN": "The test sheet becomes active again so testers can retest.",
-        "LOCKED": "A locked test sheet is final: results, test scenarios and assignments can no longer change. This cannot be undone."
+        "COMPLETED": "Results can no longer be recorded until the UAT is reopened.",
+        "REOPEN": "The UAT becomes active again so testers can retest.",
+        "LOCKED": "A locked UAT is final: results, test scenarios and assignments can no longer change. This cannot be undone."
       },
-      "statusChanged": "Test sheet status is now: {{status}}.",
+      "statusChanged": "UAT status is now: {{status}}.",
       "notice": {
-        "PLANNED": "The test sheet has not started. Add test scenarios and assign testers, then start the test sheet.",
-        "COMPLETED": "The test sheet is complete. Reopen it for retests, or lock it once the results are approved.",
-        "LOCKED": "The test sheet is locked and final."
+        "PLANNED": "The UAT has not started. Add test scenarios and assign testers, then start the UAT.",
+        "COMPLETED": "The UAT is complete. Reopen it for retests, or lock it once the results are approved.",
+        "LOCKED": "The UAT is locked and final."
       },
       "addCases": "Add test scenarios",
-      "addHeading": "Add test scenarios to the test sheet",
-      "addHint": "Only Ready test scenarios can be added. A copy of each one is saved with the test sheet.",
+      "addHeading": "Add test scenarios to the UAT",
+      "addHint": "Only Ready test scenarios can be added. A copy of each one is saved with the UAT.",
       "addSearch": "Search code or title",
       "addAssignee": "Assign to",
       "addSubmit": "Add ({{count}})",
       "addEmpty": "No matching Ready test scenarios.",
-      "inRun": "Already in test sheet",
+      "inRun": "Already in UAT",
       "added": "{{added}} test scenarios added.",
-      "addedSkipped": "{{added}} added, {{skipped}} skipped (already in the test sheet or not Ready).",
+      "addedSkipped": "{{added}} added, {{skipped}} skipped (already in the UAT or not Ready).",
       "selectAll": "Select all test scenarios",
       "selectRow": "Select {{code}}",
       "selected": "{{count}} selected",
       "assignApply": "Apply",
       "assigned": "{{count}} test scenarios assigned to {{name}}.",
       "unassignedDone": "Unassigned {{count}} test scenarios.",
-      "removeSelected": "Remove from test sheet",
-      "removeTitle": "Remove {{count}} test scenarios from the test sheet?",
+      "removeSelected": "Remove from UAT",
+      "removeTitle": "Remove {{count}} test scenarios from the UAT?",
       "removeBody": "They can be added again later. The test scenario history is kept.",
       "removeBlocked": "Test scenarios that already have results cannot be removed.",
-      "removed": "{{count}} test scenarios removed from the test sheet.",
+      "removed": "{{count}} test scenarios removed from the UAT.",
       "assigneeFilter": "Assignment",
       "myTasks": "My tasks",
       "continueTesting": "Continue testing"
@@ -581,19 +600,20 @@
       "newTitle": "Create test scenario",
       "editTitle": "Edit {{code}}",
       "codeHint": "Leave empty to generate one, e.g. UAT-AUTH-001.",
-      "statusHint": "Draft scenarios are not used in test sheets yet; Ready scenarios can be added to a test sheet.",
+      "statusHint": "Draft scenarios are not used in UATs yet; Ready scenarios can be added to a UAT.",
       "stepsHint": "One step per line, starting with a number (1., 2., ...). Text is stored as written.",
       "changeReason": "Reason for change",
       "changeReasonHint": "Recorded in the revision history.",
-      "versionNote": "Saving creates version {{next}}. Test sheets already in progress keep their own version.",
+      "versionNote": "Saving creates version {{next}}. UATs already in progress keep their own version.",
       "noModule": "No feature",
       "noSuite": "No scenario group",
       "created": "Test scenario {{code}} created.",
-      "saved": "Changes saved (version {{version}})."
+      "saved": "Changes saved (version {{version}}).",
+      "phaseHint": "The phase folder this scenario is saved in. UATs of that phase use it automatically once it is Ready."
     },
     "members": {
-      "title": "Members & tasks",
-      "subtitle": "Who takes part in this project and what their task is.",
+      "title": "Project members",
+      "subtitle": "Users who can open this project. They see the UATs they were added to.",
       "addTitle": "Add a member",
       "emailHint": "If this person has no account yet, you will be asked for their name to create one.",
       "added": "{{name}} added as {{role}}.",
@@ -603,7 +623,7 @@
       "removed": "{{name}} was removed from the project.",
       "you": "You",
       "inactive": "Inactive",
-      "readOnly": "Only an Admin can change members and their tasks.",
+      "readOnly": "Only Admins can change the members.",
       "roleLabel": "Task of {{name}}",
       "nameLabel": "Full name",
       "nameHint": "There is no account with this e-mail yet. Enter the name and press Add to create one. The person activates it with an activation link.",
@@ -612,7 +632,7 @@
       "changeTitle": "Change the task of {{name}}?",
       "changeBody": "New task: {{role}}. {{help}}",
       "change": "Change task",
-      "tasksTitle": "Three tasks you can give",
+      "tasksTitle": "Kind of member",
       "adminsNote": "Admins and Super Admins can manage every project, so they do not need to be added here."
     },
     "projectSettings": {
@@ -687,38 +707,38 @@
     },
     "cycles": {
       "title": "Test phases",
-      "subtitle": "A phase is one round of testing in a given period (e.g. UAT Stage 1). Test sheets and workshop tables always belong to a phase.",
+      "subtitle": "A phase is one round of testing in a given period (e.g. UAT Stage 1). UATs and groups always belong to a phase.",
       "empty": "No test phases in this project yet.",
       "newHeading": "New phase",
       "codeHint": "Capital letters, digits and hyphens. Example: PHASE-1 or UAT-STAGE-1",
       "created": "Phase {{code}} created.",
       "updated": "Phase {{code}} updated.",
       "statusLabel": "Status of phase {{code}}",
-      "runs": "{{count}} test sheets",
+      "runs": "{{count}} UATs",
       "dateOrder": "The end date must not be before the start date.",
       "edit": "Edit",
       "editTitle": "Edit phase {{code}}",
-      "editCodeHint": "Letters, numbers, dot, dash or underscore (e.g. PHASE-1). Existing test sheets and problems stay linked to this phase.",
+      "editCodeHint": "Letters, numbers, dot, dash or underscore (e.g. PHASE-1). Existing UATs and problems stay linked to this phase.",
       "statusConfirmTitle": "Change {{code}} to {{status}}?",
-      "statusConfirmBody": "The phase status tells whether its test sheets and tables are being worked on. It can be changed again any time.",
+      "statusConfirmBody": "The phase status tells whether its UATs and tables are being worked on. It can be changed again any time.",
       "statusConfirm": "Change status"
     },
     "runForm": {
-      "newTitle": "New test sheet",
-      "editTitle": "Edit test sheet {{code}}",
+      "newTitle": "New UAT",
+      "editTitle": "Edit UAT {{code}}",
       "codeHint": "Leave empty to generate one (RUN-YYYYMMDD-N).",
       "noCycle": "No phase",
       "urlHint": "Address of the site under test, starting with https://",
       "invalidUrl": "The URL must start with http:// or https://",
-      "created": "Test sheet {{code}} created. Add test scenarios, then start the test sheet.",
-      "saved": "Test sheet changes saved."
+      "created": "UAT {{code}} created. Add test scenarios, then start the UAT.",
+      "saved": "UAT changes saved."
     },
     "execution": {
       "scenarioTab": "Scenario",
       "resultTab": "Record result",
       "historyTab": "History",
-      "snapshotVersion": "Version {{version}} (saved with the test sheet)",
-      "newerVersion": "The test scenario was updated to version {{current}} after it was added to the test sheet. This page keeps using version {{version}} so results stay consistent.",
+      "snapshotVersion": "Version {{version}} (saved with the UAT)",
+      "newerVersion": "The test scenario was updated to version {{current}} after it was added to the UAT. This page keeps using version {{version}} so results stay consistent.",
       "noSteps": "Steps are not numbered. Follow the step text above.",
       "stepLabel": "Step {{n}}",
       "stepResult": "Result of step {{n}}",
@@ -740,9 +760,9 @@
       "prev": "Previous test scenario",
       "next": "Next test scenario",
       "locked": {
-        "PLANNED": "The test sheet has not started. Results can be recorded once an Admin starts the test sheet.",
-        "COMPLETED": "The test sheet is complete. Ask an Admin to reopen it for retests.",
-        "LOCKED": "The test sheet is locked. Results cannot change."
+        "PLANNED": "The UAT has not started. Results can be recorded once an Admin starts the UAT.",
+        "COMPLETED": "The UAT is complete. Ask an Admin to reopen it for retests.",
+        "LOCKED": "The UAT is locked. Results cannot change."
       },
       "notAssigned": "This test scenario is assigned to {{name}}. You can only record results for test scenarios assigned to you.",
       "notAssignedNobody": "This test scenario is not assigned yet. Ask an Admin to assign it to you.",
@@ -782,7 +802,7 @@
       "attemptFiles": "Include the evidence of attempt #{{n}}",
       "newFiles": "More evidence",
       "noCycle": "No phase",
-      "cycleFromRun": "Leave empty to use the phase of the test sheet where this problem was found."
+      "cycleFromRun": "Leave empty to use the phase of the UAT where this problem was found."
     },
     "evidence": {
       "title": "Photos & evidence",
@@ -870,8 +890,8 @@
       },
       "caseStatus": "Status of new test scenarios",
       "results": "Also migrate legacy UAT results",
-      "resultsHint": "Status, date, tester name (as text, no accounts are created) and embedded screenshots go into a new test sheet. Test scenarios become Ready.",
-      "runName": "Test sheet name",
+      "resultsHint": "Status, date, tester name (as text, no accounts are created) and embedded screenshots go into a new UAT. Test scenarios become Ready.",
+      "runName": "UAT name",
       "runEnvironment": "Environment",
       "runBuild": "Build/version",
       "check": "Check",
@@ -923,16 +943,16 @@
         "FAILED": "Import failed; no data was changed."
       },
       "summary": "{{created}} created · {{updated}} updated · {{unchanged}} unchanged · {{skipped}} skipped",
-      "summaryRun": "Test sheet {{code}}: {{executions}} results and {{images}} screenshots migrated",
+      "summaryRun": "UAT {{code}}: {{executions}} results and {{images}} screenshots migrated",
       "imagesNotUsed": "{{count}} images not used",
-      "openRun": "Open test sheet",
+      "openRun": "Open UAT",
       "openCases": "View test scenarios",
       "failure": {
         "COMMIT_FAILED": "Something went wrong while applying; all changes were rolled back.",
         "INTERRUPTED": "The server stopped while applying; all changes were rolled back."
       },
       "noDataRows": "No data rows below the header. Check the header row number and the selected sheets.",
-      "applyRun": "Old results go into a new completed test sheet \"{{name}}\".",
+      "applyRun": "Old results go into a new completed UAT \"{{name}}\".",
       "summaryInvalid": "{{count}} invalid",
       "codeConflict": "When a code is already used by another test scenario",
       "codeConflictHint": "E.g. the hidden \"... 3\" sheet uses UAT-LPL-001 for different content. New code = the next number in that feature; the original code is kept in the history.",
@@ -970,11 +990,11 @@
         "rangeInvalid": "The end date is before the start date; the end date is ignored."
       },
       "howTitle": "How numbers are counted",
-      "how1": "Each test scenario in a test sheet counts once, by its latest attempt. Retests are not counted twice.",
-      "how2": "Share as expected = the number of \"As expected\" divided by all test scenarios in the test sheets. \"Not tried yet\", \"Could not try\" and \"Skipped\" never count as \"As expected\".",
-      "how3": "Periods are calendar days in WIB (UTC+7): test sheets whose period overlaps, attempts tested and problems reported within the range.",
+      "how1": "Each test scenario in a UAT counts once, by its latest attempt. Retests are not counted twice.",
+      "how2": "Share as expected = the number of \"As expected\" divided by all test scenarios in the UATs. \"Not tried yet\", \"Could not try\" and \"Skipped\" never count as \"As expected\".",
+      "how3": "Periods are calendar days in WIB (UTC+7): UATs whose period overlaps, attempts tested and problems reported within the range.",
       "kpi": {
-        "runCases": "Test scenarios in test sheets",
+        "runCases": "Test scenarios in UATs",
         "executed": "Tried",
         "passRate": "Share as expected",
         "attempts": "Attempts",
@@ -984,7 +1004,7 @@
       },
       "statusHeading": "Latest status",
       "byModule": "By feature",
-      "byRun": "By test sheet",
+      "byRun": "By UAT",
       "byTester": "By tester",
       "byTesterNote": "Every attempt a tester recorded, retests included.",
       "defectsHeading": "Open problems by impact",
@@ -994,7 +1014,7 @@
         "runCases": "Test scenarios",
         "status": "Status",
         "passRate": "% as expected",
-        "run": "Test sheet",
+        "run": "UAT",
         "period": "Period",
         "tester": "Tester",
         "attempts": "Attempts",
@@ -1011,7 +1031,7 @@
         "datasets": {
           "results": {
             "title": "Latest result per test scenario",
-            "hint": "One row per test scenario in a test sheet: latest status, tester and linked problems."
+            "hint": "One row per test scenario in a UAT: latest status, tester and linked problems."
           },
           "attempts": {
             "title": "All attempts",
@@ -1019,7 +1039,7 @@
           },
           "defects": {
             "title": "Problem list",
-            "hint": "Problems reported for these filters, with linked test scenarios and test sheets."
+            "hint": "Problems reported for these filters, with linked test scenarios and UATs."
           },
           "cases": {
             "title": "Test scenario library",
@@ -1039,7 +1059,7 @@
         "download": "Download",
         "downloaded": "{{name}} downloaded.",
         "tooLarge": "Too much data (more than 50,000 rows). Narrow the filters.",
-        "leadsOnly": "Only Admins and Observers can export data."
+        "leadsOnly": "Only Admins can export data."
       },
       "activity": {
         "heading": "Activity log",
@@ -1142,7 +1162,7 @@
     "permanentSuperAdmin": "The permanent Super Admin cannot be revoked or deactivated.",
     "server": {
       "resetLinkActive": "This account already has an active link. Revoke the old link first, or choose \"Revoke & create a new link\".",
-      "runLocked": "This test sheet is locked and can no longer be changed.",
+      "runLocked": "This UAT is locked and can no longer be changed.",
       "fileTooLarge": "The file is too large.",
       "chooseFile": "Choose a file first.",
       "codeUsed": "This code is already used. Use another code.",
@@ -1154,13 +1174,13 @@
       "tooManyRows": "Too much data. Narrow the filters and try again.",
       "alreadyMember": "This person is already a member of the project.",
       "assignedToOther": "This scenario is assigned to someone else.",
-      "tableNoRun": "This table has no test sheet yet. Ask the organisers.",
+      "tableNoRun": "This group is not in a UAT yet. Ask the organisers.",
       "tableHasAnswers": "This table already has answers, so it cannot be deleted. Block its card instead.",
       "projectArchived": "This project is archived and read-only.",
       "importNotReady": "This import is not ready to apply. Check the rows with problems first.",
       "importLocked": "This import was applied and is kept as history, so it cannot be changed.",
       "fileUnavailable": "This file is no longer available.",
-      "runNotActive": "Results can only be recorded while the test sheet is running.",
+      "runNotActive": "Results can only be recorded while the UAT is running.",
       "caseArchived": "This scenario is archived. Restore it before changing it.",
       "fileNotYours": "Only the uploader or an Admin can remove this file.",
       "evidenceNotYours": "You cannot add evidence here.",
@@ -1479,14 +1499,16 @@
       "draft": "Make draft",
       "set_module": "Move to feature",
       "set_priority": "Change priority",
-      "add_to_run": "Add to test sheet",
+      "add_to_run": "Add to UAT",
       "archive": "Archive",
-      "merge": "Merge (duplicates)"
+      "merge": "Merge (duplicates)",
+      "copy_to_phase": "Copy to phase…",
+      "move_to_phase": "Move to phase…"
     },
-    "noOpenRun": "No planned or active test sheet yet",
+    "noOpenRun": "No planned or active UAT yet",
     "archiveTitle_one": "Archive {{count}} test scenario?",
     "archiveTitle_other": "Archive {{count}} test scenarios?",
-    "archiveBody": "Archived test scenarios cannot be used in new test sheets. Old results stay, and a test scenario can be restored at any time.",
+    "archiveBody": "Archived test scenarios cannot be used in new UATs. Old results stay, and a test scenario can be restored at any time.",
     "noCode": "One selected item"
   },
   "merge": {
@@ -1500,7 +1522,7 @@
     "submit_other": "Merge {{count}} into {{code}}",
     "done": "{{codes}} merged into {{code}}.",
     "mergedInto": "This test scenario was merged into",
-    "mergedIntoHint": "Use that test scenario for new test sheets. If it was merged by mistake, restore this one.",
+    "mergedIntoHint": "Use that test scenario for new UATs. If it was merged by mistake, restore this one.",
     "mergedFrom_one": "Merged from:",
     "mergedFrom_other": "Merged from:"
   },
@@ -1585,14 +1607,10 @@
     "tableSignIn": "Sign in with a table card",
     "footer": "Pusat Pasar Kerja · Ministry of Manpower of the Republic of Indonesia",
     "period": "{{from}} - {{to}}",
-    "openCycle": "Open this phase",
     "eyebrow": "User acceptance testing (UAT) together",
     "title": "Together we make sure Labour Market services are ready for the public",
-    "subtitle": "See the test phases in progress, the features being tried and the problems found. Workshop participants sign in with a table card, no e-mail or password.",
+    "subtitle": "Here you can see the UATs in progress, the features being tried and the problems found. Participants sign in with their group's table card, without e-mail or password.",
     "howTo": "How to take part",
-    "cyclesTitle": "Open phases",
-    "cyclesSubtitle": "Choose a phase to see the features to test and the problem list.",
-    "noCycles": "No phase is open to the public yet. Please come back later.",
     "stepsTitle": "How to test at the workshop",
     "stepNumber": "Step {{n}}",
     "steps": {
@@ -1638,13 +1656,13 @@
     "bugConfirmations_one": "{{count}} also saw this",
     "bugConfirmations_other": "{{count}} also saw this",
     "photoOf": "Photo: {{name}}",
-    "notPublic": "This phase is not open to the public, or it was closed.",
-    "back": "Back to the phases",
+    "notPublic": "This UAT is not open to the public, or it has closed.",
+    "back": "Back to the front page",
     "featuresTab": "Features being tested",
     "bugsTab": "Problem list",
     "noFeatures": "No feature is open in this phase yet.",
     "joinAsTable": "I am a participant: sign in with a table card",
-    "nothingShared": "The organisers have not shared details of this phase yet.",
+    "nothingShared": "The organisers have not shared these details with the public yet.",
     "tabsLabel": "Phase content",
     "backToApp": "Open TestBoard",
     "previewTitle": "Preview.",
@@ -1655,9 +1673,8 @@
     "footerNav": "Footer links",
     "footerAbout": "{{name}} is where Pusat Pasar Kerja tests its services with users before the public uses them.",
     "totals": {
-      "title": "Summary of every open phase",
-      "subtitle": "Combined figures of the phases open to the public. Updated automatically every minute.",
-      "cycles": "Phases open",
+      "title": "Summary of every open UAT",
+      "subtitle": "Combined figures of the UATs and Bug Reporting open to the public. Updated automatically every minute.",
       "projects_one": "in {{count}} project",
       "projects_other": "in {{count}} projects",
       "tried": "Scenarios tried",
@@ -1667,7 +1684,40 @@
       "bugs": "Problems reported",
       "bugsHint_one": "{{open}} still being worked on",
       "bugsHint_other": "{{open}} still being worked on",
-      "partial": "Some phases do not show their progress or problem list, so they are not counted."
+      "partial": "Some UATs do not show their progress, so they are not counted.",
+      "uats": "Open UATs"
+    },
+    "openUat": "View this UAT",
+    "openBugs": "View the problem list",
+    "uatsTitle": "UATs open to the public",
+    "uatsSubtitle": "Testing the applications together with their users. Admins choose what is shown.",
+    "noUats": "No UAT is open to the public yet. Please come back later.",
+    "bugReporting": "Bug Reporting",
+    "bugReportingTitle": "Problem reports",
+    "bugReportingSubtitle": "Problems found during UAT and after the applications went live. You can report too.",
+    "bugCounts_one": "{{total}} problem, {{open}} still open",
+    "bugCounts_other": "{{total}} problems, {{open}} still open",
+    "bugsNotPublic": "The problem list of this project is not open to the public.",
+    "report": {
+      "open": "Report a problem",
+      "title2": "Report a problem",
+      "intro": "Tell us what happened. The team reviews every report before it shows in the list.",
+      "title": "Short title",
+      "titlePlaceholder": "e.g. The sign-up button does nothing",
+      "titleHint": "At least 5 letters.",
+      "description": "What happened?",
+      "descriptionHint": "At least 10 letters. Say what you did and what you saw.",
+      "feature": "Page or feature (if you know)",
+      "featurePlaceholder": "e.g. The sign-up page",
+      "name": "Your name",
+      "contact": "E-mail or phone number",
+      "contactHint": "So the team can ask you. Never shown.",
+      "privacy": "Your name and contact are only seen by Admins and never shown on the public pages.",
+      "send": "Send report",
+      "thanks": "Thank you, the report was received.",
+      "thanksBody": "The team will review it. Once reviewed, it may appear in the problem list.",
+      "another": "Send another report",
+      "tooMany": "Too many reports from this device. Please try again in a few minutes."
     }
   },
   "easy": {
@@ -1707,7 +1757,7 @@
         "OTHER": "Cannot sign in right now. Check the internet and try again."
       },
       "submit": "Sign in",
-      "noCard": "No table card yet? The organisers hand one out at every workshop table."
+      "noCard": "No table card yet? The organisers hand one out at every group."
     },
     "members": {
       "title": "Table members",
@@ -1727,8 +1777,8 @@
       "welcome": "Welcome, {{name}}",
       "intro": "You are testing {{cycle}} - {{project}}. Work through the features below one by one.",
       "validUntil": "Table card valid until {{date}}",
-      "runClosed": "The test sheet is not open yet or was closed. Wait for the organisers, then reload this page.",
-      "noRun": "This table has no test sheet yet. Please contact the organisers.",
+      "runClosed": "The UAT is not open yet or was closed. Wait for the organisers, then reload this page.",
+      "noRun": "This group is not in a UAT yet. Ask the organisers.",
       "featuresTitle": "Features for this table",
       "featuresHint": "Press the button on a feature to start. Progress is saved automatically.",
       "noFeatures": "The organisers have not chosen features for this table yet.",
@@ -1844,8 +1894,8 @@
       "pending_one": "{{count}} answer not sent yet. It is sent automatically when the internet is back.",
       "pending_other": "{{count}} answers not sent yet. They are sent automatically when the internet is back.",
       "sendNow": "Send now",
-      "rejected_one": "{{count}} answer could not be sent (the test sheet may be closed). Tell the organisers:",
-      "rejected_other": "{{count}} answers could not be sent (the test sheet may be closed). Tell the organisers:",
+      "rejected_one": "{{count}} answer could not be sent (the UAT may be closed). Tell the organisers:",
+      "rejected_other": "{{count}} answers could not be sent (the UAT may be closed). Tell the organisers:",
       "dismiss": "Close"
     },
     "footer": "TestBoard PASKER ID · Pusat Pasar Kerja, Ministry of Manpower",
@@ -1869,13 +1919,13 @@
     }
   },
   "workshop": {
-    "title": "Workshop mode: {{cycle}}",
+    "title": "UAT: {{cycle}}",
     "subtitle": "Set up participant tables, follow progress, tidy incoming problems and decide what the public may see.",
     "publicOn": "Open to the public",
     "publicOff": "Not public",
     "bigScreen": "Big screen",
     "publicPage": "Public page",
-    "tabsLabel": "Workshop mode sections",
+    "tabsLabel": "UAT sections",
     "tabs": {
       "board": "Board",
       "tables": "Tables",
@@ -1884,16 +1934,16 @@
       "features": "Features"
     },
     "notFound": "Phase not found.",
-    "indexSubtitle": "Choose the phase tested together with participants at workshop tables.",
+    "indexSubtitle": "Choose the phase tested together with participants at groups.",
     "noCycles": "No phase yet. Create one under Test phases first.",
     "makeCycle": "Open Test phases",
-    "open": "Open workshop mode",
+    "open": "Open UAT",
     "setup": {
       "title": "Workshop preparation",
       "intro": "Steps not done yet. This box disappears once everything is ticked.",
       "cases": "Test scenarios exist (menu Test scenarios or Import from Excel)",
-      "run": "A test sheet for this phase exists",
-      "active": "The test sheet has started (status Active)",
+      "run": "A UAT for this phase exists",
+      "active": "The UAT has started (status Active)",
       "tables": "Tables exist and each has features",
       "public": "Public view is set",
       "go": "Do it"
@@ -1918,7 +1968,7 @@
       "recentBug": "Reported a problem: {{title}}",
       "recentConfirm": "Also seen: {{title}}",
       "features": "Progress per feature",
-      "noFeatures": "No features yet. Add scenarios to a test sheet of this phase."
+      "noFeatures": "No features yet. Choose the features to test in the Features tab."
     },
     "tables": {
       "intro": "Each table gets a card with a QR code and a 6-digit code. Participants sign in without e-mail or password, only while the card is valid.",
@@ -1930,14 +1980,14 @@
       "createHint": "The card code is created automatically. Names can be entered now or later by the table itself.",
       "name": "Table name",
       "namePlaceholder": "e.g. Table 1",
-      "run": "Test sheet",
-      "noRuns": "This phase has no test sheet yet. Create one under Test sheets first.",
-      "runHint": "The table's scenarios come from this test sheet.",
+      "run": "UAT",
+      "noRuns": "This phase has no UAT yet. Create one under UATs first.",
+      "runHint": "The table's scenarios come from this UAT.",
       "noRun": "Not chosen",
       "features": "Features to test",
-      "featuresEmpty": "Choose a test sheet first; features come from its scenarios.",
+      "featuresEmpty": "This UAT has no features yet. Choose them in the Features tab.",
       "members": "People at the table",
-      "membersHint": "Enter each person's name. The e-mail may stay empty; when given, the person gets a User account (Tester) they activate themselves, and their name can be chosen at the table right away.",
+      "membersHint": "Enter each person's name. The e-mail may stay empty; when given, the person gets a User account they activate themselves, and their name can be chosen at the table right away.",
       "validFrom": "Valid from",
       "validUntil": "Valid until",
       "defaultPrefix": "Table",
@@ -2019,17 +2069,17 @@
       "openBug": "Open problem details"
     },
     "public": {
-      "savedOn": "Public view saved. This phase shows on the front page.",
-      "savedOff": "Public view saved. This phase is not visible to the public.",
+      "savedOn": "Public view saved. This UAT is visible on the front page.",
+      "savedOff": "Public view saved. This UAT is not visible to the public.",
       "mainTitle": "Show publicly",
-      "main": "Show this phase on the front page",
-      "mainOn": "Anyone opening the site can see this phase and the data ticked below.",
-      "mainOff": "This phase is not visible to the public. Only signed-in staff and table participants can see it.",
+      "main": "Show this UAT on the front page",
+      "mainOn": "Anyone opening the site address can see this UAT and the data ticked below.",
+      "mainOff": "This UAT is not visible to the public. Only signed-in users and group participants can see it.",
       "intro": "Introduction for the public",
-      "introHint": "E.g. the workshop schedule and place. Always shown when the phase is public.",
+      "introHint": "E.g. the workshop schedule and venue. Always shown when the UAT is public.",
       "privacy": "All data is hidden by default. Tick only what the public may see. Screenshots and descriptions can contain job seekers' personal data (ID number, name, phone), so check before opening them.",
       "group": {
-        "cycle": "About the phase",
+        "cycle": "About the UAT",
         "features": "Features being tested",
         "bugs": "Problem list"
       },
@@ -2037,10 +2087,10 @@
         "cycle": {
           "description": {
             "label": "Phase description",
-            "hint": "The description entered under Test phases."
+            "hint": "The description written on this UAT's phase."
           },
           "period": {
-            "label": "Phase dates",
+            "label": "UAT schedule",
             "hint": "Start and end dates."
           },
           "progress": {
@@ -2066,8 +2116,8 @@
             "hint": "Table names per feature."
           },
           "members": {
-            "label": "Table member names",
-            "hint": "Names of the participants at each table."
+            "label": "Group member names",
+            "hint": "The participants of every group."
           }
         },
         "bugs": {
@@ -2117,18 +2167,18 @@
       "needs": "Turn on \"{{field}}\" first.",
       "preview": "See the public page",
       "save": "Save public view",
-      "howTitle": "How to open this phase to the public",
+      "howTitle": "How to open this UAT to the public",
       "how": {
-        "step1": "Switch on \"Show this phase on the front page\" below.",
-        "step2": "Tick the data the public may see (everything is hidden by default). A safe start: Feature list, Progress per feature, Problem list.",
-        "step3": "Press \"Preview public view\" to see the result first, then press \"Save public view\" at the bottom.",
-        "step4": "Done: anyone opening paskerid.kemnaker.go.id/testboard/ without signing in sees this phase. Signed-in staff can see it through the \"Public site\" menu."
+        "step1": "Switch on \"Show this UAT on the front page\" below.",
+        "step2": "Tick the data the public may see (everything starts hidden). A safe start: Feature list and Progress per feature.",
+        "step3": "Press \"Preview the public view\" to check the result first, then press \"Save public view\" at the bottom.",
+        "step4": "Done: anyone opening paskerid.kemnaker.go.id/testboard/ without signing in sees this UAT. The problem list is set up separately in Bug Reporting."
       },
       "previewButton": "Preview public view",
       "guideLink": "Full explanation in the Guide"
     },
     "features": {
-      "intro": "Features come from the scenarios in this phase's test sheets. Choose Done when finished, or Hidden to keep it off the public page. You confirm each change first.",
+      "intro": "The features tested in this UAT. Choose Done when finished, or Hidden to keep it off the public page. Every change is confirmed first.",
       "stateFor": "Status of feature {{name}}",
       "state": {
         "OPEN": "Open",
@@ -2169,7 +2219,7 @@
       "orType": "or type the code",
       "validUntil": "Valid until {{date}}",
       "keepSafe": "This card is only for your table. Do not share it outside the room.",
-      "sheetTitle": "Paper backup test sheet",
+      "sheetTitle": "Paper backup UAT",
       "sheetIntro": "Use it when the internet fails. Tick the results; the organisers will enter them into TestBoard.",
       "filledBy": "Filled in by:",
       "date": "Date:",
@@ -2182,7 +2232,7 @@
   "guide": {
     "eyebrow": "User guide",
     "title": "TestBoard guide",
-    "subtitle": "Everything you need to use TestBoard, arranged by role. Choose the part that fits you in the contents.",
+    "subtitle": "Everything you need to use TestBoard: the flow, how to sign in, and what each person does. Choose a part in the contents.",
     "toc": "Contents",
     "faqTitle": "Frequently asked questions",
     "help": "Still unsure? Ask your project Admin.",
@@ -2192,49 +2242,48 @@
       "cara-kerja": "How TestBoard works",
       "masuk": "How to sign in",
       "peserta": "For participants at a table",
-      "penguji": "For Testers",
+      "penguji": "For UAT users",
       "admin": "For Admins",
-      "developer": "For Developers",
-      "pemantau": "For Observers and leaders",
       "peran": "Roles and access",
-      "publik": "Opening a phase to the public",
+      "publik": "Opening UATs and Bug Reporting to the public",
       "super-admin": "For the Super Admin",
       "istilah": "Glossary",
-      "privasi": "Privacy and security"
+      "privasi": "Privacy and security",
+      "bug-reporting": "Bug Reporting"
     },
     "flow": {
-      "intro": "TestBoard helps Pusat Pasar Kerja test services with users before the public uses them. The work always follows the same order, and the menu on the left follows it too.",
-      "cycle": {
-        "title": "Test phase",
-        "menu": "Menu 1. Preparation › Test phases",
-        "body": "One round of testing in a given period, e.g. \"UAT Stage 1, 3-4 December\"."
-      },
-      "cases": {
-        "title": "Test scenarios",
-        "menu": "Menu 1. Preparation › Test scenarios",
-        "body": "The steps to try and the expected result. Write them one by one or import them from Excel."
-      },
-      "plan": {
-        "title": "How to test",
-        "menu": "Menu 2. Testing",
-        "body": "A test sheet for individual testers, or workshop tables for group testing with QR cards."
-      },
+      "intro": "TestBoard helps Pusat Pasar Kerja test services together with their users. A project is laid out like Google Drive: a phase holds feature folders, a feature holds scenarios. A UAT uses the scenarios of one phase, and every problem gathers in Bug Reporting.",
       "test": {
-        "title": "Trying",
-        "menu": "In a test sheet or on the table screen",
-        "body": "Testers try each scenario and choose As expected, Not as expected, or Could not try."
+        "title": "Testing",
+        "menu": "My UATs or a table card",
+        "body": "Participants try every scenario and choose Passed, Failed or Could not try."
       },
       "bugs": {
-        "title": "Problems",
-        "menu": "Menu 3. Results & reports › Problems",
-        "body": "A Not as expected result becomes a problem report. Developers fix it, testers check again."
+        "title": "Bug Reporting",
+        "menu": "Left panel › Bug Reporting",
+        "body": "Failed results land here. After go-live the public can report too; an Admin reviews every report before it shows."
       },
-      "report": {
-        "title": "Reports",
-        "menu": "Menu 3. Results & reports › Reports",
-        "body": "A summary for leaders, downloadable as Excel or CSV."
+      "example": "Example: the Karirhub project has the phase \"UAT round 1\" with the features Job posting and Gig workers. The Admin makes \"UAT 1\" from it, adds 30 participants in 10 numbered groups, and starts the UAT. Every Failed answer lands in Bug Reporting for the Admin to review.",
+      "phase": {
+        "title": "Phase",
+        "menu": "Left panel › Phases",
+        "body": "A big folder for one stage, e.g. \"UAT round 1\" or \"After go-live\"."
       },
-      "example": "Example: the phase \"UAT Karirhub Stage 1\" holds 120 test scenarios. Ten workshop tables work on different features. Every Not as expected answer becomes a problem that an Admin reviews and a Developer fixes, and the progress shows in Reports."
+      "features": {
+        "title": "Features and scenarios",
+        "menu": "Phase › feature folder",
+        "body": "Each feature holds test scenarios with their screenshots. Write them one by one or import from Excel. Copy them to the next phase when needed."
+      },
+      "uat": {
+        "title": "UAT",
+        "menu": "Left panel › UAT › New UAT",
+        "body": "Choose a phase, choose its features, give it a name. Ready scenarios come along. A phase may have UAT 1, UAT 2 and so on."
+      },
+      "people": {
+        "title": "Participants and groups",
+        "menu": "UAT › Participants, Groups & tables",
+        "body": "Add the UAT users, put them in groups with a table number, then print the group cards."
+      }
     },
     "signIn": {
       "intro": "The sign-in page has two choices. Pick the one that fits you.",
@@ -2277,7 +2326,7 @@
         },
         {
           "title": "On the table screen",
-          "body": "At a workshop table, press \"Activate my account\", choose your name and create a password. Only once."
+          "body": "At a group, press \"Activate my account\", choose your name and create a password. Only once."
         }
       ]
     },
@@ -2329,133 +2378,81 @@
       ]
     },
     "tester": {
-      "intro": "As a Tester you try the scenarios assigned to you and report the problems you find.",
+      "intro": "As a UAT user you try the scenarios of the UATs you were added to (UAT 1, UAT 2 and so on) and report the problems you find.",
       "steps": [
         {
-          "title": "Open My tasks",
-          "body": "All your work is there: the tables you are listed at, the test sheets assigned to you, and the problems you reported."
+          "title": "Open My UATs",
+          "body": "In the project's left panel, My UATs lists the UATs you take part in, with your group and table number."
         },
         {
-          "title": "Continue a test sheet",
-          "body": "Press \"Continue\" to open the next scenario not tried yet."
+          "title": "Work on the scenarios",
+          "body": "Press \"Work on scenarios\" and open a scenario not tried yet. In a group you can also use your group's Easy Mode from My tasks."
         },
         {
           "title": "Record the result",
-          "body": "Choose As expected, Not as expected, or Could not try. For Not as expected, describe what happened and attach a screenshot."
+          "body": "Choose Passed, Failed or Could not try. For Failed, write what happened and attach a screenshot."
         },
         {
           "title": "Report a problem",
-          "body": "From a Not as expected result, press \"Report a problem\". It is filled in from your attempt."
+          "body": "From a Failed result press \"Report a problem\". It is filled in from your attempt and lands in Bug Reporting."
         },
         {
           "title": "Check again after a fix",
-          "body": "When a problem is Ready to retest, try the scenario again and mark it Checked, all good or Came back."
+          "body": "When a problem is Ready to retest, try the scenario again and mark it Checked, fixed or Came back."
         }
       ]
     },
     "admin": {
-      "intro": "As an Admin you prepare and manage projects. Follow the \"Start here\" card on the project home; the steps are the same as below.",
+      "intro": "As an Admin you prepare and manage the project. Follow the \"Start here\" card on the project overview; it has the same steps as below.",
       "steps": [
         {
-          "title": "Create a project",
-          "body": "On the Projects page, press \"Create project\". Enter a short code (e.g. KARIRHUB) and a name."
+          "title": "Create the project",
+          "body": "On Projects press \"Create project\". Enter a short code (e.g. KARIRHUB) and a name."
         },
         {
-          "title": "Create a test phase",
-          "body": "Menu 1. Preparation › Test phases. Enter a name and period, e.g. \"UAT Stage 1\"."
+          "title": "Create a phase",
+          "body": "Left panel › Phases › the + sign. Enter a name and period, e.g. \"UAT round 1\"."
         },
         {
-          "title": "Prepare test scenarios",
-          "body": "Write them one by one in Test scenarios, or bring many at once with Import from Excel. Every row is checked before it is saved."
+          "title": "Fill the feature folders with scenarios",
+          "body": "Open the phase, add feature folders, then write scenarios or import from Excel. Mark them Ready when correct. For the next stage, tick scenarios and use \"Copy to phase\"."
         },
         {
-          "title": "Choose how to test",
-          "body": "Create a Test sheet for individual testers and assign its scenarios. For a workshop, open Workshop & tables, create tables, enter the members' names (and e-mails if any), then print the table cards."
+          "title": "Create a UAT",
+          "body": "Left panel › UAT › the + sign. Choose the phase, choose its features, give it a name. Ready scenarios come along."
         },
         {
-          "title": "Add people",
-          "body": "Menu 4. Settings › Members & tasks. An e-mail is enough; without an account, enter the name and send an activation link with the \"Activation link\" button."
+          "title": "Add participants and groups",
+          "body": "In the UAT, Participants tab: write names (and e-mails if any). Groups & tables tab: make numbered groups and print their cards."
         },
         {
-          "title": "Follow up and review",
-          "body": "While testing runs, watch the Workshop & tables board, review incoming Problems, then share the Reports with leaders."
+          "title": "Start, follow, review",
+          "body": "Press \"Start UAT\". Follow the Overview, review Incoming problems, set up the Public view, and share Reports with the leaders."
         }
       ],
       "tips": [
-        "Codes (project, phase, feature) can be changed any time; old links keep pointing to the same data.",
-        "Important changes, such as changing someone's task or locking a test sheet, always ask for confirmation.",
-        "The Help button at the top right explains the page you are on."
-      ]
-    },
-    "developer": {
-      "intro": "As a Developer you follow up on reported problems.",
-      "steps": [
-        {
-          "title": "Open Problems",
-          "body": "Filter by impact or by what is assigned to you."
-        },
-        {
-          "title": "Start fixing",
-          "body": "Set the status to Being fixed so the team knows it is handled."
-        },
-        {
-          "title": "Mark it fixed",
-          "body": "When done, set it to Fixed then Ready to retest, and enter the fix version."
-        },
-        {
-          "title": "Wait for the retest",
-          "body": "A tester checks again. If it still happens, the status becomes Came back and returns to you."
-        }
-      ]
-    },
-    "observer": {
-      "intro": "As an Observer you see all progress without changing anything. Suits leaders.",
-      "steps": [
-        {
-          "title": "Project home",
-          "body": "How many scenarios were tried, the share of As expected, and open problems by impact."
-        },
-        {
-          "title": "Reports",
-          "body": "Details per feature, per test sheet and per tester, downloadable as Excel or CSV."
-        },
-        {
-          "title": "Problems",
-          "body": "The problem list with statuses; open one to see its history and photo evidence."
-        },
-        {
-          "title": "Public page",
-          "body": "When a phase is public, its progress can also be seen without signing in."
-        }
+        "A phase may have several UATs, and a person may take part in UAT 1 and UAT 2 when added.",
+        "Important changes, like starting a UAT, locking results or throwing away a report, always ask for confirmation.",
+        "The Help button in the top bar explains the page you are on; the Accessibility button sets text size and theme."
       ]
     },
     "roles": {
-      "intro": "There are three levels of roles. Visitors of the public page and table cards are not users.",
+      "intro": "There are only three kinds of people. Participants with a table card and visitors of the public pages need no account.",
       "rows": [
         {
           "role": "Super Admin",
-          "who": "Website manager",
-          "can": "Everything an Admin can do, plus creating user accounts and setting their roles, website settings, account recovery and the website activity log."
+          "who": "Site manager",
+          "can": "Everything an Admin can do, plus creating user accounts and their roles, the site settings, account recovery and the site activity log."
         },
         {
           "role": "Admin",
-          "who": "UAT organising team",
-          "can": "Creates and manages every project: phases, scenarios, imports, workshop tables, public view, problem review, members and their tasks."
+          "who": "Project managers and UAT organisers",
+          "can": "Manage every project: phases, features, scenarios, imports, UATs with their participants and groups, the public view, Bug Reporting and reports."
         },
         {
-          "role": "User - Tester",
-          "who": "Testers, workshop participants with an account",
-          "can": "Tries the assigned scenarios, records results and reports problems in the projects they belong to."
-        },
-        {
-          "role": "User - Developer",
-          "who": "Development team",
-          "can": "Sees problems and updates their fix status."
-        },
-        {
-          "role": "User - Observer",
-          "who": "Leaders",
-          "can": "Sees all progress, results and reports without changing anything, and downloads reports."
+          "role": "User",
+          "who": "UAT participants with an account",
+          "can": "Open the UATs they were added to (UAT 1, UAT 2, ...), try their scenarios, record results and report problems."
         }
       ],
       "head": {
@@ -2465,23 +2462,23 @@
       }
     },
     "publish": {
-      "intro": "Each phase can be opened to the public (no sign-in). Everything is hidden by default; an Admin chooses which data may be seen.",
+      "intro": "UATs and Bug Reporting can each be opened to the public (no sign-in), with their own switch. Everything starts hidden; the Admin chooses what may be seen.",
       "steps": [
         {
-          "title": "Open Workshop & tables",
-          "body": "Choose the phase, then open the Public view tab."
+          "title": "UAT: open the Public view tab",
+          "body": "On the UAT page choose the data to show (features, progress, groups), then switch on \"Show publicly\"."
         },
         {
-          "title": "Choose the data to show",
-          "body": "Each item has its own switch. Items that may hold personal data are marked."
+          "title": "Bug Reporting: open the Public view tab",
+          "body": "Switch on Bug Reporting, choose which problem data may be seen and, if needed, open the report form."
         },
         {
-          "title": "Preview",
+          "title": "Look at the preview",
           "body": "Press \"Preview the public view\" to see exactly what the public sees."
         },
         {
-          "title": "Switch on and save",
-          "body": "Turn on \"Show publicly\", then save. The phase appears on the front page."
+          "title": "Save",
+          "body": "Once saved, the UAT and Bug Reporting appear on the public front page."
         }
       ],
       "sees": "Visitors only see the data that is switched on, never anything else."
@@ -2516,69 +2513,69 @@
       },
       "rows": [
         {
-          "term": "Test phase",
-          "original": "Test Cycle",
-          "meaning": "One round of testing in a given period."
-        },
-        {
-          "term": "Test scenario",
-          "original": "Test Case",
-          "meaning": "The steps to try and the expected result."
+          "term": "Phase",
+          "original": "Phase / Test Cycle",
+          "meaning": "A big folder for one testing stage, e.g. UAT round 1."
         },
         {
           "term": "Feature",
           "original": "Module",
-          "meaning": "A part of the service under test, e.g. Job reports."
+          "meaning": "A folder inside a phase for one part of the service, e.g. Job posting."
         },
         {
-          "term": "Scenario group",
-          "original": "Suite",
-          "meaning": "A set of scenarios within one feature, e.g. per sub-menu."
+          "term": "Test scenario",
+          "original": "Test Case",
+          "meaning": "The steps to try and the expected result, with screenshots."
         },
         {
-          "term": "Test sheet",
-          "original": "Test Run",
-          "meaning": "The scenarios assigned to be tried in a phase."
+          "term": "Ready / Draft",
+          "original": "Ready / Draft",
+          "meaning": "Only Ready scenarios join a UAT."
         },
         {
-          "term": "Workshop & tables",
-          "original": "UAT Workshop",
-          "meaning": "Group testing per table with QR cards."
+          "term": "UAT",
+          "original": "User Acceptance Test",
+          "meaning": "Testing one phase with users: chosen features, participants, groups and its public page."
+        },
+        {
+          "term": "UAT user",
+          "original": "UAT participant",
+          "meaning": "A person who tests in a given UAT."
+        },
+        {
+          "term": "Group and table number",
+          "original": "Group / table",
+          "meaning": "Participants testing together at one table with one card."
         },
         {
           "term": "Table card",
           "original": "Table card",
-          "meaning": "A card with a QR and 6 digits to open the table screen."
+          "meaning": "A card with a QR code and 6 digits to enter the group's Easy Mode."
         },
         {
-          "term": "As expected / Not as expected / Could not try",
+          "term": "Bug Reporting",
+          "original": "Bug Reporting",
+          "meaning": "The project's problem list, from UAT and from public reports after go-live."
+        },
+        {
+          "term": "Public report",
+          "original": "Public report",
+          "meaning": "A report from the public form; shows after an Admin reviewed it."
+        },
+        {
+          "term": "Passed / Failed / Could not try",
           "original": "Passed / Failed / Blocked",
-          "meaning": "The three test answers."
+          "meaning": "The three answers when trying a scenario."
         },
         {
-          "term": "Problem",
-          "original": "Bug / Defect",
-          "meaning": "Something that does not work as it should."
+          "term": "Copy / Move to phase",
+          "original": "Copy / Move",
+          "meaning": "Like in Google Drive: copy scenarios to another phase, or move them."
         },
         {
-          "term": "Impact",
-          "original": "Severity",
-          "meaning": "How badly users are affected: Critical, Severe, Moderate, Minor."
-        },
-        {
-          "term": "Priority",
-          "original": "Priority",
-          "meaning": "How soon it must be fixed: Right away, High, Medium, Low."
-        },
-        {
-          "term": "Retest",
-          "original": "Retest",
-          "meaning": "Trying again after a problem was fixed."
-        },
-        {
-          "term": "Photos & evidence",
-          "original": "Evidence",
-          "meaning": "Screenshots, documents or notes that prove a result."
+          "term": "Public view",
+          "original": "Public view",
+          "meaning": "Pages without sign-in; only the data an Admin switched on."
         }
       ]
     },
@@ -2589,6 +2586,27 @@
         "The table screen never shows members' full e-mails.",
         "Passwords are stored scrambled (hashed). Nobody, including Admins, can see them.",
         "Photos and files are checked and made smaller automatically, and only project members can open them."
+      ]
+    },
+    "bugReporting": {
+      "intro": "Bug Reporting stands on its own in every project. It holds the problems from UAT and, after the application went live, reports from the public. It has its own public ON/OFF switch.",
+      "steps": [
+        {
+          "title": "Problem list",
+          "body": "Every problem with its impact, priority and fix status. Tick several to change them together."
+        },
+        {
+          "title": "Public reports",
+          "body": "Reports from the public form wait in the Public reports tab. Mark them reviewed, join them with the same problem, or throw them away when they are not a problem."
+        },
+        {
+          "title": "Public view",
+          "body": "Switch on to show the problem list on the public pages, choose its data, and if needed open the report form."
+        },
+        {
+          "title": "Fix and check again",
+          "body": "The team fixes it and changes the status; UAT users check again until it is solved."
+        }
       ]
     }
   },
@@ -2601,7 +2619,7 @@
     },
     "pengguna": {
       "title": "User account",
-      "who": "For Admins, Testers, Developers and Observers who have an account."
+      "who": "For Admins and Users who have an account."
     },
     "user": {
       "intro": "Sign in with your account e-mail and password.",
@@ -2628,14 +2646,14 @@
   "tasks": {
     "title": "My tasks",
     "subtitle": "Everything assigned to you, across all projects you are a member of.",
-    "tablesTitle": "My tables (Workshop Mode)",
+    "tablesTitle": "My groups (UAT)",
     "tablesHint": "Tables where you are listed. Open a table to test together with your group.",
     "tableLine": "As {{name}} · {{cycle}} · {{project}}",
     "validUntil": "Table card valid until {{date}}",
     "openTable": "Open this table",
     "openTitle": "Open {{table}} on this device?",
     "openBody": "This device switches to the table screen with {{name}} already chosen. Your account signs out of this device; sign in again any time with your e-mail and password.",
-    "runsTitle": "Test sheets assigned to me",
+    "runsTitle": "UATs assigned to me",
     "runsHint": "Scenarios you should try yourself and record the results of.",
     "runLine": "{{project}} · {{done}} of {{total}} scenarios tried",
     "progress": "Progress",
@@ -2656,32 +2674,32 @@
     "done": "done",
     "steps": {
       "cycle": {
-        "title": "Create a test phase",
-        "body": "A phase is one round of testing, e.g. \"UAT Stage 1, 3-4 December\".",
-        "action": "Create a phase"
+        "title": "Create a phase",
+        "body": "A phase is a folder for one stage, e.g. \"UAT round 1, 3-4 December\".",
+        "action": "Create phase"
       },
       "cases": {
-        "title": "Prepare test scenarios",
-        "body": "Write the steps to try and the expected result, one by one or all at once from Excel.",
-        "action": "Write a scenario",
+        "title": "Fill the feature folders with scenarios",
+        "body": "Inside the phase, make feature folders and write their scenarios, or import them at once from Excel.",
+        "action": "Open phase folders",
         "alt": "Import from Excel"
       },
       "plan": {
-        "title": "Choose how to test",
-        "body": "A test sheet for individual testers, or workshop tables for group testing with QR cards.",
-        "action": "Create a test sheet",
-        "alt": "Set up workshop tables"
+        "title": "Create a UAT",
+        "body": "Choose the phase and its features, then add participants and numbered groups.",
+        "action": "Create UAT",
+        "alt": "See all UATs"
       },
       "test": {
-        "title": "Run the tests",
-        "body": "Testers try each scenario and choose As expected, Not as expected, or Could not try.",
-        "action": "See test sheets"
+        "title": "Run the UAT",
+        "body": "Press Start UAT. Participants try every scenario and choose Passed, Failed or Could not try.",
+        "action": "Open UAT"
       },
       "review": {
-        "title": "Review incoming problems",
+        "title": "Review in Bug Reporting",
         "body_one": "{{count}} problem still needs attention.",
         "body_other": "{{count}} problems still need attention.",
-        "action": "Open the problem list"
+        "action": "Open Bug Reporting"
       },
       "report": {
         "title": "See the reports",
@@ -2691,23 +2709,14 @@
     },
     "task": {
       "TESTER": {
-        "title": "Your task: Tester",
-        "body": "Try the scenarios assigned to you, record the results and report any problem. All your work is on the My tasks page."
-      },
-      "DEVELOPER": {
-        "title": "Your task: Developer",
-        "body": "See the reported problems, fix them, then set their status to Fixed so testers can retest."
-      },
-      "VIEWER": {
-        "title": "Your task: Observer",
-        "body": "You can see all progress, results and reports of this project without changing anything. The summary is below; full reports can be downloaded."
+        "title": "You: UAT user",
+        "body": "Open My UATs in the left panel, work on its scenarios, record the results and report any problem."
       }
     },
     "links": {
-      "myTasks": "Open My tasks",
       "reportBug": "Report a problem",
-      "bugs": "See problems",
-      "reports": "Open reports"
+      "bugs": "View Bug Reporting",
+      "myUat": "Open My UATs"
     }
   },
   "help": {
@@ -2729,10 +2738,10 @@
       },
       "tasks": {
         "title": "My tasks",
-        "what": "Everything assigned to you across projects: workshop tables, test sheets and the problems you reported.",
+        "what": "Everything that is yours across projects: your UATs and groups, scenarios assigned to you, and problems you reported.",
         "steps": [
-          "Press Open this table to test with your group; your name is chosen already.",
-          "Press Continue to try the next scenario of a test sheet.",
+          "Press Open this table to test with your group; your name is already chosen.",
+          "Press Continue to try the next scenario.",
           "Press View to follow the problems you reported."
         ]
       },
@@ -2742,30 +2751,21 @@
         "steps": ["Change your password regularly.", "Sign out devices you do not recognise."]
       },
       "dashboard": {
-        "title": "Project home",
-        "what": "A summary of the project: how many scenarios were tried, how many were as expected, and the problems still open.",
+        "title": "Project overview",
+        "what": "The project at a glance: how many scenarios were tried, how many passed, and the problems still open.",
         "steps": [
           "Admins: follow the Start here card from top to bottom.",
-          "Filter by test sheet to see one round only.",
+          "Choose one UAT to see only its results.",
           "Press a number or chart to open the details."
         ]
       },
-      "cycles": {
-        "title": "Test phases",
-        "what": "A phase is one round of testing in a given period. Test sheets and workshop tables always belong to a phase.",
-        "steps": [
-          "Press Create phase and enter its name and period.",
-          "Set the status to Active when testing starts.",
-          "The phase code can be changed any time."
-        ]
-      },
       "testCases": {
-        "title": "Test scenarios",
-        "what": "The steps to try and the expected results. Results are recorded in Test sheets or at workshop tables.",
+        "title": "All scenarios",
+        "what": "Every test scenario of the project in one list. Usually easier through the phase and feature folders in the left panel.",
         "steps": [
-          "Press Create test scenario to write one.",
-          "For many at once, use Import from Excel.",
-          "Tick several scenarios to change them together."
+          "Filter by phase, feature or the status buttons (Ready, Draft, Archived).",
+          "Tick scenarios to Copy to phase, Move to phase, or mark them Ready.",
+          "For many scenarios at once, use Import from Excel."
         ]
       },
       "imports": {
@@ -2777,22 +2777,13 @@
           "Press Apply to save."
         ]
       },
-      "workshop": {
-        "title": "Workshop & tables",
-        "what": "Group testing per table with QR cards. Here you set up tables, follow progress, review incoming problems and set the public view.",
-        "steps": [
-          "Create tables, choose their features and enter the members' names (and e-mails if any).",
-          "Print the table cards and hand them out.",
-          "Follow the progress board and review incoming problems during the workshop."
-        ]
-      },
       "runs": {
-        "title": "Test sheets",
-        "what": "A test sheet holds the scenarios assigned to individual testers in a phase.",
+        "title": "UAT scenarios",
+        "what": "The scenarios of one UAT with their latest result. Open a scenario here to try it.",
         "steps": [
-          "Create a test sheet, then add test scenarios.",
-          "Assign scenarios to testers, then press Start.",
-          "When done, lock the test sheet once the results are approved."
+          "Open a scenario not tried yet.",
+          "Record the result: Passed, Failed or Could not try.",
+          "For Failed, report the problem; it lands in Bug Reporting."
         ]
       },
       "execution": {
@@ -2805,12 +2796,12 @@
         ]
       },
       "bugs": {
-        "title": "Problems",
-        "what": "Every problem found, with its impact, priority and fix status.",
+        "title": "Bug Reporting",
+        "what": "Every problem of the project: from UAT and, after go-live, from the public. Admins review public reports and set up the public view with its own ON/OFF switch.",
         "steps": [
           "Open a problem to see its details, photos and history.",
-          "Developers update the status while fixing; testers check again.",
-          "Tick several problems to change them together."
+          "Public reports tab: review reports from the public before they show.",
+          "Public view tab: switch on and choose the data that may be seen."
         ]
       },
       "evidence": {
@@ -2828,12 +2819,12 @@
         ]
       },
       "members": {
-        "title": "Members & tasks",
-        "what": "Who takes part in this project and their task: Tester, Developer or Observer.",
+        "title": "Project members",
+        "what": "Users who can open this project. Admins and Super Admins manage every project, so they need not be added. UAT participants are usually added straight in a UAT's Participants tab.",
         "steps": [
           "Add people by e-mail; without an account, enter their name.",
           "Send an activation link to accounts that are not active yet.",
-          "Change someone's task; you will be asked to confirm."
+          "To put someone in a UAT, open the UAT and its Participants tab."
         ]
       },
       "settings": {
@@ -2887,11 +2878,29 @@
       },
       "search": {
         "title": "Search this project",
-        "what": "Finds test scenarios, problems and test sheets at once by their title or code.",
+        "what": "Finds test scenarios, problems and UATs at once by their title or code.",
         "steps": [
           "Type part of a title or a code, e.g. \"login\" or \"BUG-KAR-0012\".",
           "Press a result to open it.",
           "When there are many results, press \"See all\" to open the full, already filtered list."
+        ]
+      },
+      "phases": {
+        "title": "Phases",
+        "what": "A project is laid out like Google Drive: every phase is a folder, inside are feature folders, and inside a feature are the test scenarios with their screenshots.",
+        "steps": [
+          "Press New phase to make a folder for a stage, e.g. UAT round 1.",
+          "Open the phase, add feature folders, then fill them with scenarios or import from Excel.",
+          "For the next stage, tick scenarios and choose Copy to phase."
+        ]
+      },
+      "uat": {
+        "title": "UAT",
+        "what": "A UAT tests one phase: the chosen features, participants and their groups with table numbers, incoming problems and its own public page.",
+        "steps": [
+          "New UAT: choose the phase, choose the features, give it a name.",
+          "Participants and Groups & tables tabs: add people, put them in groups, print the cards.",
+          "Press Start UAT, then follow the Overview and review Incoming problems."
         ]
       }
     },
@@ -2911,7 +2920,7 @@
       },
       "projectMenu": {
         "title": "Left panel",
-        "body": "The left panel only shows what you have open: the list of projects, one project's contents, or the Administration menu. Never mixed."
+        "body": "Like Google Drive: phases hold feature folders, then UATs and Bug Reporting. The panel only shows the project you opened."
       },
       "startHere": {
         "title": "Start here",
@@ -3056,10 +3065,10 @@
       "revoked": "Card revoked",
       "role_code": "Task in the project",
       "rows": "Rows",
-      "run": "Test sheet",
+      "run": "UAT",
       "run_case_ids": "Scenarios",
-      "run_code": "Test sheet code",
-      "run_id": "Test sheet",
+      "run_code": "UAT code",
+      "run_id": "UAT",
       "scope": "Scope",
       "scope_description": "Test scope",
       "sequence_number": "Order number",
@@ -3107,7 +3116,7 @@
   },
   "search": {
     "title": "Search this project",
-    "subtitle": "One search for test scenarios, problems and test sheets. Type part of a title or its code.",
+    "subtitle": "One search for test scenarios, problems and UATs. Type part of a title or its code.",
     "label": "Words or code to find",
     "placeholder": "e.g. login, BUG-KAR-0012 or UAT-PKI-001",
     "submit": "Search",
@@ -3118,11 +3127,11 @@
     "groups": {
       "cases": "Test scenarios",
       "bugs": "Problems",
-      "runs": "Test sheets"
+      "runs": "UATs"
     },
     "allCases": "See all {{count}} scenarios",
     "allBugs": "See all {{count}} problems",
-    "allRuns": "Open the list of test sheets",
+    "allRuns": "Open the list of UATs",
     "hintTitle": "Type what you are looking for"
   },
   "a11y": {
@@ -3167,6 +3176,254 @@
         "label": "Reduce motion",
         "hint": "No animations or smooth scrolling."
       }
+    }
+  },
+  "phases": {
+    "title": "Phases",
+    "subtitle": "Like folders in Google Drive: open a phase, then a feature folder, then its scenarios.",
+    "new": "New phase",
+    "newIntro": "A phase is a big folder, for example \"UAT round 1\" or \"After go-live\". Scenarios are saved in it per feature.",
+    "create": "Create phase",
+    "created": "Phase {{name}} created.",
+    "updated": "Phase {{name}} saved.",
+    "edit": "Edit phase",
+    "editTitle": "Edit phase {{name}}",
+    "name": "Phase name",
+    "namePlaceholder": "e.g. UAT round 1",
+    "code": "Short code",
+    "codeHint": "Capital letters, numbers, dot or dash; e.g. PHASE-1.",
+    "status": "Phase status",
+    "empty": "No phases yet. Create the first phase, then add feature folders and their scenarios.",
+    "emptyTitle": "Start with a phase",
+    "unassigned": "Not in a phase yet",
+    "unassignedHint": "Scenarios that are not saved in any phase yet.",
+    "unassignedFeaturesHint": "Open a feature, tick its scenarios, then use \"Move to phase\" or \"Copy to phase\".",
+    "featuresHeading": "Feature folders",
+    "featuresHint": "Every feature is a folder with test scenarios and their screenshots.",
+    "noFeatures": "No feature folders here yet.",
+    "addFeature": "New feature folder",
+    "addFeatureTitle": "New feature folder in {{phase}}",
+    "addFeatureIntro": "Choose a feature the project already has, or create a new one.",
+    "chooseFeature": "Choose a feature…",
+    "newFeature": "+ New feature",
+    "featureName": "Feature name",
+    "featureNamePlaceholder": "e.g. Job posting",
+    "featureCode": "Feature code",
+    "featureCodeHint": "Capital letters or numbers, e.g. JOBS.",
+    "featureAdded": "Feature folder added to {{phase}}.",
+    "featureCount_one": "{{count}} feature",
+    "featureCount_other": "{{count}} features",
+    "scenarioCount_one": "{{count}} scenario",
+    "scenarioCount_other": "{{count}} scenarios",
+    "readyCount_one": "{{count}} ready",
+    "readyCount_other": "{{count}} ready",
+    "allScenarios": "All scenarios",
+    "import": "Import from Excel",
+    "openFolders": "Open phase folders",
+    "listScenarios": "Scenario list",
+    "uatsHeading": "UATs of this phase",
+    "uatsHint": "A phase may have several UATs, for example UAT 1 and UAT 2.",
+    "noUats": "No UAT for this phase yet.",
+    "manageHeading": "Manage phase",
+    "notFound": "This phase was not found.",
+    "featureNotFound": "This feature folder was not found in that phase.",
+    "featureSubtitle_one": "In {{phase}} · {{count}} scenario, {{ready}} ready",
+    "featureSubtitle_other": "In {{phase}} · {{count}} scenarios, {{ready}} ready",
+    "featureHint": "Tick scenarios to copy them to the next phase (Copy to phase) or move them (Move to phase), like in Google Drive.",
+    "featureEmpty": "This feature folder is still empty. Write a new scenario or import from Excel.",
+    "unsorted_one": "{{count}} scenario here has no feature yet.",
+    "unsorted_other": "{{count}} scenarios here have no feature yet."
+  },
+  "uat": {
+    "title": "UAT",
+    "subtitle": "Every UAT tests one phase: the chosen features, its participants and groups, and its own public page.",
+    "new": "New UAT",
+    "newForPhase": "New UAT for this phase",
+    "created": "UAT {{name}} created. Now add the participants.",
+    "saved": "UAT saved.",
+    "edit": "Edit UAT",
+    "editTitle": "Edit {{name}}",
+    "name": "UAT name",
+    "startsAt": "Starts",
+    "endsAt": "Ends",
+    "empty": "No UAT yet. Create a UAT from a phase: choose its features, then add the participants.",
+    "emptyTitle": "No UAT yet",
+    "emptyFiltered": "No UAT matches this choice.",
+    "count_one": "{{count}} UAT",
+    "count_other": "{{count}} UATs",
+    "featureCount_one": "{{count}} feature",
+    "featureCount_other": "{{count}} features",
+    "participantCount_one": "{{count}} participant",
+    "participantCount_other": "{{count}} participants",
+    "groupCount_one": "{{count}} group",
+    "groupCount_other": "{{count}} groups",
+    "publicOn": "Public",
+    "publicOff": "Not public",
+    "scenarios": "Scenario list",
+    "groupWithTable": "{{name}} · Table {{number}}",
+    "yourGroup": "Your group: {{group}}",
+    "noGroupYet": "You are not in a group yet. An Admin will place you.",
+    "tabsLabel": "UAT sections",
+    "tabs": {
+      "board": "Overview",
+      "people": "Participants",
+      "groups": "Groups & tables",
+      "features": "Features",
+      "inbox": "Incoming problems",
+      "public": "Public view"
+    },
+    "setup": {
+      "title": "Steps to prepare the UAT",
+      "intro": "Follow them from top to bottom. Finished steps are crossed out automatically.",
+      "features": "Choose the features to test (Ready scenarios come along)",
+      "people": "Add the UAT participants",
+      "groups": "Put participants into groups and give tables a number",
+      "start": "Start the UAT (\"Start UAT\" button above)",
+      "public": "Choose what the public page shows (optional)"
+    },
+    "status": {
+      "action": {
+        "PLANNED_ACTIVE": "Start UAT",
+        "ACTIVE_COMPLETED": "Finish UAT",
+        "COMPLETED_ACTIVE": "Reopen",
+        "COMPLETED_LOCKED": "Lock results"
+      },
+      "confirm": {
+        "ACTIVE": "Participants can start recording results.",
+        "COMPLETED": "Recording results is closed. The UAT can be reopened if needed.",
+        "LOCKED": "The results are locked for good and cannot be changed again."
+      },
+      "done": {
+        "ACTIVE": "{{name}} is running.",
+        "COMPLETED": "{{name}} is finished.",
+        "LOCKED": "The results of {{name}} are locked."
+      }
+    },
+    "mine": {
+      "title": "Your UAT",
+      "subtitle": "The UATs you take part in. Choose one to start testing.",
+      "start": "Work on scenarios",
+      "easyMode": "Open your group's Easy Mode",
+      "report": "Report a problem",
+      "features": "Features under test",
+      "empty": "You have not been added to any UAT yet. Contact the project's Admin.",
+      "emptyTitle": "No UAT for you yet"
+    },
+    "features": {
+      "summary_one": "This UAT tests {{count}} feature of {{phase}}.",
+      "summary_other": "This UAT tests {{count}} features of {{phase}}.",
+      "edit": "Change the features",
+      "editTitle": "Features tested in this UAT",
+      "editHint": "Ready scenarios of the ticked features come along. A feature taken out takes its untried scenarios with it; existing results always stay.",
+      "saved": "UAT features saved."
+    },
+    "create": {
+      "subtitle": "Three steps: choose the phase, choose its features, give it a name.",
+      "step1": "Choose the phase",
+      "step1Hint": "A UAT tests the scenarios of one phase.",
+      "step2": "Choose the features",
+      "step2Hint": "Ready scenarios of these features come along, also those marked Ready later.",
+      "step3": "Name and schedule",
+      "step3Hint": "The schedule may stay empty.",
+      "pickPhaseFirst": "Choose a phase in step 1 first.",
+      "noFeatures": "This phase has no feature folders yet. Add features and scenarios to that phase.",
+      "noReady": "No Ready scenario yet",
+      "readyOf_one": "{{ready}} ready of {{count}} scenario",
+      "readyOf_other": "{{ready}} ready of {{count}} scenarios",
+      "all": "Select all",
+      "none": "Clear",
+      "willTake_one": "{{count}} Ready scenario will join this UAT.",
+      "willTake_other": "{{count}} Ready scenarios will join this UAT.",
+      "defaultName": "UAT {{n}} – {{phase}}",
+      "nameHint": "Leave empty to use \"{{name}}\".",
+      "choosePhase": "Choose a phase first.",
+      "chooseFeatures": "Choose at least one feature.",
+      "dateOrder": "The end must be after the start.",
+      "submit": "Create UAT",
+      "noPhasesTitle": "No phase yet",
+      "noPhases": "A UAT is made from a phase. Create a phase and fill it with scenarios first."
+    },
+    "groups": {
+      "number": "Table number",
+      "numberHint": "A number 1–999, printed on the card. May stay empty.",
+      "tableNumber": "Table {{number}}",
+      "tableShort": "Table"
+    },
+    "people": {
+      "title_one": "Participants ({{count}})",
+      "title_other": "Participants ({{count}})",
+      "intro": "The people who test in this UAT. Someone with an e-mail gets an account and finds this UAT under \"My UATs\"; someone without one uses their group's card.",
+      "none": "No participants yet. Add them with the form beside.",
+      "listLabel": "Participant list",
+      "noEmail": "No e-mail (uses the group card)",
+      "notActivated": "Account not activated",
+      "groupOf": "Group of {{name}}",
+      "noGroup": "Not in a group",
+      "remove": "Remove {{name}} from the UAT",
+      "removeTitle": "Remove {{name}} from this UAT?",
+      "removeBody": "Results already recorded stay. The account is not deleted.",
+      "removed": "{{name}} removed from the UAT.",
+      "moved": "{{name}} joined {{group}}.",
+      "ungrouped": "{{name}} left the group.",
+      "addTitle": "Add participants",
+      "addHint": "One person per line: name, then the e-mail if any.",
+      "list": "Names and e-mails",
+      "listPlaceholder": "Mrs Sri, sri@example.org\nMr Budi",
+      "listHint": "People already in the UAT are never added twice.",
+      "intoGroup": "Put into group",
+      "add": "Add",
+      "added_one": "{{count}} participant added.",
+      "added_other": "{{count}} participants added.",
+      "empty": "Write at least one name.",
+      "duplicate": "Line {{row}}: this name or e-mail is already in the list.",
+      "invalidRow": "Line {{row}} is not right yet. Check the name and e-mail."
+    },
+    "public": {
+      "bugsElsewhere": "The problem list is shown through Bug Reporting, with its own ON/OFF switch.",
+      "bugsLink": "Set up public Bug Reporting"
+    }
+  },
+  "bugReporting": {
+    "title": "Bug Reporting",
+    "subtitle": "Every problem of the project in one place: from UAT and, after go-live, from the public.",
+    "tabsLabel": "Bug Reporting sections",
+    "tabs": {
+      "list": "Problem list",
+      "reports": "Public reports",
+      "public": "Public view"
+    },
+    "publicOn": "Public: ON",
+    "publicOff": "Public: OFF",
+    "reports": {
+      "intro": "Reports from the public form. Nothing shows before you review it: mark it reviewed, join it with the same problem, or throw it away when it is not a problem.",
+      "empty": "No public report is waiting.",
+      "anonymous": "Visitor (no name)",
+      "contact": "contact",
+      "discard": "Throw away",
+      "discardTitle": "Throw away report {{code}}?",
+      "discardBody": "The report is deleted and will never show. Use it for pranks, tests or reports in the wrong place.",
+      "discarded": "Report {{code}} thrown away."
+    },
+    "public": {
+      "howTitle": "How to open Bug Reporting to the public",
+      "how": {
+        "step1": "Switch on \"Show Bug Reporting\".",
+        "step2": "Choose which problem data may be seen (start with \"Problem list\").",
+        "step3": "If needed, open the report form so the public can report. You review every report first."
+      },
+      "mainTitle": "Public switch",
+      "main": "Show Bug Reporting on the public pages",
+      "mainOn": "The public can see the problem list as chosen below.",
+      "mainOff": "Hidden. Only Admins can see it.",
+      "form": "Open the report form to the public",
+      "formOn": "The public can send reports. A report shows after you review it.",
+      "formOff": "The report form is closed.",
+      "formNeedsPublic": "The report form is only visible while Bug Reporting is public.",
+      "intro": "Introduction for visitors",
+      "introHint": "E.g. how to report, service hours, or when problems are answered.",
+      "privacy": "The name and contact of public reporters never show. Switch on \"Reporter\" or \"Screenshots\" only when it is safe.",
+      "savedOn": "Bug Reporting is public.",
+      "savedOff": "Bug Reporting is hidden from the public."
     }
   }
 }

@@ -142,6 +142,7 @@ export interface TableRow {
   run_id: string | null
   user_id: string
   name: string
+  table_number: number | null
   member_names_json: unknown
   access_code: string
   valid_from: Date | null
@@ -263,12 +264,18 @@ export async function saveTableNamesFromTable(
   await execute(conn, 'DELETE FROM workshop_table_members WHERE table_id = ? AND user_id IS NULL', [
     tableId,
   ])
+  const table = await selectOne<{ run_id: string | null }>(
+    conn,
+    'SELECT run_id FROM workshop_tables WHERE id = ?',
+    [tableId],
+  )
   const start = kept.reduce((max, row) => Math.max(max, Number(row.sort_order) + 1), 0)
   for (const [index, name] of fresh.entries()) {
     await execute(
       conn,
-      'INSERT INTO workshop_table_members (table_id, sort_order, display_name) VALUES (?, ?, ?)',
-      [tableId, start + index, name],
+      `INSERT INTO workshop_table_members (run_id, table_id, sort_order, display_name)
+       VALUES (?, ?, ?, ?)`,
+      [table?.run_id ?? null, tableId, start + index, name],
     )
   }
 }
@@ -362,10 +369,11 @@ export async function tableActivity(db: Db, tables: { id: string; user_id: strin
   return { bugs, last, devices }
 }
 
+/** The groups (meja) of a UAT, or of every UAT of a Fase (public page of an older link). */
 export async function listTables(
   db: Db,
   projectId: string,
-  cycleId: string,
+  scope: { runId?: string; cycleId?: string },
   tableId?: string,
 ): Promise<WorkshopTableDto[]> {
   const rows = await select<
@@ -383,9 +391,18 @@ export async function listTables(
        FROM workshop_tables t
        JOIN test_cycles c ON c.id = t.cycle_id
        LEFT JOIN test_runs r ON r.id = t.run_id
-      WHERE t.project_id = ? AND t.cycle_id = ? AND (? IS NULL OR t.id = ?)
-      ORDER BY LENGTH(t.name), t.name`,
-    [projectId, cycleId, tableId ?? null, tableId ?? null],
+      WHERE t.project_id = ? AND (? IS NULL OR t.run_id = ?) AND (? IS NULL OR t.cycle_id = ?)
+        AND (? IS NULL OR t.id = ?)
+      ORDER BY t.table_number IS NULL, t.table_number, LENGTH(t.name), t.name`,
+    [
+      projectId,
+      scope.runId ?? null,
+      scope.runId ?? null,
+      scope.cycleId ?? null,
+      scope.cycleId ?? null,
+      tableId ?? null,
+      tableId ?? null,
+    ],
   )
   const ids = rows.map((r) => String(r.id))
   const [modules, progress, activity, members] = await Promise.all([
@@ -404,6 +421,7 @@ export async function listTables(
     return {
       id,
       name: row.name,
+      table_number: row.table_number === null ? null : Number(row.table_number),
       cycle: { id: String(row.cycle_id), cycle_code: row.cycle_code, title: row.cycle_title },
       run: row.run_id
         ? {

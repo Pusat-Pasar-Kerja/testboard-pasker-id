@@ -13,6 +13,7 @@ import { StatTile } from '../../charts/StatTile'
 import { Section } from '../../ui/Section'
 import { EmptyState } from '../../ui/States'
 import { formatNumber, formatShortDateTime, toLocale } from '../../../lib/format'
+import { groupLabel } from '../../../lib/uat'
 import { ProgressMeter } from '../ProgressMeter'
 
 /** Live overview of a workshop: totals, every table, every feature, latest activity. */
@@ -91,7 +92,7 @@ export function BoardTab({
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <p className="flex items-center gap-2 text-lg font-semibold">
                       <UsersRound aria-hidden="true" className="size-5 text-brand-700" />
-                      {table.name}
+                      {groupLabel(t, table)}
                     </p>
                     <p className="text-sm text-ink-muted">
                       {table.last_activity_at

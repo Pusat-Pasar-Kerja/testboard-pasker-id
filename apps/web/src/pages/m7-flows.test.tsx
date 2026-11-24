@@ -42,7 +42,7 @@ describe('reports (S09, TB-REPORT-001)', () => {
     const { dataSource } = withDb()
     const { router } = renderRoute(`${P}/reports`, { dataSource })
     expect(await screen.findByRole('heading', { level: 1, name: 'Laporan' })).toBeInTheDocument()
-    expect(await screen.findByText('Skenario uji dalam lembar uji')).toBeInTheDocument()
+    expect(await screen.findByText('Skenario uji dalam UAT')).toBeInTheDocument()
     expect(screen.getByText('Cara menghitung')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Per fitur' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Per penguji' })).toBeInTheDocument()
@@ -115,15 +115,15 @@ describe('reports (S09, TB-REPORT-001)', () => {
     expect(files[0]?.type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
   })
 
-  it('keeps export and the activity log for leads only', async () => {
+  it('keeps the reports, the export and the activity log for Admins (ADR 0019)', async () => {
     const { dataSource } = withDb((db) => {
       db.currentUserId = '3'
     }, false)
     renderRoute(`${P}/reports`, { dataSource })
-    expect(await screen.findByText('Skenario uji dalam lembar uji')).toBeInTheDocument()
     expect(
-      screen.getByText('Ekspor data hanya bisa dilakukan oleh Admin dan Pemantau.'),
+      await screen.findByRole('heading', { level: 1, name: 'Halaman tidak ditemukan' }),
     ).toBeInTheDocument()
+    expect(screen.queryByText('Skenario uji dalam UAT')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Unduh' })).toBeNull()
     expect(screen.queryByRole('tab', { name: 'Log aktivitas' })).toBeNull()
   })

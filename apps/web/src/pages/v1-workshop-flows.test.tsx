@@ -6,59 +6,94 @@ import { ApiClientError } from '../services/api-client'
 import { createMockDataSource } from '../services/mock-data-source'
 import { renderRoute } from '../test/render'
 
-/** Mode Workshop (ADR 0016) in the demo data: public Fase, table cards, easy answers. */
+/**
+ * Mode Workshop (ADR 0016) inside a UAT (ADR 0019) in the demo data: public UAT, public Bug
+ * Reporting, group cards, easy answers.
+ */
 function setup() {
   const db = createMockDb()
   const dataSource = createMockDataSource({ latencyMs: 0, db, superAdmin: true })
   const project = db.projects.find((p) => p.project_code === 'DEMO-KARIR')!
   const cycle = db.cycles.find((c) => c.projectId === project.id)!
-  return { db, dataSource, project, cycle }
+  // The workshop UAT of the demo: three numbered groups with cards.
+  const uat = db.runs.find((r) => r.projectId === project.id && r.status_code === 'ACTIVE')!
+  const reporting = db.bugReporting.find((b) => b.projectId === project.id)!
+  return { db, dataSource, project, cycle, uat, reporting }
 }
 
-describe('public front page and public Fase', () => {
-  it('lists the public Fase and shows only the switched-on data', async () => {
+describe('public front page, public UAT and public Bug Reporting', () => {
+  it('lists the public UAT and shows only the switched-on data', async () => {
     const user = userEvent.setup()
-    const { dataSource, cycle } = setup()
+    const { dataSource, uat } = setup()
     renderRoute('/publik', { dataSource })
 
     expect(
       await screen.findByRole('heading', { name: /Bersama memastikan layanan Pasar Kerja/ }),
     ).toBeInTheDocument()
-    const card = (await screen.findByRole('heading', { name: cycle.title })).closest(
+    const card = (await screen.findByRole('heading', { name: uat.name })).closest(
       'li',
     ) as HTMLElement
     expect(within(card).getByText(/Forum workshop UAT bersama/)).toBeInTheDocument()
-    await user.click(within(card).getByRole('link', { name: /Lihat fase ini/ }))
+    await user.click(within(card).getByRole('link', { name: /Lihat UAT ini/ }))
 
-    expect(await screen.findByRole('tab', { name: /Fitur yang dikerjakan/ })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Fitur yang dikerjakan' }),
+    ).toBeInTheDocument()
     expect(screen.getAllByText('Meja 1').length).toBeGreaterThan(0)
-    await user.click(screen.getByRole('tab', { name: /Daftar masalah/ }))
+    // Problems live in the project's Bug Reporting, with its own switch.
+    await user.click(screen.getByRole('link', { name: /Lihat daftar masalah/ }))
     const bugs = await screen.findAllByText(/^BUG-/)
     expect(bugs.length).toBeGreaterThan(0)
-    // Reporter and description are switched off in the demo Fase.
+    // Reporter and description are switched off in the demo Bug Reporting.
     expect(screen.queryByText('Dilaporkan oleh')).not.toBeInTheDocument()
   })
 
-  it('sums up every public Fase on the front page, counting only what each one shows', async () => {
+  it('sums up every public UAT on the front page, counting only what each one shows', async () => {
     const { db, dataSource } = setup()
     renderRoute('/publik', { dataSource })
     const totals = (
-      await screen.findByRole('heading', { name: 'Ringkasan semua fase yang dibuka' })
+      await screen.findByRole('heading', { name: 'Ringkasan semua UAT yang dibuka' })
     ).closest('section') as HTMLElement
-    const open = db.cycles.filter((c) => c.is_public).length
-    expect(within(totals).getByText('Fase dibuka').closest('div')).toHaveTextContent(
-      `Fase dibuka${open}`,
+    const open = db.runs.filter((r) => r.is_public).length
+    expect(within(totals).getByText('UAT dibuka').closest('div')).toHaveTextContent(
+      `UAT dibuka${open}`,
     )
     expect(within(totals).getByText('Skenario sudah dicoba')).toBeInTheDocument()
     expect(within(totals).getByText('Masalah dilaporkan')).toBeInTheDocument()
     expect(within(totals).getByRole('img', { name: /sudah dicoba/ })).toBeInTheDocument()
   })
 
-  it('says so when a Fase is not public', async () => {
-    const { dataSource, cycle } = setup()
-    cycle.is_public = false
-    renderRoute(`/publik/${cycle.id}`, { dataSource })
+  it('says so when a UAT is not public', async () => {
+    const { dataSource, uat } = setup()
+    uat.is_public = false
+    renderRoute(`/publik/uat/${uat.id}`, { dataSource })
     expect(await screen.findByText(/tidak dibuka untuk umum/)).toBeInTheDocument()
+  })
+
+  it('opens the public UAT of an old printed Fase link', async () => {
+    const { dataSource, cycle } = setup()
+    const { router } = renderRoute(`/publik/${cycle.id}`, { dataSource })
+    await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/publik\/uat\/\d+$/))
+  })
+
+  it('takes a report from the public form; it shows only after an Admin reviewed it', async () => {
+    const user = userEvent.setup()
+    const { db, dataSource, project, reporting } = setup()
+    reporting.accept_reports = true
+    renderRoute(`/publik/masalah/${project.project_code}`, { dataSource })
+    await user.type(await screen.findByLabelText(/Judul singkat/), 'Tombol lamar tidak merespons')
+    await user.type(
+      screen.getByLabelText(/Apa yang terjadi/),
+      'Setelah menekan Lamar, tidak terjadi apa-apa.',
+    )
+    await user.type(screen.getByLabelText(/Nama Anda/), 'Warga')
+    await user.click(screen.getByRole('button', { name: 'Kirim laporan' }))
+    expect(await screen.findByText('Terima kasih, laporan diterima.')).toBeInTheDocument()
+    const report = db.defects.at(-1)!
+    expect(report).toMatchObject({ title: 'Tombol lamar tidak merespons', source_kind: 'PUBLIC' })
+    expect(report.reviewedAt ?? null).toBeNull()
+    const waiting = await dataSource.listPublicReports(project.project_code)
+    expect(waiting.map((r) => r.title)).toContain('Tombol lamar tidak merespons')
   })
 })
 
@@ -149,38 +184,62 @@ describe('table card and Mode Mudah', () => {
 })
 
 describe('facilitator side', () => {
-  it('creates a table and shows its card code', async () => {
+  it('creates a numbered group and shows its card code', async () => {
     const user = userEvent.setup()
-    const { dataSource, cycle } = setup()
-    renderRoute(`/projects/DEMO-KARIR/workshop/${cycle.id}?tab=meja`, { dataSource })
+    const { db, dataSource, uat } = setup()
+    renderRoute(`/projects/DEMO-KARIR/uat/${uat.id}?tab=kelompok`, { dataSource })
     await user.click(await screen.findByRole('button', { name: 'Buat meja' }))
     const dialog = await screen.findByRole('dialog')
     await user.type(within(dialog).getByLabelText(/^Nama meja/), 'Meja Tamu')
+    const number = within(dialog).getByLabelText(/^Nomor meja/)
+    await user.clear(number)
+    await user.type(number, '9')
     await user.click(within(dialog).getByRole('button', { name: 'Simpan' }))
-    const card = (await screen.findByText('Meja Tamu')).closest('li') as HTMLElement
+    const card = (await screen.findByText('Meja Tamu · Meja 9')).closest('li') as HTMLElement
     expect(within(card).getByText(/^\d{3} \d{3}$/)).toBeInTheDocument()
     expect(within(card).getByText('Aktif')).toBeInTheDocument()
+    expect(db.tables.find((t) => t.name === 'Meja Tamu')).toMatchObject({
+      runId: uat.id,
+      tableNumber: 9,
+    })
   })
 
-  it('switches a public field on and off with the main switch', async () => {
+  it('switches the UAT public page off with its main switch', async () => {
     const user = userEvent.setup()
-    const { dataSource, cycle } = setup()
-    renderRoute(`/projects/DEMO-KARIR/workshop/${cycle.id}?tab=publik`, { dataSource })
+    const { dataSource, uat } = setup()
+    renderRoute(`/projects/DEMO-KARIR/uat/${uat.id}?tab=publik`, { dataSource })
+    const members = await screen.findByRole('checkbox', { name: /Nama anggota kelompok/ })
+    expect(members).not.toBeChecked()
+    await user.click(members)
+    await user.click(screen.getByRole('button', { name: 'Simpan tampilan publik' }))
+    await waitFor(() => expect(uat.public_fields).toContain('features.members'))
+    // Problem fields are not here: they belong to Bug Reporting.
+    expect(screen.queryByRole('checkbox', { name: /Pelapor/ })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('switch', { name: /Tampilkan UAT ini di halaman depan/ }))
+    await user.click(screen.getByRole('button', { name: 'Simpan tampilan publik' }))
+    await waitFor(() => expect(uat.is_public).toBe(false))
+  })
+
+  it('switches a Bug Reporting field on with its own switch', async () => {
+    const user = userEvent.setup()
+    const { db, dataSource, project } = setup()
+    renderRoute('/projects/DEMO-KARIR/bugs?tab=publik', { dataSource })
     const reporter = await screen.findByRole('checkbox', { name: /Pelapor/ })
     expect(reporter).not.toBeChecked()
     await user.click(reporter)
     await user.click(screen.getByRole('button', { name: 'Simpan tampilan publik' }))
-    await waitFor(() => expect(cycle.public_fields).toContain('bugs.reporter'))
-
-    await user.click(screen.getByRole('switch', { name: /Tampilkan fase ini di halaman depan/ }))
-    await user.click(screen.getByRole('button', { name: 'Simpan tampilan publik' }))
-    await waitFor(() => expect(cycle.is_public).toBe(false))
+    await waitFor(() =>
+      expect(db.bugReporting.find((r) => r.projectId === project.id)?.public_fields).toContain(
+        'bugs.reporter',
+      ),
+    )
   })
 
   it('asks before changing what the public page shows for a feature', async () => {
     const user = userEvent.setup()
-    const { dataSource, cycle } = setup()
-    renderRoute(`/projects/DEMO-KARIR/workshop/${cycle.id}?tab=fitur`, { dataSource })
+    const { dataSource, uat } = setup()
+    renderRoute(`/projects/DEMO-KARIR/uat/${uat.id}?tab=fitur`, { dataSource })
     const groups = await screen.findAllByRole('radiogroup', { name: /^Status fitur / })
     const first = groups[0] as HTMLElement
     const hidden = within(first).getByRole('radio', { name: 'Disembunyikan' })
@@ -205,7 +264,7 @@ describe('facilitator side', () => {
 
   it('reviews a problem sent by a table', async () => {
     const user = userEvent.setup()
-    const { db, dataSource, cycle } = setup()
+    const { db, dataSource, uat } = setup()
     await dataSource.joinWorkshop('246810')
     const feature = (await dataSource.getWorkshopSession()).features[0]!
     const scenario = (await dataSource.listWorkshopCases(feature.module.id))[0]!
@@ -214,7 +273,7 @@ describe('facilitator side', () => {
       note: 'Muncul pesan error merah',
     })
     await dataSource.logout()
-    renderRoute(`/projects/DEMO-KARIR/workshop/${cycle.id}?tab=masuk`, { dataSource })
+    renderRoute(`/projects/DEMO-KARIR/uat/${uat.id}?tab=masuk`, { dataSource })
     const item = (await screen.findByText('Muncul pesan error merah')).closest('li') as HTMLElement
     await user.click(within(item).getByRole('radio', { name: 'Berat' }))
     await waitFor(() =>
@@ -224,21 +283,22 @@ describe('facilitator side', () => {
     expect(await screen.findByText(/Tidak ada masalah yang menunggu ditinjau/)).toBeInTheDocument()
   })
 
-  it('prints table cards with a QR code and the 6-digit code', async () => {
-    const { dataSource, cycle } = setup()
-    renderRoute(`/cetak/kartu/DEMO-KARIR/${cycle.id}`, { dataSource })
+  it('prints table cards with a QR code, the table number and the 6-digit code', async () => {
+    const { dataSource, uat } = setup()
+    renderRoute(`/cetak/kartu/DEMO-KARIR/${uat.id}`, { dataSource })
     expect(
       await screen.findByRole('img', { name: /Kode QR untuk masuk sebagai Meja 1/ }),
     ).toBeInTheDocument()
     expect(screen.getByText('246 810')).toBeInTheDocument()
+    expect(screen.getAllByText('Meja 1').length).toBeGreaterThan(0)
   })
 
-  it('shows every table on the big screen', async () => {
-    const { dataSource, cycle } = setup()
-    renderRoute(`/layar/DEMO-KARIR/${cycle.id}`, { dataSource })
-    expect(await screen.findByRole('heading', { name: cycle.title })).toBeInTheDocument()
-    expect(screen.getByText('Meja 1')).toBeInTheDocument()
-    expect(screen.getByText('Meja 3')).toBeInTheDocument()
+  it('shows every group on the big screen', async () => {
+    const { dataSource, uat } = setup()
+    renderRoute(`/layar/DEMO-KARIR/${uat.id}`, { dataSource })
+    expect(await screen.findByRole('heading', { name: uat.name })).toBeInTheDocument()
+    expect(screen.getByText(/Meja 1/)).toBeInTheDocument()
+    expect(screen.getByText(/Meja 3/)).toBeInTheDocument()
   })
 })
 
@@ -295,13 +355,16 @@ describe('guide and public preview for staff', () => {
     )
   })
 
-  it('previews a closed Fase with the chosen data before publishing', async () => {
-    const { dataSource, cycle } = setup()
-    cycle.is_public = false
-    renderRoute(`/publik/${cycle.id}?pratinjau=1&data=features.list`, { dataSource })
+  it('previews a closed UAT with the chosen data before publishing', async () => {
+    const { dataSource, uat } = setup()
+    uat.is_public = false
+    renderRoute(`/publik/uat/${uat.id}?pratinjau=1&data=features.list`, { dataSource })
     expect(await screen.findByText('Pratinjau.')).toBeInTheDocument()
-    expect(await screen.findByRole('tab', { name: /Fitur yang dikerjakan/ })).toBeInTheDocument()
-    expect(screen.queryByRole('tab', { name: /Daftar masalah/ })).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Fitur yang dikerjakan' }),
+    ).toBeInTheDocument()
+    // Progress per feature was not chosen for the preview.
+    expect(screen.queryByText(/sudah dicoba/)).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Buka TestBoard/ })).toBeInTheDocument()
   })
 })

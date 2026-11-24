@@ -48,7 +48,14 @@ export const defectBulkSchema = z.discriminatedUnion('action', [
 ])
 export type DefectBulkInput = z.input<typeof defectBulkSchema>
 
-export const CASE_BULK_ACTIONS = ['set_status', 'archive', 'set_module', 'set_priority'] as const
+export const CASE_BULK_ACTIONS = [
+  'set_status',
+  'archive',
+  'set_module',
+  'set_priority',
+  'move_to_phase',
+  'copy_to_phase',
+] as const
 
 export const caseBulkSchema = z.discriminatedUnion('action', [
   z.object({
@@ -67,6 +74,10 @@ export const caseBulkSchema = z.discriminatedUnion('action', [
     case_ids: ids,
     priority_code: z.enum(TEST_CASE_PRIORITIES),
   }),
+  /** Like moving files to another folder (ADR 0019); null = out of every Fase. */
+  z.object({ action: z.literal('move_to_phase'), case_ids: ids, cycle_id: idString.nullable() }),
+  /** Copies get new codes in the target Fase; the originals stay where they are. */
+  z.object({ action: z.literal('copy_to_phase'), case_ids: ids, cycle_id: idString }),
 ])
 export type CaseBulkInput = z.input<typeof caseBulkSchema>
 

@@ -54,7 +54,7 @@ export function DashboardPage() {
       )}
       {project.data && !manages && role && (
         <div className="mb-6">
-          <TaskIntro code={code} task={role} />
+          <TaskIntro code={code} />
         </div>
       )}
 
@@ -141,7 +141,7 @@ export function DashboardPage() {
               title={t('pages.dashboard.runsHeading')}
               action={
                 <Link
-                  to={projectPath(code, 'runs')}
+                  to={projectPath(code, 'uat')}
                   className="text-sm font-medium text-brand-700 hover:underline"
                 >
                   {t('actions.viewAll')}

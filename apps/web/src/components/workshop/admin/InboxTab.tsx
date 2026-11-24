@@ -1,6 +1,7 @@
 import { DEFECT_SEVERITIES, type DefectSeverity, type WorkshopInboxItem } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, Copy, ExternalLink, ThumbsUp } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { useWorkshopInbox } from '../../../hooks/workshop-queries'
@@ -13,16 +14,28 @@ import { Button } from '../../ui/Button'
 import { EmptyState, ErrorState, LoadingState } from '../../ui/States'
 import { useToast } from '../../ui/toast-context'
 
-function InboxCard({
+/**
+ * One problem waiting for a review: impact, "the same as" a similar problem, or reviewed.
+ * Used for problems from UAT groups and for reports from the public (Bug Reporting).
+ */
+export function InboxCard({
   code,
-  cycleId,
   item,
   canReview,
+  review: send,
+  refreshKeys,
+  from,
+  actions,
 }: {
   code: string
-  cycleId: string
   item: WorkshopInboxItem
   canReview: boolean
+  review: (input: DefectReviewInput) => Promise<unknown>
+  refreshKeys: unknown[][]
+  /** Who sent it (default: the group and the tester). */
+  from?: ReactNode
+  /** Extra buttons next to "Sudah ditinjau". */
+  actions?: ReactNode
 }) {
   const { t, i18n } = useTranslation()
   const locale = toLocale(i18n.resolvedLanguage)
@@ -30,12 +43,9 @@ function InboxCard({
   const toast = useToast()
   const queryClient = useQueryClient()
   const review = useMutation({
-    mutationFn: (input: DefectReviewInput) => ds.reviewWorkshopBug(code, cycleId, item.id, input),
+    mutationFn: (input: DefectReviewInput) => send(input),
     onSuccess: async (_bug, input) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['workshop-inbox', code, cycleId] }),
-        queryClient.invalidateQueries({ queryKey: ['workshop-board', code, cycleId] }),
-      ])
+      await Promise.all(refreshKeys.map((queryKey) => queryClient.invalidateQueries({ queryKey })))
       if (input.duplicate_of_id)
         toast.show(t('workshop.inbox.markedDuplicate', { code: item.bug_code }))
       else if (input.reviewed) toast.show(t('workshop.inbox.reviewed', { code: item.bug_code }))
@@ -48,7 +58,7 @@ function InboxCard({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="font-mono text-sm text-brand-700">{item.bug_code}</p>
         <p className="text-sm text-ink-muted">
-          {[item.table_name, item.tester_name].filter(Boolean).join(' · ')} ·{' '}
+          {from ?? [item.table_name, item.tester_name].filter(Boolean).join(' · ')} ·{' '}
           {formatShortDateTime(item.reported_at, locale)}
         </p>
       </div>
@@ -156,6 +166,7 @@ function InboxCard({
               <ExternalLink aria-hidden="true" className="size-4" />
               {t('workshop.inbox.openBug')}
             </Link>
+            {actions}
           </div>
         </div>
       )}
@@ -163,18 +174,19 @@ function InboxCard({
   )
 }
 
-/** "Masalah masuk": problems sent by tables that a facilitator has not reviewed yet. */
+/** "Masalah masuk": problems sent by groups that a facilitator has not reviewed yet. */
 export function InboxTab({
   code,
-  cycleId,
+  uatId,
   canReview,
 }: {
   code: string
-  cycleId: string
+  uatId: string
   canReview: boolean
 }) {
   const { t } = useTranslation()
-  const inbox = useWorkshopInbox(code, cycleId)
+  const ds = useDataSource()
+  const inbox = useWorkshopInbox(code, uatId)
   return (
     <div className="space-y-4">
       <p className="max-w-3xl text-sm text-ink-muted">{t('workshop.inbox.intro')}</p>
@@ -189,9 +201,15 @@ export function InboxTab({
             <InboxCard
               key={item.id}
               code={code}
-              cycleId={cycleId}
               item={item}
               canReview={canReview}
+              review={(input) => ds.reviewWorkshopBug(code, uatId, item.id, input)}
+              refreshKeys={[
+                ['workshop-inbox', code, uatId],
+                ['workshop-board', code, uatId],
+                ['uat', code],
+                ['defects', code],
+              ]}
             />
           ))}
         </ul>

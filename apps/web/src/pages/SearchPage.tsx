@@ -232,7 +232,7 @@ export function SearchPage() {
             title={t('search.groups.runs')}
             icon={FileCheck2}
             total={runHits.length}
-            allLink={projectPath(code, 'runs')}
+            allLink={projectPath(code, 'uat')}
             allLabel={t('search.allRuns')}
             pending={runs.isPending}
             error={runs.error}

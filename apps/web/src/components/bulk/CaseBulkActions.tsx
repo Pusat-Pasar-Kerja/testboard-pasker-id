@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useModules, useRuns } from '../../hooks/queries'
+import { useCycles, useModules } from '../../hooks/queries'
 import { apiErrorText } from '../../lib/api-errors'
 import { useDataSource } from '../../services/use-data-source'
 import { BULK_SELECT } from '../ui/BulkBar'
@@ -13,11 +13,22 @@ import { MergeDialog, type MergeCandidate } from './MergeDialog'
 import { useToast } from '../ui/toast-context'
 
 type CaseAction =
-  'ready' | 'draft' | 'set_module' | 'set_priority' | 'add_to_run' | 'merge' | 'archive'
+  | 'ready'
+  | 'draft'
+  | 'copy_to_phase'
+  | 'move_to_phase'
+  | 'set_module'
+  | 'set_priority'
+  | 'merge'
+  | 'archive'
+
+/** "Belum masuk fase" in the Fase list of "Pindahkan ke Fase". */
+const NO_PHASE = 'none'
 
 /**
- * Bulk actions on selected test cases (ADR 0013): mark ready / draft, move to a module,
- * change priority, add to a run, archive. Every case gets its own new version.
+ * Bulk actions on selected scenarios (ADR 0013, 0019): mark ready / draft, copy or move to a
+ * Fase (like Salin / Pindahkan in Google Drive), move to a feature, change priority, merge,
+ * archive. Every scenario gets its own new version; open UATs of a Fase follow by themselves.
  */
 export function CaseBulkActions({
   code,
@@ -36,16 +47,19 @@ export function CaseBulkActions({
   const toast = useToast()
   const queryClient = useQueryClient()
   const modules = useModules(code)
-  const runs = useRuns(code)
+  const cycles = useCycles(code)
   const [action, setAction] = useState<CaseAction>('ready')
   const [value, setValue] = useState('')
   const [confirmArchive, setConfirmArchive] = useState(false)
   const [merging, setMerging] = useState(false)
 
-  const openRuns = (runs.data ?? []).filter(
-    (r) => r.status_code === 'PLANNED' || r.status_code === 'ACTIVE',
-  )
+  const phases = (cycles.data ?? []).map((c) => ({
+    value: c.id,
+    label: `${c.cycle_code} - ${c.title}`,
+  }))
   const valueOptions: Partial<Record<CaseAction, { value: string; label: string }[]>> = {
+    copy_to_phase: phases,
+    move_to_phase: [...phases, { value: NO_PHASE, label: t('phases.unassigned') }],
     set_module: (modules.data ?? []).map((m) => ({
       value: m.module_code,
       label: `${m.module_code} - ${m.name}`,
@@ -54,22 +68,11 @@ export function CaseBulkActions({
       value: p,
       label: t(`codes.casePriority.${p}`),
     })),
-    add_to_run: openRuns.map((r) => ({ value: r.id, label: `${r.run_code} - ${r.name}` })),
   }
   const needsValue = action in valueOptions
 
   const apply = useMutation({
     mutationFn: async (): Promise<BulkResult> => {
-      if (action === 'add_to_run') {
-        const added = await ds.addRunCases(code, value, { test_case_ids: ids })
-        return {
-          updated: added.added,
-          unchanged: added.skipped.filter((s) => s.reason === 'ALREADY_IN_RUN').length,
-          skipped: added.skipped
-            .filter((s) => s.reason !== 'ALREADY_IN_RUN')
-            .map((s) => ({ id: s.test_case_id, code: '', reason: s.reason })),
-        }
-      }
       const input: CaseBulkInput =
         action === 'ready' || action === 'draft'
           ? {
@@ -79,13 +82,21 @@ export function CaseBulkActions({
             }
           : action === 'archive'
             ? { action: 'archive', case_ids: ids }
-            : action === 'set_module'
-              ? { action: 'set_module', case_ids: ids, module_code: value }
-              : {
-                  action: 'set_priority',
-                  case_ids: ids,
-                  priority_code: value as (typeof TEST_CASE_PRIORITIES)[number],
-                }
+            : action === 'copy_to_phase'
+              ? { action: 'copy_to_phase', case_ids: ids, cycle_id: value }
+              : action === 'move_to_phase'
+                ? {
+                    action: 'move_to_phase',
+                    case_ids: ids,
+                    cycle_id: value === NO_PHASE ? null : value,
+                  }
+                : action === 'set_module'
+                  ? { action: 'set_module', case_ids: ids, module_code: value }
+                  : {
+                      action: 'set_priority',
+                      case_ids: ids,
+                      priority_code: value as (typeof TEST_CASE_PRIORITIES)[number],
+                    }
       return ds.bulkTestCases(code, input)
     },
     onSuccess: async (result) => {
@@ -94,6 +105,9 @@ export function CaseBulkActions({
         [
           ['test-cases', code],
           ['test-case', code],
+          ['phase-tree', code],
+          ['uats', code],
+          ['uat', code],
           ['runs', code],
           ['run', code],
           ['dashboard', code],
@@ -110,9 +124,10 @@ export function CaseBulkActions({
   const actions: CaseAction[] = [
     'ready',
     'draft',
+    'copy_to_phase',
+    'move_to_phase',
     'set_module',
     'set_priority',
-    'add_to_run',
     ...(ids.length >= 2 ? (['merge'] as const) : []),
     'archive',
   ]
@@ -140,11 +155,7 @@ export function CaseBulkActions({
           value={value}
           onChange={(e) => setValue(e.target.value)}
         >
-          <option value="">
-            {action === 'add_to_run' && openRuns.length === 0
-              ? t('bulk.noOpenRun')
-              : t('bulk.chooseValue')}
-          </option>
+          <option value="">{t('bulk.chooseValue')}</option>
           {(valueOptions[action] ?? []).map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}

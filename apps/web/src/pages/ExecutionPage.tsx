@@ -806,8 +806,9 @@ function Workspace({ detail }: { detail: RunCaseDetail }) {
         title={snap.title}
         crumbs={[
           { label: code, to: projectPath(code) },
-          { label: t('pages.runs.title'), to: projectPath(code, 'runs') },
-          { label: detail.run.run_code, to: runPath },
+          { label: t('nav.uat'), to: projectPath(code, 'uat') },
+          { label: detail.run.name, to: projectPath(code, `uat/${detail.run.id}`) },
+          { label: t('uat.scenarios'), to: runPath },
           { label: snap.case_code },
         ]}
         badges={

@@ -128,6 +128,8 @@ export interface TestCaseListItem {
   id: IdString
   case_code: string
   title: string
+  /** The Fase the scenario is saved in (ADR 0019); null = not in a Fase yet. */
+  cycle: { id: IdString; cycle_code: string; title: string } | null
   module: ModuleDto | null
   category: string | null
   priority_code: TestCasePriority

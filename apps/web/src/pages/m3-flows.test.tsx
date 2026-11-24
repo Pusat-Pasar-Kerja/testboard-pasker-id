@@ -34,65 +34,62 @@ function freshCase(db: MockDb, runCode: string, assignedTo?: string) {
   return { run, rc }
 }
 
-describe('cycles (TB-RUN-001)', () => {
-  it('validates and creates a cycle', async () => {
+describe('Fase folders (TB-RUN-001, ADR 0019)', () => {
+  it('validates and creates a Fase', async () => {
     const user = userEvent.setup()
-    renderRoute(`${P}/cycles`)
-    await screen.findByRole('heading', { level: 1, name: 'Fase uji' })
+    renderRoute(`${P}/fase`)
+    await screen.findByRole('heading', { level: 1, name: 'Fase' })
     expect(await screen.findByText('SIKLUS-1-2026')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Buat' }))
-    expect(await screen.findByText('Periksa kembali isian yang ditandai.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Fase baru' }))
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Buat Fase' }))
+    expect(
+      await within(dialog).findByText('Periksa kembali isian yang ditandai.'),
+    ).toBeInTheDocument()
 
-    await user.type(screen.getByLabelText(/^Kode fase/), 'siklus-2-2026')
-    await user.type(screen.getByLabelText(/^Judul/), 'Siklus UAT 2 - 2026')
-    await user.click(screen.getByRole('button', { name: 'Buat' }))
-    expect(await screen.findByText('Fase SIKLUS-2-2026 dibuat.')).toBeInTheDocument()
+    await user.type(within(dialog).getByLabelText(/^Nama Fase/), 'Siklus UAT 2 - 2026')
+    await user.type(within(dialog).getByLabelText(/^Kode singkat/), 'siklus-2-2026')
+    await user.click(within(dialog).getByRole('button', { name: 'Buat Fase' }))
+    expect(await screen.findByText('Fase Siklus UAT 2 - 2026 dibuat.')).toBeInTheDocument()
     expect(await screen.findByRole('heading', { name: 'Siklus UAT 2 - 2026' })).toBeInTheDocument()
   })
 })
 
-describe('run planning (TB-RUN-001..003)', () => {
-  it('creates a run, adds READY cases, assigns them and starts the run', async () => {
+describe('UAT planning (TB-RUN-001..003, ADR 0019)', () => {
+  it('creates a UAT from a Fase, adds its people and starts it', async () => {
     const user = userEvent.setup()
-    const { router } = renderRoute(`${P}/runs/new`)
-    await screen.findByRole('heading', { level: 1, name: 'Buat lembar uji' })
+    const { db, dataSource } = withDb()
+    const { router } = renderRoute(`${P}/uat/baru`, { dataSource })
+    await screen.findByRole('heading', { level: 1, name: 'UAT baru' })
 
-    await user.type(screen.getByLabelText(/^Nama/), 'Regresi Uji M3')
-    await user.type(screen.getByLabelText(/^URL lingkungan/), 'bukan-url')
-    await user.click(screen.getByRole('button', { name: 'Simpan' }))
-    expect(await screen.findByText('URL harus diawali http:// atau https://')).toBeInTheDocument()
-    await user.clear(screen.getByLabelText(/^URL lingkungan/))
-    await user.click(screen.getByRole('button', { name: 'Simpan' }))
+    await user.click(screen.getByRole('button', { name: 'Buat UAT' }))
+    expect(await screen.findByText('Pilih Fase dulu.')).toBeInTheDocument()
 
-    expect(await screen.findByText(/^Lembar uji RUN-\d{8}-1 dibuat/)).toBeInTheDocument()
-    await waitFor(() => expect(router.state.location.pathname).toMatch(/\/runs\/\d+$/))
-    expect(await screen.findByText('Lembar uji ini belum berisi skenario uji.')).toBeInTheDocument()
+    await user.click(screen.getByRole('radio', { name: /Siklus UAT 1 - 2026/ }))
+    // Every feature with Ready scenarios is ticked; their scenarios come along.
+    expect(await screen.findByRole('checkbox', { name: /Lowongan Kerja/ })).toBeChecked()
+    expect(screen.getByText(/skenario Siap akan masuk ke UAT ini/)).toBeInTheDocument()
+    await user.type(screen.getByLabelText(/^Nama UAT/), 'UAT Regresi M3')
+    await user.click(screen.getByRole('button', { name: 'Buat UAT' }))
 
-    await user.click(screen.getByRole('button', { name: 'Tambah skenario uji' }))
-    const panel = (
-      await screen.findByRole('heading', { name: 'Tambah skenario uji ke lembar uji' })
-    ).closest('section') as HTMLElement
-    const boxes = await within(panel).findAllByRole('checkbox')
-    // [0] = select all; tick the first two cases.
-    await user.click(boxes[1] as HTMLElement)
-    await user.click(boxes[2] as HTMLElement)
-    await user.click(within(panel).getByRole('button', { name: 'Tambahkan (2)' }))
-    expect(await screen.findByText('2 skenario uji ditambahkan.')).toBeInTheDocument()
-
-    await user.click(await screen.findByRole('checkbox', { name: 'Pilih semua skenario uji' }))
-    const bar = await screen.findByRole('region', { name: '2 dipilih' })
-    await user.selectOptions(within(bar).getByRole('combobox'), 'Demo Penguji 2')
-    await user.click(within(bar).getByRole('button', { name: 'Terapkan' }))
     expect(
-      await screen.findByText('2 skenario uji ditugaskan ke Demo Penguji 2.'),
+      await screen.findByText('UAT UAT Regresi M3 dibuat. Sekarang tambahkan peserta.'),
     ).toBeInTheDocument()
+    await waitFor(() => expect(router.state.location.pathname).toMatch(/\/uat\/\d+$/))
+    const created = db.runs.find((r) => r.name === 'UAT Regresi M3')!
+    expect(db.runCases.filter((rc) => rc.runId === created.id).length).toBeGreaterThan(0)
 
-    await user.click(screen.getByRole('button', { name: 'Mulai lembar uji' }))
-    const dialog = await screen.findByRole('alertdialog', { name: /^Mulai lembar uji RUN-/ })
-    await user.click(within(dialog).getByRole('button', { name: 'Mulai lembar uji' }))
-    expect(await screen.findByText('Status lembar uji sekarang: Berjalan.')).toBeInTheDocument()
-    expect(await screen.findByRole('button', { name: 'Selesaikan lembar uji' })).toBeInTheDocument()
+    await user.type(await screen.findByLabelText(/^Nama dan e-mail/), 'Bu Sri{enter}Pak Budi')
+    await user.click(screen.getByRole('button', { name: 'Tambahkan' }))
+    expect(await screen.findByText('2 peserta ditambahkan.')).toBeInTheDocument()
+    expect(await screen.findByText('Bu Sri')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Mulai UAT' }))
+    const dialog = await screen.findByRole('alertdialog', { name: 'Mulai UAT' })
+    await user.click(within(dialog).getByRole('button', { name: 'Mulai UAT' }))
+    expect(await screen.findByText('UAT Regresi M3 sedang berjalan.')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Selesaikan UAT' })).toBeInTheDocument()
   })
 
   it('confirms before locking a completed run, after which it can no longer be edited', async () => {
@@ -100,15 +97,15 @@ describe('run planning (TB-RUN-001..003)', () => {
     const { db, dataSource } = withDb()
     const run = runOf(db, 'RUN-S1-20261012')
     renderRoute(`${P}/runs/${run.id}`, { dataSource })
-    await user.click(await screen.findByRole('button', { name: 'Kunci lembar uji' }))
+    await user.click(await screen.findByRole('button', { name: 'Kunci UAT' }))
     const dialog = await screen.findByRole('alertdialog', {
-      name: 'Kunci lembar uji RUN-S1-20261012?',
+      name: 'Kunci UAT RUN-S1-20261012?',
     })
     expect(dialog).toHaveTextContent('tidak bisa dibatalkan')
-    await user.click(within(dialog).getByRole('button', { name: 'Kunci lembar uji' }))
-    expect(await screen.findByText('Status lembar uji sekarang: Dikunci.')).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Kunci UAT' }))
+    expect(await screen.findByText('Status UAT sekarang: Dikunci.')).toBeInTheDocument()
     await waitFor(() => expect(screen.queryByRole('link', { name: 'Ubah' })).toBeNull())
-    expect(screen.getByText('Lembar uji dikunci dan bersifat final.')).toBeInTheDocument()
+    expect(screen.getByText('UAT dikunci dan bersifat final.')).toBeInTheDocument()
   })
 })
 
@@ -194,9 +191,7 @@ describe('execution workspace (TB-EXEC-001..004)', () => {
     const rc = db.runCases.find((x) => x.runId === run.id)
     renderRoute(`${P}/runs/${run.id}/cases/${rc?.id}`, { dataSource })
     expect(
-      await screen.findByText(
-        'Lembar uji sudah selesai. Minta Admin membuka lagi lembar uji untuk uji ulang.',
-      ),
+      await screen.findByText('UAT sudah selesai. Minta Admin membuka lagi UAT untuk uji ulang.'),
     ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Simpan hasil' })).toBeNull()
   })

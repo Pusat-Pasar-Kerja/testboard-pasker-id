@@ -6,9 +6,15 @@ import {
   type DefectListItem,
   type DefectStatus,
 } from '@testboard/shared'
-import { Plus } from 'lucide-react'
+import { ExternalLink, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link, useSearchParams } from 'react-router'
+import { BugPublicTab } from '../components/bugs/BugPublicTab'
+import { PublicReportsTab } from '../components/bugs/PublicReportsTab'
+import { Badge } from '../components/ui/Badge'
+import { Tabs } from '../components/ui/Tabs'
+import { useBugReporting, usePublicReports } from '../hooks/structure-queries'
 import { BugBulkActions } from '../components/bulk/BugBulkActions'
 import { BulkBar, BulkReport } from '../components/ui/BulkBar'
 import {
@@ -17,6 +23,7 @@ import {
   SeverityBadge,
 } from '../components/status/StatusBadges'
 import { ButtonLink } from '../components/ui/Button'
+import { ChipFilter } from '../components/ui/ChipFilter'
 import { FilterBar, SearchField, SelectFilter } from '../components/ui/Filters'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Pagination } from '../components/ui/Pagination'
@@ -31,8 +38,11 @@ import { formatShortDateTime, toLocale } from '../lib/format'
 
 const FILTER_KEYS = ['q', 'status', 'severity', 'priority', 'assignee', 'cycle'] as const
 const STATUS_FILTERS: readonly (DefectStatus | 'open')[] = ['open', ...DEFECT_STATUSES]
+/** The statuses people look for most, one tap away (owner, 2026-11-24: simpler filters). */
+const QUICK_STATUSES: readonly (DefectStatus | 'open')[] = ['open', 'READY_FOR_RETEST', 'CLOSED']
 
-export function BugsPage() {
+/** The problem list of the project with its filters and bulk actions. */
+function BugList() {
   const { t, i18n } = useTranslation()
   const locale = toLocale(i18n.resolvedLanguage)
   const code = useProjectCode()
@@ -65,19 +75,6 @@ export function BugsPage() {
 
   return (
     <>
-      <PageHeader
-        title={t('pages.bugs.title')}
-        subtitle={t('pages.bugs.subtitle')}
-        crumbs={[{ label: code, to: projectPath(code) }, { label: t('pages.bugs.title') }]}
-        actions={
-          can('defect.create') && (
-            <ButtonLink to={projectPath(code, 'bugs/new')} icon={Plus}>
-              {t('pages.bugs.newBug')}
-            </ButtonLink>
-          )
-        }
-      />
-
       <FilterBar onReset={active ? reset : undefined}>
         <SearchField
           label={t('filters.keyword')}
@@ -134,6 +131,19 @@ export function BugsPage() {
           ]}
         />
       </FilterBar>
+      <div className="mb-4">
+        <ChipFilter
+          label={t('filters.status')}
+          value={
+            QUICK_STATUSES.includes(values.status as DefectStatus | 'open') ? values.status : ''
+          }
+          onChange={(value) => setFilter('status', value)}
+          options={QUICK_STATUSES.map((s) => ({
+            value: s,
+            label: s === 'open' ? t('filters.openOnly') : t(`codes.defectStatus.${s}`),
+          }))}
+        />
+      </div>
 
       <Section>
         {defects.isPending && <LoadingState />}
@@ -234,6 +244,97 @@ export function BugsPage() {
           </div>
         )}
       </Section>
+    </>
+  )
+}
+
+/**
+ * Bug Reporting (ADR 0019): one problem list per project, filled during UAT and, after
+ * go-live, by the public. An Admin also reviews public reports and decides what the public
+ * page shows, with its own ON/OFF switch.
+ */
+export function BugsPage() {
+  const { t } = useTranslation()
+  const code = useProjectCode()
+  const can = useCan(code)
+  const manager = can('run.write')
+  const [params, setParams] = useSearchParams()
+  const reports = usePublicReports(code, manager)
+  const settings = useBugReporting(code, manager)
+  const tabs = [
+    { id: 'daftar', label: t('bugReporting.tabs.list'), content: <BugList /> },
+    ...(manager
+      ? [
+          {
+            id: 'laporan',
+            label: t('bugReporting.tabs.reports'),
+            count: reports.data?.length ?? 0,
+            content: <PublicReportsTab code={code} />,
+          },
+          {
+            id: 'publik',
+            label: t('bugReporting.tabs.public'),
+            content: settings.isSuccess ? (
+              <BugPublicTab
+                key={JSON.stringify(settings.data)}
+                code={code}
+                settings={settings.data}
+              />
+            ) : settings.isError ? (
+              <ErrorState error={settings.error} onRetry={() => void settings.refetch()} />
+            ) : (
+              <LoadingState rows={4} />
+            ),
+          },
+        ]
+      : []),
+  ]
+  const active = params.get('tab') ?? 'daftar'
+  const isPublic = settings.data?.is_public ?? false
+  return (
+    <>
+      <PageHeader
+        title={t('bugReporting.title')}
+        subtitle={t('bugReporting.subtitle')}
+        crumbs={[{ label: code, to: projectPath(code) }, { label: t('bugReporting.title') }]}
+        badges={
+          manager && settings.isSuccess ? (
+            <Badge
+              tone={isPublic ? 'success' : 'muted'}
+              label={isPublic ? t('bugReporting.publicOn') : t('bugReporting.publicOff')}
+            />
+          ) : undefined
+        }
+        actions={
+          <>
+            {isPublic && (
+              <Link
+                to={`/publik/masalah/${encodeURIComponent(code)}`}
+                target="_blank"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-4 text-sm font-semibold hover:bg-neutral-soft"
+              >
+                <ExternalLink aria-hidden="true" className="size-4" />
+                {t('workshop.publicPage')}
+              </Link>
+            )}
+            {can('defect.create') && (
+              <ButtonLink to={projectPath(code, 'bugs/new')} icon={Plus}>
+                {t('pages.bugs.newBug')}
+              </ButtonLink>
+            )}
+          </>
+        }
+      />
+      {tabs.length === 1 ? (
+        <BugList />
+      ) : (
+        <Tabs
+          label={t('bugReporting.tabsLabel')}
+          tabs={tabs}
+          active={tabs.some((tab) => tab.id === active) ? active : 'daftar'}
+          onChange={(id) => setParams({ tab: id }, { replace: true })}
+        />
+      )}
     </>
   )
 }

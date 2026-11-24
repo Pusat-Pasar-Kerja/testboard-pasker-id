@@ -2,7 +2,10 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { uiPng } from './support/fixtures.js'
 import { addMember, Client, createHarness, createProject, createUser } from './support/harness.js'
 
-/** Mode Workshop (ADR 0016): public Fase, table cards, easy answers, "+1", review. */
+/**
+ * Mode Workshop (ADR 0016) inside a UAT (ADR 0019): public UAT, group cards, easy answers,
+ * "+1", review, and the project's public Bug Reporting.
+ */
 const h = createHarness()
 afterAll(() => h.pool.end())
 
@@ -14,14 +17,13 @@ const modules: Record<string, string> = {}
 let runCases: { run_case_id: string; test_case_id: string }[] = []
 const caseIdsByModule: Record<string, string[]> = { LOKER: [], GIG: [] }
 const P = () => `/projects/${project.code}`
-const W = () => `${P()}/cycles/${cycleId}`
+const W = () => `${P()}/uats/${runId}`
 const hour = 3_600_000
 const soon = () => new Date(Date.now() + 24 * hour).toISOString()
 
 async function newTable(name: string, moduleCodes: string[], members: string[] = []) {
-  const res = await lead.post(`${W()}/tables`, {
+  const res = await lead.post(`${W()}/groups`, {
     name,
-    run_id: runId,
     module_ids: moduleCodes.map((code) => modules[code]),
     members: members.map((name) => ({ name })),
     valid_from: new Date(Date.now() - hour).toISOString(),
@@ -49,6 +51,13 @@ beforeAll(async () => {
   await addMember(h.pool, project.id, user.id, 'QA_LEAD')
   lead = new Client(h)
   await lead.login(user.email)
+  cycleId = (
+    await lead.post(`${P()}/cycles`, {
+      cycle_code: 'FASE-2',
+      title: 'UAT Fase 2',
+      status_code: 'ACTIVE',
+    })
+  ).json.id
   for (const [code, name] of [
     ['LOKER', 'Lapor Loker'],
     ['GIG', 'Gig Workers'],
@@ -57,6 +66,7 @@ beforeAll(async () => {
     for (const title of ['Buka halaman', 'Isi formulir', 'Simpan data']) {
       const res = await lead.post(`${P()}/test-cases`, {
         module_code: code,
+        cycle_id: cycleId,
         title: `${name}: ${title}`,
         test_steps_text: '1. Buka menu\n2. Klik tombol',
         expected_result: 'Data tersimpan',
@@ -65,29 +75,25 @@ beforeAll(async () => {
       caseIdsByModule[code]!.push(res.json.id)
     }
   }
-  cycleId = (
-    await lead.post(`${P()}/cycles`, {
-      cycle_code: 'FASE-2',
-      title: 'UAT Fase 2',
-      status_code: 'ACTIVE',
-    })
-  ).json.id
-  const run = await lead.post(`${P()}/runs`, { name: 'Workshop Fase 2', cycle_id: cycleId })
-  runId = run.json.id
-  await lead.post(`${P()}/runs/${runId}/cases`, {
-    test_case_ids: [...caseIdsByModule.LOKER!, ...caseIdsByModule.GIG!],
+  // A UAT for the Fase with both features: its scenarios come along by themselves.
+  const uat = await lead.post(`${P()}/uats`, {
+    cycle_id: cycleId,
+    name: 'Workshop Fase 2',
+    module_ids: [modules.LOKER, modules.GIG],
   })
+  expect(uat.status).toBe(201)
+  runId = uat.json.id
   await lead.post(`${P()}/runs/${runId}/status`, { status_code: 'ACTIVE' })
   runCases = (await lead.get(`${P()}/runs/${runId}`)).json.run_cases
 })
 
-describe('public Fase (everything hidden by default)', () => {
-  it('shows nothing until the Fase is public, then only the switched-on fields', async () => {
+describe('public UAT (everything hidden by default)', () => {
+  it('shows nothing until the UAT is public, then only the switched-on fields', async () => {
     const anonymous = new Client(h)
     expect(
-      (await anonymous.get('/public/cycles')).json.some((c: { id: string }) => c.id === cycleId),
+      (await anonymous.get('/public/uats')).json.some((c: { id: string }) => c.id === runId),
     ).toBe(false)
-    expect((await anonymous.get(`/public/cycles/${cycleId}`)).status).toBe(404)
+    expect((await anonymous.get(`/public/uats/${runId}`)).status).toBe(404)
 
     const saved = await lead.put(`${W()}/public`, {
       is_public: true,
@@ -95,18 +101,26 @@ describe('public Fase (everything hidden by default)', () => {
       public_intro: 'Workshop 3-4 Desember',
     })
     expect(saved.status).toBe(200)
-    // A field without its base field is dropped; unknown keys are ignored.
+    // Problems belong to Bug Reporting, unknown keys are ignored.
     expect(saved.json.public_fields).toEqual([])
 
-    const list = await anonymous.get('/public/cycles')
-    const card = list.json.find((c: { id: string }) => c.id === cycleId)
-    expect(card).toMatchObject({ title: 'UAT Fase 2', intro: 'Workshop 3-4 Desember', fields: [] })
+    const list = await anonymous.get('/public/uats')
+    const card = list.json.find((c: { id: string }) => c.id === runId)
+    expect(card).toMatchObject({
+      name: 'Workshop Fase 2',
+      phase: { cycle_code: 'FASE-2', title: 'UAT Fase 2' },
+      intro: 'Workshop 3-4 Desember',
+      fields: [],
+      bug_reporting_public: false,
+    })
     expect(card).not.toHaveProperty('progress')
     expect(card).not.toHaveProperty('period')
-    expect(card).not.toHaveProperty('bug_count')
-    const detail = await anonymous.get(`/public/cycles/${cycleId}`)
+    const detail = await anonymous.get(`/public/uats/${runId}`)
     expect(detail.json).not.toHaveProperty('features')
-    expect((await anonymous.get(`/public/cycles/${cycleId}/bugs`)).status).toBe(404)
+    // Old printed links to the Fase find its public UAT.
+    expect((await anonymous.get(`/public/cycles/${cycleId}/uat`)).json).toEqual({ id: runId })
+    // Bug Reporting stays closed until it is switched on by itself.
+    expect((await anonymous.get(`/public/projects/${project.code}/bugs`)).status).toBe(404)
   })
 })
 
@@ -238,7 +252,7 @@ describe('table cards and easy answers', () => {
   })
 
   it('shows the live board and lets the facilitator review new problems', async () => {
-    const board = await lead.get(`${W()}/workshop`)
+    const board = await lead.get(`${W()}/board`)
     expect(board.status).toBe(200)
     expect(board.json.tables.map((t: { name: string }) => t.name)).toEqual(['Meja 1', 'Meja 2'])
     expect(board.json.totals).toMatchObject({ total: 6, tried: 3 })
@@ -280,31 +294,32 @@ describe('table cards and easy answers', () => {
   it('publishes exactly the chosen fields', async () => {
     await lead.put(`${W()}/public`, {
       is_public: true,
-      public_fields: [
-        'features.list',
-        'features.progress',
-        'bugs.list',
-        'bugs.code',
-        'bugs.reporter',
-      ],
+      public_fields: ['features.list', 'features.progress'],
       public_intro: null,
     })
+    const settings = await lead.put(`${P()}/bug-reporting`, {
+      is_public: true,
+      public_fields: ['bugs.list', 'bugs.code', 'bugs.reporter', 'features.list'],
+      public_intro: null,
+      accept_reports: false,
+    })
+    // Only problem fields belong to Bug Reporting.
+    expect(settings.json.public_fields).toEqual(['bugs.list', 'bugs.code', 'bugs.reporter'])
     const anonymous = new Client(h)
-    const detail = (await anonymous.get(`/public/cycles/${cycleId}`)).json
+    const detail = (await anonymous.get(`/public/uats/${runId}`)).json
     expect(detail.features.map((f: { module_code: string }) => f.module_code).sort()).toEqual([
       'GIG',
       'LOKER',
     ])
     expect(detail.features[0]).toHaveProperty('progress')
     expect(detail.features[0]).not.toHaveProperty('tables')
-    expect(detail.bug_count).toBe(1)
-    expect(detail.bug_open).toBe(1)
-    // The front page totals read the same counts from the list (audit 2026-11-24).
-    const card = (await anonymous.get('/public/cycles')).json.find(
-      (c: { id: string }) => c.id === cycleId,
+    expect(detail.bug_reporting_public).toBe(true)
+    // The front page reads the problem totals from the public Bug Reporting.
+    const reporting = (await anonymous.get('/public/bug-reporting')).json.find(
+      (r: { project: { code: string } }) => r.project.code === project.code,
     )
-    expect(card).toMatchObject({ bug_count: 1, bug_open: 1 })
-    const bugs = (await anonymous.get(`/public/cycles/${cycleId}/bugs`)).json
+    expect(reporting).toMatchObject({ bug_count: 1, bug_open: 1, accept_reports: false })
+    const bugs = (await anonymous.get(`/public/projects/${project.code}/bugs`)).json
     expect(bugs.total).toBe(1)
     expect(bugs.data[0]).toMatchObject({ reporter: 'Meja 1 · Pak Budi' })
     expect(bugs.data[0].bug_code).toMatch(/^BUG-/)
@@ -313,19 +328,19 @@ describe('table cards and easy answers', () => {
     expect(bugs.data[0]).not.toHaveProperty('files')
 
     await lead.put(`${W()}/features`, { module_id: modules.GIG, state_code: 'HIDDEN' })
-    const hidden = (await anonymous.get(`/public/cycles/${cycleId}`)).json
+    const hidden = (await anonymous.get(`/public/uats/${runId}`)).json
     expect(hidden.features.map((f: { module_code: string }) => f.module_code)).toEqual(['LOKER'])
   })
 
   it('blocks a card, changes a code and refuses to delete a table with answers', async () => {
-    const tables = (await lead.get(`${W()}/tables`)).json as {
+    const tables = (await lead.get(`${W()}/groups`)).json as {
       id: string
       name: string
       devices: number
     }[]
     const t1 = tables.find((t) => t.name === 'Meja 1')!
     expect(t1.devices).toBeGreaterThan(0)
-    await lead.patch(`${W()}/tables/${t1.id}`, { revoked: true })
+    await lead.patch(`${W()}/groups/${t1.id}`, { revoked: true })
     expect((await meja1.client.get('/workshop/session')).status).toBe(401)
     const refused = await new Client(h).post('/workshop/join', { code: meja1Code })
     expect(refused.json.error.details[0].message).toBe('REVOKED')
@@ -334,18 +349,17 @@ describe('table cards and easy answers', () => {
     const oldCode = (tables as unknown as { name: string; access_code: string }[]).find(
       (t) => t.name === 'Meja 2',
     )!.access_code
-    const renewed = await lead.patch(`${W()}/tables/${t2.id}`, { regenerate_code: true })
+    const renewed = await lead.patch(`${W()}/groups/${t2.id}`, { regenerate_code: true })
     expect(renewed.json.access_code).not.toBe(oldCode)
     expect((await new Client(h).post('/workshop/join', { code: oldCode })).status).toBe(401)
 
-    expect((await lead.delete(`${W()}/tables/${t1.id}`)).status).toBe(409)
+    expect((await lead.delete(`${W()}/groups/${t1.id}`)).status).toBe(409)
     const empty = await newTable('Meja Cadangan', ['GIG'])
-    expect((await lead.delete(`${W()}/tables/${empty.id}`)).status).toBe(204)
+    expect((await lead.delete(`${W()}/groups/${empty.id}`)).status).toBe(204)
     expect(
       (
-        await lead.post(`${W()}/tables`, {
+        await lead.post(`${W()}/groups`, {
           name: 'Meja 2',
-          run_id: runId,
           module_ids: [],
           valid_until: soon(),
         })
@@ -367,9 +381,9 @@ describe('table cards and easy answers', () => {
 describe('people at a table with their own User account (ADR 0018)', () => {
   it('turns an e-mail into a Penguji account, activates it at the table and opens "Tugas saya"', async () => {
     const email = `budi.${Date.now()}@test.invalid`
-    const created = await lead.post(`${W()}/tables`, {
+    const created = await lead.post(`${W()}/groups`, {
       name: 'Meja Akun',
-      run_id: runId,
+      table_number: 7,
       module_ids: [modules.LOKER],
       members: [
         { name: 'Pak Budi', email },
@@ -431,7 +445,8 @@ describe('people at a table with their own User account (ADR 0018)', () => {
     expect(tasks.status).toBe(200)
     expect(tasks.json.tables).toEqual([
       expect.objectContaining({
-        table: { id: created.json.id, name: 'Meja Akun' },
+        table: { id: created.json.id, name: 'Meja Akun', table_number: 7 },
+        uat: { id: runId, name: 'Workshop Fase 2' },
         member: expect.objectContaining({ name: 'Pak Budi' }),
         state: 'ACTIVE',
       }),
@@ -509,34 +524,42 @@ describe('photos from a table', () => {
     expect(thumb.headers.get('Content-Type')).toMatch(/^image\//)
 
     const anonymous = new Client(h)
-    const publicPath = `/public/cycles/${cycleId}/files/${fileId}/thumbnail`
+    const publicPath = `/public/projects/${project.code}/files/${fileId}/thumbnail`
     expect((await anonymous.raw(publicPath)).status).toBe(404)
-    await lead.put(`${W()}/public`, {
+    await lead.put(`${P()}/bug-reporting`, {
       is_public: true,
       public_fields: ['bugs.list', 'bugs.evidence'],
       public_intro: null,
+      accept_reports: false,
     })
     expect((await anonymous.raw(publicPath)).status).toBe(200)
-    const bugs = (await anonymous.get(`/public/cycles/${cycleId}/bugs`)).json
+    const bugs = (await anonymous.get(`/public/projects/${project.code}/bugs`)).json
     expect(bugs.data.find((b: { files?: unknown[] }) => b.files?.length)).toBeTruthy()
   })
 })
 
 describe('preview of the public page (before publishing)', () => {
-  it('lets a lead see the public page of a closed Fase, with unsaved field choices', async () => {
+  it('lets a lead see the public page of a closed UAT, with unsaved field choices', async () => {
     await lead.put(`${W()}/public`, { is_public: false, public_fields: [], public_intro: null })
+    await lead.put(`${P()}/bug-reporting`, {
+      is_public: false,
+      public_fields: ['bugs.list'],
+      public_intro: null,
+      accept_reports: false,
+    })
     const anonymous = new Client(h)
-    expect((await anonymous.get(`/public/cycles/${cycleId}`)).status).toBe(404)
-    expect((await anonymous.get(`/public/cycles/${cycleId}?preview=1`)).status).toBe(404)
+    expect((await anonymous.get(`/public/uats/${runId}`)).status).toBe(404)
+    expect((await anonymous.get(`/public/uats/${runId}?preview=1`)).status).toBe(404)
 
     const preview = await lead.get(
-      `/public/cycles/${cycleId}?preview=1&fields=features.list,features.progress,bugs.list`,
+      `/public/uats/${runId}?preview=1&fields=features.list,features.progress`,
     )
     expect(preview.status).toBe(200)
-    expect(preview.json.fields).toEqual(['features.list', 'features.progress', 'bugs.list'])
+    expect(preview.json.fields).toEqual(['features.list', 'features.progress'])
     expect(preview.json.features.length).toBeGreaterThan(0)
     expect(preview.json.features[0]).toHaveProperty('progress')
-    const bugs = await lead.get(`/public/cycles/${cycleId}/bugs?preview=1&fields=bugs.list`)
+    expect((await anonymous.get(`/public/projects/${project.code}/bugs`)).status).toBe(404)
+    const bugs = await lead.get(`/public/projects/${project.code}/bugs?preview=1`)
     expect(bugs.status).toBe(200)
     expect(bugs.json.data[0]).not.toHaveProperty('bug_code')
 
@@ -545,6 +568,7 @@ describe('preview of the public page (before publishing)', () => {
     await addMember(h.pool, project.id, user.id, 'TESTER')
     const tester = new Client(h)
     await tester.login(user.email)
-    expect((await tester.get(`/public/cycles/${cycleId}?preview=1`)).status).toBe(404)
+    expect((await tester.get(`/public/uats/${runId}?preview=1`)).status).toBe(404)
+    expect((await tester.get(`/public/projects/${project.code}/bugs?preview=1`)).status).toBe(404)
   })
 })

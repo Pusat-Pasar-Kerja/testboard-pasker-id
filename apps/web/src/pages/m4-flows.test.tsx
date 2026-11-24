@@ -156,10 +156,14 @@ describe('bug status workflow (TB-BUG-003/004)', () => {
     ])
   })
 
-  it('shows a developer only their own fix steps and locks other fields', async () => {
+  it('shows a legacy developer only their own fix steps and locks other fields', async () => {
     const user = userEvent.setup()
     const { db, dataSource } = withDb((d) => {
       d.currentUserId = '5'
+      // An old DEVELOPER row that migration 0015 had not converted yet: still read only / limited.
+      d.projects
+        .find((p) => p.project_code === 'DEMO-KARIR')!
+        .members.find((m) => m.userId === '5')!.role = 'DEVELOPER'
     }, false)
     const bug = mainBugs(db).find((d) => d.assignedTo === '5' && d.status_code === 'OPEN')
     if (!bug) throw new Error('no OPEN bug for the developer')
@@ -175,9 +179,13 @@ describe('bug status workflow (TB-BUG-003/004)', () => {
     expect(screen.getByLabelText(/^Diperbaiki di versi/)).toBeEnabled()
   })
 
-  it('lets viewers read only: no actions, no edit, no comment form', async () => {
+  it('lets legacy viewers read only: no actions, no edit, no comment form', async () => {
     const { db, dataSource } = withDb((d) => {
       d.currentUserId = '6'
+      // An old VIEWER row that migration 0015 had not converted yet: still read only / limited.
+      d.projects
+        .find((p) => p.project_code === 'DEMO-KARIR')!
+        .members.find((m) => m.userId === '6')!.role = 'VIEWER'
     }, false)
     const bug = mainBugs(db).find((d) => d.status_code === 'OPEN')
     renderRoute(`${P}/bugs/${bug?.id}`, { dataSource })

@@ -121,7 +121,7 @@ function RunFormBody({ existing }: { existing: TestRunDetail | null }) {
     save.mutate(input)
   }
 
-  const cancelTo = existing ? projectPath(code, `runs/${existing.id}`) : projectPath(code, 'runs')
+  const cancelTo = existing ? projectPath(code, `runs/${existing.id}`) : projectPath(code, 'uat')
 
   return (
     <>
@@ -133,7 +133,7 @@ function RunFormBody({ existing }: { existing: TestRunDetail | null }) {
         }
         crumbs={[
           { label: code, to: projectPath(code) },
-          { label: t('pages.runs.title'), to: projectPath(code, 'runs') },
+          { label: t('pages.runs.title'), to: projectPath(code, 'uat') },
           ...(existing ? [{ label: existing.run_code, to: cancelTo }] : []),
           { label: existing ? t('actions.edit') : t('actions.create') },
         ]}

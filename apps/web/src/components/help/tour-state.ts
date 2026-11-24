@@ -34,10 +34,10 @@ export type HelpKey =
   | 'tasks'
   | 'profile'
   | 'dashboard'
-  | 'cycles'
+  | 'phases'
   | 'testCases'
   | 'imports'
-  | 'workshop'
+  | 'uat'
   | 'runs'
   | 'execution'
   | 'bugs'
@@ -68,10 +68,12 @@ export function helpKeyOf(pathname: string): HelpKey {
   if (section === 'runs' && /\/cases\//.test(rest)) return 'execution'
   const map: Record<string, HelpKey> = {
     dashboard: 'dashboard',
-    cycles: 'cycles',
+    fase: 'phases',
+    cycles: 'phases',
     'test-cases': 'testCases',
     imports: 'imports',
-    workshop: 'workshop',
+    uat: 'uat',
+    workshop: 'uat',
     runs: 'runs',
     bugs: 'bugs',
     evidence: 'evidence',
@@ -89,15 +91,15 @@ export const GUIDE_SECTION: Record<HelpKey, string> = {
   tasks: 'penguji',
   profile: 'masuk',
   dashboard: 'cara-kerja',
-  cycles: 'admin',
+  phases: 'admin',
   testCases: 'admin',
   imports: 'admin',
-  workshop: 'admin',
+  uat: 'admin',
   runs: 'penguji',
   execution: 'penguji',
-  bugs: 'developer',
+  bugs: 'bug-reporting',
   evidence: 'penguji',
-  reports: 'pemantau',
+  reports: 'admin',
   members: 'peran',
   settings: 'admin',
   adminUsers: 'super-admin',

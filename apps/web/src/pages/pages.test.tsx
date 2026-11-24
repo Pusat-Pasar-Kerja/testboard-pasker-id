@@ -37,7 +37,8 @@ describe('routing & shell', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Project home' }),
     ).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: /^Problems/ }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: /^Bug Reporting/ }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: /^All phases/ }).length).toBeGreaterThan(0)
     expect(document.documentElement.lang).toBe('en')
   })
 
@@ -48,7 +49,8 @@ describe('routing & shell', () => {
 
     await user.click(screen.getByRole('button', { name: 'Buka menu navigasi' }))
     const dialog = screen.getByRole('dialog', { name: 'Navigasi utama' })
-    expect(within(dialog).getByRole('link', { name: /^Masalah/ })).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: /^Bug Reporting/ })).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Semua Fase' })).toBeInTheDocument()
 
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
@@ -103,7 +105,7 @@ describe('test cases', () => {
 
     overview.focus()
     await user.keyboard('{ArrowRight}')
-    expect(screen.getByRole('tab', { name: /Dipakai di lembar uji/ })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: /Dipakai di UAT/ })).toHaveAttribute(
       'aria-selected',
       'true',
     )

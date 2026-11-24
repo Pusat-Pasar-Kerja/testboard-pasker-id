@@ -13,8 +13,9 @@ import type { AppEnv } from '../types.js'
 
 /**
  * "Tugas saya" (owner, 2026-11-24): what a signed-in person has to do, across the projects
- * they belong to - the tables they are listed at, the scenarios assigned to them, and the
- * problems they reported. Only their own rows; never someone else's work.
+ * they belong to - the groups (meja) they sit in, the UATs they take part in (ADR 0019) with
+ * the scenarios of their group's features, and the problems they reported. Only their own
+ * rows; never someone else's work.
  */
 export function taskRoutes(pool: Pool) {
   const routes = new Hono<AppEnv>()
@@ -27,6 +28,9 @@ export function taskRoutes(pool: Pool) {
     const tables = await select<{
       table_id: string
       table_name: string
+      table_number: number | null
+      run_id: string | null
+      run_name: string | null
       member_id: string
       member_name: string
       project_code: string
@@ -39,7 +43,8 @@ export function taskRoutes(pool: Pool) {
       revoked_at: Date | null
     }>(
       pool,
-      `SELECT t.id AS table_id, t.name AS table_name, m.id AS member_id,
+      `SELECT t.id AS table_id, t.name AS table_name, t.table_number, t.run_id,
+              r.name AS run_name, m.id AS member_id,
               m.display_name AS member_name, p.project_code, p.name AS project_name,
               p.is_archived, c.id AS cycle_id, c.title AS cycle_title,
               t.valid_from, t.valid_until, t.revoked_at
@@ -47,6 +52,7 @@ export function taskRoutes(pool: Pool) {
          JOIN workshop_tables t ON t.id = m.table_id
          JOIN projects p ON p.id = t.project_id
          JOIN test_cycles c ON c.id = t.cycle_id
+         LEFT JOIN test_runs r ON r.id = t.run_id
         WHERE m.user_id = ?
         ORDER BY t.valid_until DESC, t.name
         LIMIT 50`,
@@ -64,24 +70,28 @@ export function taskRoutes(pool: Pool) {
       next_run_case_id: string | null
     }>(
       pool,
+      // Every open UAT the person takes part in, with the scenarios of their group's
+      // features (all scenarios of the UAT while they have no group yet).
       `SELECT p.project_code, p.name AS project_name, r.id AS run_id, r.name AS run_name,
-              r.status_code, COUNT(*) AS assigned,
+              r.status_code, COUNT(trc.id) AS assigned,
               SUM(v.latest_status <> 'NOT_RUN') AS done,
               MIN(CASE WHEN v.latest_status = 'NOT_RUN' THEN trc.id END) AS next_run_case_id
-         FROM test_run_cases trc
-         JOIN test_runs r ON r.id = trc.test_run_id
+         FROM workshop_table_members m
+         JOIN test_runs r ON r.id = m.run_id
          JOIN projects p ON p.id = r.project_id
-         JOIN v_run_case_latest_status v ON v.run_case_id = trc.id
-        WHERE trc.assigned_to = ?
+         LEFT JOIN test_run_cases trc ON trc.test_run_id = r.id
+              AND (m.table_id IS NULL OR EXISTS (
+                     SELECT 1 FROM test_cases tc
+                       JOIN workshop_table_modules wm ON wm.module_id = tc.module_id
+                      WHERE tc.id = trc.test_case_id AND wm.table_id = m.table_id))
+         LEFT JOIN v_run_case_latest_status v ON v.run_case_id = trc.id
+        WHERE m.user_id = ?
           AND r.status_code IN ('PLANNED', 'ACTIVE')
           AND p.is_archived = 0
-          AND (EXISTS (SELECT 1 FROM project_members pm
-                        WHERE pm.project_id = p.id AND pm.user_id = ?)
-               OR ? = 1)
         GROUP BY p.project_code, p.name, r.id, r.name, r.status_code
         ORDER BY r.status_code = 'ACTIVE' DESC, r.id DESC
         LIMIT 50`,
-      [auth.userId, auth.userId, auth.isAdmin ? 1 : 0],
+      [auth.userId],
     )
 
     const open = OPEN_DEFECT_STATUSES.map(() => '?').join(', ')
@@ -109,10 +119,15 @@ export function taskRoutes(pool: Pool) {
           revoked_at: iso(row.revoked_at),
         }
         return {
-          table: { id: String(row.table_id), name: row.table_name },
+          table: {
+            id: String(row.table_id),
+            name: row.table_name,
+            table_number: row.table_number === null ? null : Number(row.table_number),
+          },
           member: { id: String(row.member_id), name: row.member_name },
           project: { code: row.project_code, name: row.project_name },
           cycle: { id: String(row.cycle_id), title: row.cycle_title },
+          uat: row.run_id ? { id: String(row.run_id), name: row.run_name ?? '' } : null,
           valid_from: dates.valid_from,
           valid_until: dates.valid_until,
           state: Number(row.is_archived) === 1 ? 'REVOKED' : tableState(dates),

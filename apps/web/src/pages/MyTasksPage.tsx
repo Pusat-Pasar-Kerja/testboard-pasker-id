@@ -14,6 +14,7 @@ import { useMyTasks } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
 import { apiErrorText } from '../lib/api-errors'
 import { formatShortDateTime, toLocale } from '../lib/format'
+import { groupLabel } from '../lib/uat'
 import { storeTesterName } from '../lib/workshop'
 import { useDataSource } from '../services/use-data-source'
 
@@ -50,7 +51,7 @@ function TableCard({ task }: { task: MyTableTask }) {
       </span>
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-center gap-2 text-lg font-semibold">
-          {task.table.name}
+          {groupLabel(t, task.table)}
           <Badge
             tone={active ? 'success' : 'muted'}
             label={t(`workshop.tables.state.${task.state}`)}
@@ -59,7 +60,7 @@ function TableCard({ task }: { task: MyTableTask }) {
         <p className="text-sm text-ink-muted">
           {t('tasks.tableLine', {
             name: task.member.name,
-            cycle: task.cycle.title,
+            cycle: task.uat?.name ?? task.cycle.title,
             project: task.project.name,
           })}
         </p>

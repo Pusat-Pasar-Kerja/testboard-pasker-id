@@ -41,22 +41,22 @@ interface Step {
 
 /** The work in order (owner, 2026-11-24: "tidak tahu harus mulai dari mana"). */
 const STEPS: Step[] = [
-  { key: 'cycle', icon: CalendarRange, path: 'cycles', done: (f) => f.cycles > 0 },
+  { key: 'cycle', icon: CalendarRange, path: 'fase?baru=1', done: (f) => f.cycles > 0 },
   {
     key: 'cases',
     icon: ListChecks,
-    path: 'test-cases/new',
+    path: 'fase',
     alt: { label: 'startHere.steps.cases.alt', path: 'imports', icon: ClipboardCheck },
     done: (f) => f.cases > 0,
   },
   {
     key: 'plan',
     icon: PlayCircle,
-    path: 'runs/new',
-    alt: { label: 'startHere.steps.plan.alt', path: 'workshop', icon: Presentation },
+    path: 'uat/baru',
+    alt: { label: 'startHere.steps.plan.alt', path: 'uat', icon: Presentation },
     done: (f) => f.runs > 0,
   },
-  { key: 'test', icon: Sparkles, path: 'runs', done: (f) => f.executed > 0 },
+  { key: 'test', icon: Sparkles, path: 'uat', done: (f) => f.executed > 0 },
   { key: 'review', icon: Bug, path: 'bugs' },
   { key: 'report', icon: ChartColumn, path: 'reports' },
 ]
@@ -188,38 +188,23 @@ export function StartHere({ code, facts }: { code: string; facts: StartHereFacts
   )
 }
 
-/** For Users: what their task lets them do here, in one card. */
-export function TaskIntro({
-  code,
-  task,
-}: {
-  code: string
-  task: 'TESTER' | 'DEVELOPER' | 'VIEWER'
-}) {
+/** For a Pengguna (ADR 0019): where their UATs are and how to report, in one card. */
+export function TaskIntro({ code }: { code: string }) {
   const { t } = useTranslation()
-  type LinkKey = 'myTasks' | 'reportBug' | 'bugs' | 'reports'
-  const links: Record<typeof task, { to: string; key: LinkKey; icon: LucideIcon }[]> = {
-    TESTER: [
-      { to: '/tugas', key: 'myTasks', icon: ClipboardCheck },
-      { to: projectPath(code, 'bugs/new'), key: 'reportBug', icon: Bug },
-    ],
-    DEVELOPER: [
-      { to: projectPath(code, 'bugs'), key: 'bugs', icon: Bug },
-      { to: '/tugas', key: 'myTasks', icon: ClipboardCheck },
-    ],
-    VIEWER: [
-      { to: projectPath(code, 'reports'), key: 'reports', icon: ChartColumn },
-      { to: projectPath(code, 'bugs'), key: 'bugs', icon: Bug },
-    ],
-  }
+  type LinkKey = 'myUat' | 'reportBug' | 'bugs'
+  const links: { to: string; key: LinkKey; icon: LucideIcon }[] = [
+    { to: projectPath(code, 'uat'), key: 'myUat', icon: ClipboardCheck },
+    { to: projectPath(code, 'bugs/new'), key: 'reportBug', icon: Bug },
+    { to: projectPath(code, 'bugs'), key: 'bugs', icon: ChartColumn },
+  ]
   return (
     <section className="rounded-3xl card-pasker p-5 sm:p-6">
       <h2 className="heading-bar text-xl font-bold text-brand-800">
-        {t(`startHere.task.${task}.title`)}
+        {t('startHere.task.TESTER.title')}
       </h2>
-      <p className="mt-1 max-w-3xl text-ink-muted">{t(`startHere.task.${task}.body`)}</p>
+      <p className="mt-1 max-w-3xl text-ink-muted">{t('startHere.task.TESTER.body')}</p>
       <div className="mt-4 flex flex-wrap gap-2">
-        {links[task].map((link, index) => (
+        {links.map((link, index) => (
           <Link
             key={link.key}
             to={link.to}

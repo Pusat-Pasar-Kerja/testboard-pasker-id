@@ -122,6 +122,8 @@ export const suiteUpdateSchema = suiteCreateSchema
 
 const caseFields = {
   module_code: codeSchema(40).nullable().optional(),
+  /** The Fase the scenario is saved in (ADR 0019); null = not in a Fase yet. */
+  cycle_id: z.string().regex(/^\d+$/).nullable().optional(),
   suite_id: z.string().regex(/^\d+$/).nullable().optional(),
   sequence_number: z.number().int().min(0).max(4_294_967_295).nullable().optional(),
   category: optionalText(255),
@@ -146,6 +148,7 @@ export const testCaseCreateSchema = z.object({
 export const testCaseUpdateSchema = z
   .object({
     module_code: caseFields.module_code,
+    cycle_id: caseFields.cycle_id,
     suite_id: caseFields.suite_id,
     sequence_number: caseFields.sequence_number,
     category: caseFields.category,

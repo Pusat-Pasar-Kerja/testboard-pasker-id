@@ -16,7 +16,8 @@ beforeAll(async () => {
   project = await createProject(h.pool)
   other = await createProject(h.pool)
   const user = await createUser(h.pool)
-  await addMember(h.pool, project.id, user.id, 'VIEWER')
+  // A Pengguna reads the UATs they take part in (ADR 0019).
+  await addMember(h.pool, project.id, user.id, 'TESTER')
   viewer = new Client(h)
   await viewer.login(user.email)
 
@@ -40,6 +41,11 @@ beforeAll(async () => {
       "INSERT INTO test_runs (project_id, run_code, name, status_code, starts_at) VALUES (?, 'RUN-1', 'Run satu', 'ACTIVE', UTC_TIMESTAMP(3))",
       [project.id],
     ),
+  )
+  await execute(
+    h.pool,
+    'INSERT INTO workshop_table_members (run_id, display_name, user_id) VALUES (?, ?, ?)',
+    [runId, 'Pembaca', user.id],
   )
   const rcA = insertedId(
     await execute(

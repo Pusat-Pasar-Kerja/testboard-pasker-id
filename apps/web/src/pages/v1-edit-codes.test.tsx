@@ -62,18 +62,18 @@ describe('changing codes after creation', () => {
     expect(detail.module?.module_code).toBe('LOGIN')
   })
 
-  it('renames a cycle code, title and period', async () => {
+  it('renames a Fase code, name and period', async () => {
     const user = userEvent.setup()
     const { db, dataSource, project } = setup()
     await dataSource.createCycle('DEMO-KARIR', { cycle_code: 'FASE-2', title: 'UAT Fase 2' })
     const cycle = db.cycles.find(
       (cy) => cy.projectId === project.id && cy.cycle_code === 'SIKLUS-1-2026',
     )!
-    renderRoute('/projects/DEMO-KARIR/cycles', { dataSource })
+    renderRoute(`/projects/DEMO-KARIR/fase/${cycle.id}`, { dataSource })
 
-    await user.click(await screen.findByRole('button', { name: 'Ubah fase SIKLUS-1-2026' }))
-    const dialog = await screen.findByRole('dialog')
-    const code = within(dialog).getByLabelText(/^Kode fase/)
+    await user.click(await screen.findByRole('button', { name: 'Ubah Fase' }))
+    const dialog = await screen.findByRole('dialog', { name: `Ubah Fase ${cycle.title}` })
+    const code = within(dialog).getByLabelText(/^Kode singkat/)
     await user.clear(code)
     await user.type(code, 'FASE-2')
     await user.click(within(dialog).getByRole('button', { name: 'Simpan' }))
@@ -81,11 +81,11 @@ describe('changing codes after creation', () => {
 
     await user.clear(code)
     await user.type(code, 'fase-1')
-    const title = within(dialog).getByLabelText(/^Judul/)
+    const title = within(dialog).getByLabelText(/^Nama Fase/)
     await user.clear(title)
     await user.type(title, 'UAT Fase 1')
     await user.click(within(dialog).getByRole('button', { name: 'Simpan' }))
-    expect(await screen.findByRole('heading', { name: 'UAT Fase 1' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'UAT Fase 1' })).toBeInTheDocument()
     expect(cycle).toMatchObject({ cycle_code: 'FASE-1', title: 'UAT Fase 1' })
   })
 })

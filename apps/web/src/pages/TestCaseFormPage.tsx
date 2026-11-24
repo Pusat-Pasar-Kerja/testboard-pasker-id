@@ -9,7 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Save } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useBlocker, useNavigate, useParams } from 'react-router'
+import { useBlocker, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Button, ButtonLink } from '../components/ui/Button'
 import { ConfirmDialog } from '../components/ui/Dialog'
 import { FormAlert, SelectField, TextArea, TextField } from '../components/ui/Form'
@@ -18,7 +18,7 @@ import { Section } from '../components/ui/Section'
 import { ErrorState, LoadingState } from '../components/ui/States'
 import { useToast } from '../components/ui/toast-context'
 import { useCan } from '../hooks/permissions'
-import { useModules, useSuites, useTestCase } from '../hooks/queries'
+import { useCycles, useModules, useSuites, useTestCase } from '../hooks/queries'
 import { projectPath, useProjectCode } from '../hooks/route-state'
 import { ApiClientError } from '../services/api-client'
 import type { TestCaseInput } from '../services/data-source'
@@ -27,6 +27,7 @@ import { NotFoundPage } from './NotFoundPage'
 
 interface FormState {
   case_code: string
+  cycle_id: string
   module_code: string
   suite_id: string
   category: string
@@ -44,6 +45,7 @@ interface FormState {
 
 const EMPTY: FormState = {
   case_code: '',
+  cycle_id: '',
   module_code: '',
   suite_id: '',
   category: '',
@@ -62,6 +64,7 @@ const EMPTY: FormState = {
 function fromCase(c: TestCaseDetail, suiteId: string): FormState {
   return {
     case_code: c.case_code,
+    cycle_id: c.cycle?.id ?? '',
     module_code: c.module?.module_code ?? '',
     suite_id: suiteId,
     category: c.category ?? '',
@@ -82,6 +85,7 @@ function fromCase(c: TestCaseDetail, suiteId: string): FormState {
 function toInput(form: FormState, initial: FormState | null): TestCaseInput {
   const nullable = (v: string) => (v.trim() === '' ? null : v)
   const full: TestCaseInput = {
+    cycle_id: nullable(form.cycle_id),
     module_code: nullable(form.module_code),
     suite_id: nullable(form.suite_id),
     category: nullable(form.category),
@@ -113,9 +117,16 @@ function CaseForm({ existing }: { existing: TestCaseDetail | null }) {
   const queryClient = useQueryClient()
   const modules = useModules(code)
   const suites = useSuites(code)
+  const cycles = useCycles(code)
+  // "Skenario baru" from inside a feature folder: that Fase and feature are filled in.
+  const [params] = useSearchParams()
+  const fromFolder = {
+    cycle_id: params.get('fase') ?? '',
+    module_code: params.get('fitur') ?? '',
+  }
 
   const suiteId = (existing && suites.data?.find((s) => s.name === existing.suite_name)?.id) || ''
-  const initial = existing ? fromCase(existing, suiteId) : EMPTY
+  const initial = existing ? fromCase(existing, suiteId) : { ...EMPTY, ...fromFolder }
   const [form, setForm] = useState<FormState>(initial)
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [formError, setFormError] = useState<string | null>(null)
@@ -129,7 +140,7 @@ function CaseForm({ existing }: { existing: TestCaseDetail | null }) {
     setForm((f) => ({ ...f, suite_id: suiteId }))
   }
 
-  const baseline = existing ? { ...initial, suite_id: suiteId } : EMPTY
+  const baseline = existing ? { ...initial, suite_id: suiteId } : initial
   const dirty = JSON.stringify(form) !== JSON.stringify(baseline)
   const blocker = useBlocker(() => dirty && !allowLeave.current)
   useEffect(() => {
@@ -224,9 +235,12 @@ function CaseForm({ existing }: { existing: TestCaseDetail | null }) {
   const title = existing
     ? t('pages.caseForm.editTitle', { code: existing.case_code })
     : t('pages.caseForm.newTitle')
+  const folderModule = modules.data?.find((m) => m.module_code === fromFolder.module_code)
   const cancelTo = existing
     ? projectPath(code, `test-cases/${existing.id}`)
-    : projectPath(code, 'test-cases')
+    : fromFolder.cycle_id && folderModule
+      ? projectPath(code, `fase/${fromFolder.cycle_id}/fitur/${folderModule.id}`)
+      : projectPath(code, 'test-cases')
 
   return (
     <>
@@ -288,7 +302,21 @@ function CaseForm({ existing }: { existing: TestCaseDetail | null }) {
                 autoCapitalize="characters"
               />
               <SelectField
-                label={t('fields.module')}
+                label={t('fields.phase')}
+                value={form.cycle_id}
+                onChange={(e) => set('cycle_id')(e.target.value)}
+                error={errors.cycle_id}
+                hint={t('pages.caseForm.phaseHint')}
+                options={[
+                  { value: '', label: t('phases.unassigned') },
+                  ...(cycles.data ?? []).map((c) => ({
+                    value: c.id,
+                    label: `${c.cycle_code} - ${c.title}`,
+                  })),
+                ]}
+              />
+              <SelectField
+                label={t('fields.feature')}
                 value={form.module_code}
                 onChange={(e) => set('module_code')(e.target.value)}
                 error={errors.module_code}

@@ -80,9 +80,10 @@ describe('role permissions (doc 09 matrix)', () => {
     expect(res.status).toBe(403)
   })
 
-  it('TESTER can read cases but not manage members or modules', async () => {
+  it('a Pengguna works inside UATs: no scenario library, no members, no modules (ADR 0019)', async () => {
     const tester = clients.TESTER!
-    expect((await tester.get(`/projects/${projectA.code}/test-cases`)).status).toBe(200)
+    expect((await tester.get(`/projects/${projectA.code}/test-cases`)).status).toBe(403)
+    expect((await tester.get(`/projects/${projectA.code}/phases`)).status).toBe(403)
     expect(
       (await tester.post(`/projects/${projectA.code}/modules`, { module_code: 'X1', name: 'X' }))
         .status,
@@ -91,13 +92,13 @@ describe('role permissions (doc 09 matrix)', () => {
       (
         await tester.post(`/projects/${projectA.code}/members`, {
           email: 'a@b.invalid',
-          role_code: 'VIEWER',
+          role_code: 'TESTER',
         })
       ).status,
     ).toBe(403)
   })
 
-  it('only an Admin manages members; a member gets one of the three User tasks', async () => {
+  it('only an Admin manages members; Developer and Pemantau are gone (ADR 0019)', async () => {
     const admin = clients.ADMIN!
     const newcomer = await createUser(h.pool)
     const added = await admin.post(`/projects/${projectA.code}/members`, {
@@ -109,8 +110,8 @@ describe('role permissions (doc 09 matrix)', () => {
     expect(
       (await clients.QA_LEAD!.delete(`/projects/${projectA.code}/members/${newcomer.id}`)).status,
     ).toBe(403)
-    // ADMIN and QA_LEAD are website matters now (ADR 0017), never a project task.
-    for (const role_code of ['ADMIN', 'QA_LEAD']) {
+    // ADMIN and QA_LEAD are website matters (ADR 0017); DEVELOPER and VIEWER no longer exist.
+    for (const role_code of ['ADMIN', 'QA_LEAD', 'DEVELOPER', 'VIEWER']) {
       const res = await admin.patch(`/projects/${projectA.code}/members/${newcomer.id}`, {
         role_code,
       })
@@ -119,7 +120,7 @@ describe('role permissions (doc 09 matrix)', () => {
     // No "last ADMIN" rule any more: the website roles manage every project.
     const me = await admin.get('/auth/me')
     const demoteSelf = await admin.patch(`/projects/${projectA.code}/members/${me.json.id}`, {
-      role_code: 'VIEWER',
+      role_code: 'TESTER',
     })
     expect(demoteSelf.status).toBe(200)
     await h.pool.query(
