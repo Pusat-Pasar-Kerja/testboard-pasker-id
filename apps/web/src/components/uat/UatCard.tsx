@@ -1,5 +1,5 @@
 import type { UatSummaryDto } from '@testboard/shared'
-import { Globe, Layers, TestTubeDiagonal, Users, UsersRound } from 'lucide-react'
+import { Globe, Layers, FlaskConical, Users, UsersRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { projectPath } from '../../hooks/route-state'
@@ -38,7 +38,7 @@ export function UatCard({
             aria-hidden="true"
             className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"
           >
-            <TestTubeDiagonal className="size-5" />
+            <FlaskConical className="size-5" />
           </span>
           <div className="min-w-0">
             {showPhase && uat.phase && (

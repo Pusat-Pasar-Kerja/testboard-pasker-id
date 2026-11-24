@@ -80,7 +80,10 @@
     "noFeatures": "Belum ada fitur",
     "scenarioCount": "skenario",
     "waitingReports": "laporan publik menunggu ditinjau",
-    "youArePengguna": "Anda Pengguna di proyek ini"
+    "youArePengguna": "Anda Pengguna di proyek ini",
+    "phaseCount": "Fase",
+    "phaseFolders": "Folder Fase",
+    "uatList": "Daftar UAT"
   },
   "shell": {
     "skipToContent": "Lewati ke konten utama",
@@ -306,7 +309,9 @@
       "REVOKE": "Dicabut",
       "CONFIRM": "Juga mengalami",
       "REVIEW": "Ditinjau",
-      "ACTIVATE": "Akun diaktifkan"
+      "ACTIVATE": "Akun diaktifkan",
+      "COPY": "Disalin ke Fase lain",
+      "MOVE": "Dipindahkan ke Fase lain"
     },
     "roleHelp": {
       "TESTER": "Membuka UAT tempat ia ditambahkan, mencoba skenarionya, mencatat hasil, dan melaporkan masalah.",
@@ -1501,9 +1506,7 @@
       "set_priority": "Ubah prioritas",
       "add_to_run": "Tambahkan ke UAT",
       "archive": "Arsipkan",
-      "merge": "Gabungkan (duplikat)",
-      "copy_to_phase": "Salin ke Fase…",
-      "move_to_phase": "Pindahkan ke Fase…"
+      "merge": "Gabungkan (duplikat)"
     },
     "noOpenRun": "Belum ada UAT yang direncanakan atau aktif",
     "archiveTitle_one": "Arsipkan {{count}} skenario uji?",
@@ -2178,7 +2181,7 @@
       "guideLink": "Penjelasan lengkap di Panduan"
     },
     "features": {
-      "intro": "Fitur yang diuji di UAT ini. Pilih Selesai bila sudah tuntas, atau Disembunyikan agar tidak tampil di halaman publik. Setiap perubahan dikonfirmasi dulu.",
+      "intro": "Fitur yang diuji di UAT ini dan siapa yang mengerjakannya. Hanya kelompok dan pengguna yang tercantum yang bisa mengerjakan sebuah fitur. Pilih Selesai bila sudah tuntas, atau Disembunyikan agar tidak tampil di halaman publik.",
       "stateFor": "Status fitur {{name}}",
       "state": {
         "OPEN": "Dibuka",
@@ -2281,8 +2284,8 @@
       },
       "people": {
         "title": "Peserta dan kelompok",
-        "menu": "UAT › Peserta, Kelompok & meja",
-        "body": "Tambahkan Pengguna UAT, bagi ke kelompok dengan nomor meja, lalu cetak kartu kelompoknya."
+        "menu": "UAT › Peserta, Kelompok",
+        "body": "Tambahkan Pengguna UAT, bagi ke kelompok bernomor meja, lalu tugaskan tiap fitur ke kelompok dan pengguna. Hanya yang tercantum yang mengerjakan fitur itu."
       }
     },
     "signIn": {
@@ -2415,15 +2418,15 @@
         },
         {
           "title": "Isi folder Fitur dengan skenario",
-          "body": "Buka Fase, tambahkan folder fitur, lalu tulis skenarionya atau impor dari Excel. Tandai Siap bila sudah benar. Untuk tahap berikutnya, centang skenario lalu \"Salin ke Fase\"."
+          "body": "Buka Fase, tambahkan folder fitur, lalu tulis skenarionya atau impor dari Excel. Untuk tahap berikutnya, salin atau pindahkan folder fitur utuh: lewat tombol, centang beberapa folder, atau seret ke folder Fase di panel kiri."
         },
         {
           "title": "Buat UAT",
           "body": "Panel kiri › UAT › tanda +. Pilih Fase, pilih fiturnya, beri nama. Skenario yang Siap ikut otomatis."
         },
         {
-          "title": "Tambahkan peserta dan kelompok",
-          "body": "Di UAT, tab Peserta: tulis nama (dan e-mail bila ada). Tab Kelompok & meja: buat kelompok bernomor meja, lalu cetak kartunya."
+          "title": "Tambahkan peserta, kelompok, dan penugasan",
+          "body": "Tab Peserta: tulis nama (dan e-mail bila ada). Tab Kelompok: buat kelompok bernomor meja. Tab Fitur: tugaskan tiap fitur ke kelompok dan pengguna."
         },
         {
           "title": "Mulai, pantau, tinjau",
@@ -2465,7 +2468,7 @@
       "intro": "UAT dan Bug Reporting masing-masing bisa dibuka untuk umum (tanpa masuk), dengan saklarnya sendiri. Bawaannya semua tersembunyi; Admin memilih data apa saja yang boleh dilihat.",
       "steps": [
         {
-          "title": "UAT: buka tab Tampilan publik",
+          "title": "UAT: buka tab Publik",
           "body": "Di halaman UAT, pilih data yang ditampilkan (fitur, kemajuan, kelompok), lalu nyalakan \"Tampilkan secara publik\"."
         },
         {
@@ -2900,7 +2903,7 @@
         "steps": [
           "Tekan Fase baru untuk membuat folder tahap, mis. UAT Tahap 1.",
           "Buka Fase, tambahkan folder fitur, lalu isi skenarionya atau impor dari Excel.",
-          "Untuk tahap berikutnya, centang skenario lalu pilih Salin ke Fase."
+          "Untuk tahap berikutnya: centang folder fitur lalu Salin/Pindahkan ke Fase, atau seret folder ke Fase di panel kiri."
         ]
       },
       "uat": {
@@ -2908,7 +2911,8 @@
         "what": "Satu UAT menguji satu Fase: fitur yang dipilih, peserta dan kelompoknya dengan nomor meja, masalah yang masuk, dan halaman publiknya sendiri.",
         "steps": [
           "UAT baru: pilih Fase, pilih fitur, beri nama.",
-          "Tab Peserta dan Kelompok & meja: tambahkan orang, bagi ke kelompok, cetak kartunya.",
+          "Tab Peserta dan Kelompok: tambahkan orang, bagi ke kelompok, cetak kartunya.",
+          "Tab Fitur: tugaskan tiap fitur ke kelompok dan pengguna; hanya yang tercantum yang mengerjakannya.",
           "Tekan Mulai UAT, lalu pantau Ringkasan dan tinjau Masalah masuk."
         ]
       }
@@ -3241,7 +3245,41 @@
     "featureHint": "Centang skenario untuk menyalinnya ke Fase berikutnya (Salin ke Fase) atau memindahkannya (Pindahkan ke Fase), seperti di Google Drive.",
     "featureEmpty": "Folder fitur ini masih kosong. Tulis skenario baru atau impor dari Excel.",
     "unsorted_one": "{{count}} skenario di sini belum punya fitur.",
-    "unsorted_other": "{{count}} skenario di sini belum punya fitur."
+    "unsorted_other": "{{count}} skenario di sini belum punya fitur.",
+    "transfer": {
+      "title_one": "Salin atau pindahkan {{count}} fitur",
+      "title_other": "Salin atau pindahkan {{count}} fitur",
+      "features": "Fitur: {{names}}",
+      "modeLabel": "Yang dilakukan",
+      "move": "Pindahkan",
+      "copy": "Salin",
+      "moveHint": "Fitur beserta semua skenarionya pindah ke Fase tujuan. UAT di Fase lama tetap menyimpan hasilnya.",
+      "copyHint": "Salinan semua skenarionya dibuat di Fase tujuan; yang Siap tetap Siap. Aslinya tetap di sini.",
+      "target": "Fase tujuan",
+      "chooseTarget": "Pilih Fase tujuan dulu.",
+      "noTargets": "Belum ada Fase lain. Buat Fase baru dulu.",
+      "submitMove": "Pindahkan",
+      "submitCopy": "Salin",
+      "doneMove_one": "{{count}} fitur ({{scenarios}} skenario) dipindahkan ke {{target}}.",
+      "doneMove_other": "{{count}} fitur ({{scenarios}} skenario) dipindahkan ke {{target}}.",
+      "doneCopy_one": "{{count}} fitur ({{scenarios}} skenario) disalin ke {{target}}.",
+      "doneCopy_other": "{{count}} fitur ({{scenarios}} skenario) disalin ke {{target}}.",
+      "selected_one": "{{count}} folder fitur dipilih",
+      "selected_other": "{{count}} folder fitur dipilih",
+      "select": "Pilih folder {{name}}",
+      "open": "Salin atau pindahkan {{name}}",
+      "bulkCopy": "Salin ke Fase…",
+      "bulkMove": "Pindahkan ke Fase…",
+      "clear": "Batal pilih",
+      "dragHint": "Tips: seret folder fitur ke folder Fase di panel kiri untuk memindahkannya, seperti di Google Drive.",
+      "dropHere": "Lepas untuk memindahkan ke {{name}}",
+      "copyScenarios_one": "Salin {{count}} skenario ke Fase",
+      "copyScenarios_other": "Salin {{count}} skenario ke Fase",
+      "moveScenarios_one": "Pindahkan {{count}} skenario ke Fase",
+      "moveScenarios_other": "Pindahkan {{count}} skenario ke Fase",
+      "copyScenariosHint": "Salinan dibuat di Fase tujuan dengan kode baru dan foto layarnya; yang Siap tetap Siap.",
+      "moveScenariosHint": "Skenario pindah ke Fase tujuan. UAT yang sudah memakainya tetap menyimpan hasilnya."
+    }
   },
   "uat": {
     "title": "UAT",
@@ -3276,10 +3314,10 @@
     "tabs": {
       "board": "Ringkasan",
       "people": "Peserta",
-      "groups": "Kelompok & meja",
+      "groups": "Kelompok",
       "features": "Fitur",
       "inbox": "Masalah masuk",
-      "public": "Tampilan publik"
+      "public": "Publik"
     },
     "setup": {
       "title": "Langkah menyiapkan UAT",
@@ -3316,7 +3354,8 @@
       "report": "Laporkan masalah",
       "features": "Fitur yang diuji",
       "empty": "Anda belum ditambahkan ke UAT mana pun. Hubungi Admin proyek.",
-      "emptyTitle": "Belum ada UAT untuk Anda"
+      "emptyTitle": "Belum ada UAT untuk Anda",
+      "noFeatures": "Belum ada fitur yang ditugaskan kepada Anda atau kelompok Anda. Hubungi Admin UAT."
     },
     "features": {
       "summary_one": "UAT ini menguji {{count}} fitur dari {{phase}}.",
@@ -3390,6 +3429,19 @@
     "public": {
       "bugsElsewhere": "Daftar masalah tampil lewat Bug Reporting, dengan saklar ON/OFF sendiri.",
       "bugsLink": "Atur Bug Reporting publik"
+    },
+    "assign": {
+      "title": "Ditugaskan ke",
+      "none": "Belum ada yang ditugaskan. Hanya kelompok dan pengguna yang tercantum di sini yang bisa mengerjakan fitur ini.",
+      "listOf": "Yang ditugaskan untuk {{feature}}",
+      "add": "+ Tugaskan kelompok atau pengguna…",
+      "addLabel": "Tugaskan kelompok atau pengguna untuk {{feature}}",
+      "groups": "Kelompok",
+      "people": "Pengguna",
+      "remove": "Hapus {{name}} dari {{feature}}",
+      "added": "{{name}} ditugaskan ke {{feature}}.",
+      "removed": "{{name}} tidak lagi ditugaskan ke {{feature}}.",
+      "nobody": "Tambahkan peserta atau kelompok dulu di tab Peserta dan Kelompok."
     }
   },
   "bugReporting": {

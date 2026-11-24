@@ -20,6 +20,8 @@ export type AuditAction =
   | 'CONFIRM'
   | 'REVIEW'
   | 'ACTIVATE'
+  | 'COPY'
+  | 'MOVE'
 
 const SECRET_KEYS = /password|token|secret|cookie|hash/i
 

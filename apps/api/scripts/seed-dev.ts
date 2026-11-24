@@ -352,6 +352,15 @@ try {
            ON pm.project_id = r.project_id AND pm.user_id = u.id AND pm.role_code = 'TESTER'
         WHERE NOT EXISTS (SELECT 1 FROM user_system_roles s WHERE s.user_id = u.id)`,
     )
+    // Migration 0016: people without a group work on every feature of their UAT.
+    await execute(
+      conn,
+      `INSERT IGNORE INTO uat_feature_people (member_id, module_id)
+       SELECT m.id, f.module_id
+         FROM workshop_table_members m
+         JOIN uat_features f ON f.run_id = m.run_id
+        WHERE m.table_id IS NULL AND m.run_id IS NOT NULL`,
+    )
   })
 
   const dir = new URL('../../../.local-db/', import.meta.url)

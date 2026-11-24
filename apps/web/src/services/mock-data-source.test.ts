@@ -230,7 +230,7 @@ describe('runs and executions (Milestone 3, same rules as the API)', () => {
     expect(detail.attempts.map((a) => a.result_status)).toEqual(['PASSED', 'FAILED'])
   })
 
-  it('only records while ACTIVE and only for people of the UAT (and their group)', async () => {
+  it('only records while ACTIVE and only for the features a person works on', async () => {
     const { db, source, runOf, freshCase } = setup()
     const completed = db.runCases.find(
       (x) => x.runId === db.runs.find((r) => r.status_code === 'COMPLETED')?.id,
@@ -239,32 +239,48 @@ describe('runs and executions (Milestone 3, same rules as the API)', () => {
       source.createExecution(MAIN, completed?.id ?? '', { result_status: 'PASSED' }, 'k-3'),
     ).rejects.toMatchObject({ status: 409 })
 
-    // A Pengguna of the UAT without a group answers any of its scenarios (ADR 0019).
+    // Migration 0016 kept every feature of the UAT for people without a group (by name).
     db.currentUserId = '3'
     const others = freshCase('RUN-S2-20261109', '4')
     const saved = await source.createExecution(MAIN, others.id, { result_status: 'PASSED' }, 'k-4')
     expect(saved.tester?.id).toBe('3')
 
-    // In a group, only the scenarios of the group's features.
+    // Only those listed (ADR 0020): seated at Meja 3 without features by name, only ADM.
     const run = runOf('RUN-S2-20261109')
     const meja3 = db.tables.find((t) => t.runId === run.id && t.name === 'Meja 3')!
     const seat = db.participants.find((p) => p.runId === run.id && p.userId === '3')!
     seat.tableId = meja3.id
+    db.featurePeople = db.featurePeople.filter((f) => f.memberId !== seat.id)
+    const moduleOf = (runCaseId: string) =>
+      db.cases.find((c) => c.id === db.runCases.find((rc) => rc.id === runCaseId)?.caseId)
+        ?.moduleId ?? ''
     const outside = db.runCases.find(
       (rc) =>
-        rc.runId === run.id &&
-        rc.assignedTo !== '3' &&
-        !meja3.moduleIds.includes(db.cases.find((c) => c.id === rc.caseId)?.moduleId ?? ''),
+        rc.runId === run.id && rc.assignedTo !== '3' && !meja3.moduleIds.includes(moduleOf(rc.id)),
     )!
     await expect(
       source.createExecution(MAIN, outside.id, { result_status: 'PASSED' }, 'k-5'),
     ).rejects.toMatchObject({ status: 403 })
+    // Given that feature by name, the scenario is theirs.
+    db.featurePeople.push({ memberId: seat.id, moduleId: moduleOf(outside.id) })
+    await source.createExecution(MAIN, outside.id, { result_status: 'PASSED' }, 'k-6')
+
+    // Without a group and without features by name: nothing (no "every feature" any more).
+    seat.tableId = null
+    db.featurePeople = db.featurePeople.filter((f) => f.memberId !== seat.id)
+    const unassigned = freshCase('RUN-S2-20261109', '4')
+    await expect(
+      source.createExecution(MAIN, unassigned.id, { result_status: 'PASSED' }, 'k-7'),
+    ).rejects.toMatchObject({ status: 403 })
+    // A scenario assigned to them stays theirs.
+    const mine = freshCase('RUN-S2-20261109', '3')
+    await source.createExecution(MAIN, mine.id, { result_status: 'PASSED' }, 'k-8')
 
     // Someone who does not take part in the UAT may not answer at all.
     db.currentUserId = '5'
     const fresh = freshCase('RUN-S2-20261109')
     await expect(
-      source.createExecution(MAIN, fresh.id, { result_status: 'PASSED' }, 'k-6'),
+      source.createExecution(MAIN, fresh.id, { result_status: 'PASSED' }, 'k-9'),
     ).rejects.toMatchObject({ status: 403 })
   })
 

@@ -10,6 +10,7 @@ import { requireAuth } from '../auth/middleware.js'
 import { iso, select } from '../db/tx.js'
 import { AppError } from '../lib/errors.js'
 import type { AppEnv } from '../types.js'
+import { MEMBER_MODULES } from '../uat/service.js'
 
 /**
  * "Tugas saya" (owner, 2026-11-24): what a signed-in person has to do, across the projects
@@ -70,8 +71,8 @@ export function taskRoutes(pool: Pool) {
       next_run_case_id: string | null
     }>(
       pool,
-      // Every open UAT the person takes part in, with the scenarios of their group's
-      // features (all scenarios of the UAT while they have no group yet).
+      // Every open UAT the person takes part in, with the scenarios of the features they
+      // are listed for - through their group or by name (ADR 0020) - and those given to them.
       `SELECT p.project_code, p.name AS project_name, r.id AS run_id, r.name AS run_name,
               r.status_code, COUNT(trc.id) AS assigned,
               SUM(v.latest_status <> 'NOT_RUN') AS done,
@@ -80,10 +81,9 @@ export function taskRoutes(pool: Pool) {
          JOIN test_runs r ON r.id = m.run_id
          JOIN projects p ON p.id = r.project_id
          LEFT JOIN test_run_cases trc ON trc.test_run_id = r.id
-              AND (m.table_id IS NULL OR EXISTS (
+              AND (trc.assigned_to = m.user_id OR EXISTS (
                      SELECT 1 FROM test_cases tc
-                       JOIN workshop_table_modules wm ON wm.module_id = tc.module_id
-                      WHERE tc.id = trc.test_case_id AND wm.table_id = m.table_id))
+                      WHERE tc.id = trc.test_case_id AND tc.module_id IN ${MEMBER_MODULES('m')}))
          LEFT JOIN v_run_case_latest_status v ON v.run_case_id = trc.id
         WHERE m.user_id = ?
           AND r.status_code IN ('PLANNED', 'ACTIVE')

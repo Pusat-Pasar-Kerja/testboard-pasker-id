@@ -50,7 +50,7 @@ describe('routing & shell', () => {
     await user.click(screen.getByRole('button', { name: 'Buka menu navigasi' }))
     const dialog = screen.getByRole('dialog', { name: 'Navigasi utama' })
     expect(within(dialog).getByRole('link', { name: /^Bug Reporting/ })).toBeInTheDocument()
-    expect(within(dialog).getByRole('link', { name: 'Semua Fase' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: /^Semua Fase/ })).toBeInTheDocument()
 
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())

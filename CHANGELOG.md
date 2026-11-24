@@ -2,6 +2,23 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [0.23.0] - 2026-11-24
+
+Masukan pemilik setelah v0.22.0 live: penugasan fitur, pindah folder fitur yang mudah, dan tampilan simetris (ADR 0020, migration `0016`).
+
+### Ditambahkan
+
+- **Penugasan per fitur di UAT**: setiap kartu fitur di tab Fitur punya daftar "Ditugaskan ke" berisi kelompok (dengan nomor meja) dan pengguna, plus pilihan "+ Tugaskan kelompok atau pengguna". Satu fitur boleh dipegang beberapa kelompok dan beberapa pengguna; Admin bebas menambah dan mengurangi.
+- **Hanya yang tercantum mengerjakan fitur itu**: peserta hanya bisa mencatat hasil skenario fitur yang ditugaskan ke kelompoknya atau ke dirinya. "UAT saya", daftar skenario UAT, dan "Tugas saya" hanya menampilkan fitur miliknya.
+- **Salin / Pindahkan folder fitur utuh ke Fase lain**, beserta semua skenarionya: lewat tombol di tiap folder, centang beberapa folder sekaligus, atau **seret folder ke folder Fase di panel kiri** seperti di Google Drive.
+- Aksi massal skenario punya tombol **"Salin ke Fase…"** dan **"Pindahkan ke Fase…"** dengan pemilih Fase berbentuk kartu.
+
+### Diubah
+
+- **Panel kiri simetris**: Fase, fitur, dan UAT memakai bentuk baris yang sama; anak menjorok rapi di bawah induknya, ikon sama besar, tombol lipat dan titik status sejajar di kanan. Ikon UAT diganti labu ukur yang simetris; panel sedikit lebih lebar agar nama tidak terpotong.
+- Kepala halaman UAT lebih ringkas: "Layar besar" dan "Halaman publik" pindah ke tab Ringkasan.
+- Data lama aman: peserta yang belum masuk kelompok otomatis ditugaskan ke semua fitur UAT-nya (seperti sebelumnya) dan bisa dikurangi Admin.
+
 ## [0.22.0] - 2026-11-24
 
 Perombakan tahap 9 (wawancara pemilik setelah v0.21.0): proyek disusun **seperti Google Drive**, dengan UAT dan Bug Reporting yang saling terhubung (ADR 0019, migration `0015`).

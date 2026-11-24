@@ -722,10 +722,15 @@ describe('"Tugas saya"', () => {
       'Regresi Rilis 1.1',
     ])
     expect(tasks.tables).toEqual([])
+    // Migration 0016: without a group they keep every feature of the UAT, by name.
+    expect(tasks.runs.find((r) => r.run.name === 'UAT Sprint 2')?.assigned).toBe(27)
 
-    // Seated at Meja 3: only the scenarios of its feature, and the table to open.
+    // Seated at Meja 3 with no feature by name (ADR 0020): Meja 3's feature (ADM, 3
+    // scenarios) plus the 12 other scenarios assigned to them; and the table to open.
     const meja3 = tableOf('Meja 3')
-    db.participants.find((p) => p.runId === meja3.runId && p.userId === '3')!.tableId = meja3.id
+    const seat = db.participants.find((p) => p.runId === meja3.runId && p.userId === '3')!
+    seat.tableId = meja3.id
+    db.featurePeople = db.featurePeople.filter((f) => f.memberId !== seat.id)
     const seated = await source.getMyTasks()
     expect(seated.tables).toEqual([
       expect.objectContaining({
@@ -735,7 +740,7 @@ describe('"Tugas saya"', () => {
         state: 'ACTIVE',
       }),
     ])
-    expect(seated.runs.find((r) => r.run.name === 'UAT Sprint 2')?.assigned).toBe(3)
+    expect(seated.runs.find((r) => r.run.name === 'UAT Sprint 2')?.assigned).toBe(15)
     const opened = await source.joinWorkshopAsMember(meja3.id)
     expect(opened).toMatchObject({
       member_name: 'Demo Penguji 1',
@@ -769,5 +774,288 @@ describe('dashboard and reports', () => {
     db.currentUserId = '5'
     const none = await source.getDashboard(MAIN)
     expect(none).toMatchObject({ runs: [], total_run_cases: 0, open_defects: all.open_defects })
+  })
+})
+
+describe('who works on each feature (ADR 0020)', () => {
+  it('keeps every feature for the people who had no group (migration 0016)', () => {
+    const db = createMockDb()
+    const groupless = db.participants.filter((p) => p.tableId === null)
+    expect(groupless).toHaveLength(8)
+    for (const person of groupless) {
+      expect(
+        db.featurePeople.filter((f) => f.memberId === person.id).map((f) => f.moduleId),
+      ).toEqual(db.uatFeatures.filter((f) => f.runId === person.runId).map((f) => f.moduleId))
+    }
+    const seated = new Set(db.participants.filter((p) => p.tableId !== null).map((p) => p.id))
+    expect(db.featurePeople.some((f) => seated.has(f.memberId))).toBe(false)
+    // Three KARIR UATs x 2 people x 5 features, and the LATIH UAT x 2 people x 3 features.
+    expect(db.featurePeople).toHaveLength(36)
+  })
+
+  it('lists the groups and people of every feature, for managers only', async () => {
+    const { db, source, runOf } = setup()
+    const s2 = runOf('RUN-S2-20261109')
+    const list = await source.listUatAssignments(MAIN, s2.id)
+    expect(list.map((a) => a.module.module_code)).toEqual([
+      'AUTH',
+      'ADM',
+      'LAMAR',
+      'LOKER',
+      'PROFIL',
+    ])
+    expect(list[0]).toMatchObject({
+      module: { module_code: 'AUTH', name: 'Autentikasi' },
+      groups: [{ name: 'Meja 1', table_number: 1 }],
+      people: [
+        { name: 'Demo Penguji 1', user_id: '3', group: null },
+        { name: 'Demo Penguji 2', user_id: '4', group: null },
+      ],
+    })
+    db.currentUserId = '3'
+    await expect(source.listUatAssignments(MAIN, s2.id)).rejects.toMatchObject({ status: 403 })
+    await expect(
+      source.setFeatureAssignees(MAIN, s2.id, list[0]!.module.id, {
+        group_ids: [],
+        member_ids: [],
+      }),
+    ).rejects.toMatchObject({ status: 403 })
+  })
+
+  it('replaces the groups and people of one feature; only they try its scenarios', async () => {
+    const { db, source, runOf, moduleOf, tableOf } = setup()
+    const s2 = runOf('RUN-S2-20261109')
+    const auth = moduleOf('AUTH')
+    const penguji1 = db.participants.find((p) => p.runId === s2.id && p.userId === '3')!
+    const saved = await source.setFeatureAssignees(MAIN, s2.id, auth.id, {
+      group_ids: [tableOf('Meja 2').id],
+      member_ids: [penguji1.id],
+    })
+    expect(saved).toEqual({
+      module: { id: auth.id, module_code: 'AUTH', name: 'Autentikasi' },
+      groups: [{ id: tableOf('Meja 2').id, name: 'Meja 2', table_number: 2 }],
+      people: [{ id: penguji1.id, name: 'Demo Penguji 1', user_id: '3', group: null }],
+    })
+    expect(tableOf('Meja 1').moduleIds).not.toContain(auth.id)
+    expect(tableOf('Meja 2').moduleIds).toContain(auth.id)
+    // The table card of Meja 2 now shows the feature too (Mode Mudah).
+    const session = await source.joinWorkshop('135791')
+    expect(session.features.map((f) => f.module.module_code)).toEqual(['AUTH', 'LAMAR', 'PROFIL'])
+    await source.logout()
+
+    // Demo Penguji 2 no longer works on AUTH.
+    db.currentUserId = '4'
+    const authCase = db.runCases.find(
+      (rc) =>
+        rc.runId === s2.id &&
+        rc.assignedTo !== '4' &&
+        db.cases.find((c) => c.id === rc.caseId)?.moduleId === auth.id,
+    )!
+    await expect(
+      source.createExecution(MAIN, authCase.id, { result_status: 'PASSED' }, 'fa-1'),
+    ).rejects.toMatchObject({ status: 403 })
+    expect((await source.getUat(MAIN, s2.id)).my_features?.map((m) => m.module_code)).toEqual([
+      'ADM',
+      'LAMAR',
+      'LOKER',
+      'PROFIL',
+    ])
+
+    db.currentUserId = '1'
+    const none = { group_ids: [], member_ids: [] }
+    await expect(source.setFeatureAssignees(MAIN, s2.id, '999999', none)).rejects.toMatchObject({
+      status: 422,
+      details: [{ field: 'module_id' }],
+    })
+    const reg = runOf('RUN-REG-20261130')
+    const elsewhere = db.participants.find((p) => p.runId === reg.id)!
+    await expect(
+      source.setFeatureAssignees(MAIN, s2.id, auth.id, {
+        group_ids: [],
+        member_ids: [elsewhere.id],
+      }),
+    ).rejects.toMatchObject({ status: 422, details: [{ field: 'member_ids' }] })
+    const regGroup = await source.createWorkshopTable(MAIN, reg.id, {
+      name: 'Kelompok R',
+      module_ids: [],
+      valid_until: SOON,
+    })
+    await expect(
+      source.setFeatureAssignees(MAIN, s2.id, auth.id, {
+        group_ids: [regGroup.id],
+        member_ids: [],
+      }),
+    ).rejects.toMatchObject({ status: 422, details: [{ field: 'group_ids' }] })
+    const latih = db.runs.find((r) => r.projectId === '2')!
+    await expect(source.setFeatureAssignees(MAIN, latih.id, auth.id, none)).rejects.toMatchObject({
+      status: 404,
+    })
+  })
+
+  it('tells a Pengguna which features are theirs: their group and their own', async () => {
+    const { db, source, runOf, moduleOf, tableOf } = setup('3', false)
+    const s2 = runOf('RUN-S2-20261109')
+    expect((await source.getUat(MAIN, s2.id)).my_features).toHaveLength(5)
+    const seat = db.participants.find((p) => p.runId === s2.id && p.userId === '3')!
+    seat.tableId = tableOf('Meja 2').id
+    db.featurePeople = db.featurePeople.filter((f) => f.memberId !== seat.id)
+    db.featurePeople.push({ memberId: seat.id, moduleId: moduleOf('ADM').id })
+    const uat = await source.getUat(MAIN, s2.id)
+    expect(uat.my_features?.map((m) => m.module_code)).toEqual(['ADM', 'LAMAR', 'PROFIL'])
+    expect(uat.my_group?.modules?.map((m) => m.module_code)).toEqual(['LAMAR', 'PROFIL'])
+    expect((await source.listUats(MAIN))[0]?.my_features).toHaveLength(3)
+    // Managers see every UAT, without "my" features.
+    db.currentUserId = '1'
+    expect(await source.getUat(MAIN, s2.id)).not.toHaveProperty('my_features')
+  })
+
+  it('forgets a feature that leaves the UAT, and the people who leave it', async () => {
+    const { db, source, runOf, moduleOf, tableOf } = setup()
+    const s2 = runOf('RUN-S2-20261109')
+    const reg = runOf('RUN-REG-20261130')
+    const adm = moduleOf('ADM').id
+    const assignedIn = (runId: string) =>
+      db.featurePeople.some(
+        (f) =>
+          f.moduleId === adm && db.participants.find((p) => p.id === f.memberId)?.runId === runId,
+      )
+    const kept = ['AUTH', 'LOKER', 'PROFIL', 'LAMAR'].map((code) => moduleOf(code).id)
+    await source.updateUat(MAIN, s2.id, { module_ids: kept })
+    expect(tableOf('Meja 3').moduleIds).toEqual([])
+    expect(assignedIn(s2.id)).toBe(false)
+    expect(assignedIn(reg.id)).toBe(true)
+    // Back in the UAT, the feature is assigned to nobody until an Admin says so.
+    await source.updateUat(MAIN, s2.id, { module_ids: [...kept, adm] })
+    expect(
+      (await source.listUatAssignments(MAIN, s2.id)).find((a) => a.module.id === adm),
+    ).toMatchObject({ groups: [], people: [] })
+
+    const leaving = db.participants.find((p) => p.runId === s2.id && p.userId === '4')!
+    await source.removeUatParticipant(MAIN, s2.id, leaving.id)
+    expect(db.featurePeople.some((f) => f.memberId === leaving.id)).toBe(false)
+  })
+})
+
+describe('moving feature folders between Fase (ADR 0020)', () => {
+  const nextPhase = (source: ReturnType<typeof setup>['source']) =>
+    source.createCycle(MAIN, { cycle_code: 'SIKLUS-2-2026', title: 'Siklus UAT 2 - 2026' })
+
+  it('copies a feature folder: Ready stays Ready, the originals stay, open UATs follow', async () => {
+    const { source, fase, moduleOf } = setup()
+    const next = await nextPhase(source)
+    const adm = moduleOf('ADM')
+    const uat = await source.createUat(MAIN, {
+      cycle_id: next.id,
+      name: 'UAT Siklus 2',
+      module_ids: [adm.id],
+    })
+    expect(uat.progress.total).toBe(0)
+    const result = await source.transferPhaseFeatures(MAIN, {
+      from_cycle_id: fase.id,
+      to_cycle_id: next.id,
+      module_ids: [adm.id],
+      mode: 'copy',
+    })
+    // The archived scenario is not copied.
+    expect(result).toEqual({ features: 1, scenarios: 4 })
+    const tree = await source.getPhaseTree(MAIN)
+    expect(tree.phases.find((p) => p.id === next.id)?.features).toEqual([
+      expect.objectContaining({
+        module: expect.objectContaining({ module_code: 'ADM' }),
+        scenarios: 4,
+        ready: 3,
+      }),
+    ])
+    expect(
+      tree.phases.find((p) => p.id === fase.id)?.features.find((f) => f.module.id === adm.id),
+    ).toMatchObject({ scenarios: 4, ready: 3 })
+    expect((await source.getUat(MAIN, uat.id)).progress.total).toBe(3)
+    // An empty folder is copied as a folder.
+    await source.addPhaseFeature(MAIN, fase.id, { module_code: 'GIG', name: 'Gig Workers' })
+    const gig = moduleOf('GIG')
+    expect(
+      await source.transferPhaseFeatures(MAIN, {
+        from_cycle_id: fase.id,
+        to_cycle_id: next.id,
+        module_ids: [gig.id],
+        mode: 'copy',
+      }),
+    ).toEqual({ features: 1, scenarios: 0 })
+    expect(
+      (await source.getPhaseTree(MAIN)).phases
+        .find((p) => p.id === next.id)
+        ?.features.map((f) => f.module.module_code),
+    ).toEqual(['GIG', 'ADM'])
+  })
+
+  it('moves a whole folder, archived scenarios too, and leaves nothing behind', async () => {
+    const { db, source, fase, moduleOf } = setup()
+    const next = await nextPhase(source)
+    const adm = moduleOf('ADM')
+    const folder = db.cases.filter((c) => c.moduleId === adm.id)
+    const versions = folder.map((c) => c.current_version)
+    const result = await source.transferPhaseFeatures(MAIN, {
+      from_cycle_id: fase.id,
+      to_cycle_id: next.id,
+      module_ids: [adm.id],
+      mode: 'move',
+    })
+    expect(result).toEqual({ features: 1, scenarios: 5 })
+    expect(folder.every((c) => c.cycleId === next.id)).toBe(true)
+    expect(folder.map((c) => c.current_version)).toEqual(versions.map((v) => v + 1))
+    const tree = await source.getPhaseTree(MAIN)
+    expect(
+      tree.phases.find((p) => p.id === fase.id)?.features.some((f) => f.module.id === adm.id),
+    ).toBe(false)
+    expect(tree.phases.find((p) => p.id === next.id)?.features).toEqual([
+      expect.objectContaining({ scenarios: 4, ready: 3 }),
+    ])
+
+    // Out of every Fase ("Belum masuk Fase").
+    expect(
+      await source.transferPhaseFeatures(MAIN, {
+        from_cycle_id: next.id,
+        to_cycle_id: null,
+        module_ids: [adm.id],
+        mode: 'move',
+      }),
+    ).toEqual({ features: 1, scenarios: 5 })
+    const after = await source.getPhaseTree(MAIN)
+    expect(after.unassigned.features.map((f) => f.module.module_code)).toEqual(['ADM'])
+    expect(after.phases.find((p) => p.id === next.id)?.features).toEqual([])
+  })
+
+  it('checks the request and who asks', async () => {
+    const { db, source, fase, moduleOf } = setup()
+    const adm = moduleOf('ADM').id
+    const ask = (input: Parameters<typeof source.transferPhaseFeatures>[1]) =>
+      source.transferPhaseFeatures(MAIN, input)
+    await expect(
+      ask({ from_cycle_id: fase.id, to_cycle_id: fase.id, module_ids: [adm], mode: 'move' }),
+    ).rejects.toMatchObject({
+      status: 422,
+      details: [{ field: 'to_cycle_id', message: 'SAME_PHASE' }],
+    })
+    await expect(
+      ask({ from_cycle_id: fase.id, to_cycle_id: null, module_ids: [adm], mode: 'copy' }),
+    ).rejects.toMatchObject({
+      status: 422,
+      details: [{ field: 'to_cycle_id', message: 'COPY_NEEDS_PHASE' }],
+    })
+    const otherFase = db.cycles.find((c) => c.projectId === '2')!.id
+    await expect(
+      ask({ from_cycle_id: fase.id, to_cycle_id: otherFase, module_ids: [adm], mode: 'move' }),
+    ).rejects.toMatchObject({ status: 422, details: [{ field: 'to_cycle_id' }] })
+    await expect(
+      ask({ from_cycle_id: otherFase, to_cycle_id: fase.id, module_ids: [adm], mode: 'move' }),
+    ).rejects.toMatchObject({ status: 422, details: [{ field: 'from_cycle_id' }] })
+    const otherModule = db.modules.find((m) => m.projectId === '2')!.id
+    await expect(
+      ask({ from_cycle_id: fase.id, to_cycle_id: null, module_ids: [otherModule], mode: 'move' }),
+    ).rejects.toMatchObject({ status: 422, details: [{ field: 'module_ids' }] })
+    db.currentUserId = '3'
+    await expect(
+      ask({ from_cycle_id: fase.id, to_cycle_id: null, module_ids: [adm], mode: 'move' }),
+    ).rejects.toMatchObject({ status: 403 })
   })
 })

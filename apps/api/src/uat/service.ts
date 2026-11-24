@@ -7,6 +7,7 @@ import {
   type ResultCounts,
   type RunStatus,
   type TableMember,
+  type UatFeatureAssignmentDto,
   type UatParticipantDto,
   type UatRef,
   type UatSummaryDto,
@@ -141,8 +142,17 @@ export async function assertRunCaseAccess(
 }
 
 /**
- * Recording a result: a Pengguna may answer the scenarios of their own UAT - those of their
- * group's features when they sit in a group, every scenario while they have none.
+ * The features a participant row (alias `m`) works on: those of their group, and those
+ * assigned to them by name (ADR 0020). Only these scenarios are theirs.
+ */
+export const MEMBER_MODULES = (m: string) => `(
+  SELECT module_id FROM workshop_table_modules WHERE table_id = ${m}.table_id
+  UNION SELECT module_id FROM uat_feature_people WHERE member_id = ${m}.id)`
+
+/**
+ * Recording a result: a Pengguna may answer the scenarios of the features they are listed for
+ * in that UAT - through their group or by name (owner, 2026-11-24) - and scenarios assigned to
+ * them. Someone in the UAT without any assignment has nothing to answer yet.
  */
 export async function assertParticipantCase(
   c: Context<AppEnv>,
@@ -161,13 +171,11 @@ export async function assertParticipantCase(
         AND (trc.assigned_to = ?
              OR EXISTS (SELECT 1 FROM workshop_table_members m
                          WHERE m.run_id = trc.test_run_id AND m.user_id = ?
-                           AND (m.table_id IS NULL OR tc.module_id IN
-                                (SELECT module_id FROM workshop_table_modules
-                                  WHERE table_id = m.table_id))))
+                           AND tc.module_id IN ${MEMBER_MODULES('m')}))
       LIMIT 1`,
     [project.id, runCaseId, userId, userId],
   )
-  if (!row) throw new AppError(403, 'FORBIDDEN', 'This scenario is not part of your group.')
+  if (!row) throw new AppError(403, 'FORBIDDEN', 'This scenario is not assigned to you.')
 }
 
 // ---- Features and progress ----------------------------------------------------------------
@@ -314,6 +322,23 @@ export async function setUatFeatures(
       [runId, moduleId, 'OPEN'],
     )
   }
+  // Assignments of features that left the UAT go with them (ADR 0020).
+  await execute(
+    conn,
+    `DELETE tm FROM workshop_table_modules tm
+       JOIN workshop_tables t ON t.id = tm.table_id
+      WHERE t.run_id = ?
+        AND tm.module_id NOT IN (SELECT module_id FROM uat_features WHERE run_id = ?)`,
+    [runId, runId],
+  )
+  await execute(
+    conn,
+    `DELETE fp FROM uat_feature_people fp
+       JOIN workshop_table_members m ON m.id = fp.member_id
+      WHERE m.run_id = ?
+        AND fp.module_id NOT IN (SELECT module_id FROM uat_features WHERE run_id = ?)`,
+    [runId, runId],
+  )
   await execute(
     conn,
     `DELETE trc FROM test_run_cases trc
@@ -386,6 +411,18 @@ export async function uatSummaries(
   ])
   const countOf = (list: { run_id: string; n: number }[], id: string) =>
     Number(list.find((r) => String(r.run_id) === id)?.n ?? 0)
+  // A Pengguna's own features: through their group or by name (ADR 0020).
+  const myFeatures = options.onlyFor
+    ? await select<{ run_id: string; id: string; module_code: string; name: string }>(
+        db,
+        `SELECT DISTINCT m.run_id, md.id, md.module_code, md.name
+           FROM workshop_table_members m
+           JOIN modules md ON md.id IN ${MEMBER_MODULES('m')}
+          WHERE m.user_id = ? AND m.run_id IN (${placeholders(ids.length)})
+          ORDER BY md.name`,
+        [options.onlyFor, ...ids],
+      )
+    : []
   // The features of a Pengguna's own groups: the scenarios they may try (ADR 0019).
   const groupModules =
     myGroups.length > 0
@@ -427,6 +464,9 @@ export async function uatSummaries(
                     .map((m) => ({ id: String(m.id), module_code: m.module_code, name: m.name })),
                 }
               : null,
+            my_features: myFeatures
+              .filter((m) => String(m.run_id) === id)
+              .map((m) => ({ id: String(m.id), module_code: m.module_code, name: m.name })),
           }
         : {}),
     }
@@ -580,4 +620,162 @@ export async function saveGroupMembers(
       WHERE table_id = ? ${kept.length ? `AND id NOT IN (${placeholders(kept.length)})` : ''}`,
     [tableId, ...kept],
   )
+}
+
+// ---- Feature assignments (ADR 0020) -----------------------------------------------------------
+
+const groupRef = (row: { id: string; name: string; table_number: number | null }) => ({
+  id: String(row.id),
+  name: row.name,
+  table_number: row.table_number === null ? null : Number(row.table_number),
+})
+
+/**
+ * Who works on each feature of a UAT (owner, 2026-11-24): its groups (their table cards) and
+ * the people assigned by name. Only those listed answer the feature's scenarios.
+ */
+export async function featureAssignments(
+  db: Db,
+  runId: string,
+  onlyModuleId?: string,
+): Promise<UatFeatureAssignmentDto[]> {
+  const [features, groups, people] = await Promise.all([
+    select<{ id: string; module_code: string; name: string }>(
+      db,
+      `SELECT m.id, m.module_code, m.name
+         FROM uat_features f JOIN modules m ON m.id = f.module_id
+        WHERE f.run_id = ? AND (? IS NULL OR m.id = ?)
+        ORDER BY m.name`,
+      [runId, onlyModuleId ?? null, onlyModuleId ?? null],
+    ),
+    select<{ module_id: string; id: string; name: string; table_number: number | null }>(
+      db,
+      `SELECT tm.module_id, t.id, t.name, t.table_number
+         FROM workshop_table_modules tm JOIN workshop_tables t ON t.id = tm.table_id
+        WHERE t.run_id = ?
+        ORDER BY t.table_number IS NULL, t.table_number, t.name`,
+      [runId],
+    ),
+    select<{
+      module_id: string
+      id: string
+      display_name: string
+      user_id: string | null
+      table_id: string | null
+      group_name: string | null
+      table_number: number | null
+    }>(
+      db,
+      `SELECT fp.module_id, m.id, m.display_name, m.user_id, t.id AS table_id,
+              t.name AS group_name, t.table_number
+         FROM uat_feature_people fp
+         JOIN workshop_table_members m ON m.id = fp.member_id
+         LEFT JOIN workshop_tables t ON t.id = m.table_id
+        WHERE m.run_id = ?
+        ORDER BY m.display_name`,
+      [runId],
+    ),
+  ])
+  return features.map((feature) => {
+    const id = String(feature.id)
+    return {
+      module: { id, module_code: feature.module_code, name: feature.name },
+      groups: groups.filter((g) => String(g.module_id) === id).map(groupRef),
+      people: people
+        .filter((p) => String(p.module_id) === id)
+        .map((p) => ({
+          id: String(p.id),
+          name: p.display_name,
+          user_id: p.user_id === null ? null : String(p.user_id),
+          group:
+            p.table_id === null
+              ? null
+              : groupRef({
+                  id: p.table_id,
+                  name: p.group_name ?? '',
+                  table_number: p.table_number,
+                }),
+        })),
+    }
+  })
+}
+
+/**
+ * Replace who works on one feature of a UAT: groups get the feature on their card (the same
+ * list as on the group form), people are assigned by name. Anyone left out no longer works on
+ * it; results already recorded always stay.
+ */
+export async function setFeatureAssignees(
+  conn: PoolConnection,
+  runId: string,
+  moduleId: string,
+  input: { group_ids: string[]; member_ids: string[] },
+): Promise<void> {
+  const feature = await selectOne(
+    conn,
+    'SELECT 1 FROM uat_features WHERE run_id = ? AND module_id = ?',
+    [runId, moduleId],
+  )
+  if (!feature) {
+    throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+      { field: 'module_id', message: 'This feature is not part of the UAT' },
+    ])
+  }
+  const groupIds = [...new Set(input.group_ids)]
+  const memberIds = [...new Set(input.member_ids)]
+  if (groupIds.length > 0) {
+    const found = await select<{ id: string }>(
+      conn,
+      `SELECT id FROM workshop_tables WHERE run_id = ? AND id IN (${placeholders(groupIds.length)})`,
+      [runId, ...groupIds],
+    )
+    if (found.length !== groupIds.length) {
+      throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+        { field: 'group_ids', message: 'Group not found in this UAT' },
+      ])
+    }
+  }
+  if (memberIds.length > 0) {
+    const found = await select<{ id: string }>(
+      conn,
+      `SELECT id FROM workshop_table_members
+        WHERE run_id = ? AND id IN (${placeholders(memberIds.length)})`,
+      [runId, ...memberIds],
+    )
+    if (found.length !== memberIds.length) {
+      throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+        { field: 'member_ids', message: 'Person not found in this UAT' },
+      ])
+    }
+  }
+  await execute(
+    conn,
+    `DELETE tm FROM workshop_table_modules tm
+       JOIN workshop_tables t ON t.id = tm.table_id
+      WHERE t.run_id = ? AND tm.module_id = ?
+        ${groupIds.length ? `AND tm.table_id NOT IN (${placeholders(groupIds.length)})` : ''}`,
+    [runId, moduleId, ...groupIds],
+  )
+  for (const tableId of groupIds) {
+    await execute(
+      conn,
+      'INSERT IGNORE INTO workshop_table_modules (table_id, module_id) VALUES (?, ?)',
+      [tableId, moduleId],
+    )
+  }
+  await execute(
+    conn,
+    `DELETE fp FROM uat_feature_people fp
+       JOIN workshop_table_members m ON m.id = fp.member_id
+      WHERE m.run_id = ? AND fp.module_id = ?
+        ${memberIds.length ? `AND fp.member_id NOT IN (${placeholders(memberIds.length)})` : ''}`,
+    [runId, moduleId, ...memberIds],
+  )
+  for (const memberId of memberIds) {
+    await execute(
+      conn,
+      'INSERT IGNORE INTO uat_feature_people (member_id, module_id) VALUES (?, ?)',
+      [memberId, moduleId],
+    )
+  }
 }

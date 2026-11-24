@@ -232,9 +232,12 @@ function SetupChecklist({ uat, onTab }: { uat: UatDetailDto; onTab: (tab: string
   )
 }
 
-/** A Pengguna's view of their UAT: their group, the features, and where to start. */
+/** A Pengguna's view of their UAT: their group, their features, and where to start. */
 function MyUatView({ code, uat }: { code: string; uat: UatDetailDto }) {
   const { t } = useTranslation()
+  // Only the features this person is listed for, through their group or by name (ADR 0020).
+  const mine = new Set((uat.my_features ?? []).map((m) => m.id))
+  const features = uat.feature_list.filter((f) => f.state !== 'HIDDEN' && mine.has(f.module.id))
   return (
     <div className="space-y-6">
       <Section title={t('uat.mine.title')}>
@@ -263,18 +266,21 @@ function MyUatView({ code, uat }: { code: string; uat: UatDetailDto }) {
         </div>
       </Section>
       <Section title={t('uat.mine.features')}>
+        {features.length === 0 && (
+          <p className="rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning">
+            {t('uat.mine.noFeatures')}
+          </p>
+        )}
         <ul className="space-y-3">
-          {uat.feature_list
-            .filter((f) => f.state !== 'HIDDEN')
-            .map((feature) => (
-              <li
-                key={feature.module.id}
-                className="grid gap-2 rounded-xl border border-line p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center"
-              >
-                <p className="font-semibold">{feature.module.name}</p>
-                <ProgressMeter counts={feature.progress} size="sm" />
-              </li>
-            ))}
+          {features.map((feature) => (
+            <li
+              key={feature.module.id}
+              className="grid gap-2 rounded-xl border border-line p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center"
+            >
+              <p className="font-semibold">{feature.module.name}</p>
+              <ProgressMeter counts={feature.progress} size="sm" />
+            </li>
+          ))}
         </ul>
       </Section>
     </div>
@@ -345,24 +351,6 @@ export function UatPage() {
             <Button variant="secondary" icon={Pencil} onClick={() => setEditing(true)}>
               {t('uat.edit')}
             </Button>
-            <Link
-              to={`/layar/${encodeURIComponent(code)}/${data.id}`}
-              target="_blank"
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-4 text-sm font-semibold hover:bg-neutral-soft"
-            >
-              <MonitorPlay aria-hidden="true" className="size-4" />
-              {t('workshop.bigScreen')}
-            </Link>
-            {data.is_public && (
-              <Link
-                to={`/publik/uat/${data.id}`}
-                target="_blank"
-                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-4 text-sm font-semibold hover:bg-neutral-soft"
-              >
-                <ExternalLink aria-hidden="true" className="size-4" />
-                {t('workshop.publicPage')}
-              </Link>
-            )}
           </div>
         ) : undefined
       }
@@ -383,7 +371,32 @@ export function UatPage() {
     {
       id: 'papan',
       label: t('uat.tabs.board'),
-      content: <BoardTab board={boardData} onOpenInbox={() => setTab('masuk')} />,
+      content: (
+        <div className="space-y-4">
+          {/* Screens for the room: the projector board and the public page. */}
+          <div className="flex flex-wrap justify-end gap-2">
+            <Link
+              to={`/layar/${encodeURIComponent(code)}/${data.id}`}
+              target="_blank"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 text-sm font-semibold hover:bg-neutral-soft"
+            >
+              <MonitorPlay aria-hidden="true" className="size-4" />
+              {t('workshop.bigScreen')}
+            </Link>
+            {data.is_public && (
+              <Link
+                to={`/publik/uat/${data.id}`}
+                target="_blank"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 text-sm font-semibold hover:bg-neutral-soft"
+              >
+                <ExternalLink aria-hidden="true" className="size-4" />
+                {t('workshop.publicPage')}
+              </Link>
+            )}
+          </div>
+          <BoardTab board={boardData} onOpenInbox={() => setTab('masuk')} />
+        </div>
+      ),
     },
     {
       id: 'peserta',

@@ -60,6 +60,17 @@ export function useBugReporting(code: string, enabled = true) {
   })
 }
 
+/** Who works on each feature of a UAT: groups and people (ADR 0020). */
+export function useUatAssignments(code: string, uatId: string, enabled = true) {
+  const ds = useDataSource()
+  return useQuery({
+    queryKey: ['uat-assignments', code, uatId],
+    queryFn: () => ds.listUatAssignments(code, uatId),
+    enabled,
+    retry: noRetryOnAuth,
+  })
+}
+
 /** Reports from the public form waiting for an Admin (badge in the menu, review list). */
 export function usePublicReports(code: string, enabled = true) {
   const ds = useDataSource()
@@ -83,6 +94,7 @@ export async function invalidateStructure(queryClient: QueryClient, code: string
       ['uats', code],
       ['uat', code],
       ['uat-participants', code],
+      ['uat-assignments', code],
       ['workshop-board', code],
       ['workshop-tables', code],
       ['test-cases', code],

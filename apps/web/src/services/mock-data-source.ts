@@ -1,6 +1,7 @@
 import {
   adminProjectUpdateSchema,
   caseBulkSchema,
+  phaseTransferSchema,
   DEFECT_REASON_REQUIRED,
   defectImportConfigSchema,
   importedDescription,
@@ -139,7 +140,7 @@ import {
 } from './mock-reports'
 import { createMockRecovery } from './mock-recovery'
 import { createMockUat, mayAnswer, takesPart } from './mock-uat'
-import { createMockWorkshop, type WorkshopDeps } from './mock-workshop'
+import { createMockWorkshop, removeWhere, type WorkshopDeps } from './mock-workshop'
 import type {
   AddRunCasesResult,
   DataSource,
@@ -3062,6 +3063,68 @@ export function createMockDataSource(
         }
       })
     },
+
+    /**
+     * Copy or move whole feature folders to another Fase, like Salin / Pindahkan in Google
+     * Drive (ADR 0020). null = "Belum masuk Fase".
+     */
+    transferPhaseFeatures: (code, input) =>
+      delay(() => {
+        const p = project(code)
+        requireRole(p.id, 'case.write')
+        const parsed = phaseTransferSchema.safeParse(input)
+        if (!parsed.success) return validationError(parsed.error.issues)
+        const { from_cycle_id: from, to_cycle_id: to, mode } = parsed.data
+        const inProject = (cycleId: string) =>
+          db.cycles.some((cy) => cy.id === cycleId && cy.projectId === p.id)
+        if (to !== null && !inProject(to)) {
+          fail(422, 'VALIDATION_ERROR', 'to_cycle_id', 'Cycle not found in this project')
+        }
+        if (from !== null && !inProject(from)) {
+          fail(422, 'VALIDATION_ERROR', 'from_cycle_id', 'Cycle not found in this project')
+        }
+        const moduleIds = [...new Set(parsed.data.module_ids)]
+        if (moduleIds.some((id) => !db.modules.some((m) => m.id === id && m.projectId === p.id))) {
+          fail(422, 'VALIDATION_ERROR', 'module_ids', 'Module not found in this project')
+        }
+        const addFolder = (cycleId: string | null, moduleId: string) => {
+          if (
+            cycleId &&
+            !db.phaseFeatures.some((f) => f.cycleId === cycleId && f.moduleId === moduleId)
+          ) {
+            db.phaseFeatures.push({ cycleId, moduleId })
+          }
+        }
+        let scenarios = 0
+        for (const moduleId of moduleIds) {
+          const folder = db.cases.filter(
+            (c) => c.projectId === p.id && c.moduleId === moduleId && (c.cycleId ?? null) === from,
+          )
+          if (mode === 'move') {
+            // The whole folder moves, archived scenarios too (each gets a new version).
+            for (const c of folder) {
+              c.cycleId = to
+              c.current_version += 1
+              c.updated_at = now()
+              c.updatedBy = db.currentUserId
+              addRevision(c, 'Updated: cycle_id')
+              uat.followPhase(c)
+              scenarios += 1
+            }
+            if (from !== null) {
+              removeWhere(db.phaseFeatures, (f) => f.cycleId === from && f.moduleId === moduleId)
+            }
+          } else {
+            // Copies get new codes; a Ready scenario stays Ready, the others become Drafts.
+            for (const c of folder.filter((x) => x.case_status !== 'ARCHIVED')) {
+              copyCase(p.id, c, { cycleId: to, keepStatus: true })
+              scenarios += 1
+            }
+          }
+          addFolder(to, moduleId)
+        }
+        return { features: moduleIds.length, scenarios }
+      }),
 
     bulkTestCases: async (code, input) => {
       const parsed = caseBulkSchema.safeParse(input)

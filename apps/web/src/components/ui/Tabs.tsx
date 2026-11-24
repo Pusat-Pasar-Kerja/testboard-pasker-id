@@ -56,7 +56,7 @@ export function Tabs({
       <div
         role="tablist"
         aria-label={label}
-        className="-mx-4 flex gap-1 overflow-x-auto px-4 shadow-[inset_0_-1px_0_var(--color-line)] sm:mx-0 sm:px-0"
+        className="-mx-4 flex gap-1 overflow-x-auto px-4 shadow-[inset_0_-1px_0_var(--color-line)] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
       >
         {tabs.map((tab, index) => {
           const selected = tab.id === current.id

@@ -55,12 +55,12 @@ describe('Fase > Fitur > Skenario like Google Drive', () => {
     const first = (await screen.findAllByRole('checkbox', { name: /^Pilih UAT-LOKER-/ }))[0]!
     await user.click(first)
     const bar = await screen.findByRole('region', { name: '1 dipilih' })
-    await user.selectOptions(within(bar).getByRole('combobox', { name: 'Aksi' }), 'copy_to_phase')
-    await user.selectOptions(
-      within(bar).getByRole('combobox', { name: 'Nilai baru' }),
-      `FASE-2 - UAT Tahap 2`,
-    )
-    await user.click(within(bar).getByRole('button', { name: /^Terapkan/ }))
+    await user.click(within(bar).getByRole('button', { name: 'Salin ke Fase…' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Salin 1 skenario ke Fase' })
+    // Copies need a Fase: "Belum masuk Fase" is not offered.
+    expect(within(dialog).queryByRole('radio', { name: /Belum masuk Fase/ })).toBeNull()
+    await user.click(within(dialog).getByRole('radio', { name: /UAT Tahap 2/ }))
+    await user.click(within(dialog).getByRole('button', { name: 'Salin' }))
     await waitFor(() => expect(db.cases.filter((c) => c.cycleId === next.id)).toHaveLength(1))
     const copy = db.cases.find((c) => c.cycleId === next.id)!
     expect(copy).toMatchObject({ case_status: 'READY', moduleId: loker.id })
@@ -99,7 +99,7 @@ describe('a Pengguna works inside their own UATs', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'UAT saya' })).toBeInTheDocument()
     const menu = screen.getByRole('navigation', { name: 'Navigasi utama' })
-    expect(within(menu).queryByRole('link', { name: 'Semua Fase' })).toBeNull()
+    expect(within(menu).queryByRole('link', { name: /^Semua Fase/ })).toBeNull()
     expect(within(menu).getByRole('link', { name: /^Bug Reporting/ })).toBeInTheDocument()
     const card = (await screen.findByRole('heading', { name: workshop.name })).closest(
       'li',

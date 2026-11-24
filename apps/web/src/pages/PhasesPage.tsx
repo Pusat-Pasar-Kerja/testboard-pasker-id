@@ -1,5 +1,5 @@
 import type { PhaseDto } from '@testboard/shared'
-import { FileUp, Folder, FolderInput, ListChecks, Plus, TestTubeDiagonal } from 'lucide-react'
+import { FileUp, Folder, FolderInput, ListChecks, Plus, FlaskConical } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 import { PhaseFormDialog } from '../components/phase/PhaseFormDialog'
@@ -74,7 +74,7 @@ function PhaseFolderCard({ code, phase }: { code: string; phase: PhaseDto }) {
         </li>
         {!unassigned && (
           <li className="inline-flex items-center gap-1.5">
-            <TestTubeDiagonal aria-hidden="true" className="size-4" />
+            <FlaskConical aria-hidden="true" className="size-4" />
             {t('uat.count', { count: phase.uats })}
           </li>
         )}

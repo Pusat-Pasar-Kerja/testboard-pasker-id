@@ -151,7 +151,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
       />
       <AnnouncementBanner />
 
-      <div className="flex-1 lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
+      <div className="flex-1 lg:grid lg:grid-cols-[288px_minmax(0,1fr)] xl:grid-cols-[304px_minmax(0,1fr)]">
         <aside className="sticky top-[calc(4.25rem+1px)] hidden h-[calc(100dvh-4.25rem-1px)] border-r border-line bg-surface lg:block">
           <SidebarNav projectCode={projectCode} />
         </aside>

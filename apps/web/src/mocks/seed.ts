@@ -170,6 +170,16 @@ export interface MockParticipant {
   userId: string | null
 }
 
+/**
+ * A feature of a UAT assigned to one person by name (uat_feature_people, ADR 0020). A group's
+ * features are its table's `moduleIds`; only the people listed try a feature's scenarios.
+ */
+export interface MockFeaturePerson {
+  /** The participant (workshop_table_members.id). */
+  memberId: string
+  moduleId: string
+}
+
 /** Bug Reporting of a project (project_settings "bugs.*"); a missing row = all off. */
 export interface MockBugReporting {
   projectId: string
@@ -300,6 +310,8 @@ export interface MockDb {
   uatFeatures: MockUatFeature[]
   tables: MockTable[]
   participants: MockParticipant[]
+  /** ADR 0020: features assigned to people by name (groups use their table's features). */
+  featurePeople: MockFeaturePerson[]
   bugReporting: MockBugReporting[]
 }
 
@@ -1003,6 +1015,16 @@ function addStructure(db: MockDb, id: () => string) {
       })
     }
   }
+
+  // 6. Migration 0016 (ADR 0020): only the people listed for a feature try it. Everyone
+  //    without a group used to try every feature of their UAT, so they keep all of them as a
+  //    personal assignment (an Admin narrows it later).
+  for (const person of db.participants) {
+    if (person.tableId !== null || person.runId === null) continue
+    for (const feature of db.uatFeatures.filter((f) => f.runId === person.runId)) {
+      db.featurePeople.push({ memberId: person.id, moduleId: feature.moduleId })
+    }
+  }
 }
 
 export function createMockDb(seed = 20261120): MockDb {
@@ -1027,6 +1049,7 @@ export function createMockDb(seed = 20261120): MockDb {
     uatFeatures: [],
     tables: [],
     participants: [],
+    featurePeople: [],
     bugReporting: [],
   }
 

@@ -1,6 +1,8 @@
 import {
   phaseFeatureSchema,
+  phaseTransferSchema,
   type CycleStatus,
+  type PhaseTransferResult,
   type PhaseDto,
   type PhaseFeatureDto,
   type PhaseTreeDto,
@@ -20,6 +22,7 @@ import {
 import { writeAudit } from '../lib/audit.js'
 import { AppError } from '../lib/errors.js'
 import { idParam, parseBody } from '../lib/validation.js'
+import { applyCaseUpdate, copyCase } from './test-cases.js'
 import type { AppEnv } from '../types.js'
 
 /**
@@ -143,6 +146,114 @@ export function phaseRoutes(pool: Pool) {
   routes.get('/', requirePermission('case.read'), async (c) => {
     c.header('Cache-Control', 'no-store')
     return c.json(await phaseTree(pool, c.get('project').id))
+  })
+
+  /**
+   * Copy or move whole feature folders - every scenario in them - to another Fase, like Salin /
+   * Pindahkan in Google Drive (ADR 0020). A copy keeps Ready scenarios Ready; a move keeps the
+   * scenarios themselves (archived ones too). Open UATs of the target Fase pick up the Ready
+   * scenarios of the features they test; UATs of the old Fase keep what they already have.
+   */
+  routes.post('/transfer', requirePermission('case.write'), async (c) => {
+    const project = c.get('project')
+    const input = await parseBody(c, phaseTransferSchema)
+    const moduleIds = [...new Set(input.module_ids)]
+    const result = await withTransaction(pool, async (conn) => {
+      for (const [field, cycleId] of [
+        ['from_cycle_id', input.from_cycle_id],
+        ['to_cycle_id', input.to_cycle_id],
+      ] as const) {
+        if (cycleId === null) continue
+        const cycle = await selectOne(
+          conn,
+          'SELECT 1 FROM test_cycles WHERE id = ? AND project_id = ?',
+          [cycleId, project.id],
+        )
+        if (!cycle) {
+          throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+            { field, message: 'Cycle not found in this project' },
+          ])
+        }
+      }
+      const known = await select<{ id: string; name: string }>(
+        conn,
+        `SELECT id, name FROM modules WHERE project_id = ? AND id IN (${moduleIds.map(() => '?').join(', ')})`,
+        [project.id, ...moduleIds],
+      )
+      if (known.length !== moduleIds.length) {
+        throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+          { field: 'module_ids', message: 'Feature not found in this project' },
+        ])
+      }
+      const out: PhaseTransferResult = { features: moduleIds.length, scenarios: 0 }
+      for (const moduleId of moduleIds) {
+        const cases = await select<{ id: string; case_status: string }>(
+          conn,
+          `SELECT id, case_status FROM test_cases
+            WHERE project_id = ? AND module_id = ? AND deleted_at IS NULL
+              AND ${input.from_cycle_id === null ? 'cycle_id IS NULL' : 'cycle_id = ?'}
+            ORDER BY case_code`,
+          input.from_cycle_id === null
+            ? [project.id, moduleId]
+            : [project.id, moduleId, input.from_cycle_id],
+        )
+        if (cases.length > 2000) {
+          throw new AppError(422, 'VALIDATION_ERROR', 'The submitted data is invalid.', [
+            { field: 'module_ids', message: 'Too many scenarios in one feature (max 2000)' },
+          ])
+        }
+        for (const row of cases) {
+          if (input.mode === 'copy') {
+            if (row.case_status === 'ARCHIVED') continue
+            await copyCase(conn, c, String(row.id), {
+              cycleId: input.to_cycle_id,
+              keepStatus: true,
+            })
+            out.scenarios += 1
+          } else if (row.case_status === 'ARCHIVED') {
+            // An archived scenario cannot be edited; it simply goes along with its folder.
+            await execute(conn, 'UPDATE test_cases SET cycle_id = ? WHERE id = ?', [
+              input.to_cycle_id,
+              row.id,
+            ])
+            out.scenarios += 1
+          } else if (
+            await applyCaseUpdate(conn, c, String(row.id), { cycle_id: input.to_cycle_id })
+          ) {
+            out.scenarios += 1
+          }
+        }
+        // The folder itself, even when it is empty.
+        if (input.to_cycle_id !== null) {
+          await execute(
+            conn,
+            'INSERT IGNORE INTO workshop_features (cycle_id, module_id, state_code) VALUES (?, ?, ?)',
+            [input.to_cycle_id, moduleId, 'OPEN'],
+          )
+        }
+        if (input.mode === 'move' && input.from_cycle_id !== null) {
+          await execute(
+            conn,
+            'DELETE FROM workshop_features WHERE cycle_id = ? AND module_id = ?',
+            [input.from_cycle_id, moduleId],
+          )
+        }
+      }
+      await writeAudit(conn, c, {
+        projectId: project.id,
+        entityType: 'module',
+        entityId: moduleIds[0]!,
+        action: input.mode === 'copy' ? 'COPY' : 'MOVE',
+        newValues: {
+          features: known.map((m) => m.name),
+          from_cycle_id: input.from_cycle_id,
+          to_cycle_id: input.to_cycle_id,
+          scenarios: out.scenarios,
+        },
+      })
+      return out
+    })
+    return c.json(result)
   })
 
   /** A feature folder in a Fase: an existing feature of the project, or a new one. */

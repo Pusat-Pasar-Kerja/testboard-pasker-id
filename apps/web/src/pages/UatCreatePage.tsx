@@ -1,6 +1,6 @@
 import { uatCreateSchema, type PhaseDto } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Folder, FolderPlus, TestTubeDiagonal } from 'lucide-react'
+import { Folder, FolderPlus, FlaskConical } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
@@ -285,7 +285,7 @@ export function UatCreatePage() {
             <ButtonLink to={projectPath(code, 'uat')} variant="secondary">
               {t('actions.cancel')}
             </ButtonLink>
-            <Button icon={TestTubeDiagonal} loading={create.isPending} onClick={submit}>
+            <Button icon={FlaskConical} loading={create.isPending} onClick={submit}>
               {t('uat.create.submit')}
             </Button>
           </div>

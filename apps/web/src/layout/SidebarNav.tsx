@@ -4,9 +4,9 @@ import {
   ChartColumn,
   ChevronDown,
   ChevronLeft,
-  ChevronRight,
   ClipboardCheck,
   FileUp,
+  FlaskConical,
   Folder,
   FolderCog,
   FolderInput,
@@ -19,7 +19,6 @@ import {
   Plus,
   Settings2,
   SlidersHorizontal,
-  TestTubeDiagonal,
   Users,
   UsersRound,
   type LucideIcon,
@@ -27,6 +26,9 @@ import {
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, useLocation, useParams } from 'react-router'
+import { isFeatureDrag, readFeatureDrag, type FeatureDrag } from '../components/phase/feature-drag'
+import { FeatureTransferDialog } from '../components/phase/FeatureTransferDialog'
+import { NO_PHASE } from '../components/phase/PhasePicker'
 import { useCan } from '../hooks/permissions'
 import { useCurrentUser, useProject, useProjects, useRecoverySummary } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
@@ -62,9 +64,9 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
       : 'text-ink hover:bg-brand-50/60'
   }`
 
-/** A smaller row inside a folder (feature folders, UATs). */
+/** A row inside the tree (Fase folders, feature folders, UATs): one size everywhere. */
 const childClass = ({ isActive }: { isActive: boolean }) =>
-  `flex min-h-10 items-center gap-2 rounded-lg px-2 py-1 text-sm transition-colors ${
+  `flex min-h-10 items-center gap-2.5 rounded-lg px-2 py-1 text-sm transition-colors ${
     isActive ? 'bg-brand-50 font-semibold text-brand-800' : 'text-ink hover:bg-brand-50/60'
   }`
 
@@ -193,41 +195,64 @@ function HomeNav({ onNavigate }: { onNavigate?: () => void }) {
   )
 }
 
-/** One Fase folder: opens like a folder in Google Drive and shows its feature folders. */
+/**
+ * The children of a section row ("Semua Fase", "Semua UAT") hang under the section's icon,
+ * the same way in every section (owner, 2026-11-24: everything symmetric).
+ */
+const TREE = 'ml-[1.375rem] space-y-0.5 border-l border-line pl-2'
+
+/** Feature folders inside a Fase folder: one more step in, kept narrow so names fit. */
+const NESTED = 'ml-4 space-y-0.5 border-l border-line pl-1.5'
+
+/** The right-hand slot of a child row: same width for a folder toggle and a status dot. */
+const SLOT = 'inline-flex size-8 shrink-0 items-center justify-center rounded-lg'
+
+/**
+ * One Fase folder: opens like a folder in Google Drive and shows its feature folders. Feature
+ * folders can be dropped on it to move or copy them here (ADR 0020).
+ */
 function PhaseFolder({
   code,
   phase,
   open,
   onToggle,
   onNavigate,
+  onDropFeatures,
 }: {
   code: string
   phase: PhaseDto
   open: boolean
   onToggle: () => void
   onNavigate?: () => void
+  onDropFeatures: (drag: FeatureDrag, target: string) => void
 }) {
   const { t } = useTranslation()
+  const [over, setOver] = useState(false)
   const base = phase.id ? `fase/${phase.id}` : 'fase/tanpa-fase'
   const name = phase.id ? (phase.title ?? '') : t('phases.unassigned')
+  const target = phase.id ?? NO_PHASE
   const listId = `phase-${phase.id ?? 'none'}-features`
   return (
     <li>
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-expanded={open}
-          aria-controls={listId}
-          aria-label={t(open ? 'nav.collapse' : 'nav.expand', { name })}
-          className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-ink-muted hover:bg-brand-50"
-        >
-          {open ? (
-            <ChevronDown aria-hidden="true" className="size-4" />
-          ) : (
-            <ChevronRight aria-hidden="true" className="size-4" />
-          )}
-        </button>
+      <div
+        onDragOver={(event) => {
+          if (!isFeatureDrag(event)) return
+          event.preventDefault()
+          event.dataTransfer.dropEffect = 'move'
+          setOver(true)
+        }}
+        onDragLeave={() => setOver(false)}
+        onDrop={(event) => {
+          setOver(false)
+          const drag = readFeatureDrag(event)
+          if (!drag) return
+          event.preventDefault()
+          if ((drag.from ?? NO_PHASE) !== target) onDropFeatures(drag, target)
+        }}
+        className={`flex items-center gap-1 rounded-lg ${
+          over ? 'bg-brand-50 ring-2 ring-brand-500' : ''
+        }`}
+      >
         <NavLink
           to={projectPath(code, base)}
           end
@@ -248,21 +273,31 @@ function PhaseFolder({
           </span>
           <Count value={phase.scenarios} label={t('nav.scenarioCount')} />
         </NavLink>
-      </div>
-      {open && (
-        <ul
-          id={listId}
-          aria-label={t('nav.featuresOf', { name })}
-          className="ml-8 space-y-0.5 border-l border-line pl-2"
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-label={t(open ? 'nav.collapse' : 'nav.expand', { name })}
+          className={`${SLOT} text-ink-muted hover:bg-brand-50`}
         >
+          <ChevronDown
+            aria-hidden="true"
+            className={`size-4 transition-transform ${open ? '' : '-rotate-90'}`}
+          />
+        </button>
+      </div>
+      {over && <p className="sr-only">{t('phases.transfer.dropHere', { name })}</p>}
+      {open && (
+        <ul id={listId} aria-label={t('nav.featuresOf', { name })} className={`${NESTED} mt-0.5`}>
           {phase.features.length === 0 && (
             <li className="px-2 py-1 text-xs text-ink-muted">{t('nav.noFeatures')}</li>
           )}
           {phase.features.map((feature) => (
-            <li key={feature.module.id}>
+            <li key={feature.module.id} className="flex items-center gap-1">
               <NavLink
                 to={projectPath(code, `${base}/fitur/${feature.module.id}`)}
-                className={childClass}
+                className={(state) => `${childClass(state)} min-w-0 flex-1`}
                 onClick={onNavigate}
               >
                 <Folder aria-hidden="true" className="size-4 shrink-0 text-teal-600" />
@@ -296,9 +331,13 @@ function UatLink({
         ? 'bg-info'
         : 'bg-line-strong'
   return (
-    <li>
-      <NavLink to={projectPath(code, `uat/${uat.id}`)} className={childClass} onClick={onNavigate}>
-        <TestTubeDiagonal aria-hidden="true" className="size-4 shrink-0 text-brand-600" />
+    <li className="flex items-center gap-1">
+      <NavLink
+        to={projectPath(code, `uat/${uat.id}`)}
+        className={(state) => `${childClass(state)} min-w-0 flex-1`}
+        onClick={onNavigate}
+      >
+        <FlaskConical aria-hidden="true" className="size-4 shrink-0 text-brand-600" />
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block truncate" title={uat.name}>
             {uat.name}
@@ -307,9 +346,11 @@ function UatLink({
             {uat.my_group ? groupLabel(t, uat.my_group) : (uat.phase?.title ?? '')}
           </span>
         </span>
-        <span className={`size-2 shrink-0 rounded-full ${dot}`} aria-hidden="true" />
         <span className="sr-only">{t(`codes.runStatus.${uat.status_code}`)}</span>
       </NavLink>
+      <span aria-hidden="true" className={SLOT}>
+        <span className={`size-2.5 rounded-full ${dot}`} />
+      </span>
     </li>
   )
 }
@@ -330,6 +371,7 @@ function ProjectNav({ projectCode, onNavigate }: { projectCode: string; onNaviga
   const reports = usePublicReports(projectCode, manager)
   const waiting = reports.data?.length ?? 0
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
+  const [dropped, setDropped] = useState<{ drag: FeatureDrag; target: string } | null>(null)
   const current = cycleId === 'tanpa-fase' ? 'none' : cycleId
   const isOpen = (id: string) => toggled[id] ?? id === current
   const phases = [
@@ -368,32 +410,34 @@ function ProjectNav({ projectCode, onNavigate }: { projectCode: string; onNaviga
           >
             {t('nav.phases')}
           </GroupTitle>
-          <ul className="space-y-0.5">
-            <li>
-              <NavLink
-                to={projectPath(projectCode, 'fase')}
-                end
-                className={linkClass}
-                onClick={onNavigate}
-              >
-                <FolderKanban aria-hidden="true" className="size-5 shrink-0" />
-                <span className="min-w-0 flex-1 truncate">{t('nav.allPhases')}</span>
-              </NavLink>
-            </li>
-            {phases.map((phase) => {
-              const id = phase.id ?? 'none'
-              return (
-                <PhaseFolder
-                  key={id}
-                  code={projectCode}
-                  phase={phase}
-                  open={isOpen(id)}
-                  onToggle={() => setToggled((prev) => ({ ...prev, [id]: !isOpen(id) }))}
-                  onNavigate={onNavigate}
-                />
-              )
-            })}
-          </ul>
+          <NavLink
+            to={projectPath(projectCode, 'fase')}
+            end
+            className={linkClass}
+            onClick={onNavigate}
+          >
+            <FolderKanban aria-hidden="true" className="size-5 shrink-0" />
+            <span className="min-w-0 flex-1 truncate">{t('nav.allPhases')}</span>
+            {tree.data && <Count value={tree.data.phases.length} label={t('nav.phaseCount')} />}
+          </NavLink>
+          {phases.length > 0 && (
+            <ul className={`${TREE} mt-0.5`} aria-label={t('nav.phaseFolders')}>
+              {phases.map((phase) => {
+                const id = phase.id ?? 'none'
+                return (
+                  <PhaseFolder
+                    key={id}
+                    code={projectCode}
+                    phase={phase}
+                    open={isOpen(id)}
+                    onToggle={() => setToggled((prev) => ({ ...prev, [id]: !isOpen(id) }))}
+                    onNavigate={onNavigate}
+                    onDropFeatures={(drag, target) => setDropped({ drag, target })}
+                  />
+                )
+              })}
+            </ul>
+          )}
         </div>
       )}
 
@@ -411,52 +455,44 @@ function ProjectNav({ projectCode, onNavigate }: { projectCode: string; onNaviga
         >
           {manager ? t('nav.uat') : t('nav.myUat')}
         </GroupTitle>
-        <ul className="space-y-0.5">
-          <li>
-            <NavLink
-              to={projectPath(projectCode, 'uat')}
-              end
-              className={linkClass}
-              onClick={onNavigate}
-            >
-              <TestTubeDiagonal aria-hidden="true" className="size-5 shrink-0" />
-              <span className="min-w-0 flex-1 truncate">
-                {manager ? t('nav.allUats') : t('nav.myUat')}
-              </span>
-              {uats.data && <Count value={uats.data.length} label={t('nav.uatCount')} />}
-            </NavLink>
-          </li>
-          {(uats.data ?? []).slice(0, 12).map((uat) => (
-            <UatLink key={uat.id} code={projectCode} uat={uat} onNavigate={onNavigate} />
-          ))}
-        </ul>
+        <NavLink
+          to={projectPath(projectCode, 'uat')}
+          end
+          className={linkClass}
+          onClick={onNavigate}
+        >
+          <FlaskConical aria-hidden="true" className="size-5 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">
+            {manager ? t('nav.allUats') : t('nav.myUat')}
+          </span>
+          {uats.data && <Count value={uats.data.length} label={t('nav.uatCount')} />}
+        </NavLink>
+        {(uats.data?.length ?? 0) > 0 && (
+          <ul className={`${TREE} mt-0.5`} aria-label={t('nav.uatList')}>
+            {(uats.data ?? []).slice(0, 12).map((uat) => (
+              <UatLink key={uat.id} code={projectCode} uat={uat} onNavigate={onNavigate} />
+            ))}
+          </ul>
+        )}
       </div>
 
       <div data-tour="group-bugs">
         <GroupTitle>{t('nav.bugReporting')}</GroupTitle>
-        <ul className="space-y-0.5">
-          <li>
-            <NavLink
-              to={projectPath(projectCode, 'bugs')}
-              className={linkClass}
-              onClick={onNavigate}
-            >
-              <Bug aria-hidden="true" className="size-5 shrink-0" />
-              <span className="min-w-0 flex-1 leading-tight">
-                <span className="block truncate">{t('nav.bugReporting')}</span>
-                <span className="block truncate text-[11px] font-normal text-ink-muted">
-                  {t('nav.term.bugReporting')}
-                </span>
-              </span>
-              {waiting > 0 && (
-                <span className="ml-auto rounded-full bg-danger px-1.5 text-xs font-semibold text-white tabular-nums">
-                  {waiting}
-                  <span className="sr-only"> {t('nav.waitingReports')}</span>
-                </span>
-              )}
-            </NavLink>
-          </li>
-        </ul>
+        <NavLink to={projectPath(projectCode, 'bugs')} className={linkClass} onClick={onNavigate}>
+          <Bug aria-hidden="true" className="size-5 shrink-0" />
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block truncate">{t('nav.bugReporting')}</span>
+            <span className="block truncate text-[11px] font-normal text-ink-muted">
+              {t('nav.term.bugReporting')}
+            </span>
+          </span>
+          {waiting > 0 && (
+            <span className="ml-auto rounded-full bg-danger px-1.5 text-xs font-semibold text-white tabular-nums">
+              {waiting}
+              <span className="sr-only"> {t('nav.waitingReports')}</span>
+            </span>
+          )}
+        </NavLink>
       </div>
 
       {manager && (
@@ -477,6 +513,16 @@ function ProjectNav({ projectCode, onNavigate }: { projectCode: string; onNaviga
             ))}
           </ul>
         </div>
+      )}
+      {dropped && (
+        <FeatureTransferDialog
+          code={projectCode}
+          from={dropped.drag.from}
+          features={dropped.drag.features}
+          initialTarget={dropped.target}
+          initialMode="move"
+          onClose={() => setDropped(null)}
+        />
       )}
     </div>
   )

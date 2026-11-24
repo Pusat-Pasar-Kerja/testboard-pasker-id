@@ -190,6 +190,30 @@ export function removeWhere<T>(items: T[], predicate: (item: T) => boolean): voi
   }
 }
 
+/**
+ * The features a person works on in a UAT (ADR 0020): their group's and the ones assigned to
+ * them by name. Only these scenarios (and any assigned to them) are theirs to try; a person
+ * without a group gets no feature by default any more.
+ */
+export function personFeatureIds(db: MockDb, runId: string, userId: string): Set<string> {
+  const ids = new Set<string>()
+  for (const person of db.participants) {
+    if (person.runId !== runId || person.userId !== userId) continue
+    const group = person.tableId ? db.tables.find((t) => t.id === person.tableId) : undefined
+    for (const moduleId of group?.moduleIds ?? []) ids.add(moduleId)
+    for (const link of db.featurePeople) if (link.memberId === person.id) ids.add(link.moduleId)
+  }
+  return ids
+}
+
+/** People leave a UAT: their personal feature assignments go with them (ON DELETE CASCADE). */
+export function removeParticipants(db: MockDb, predicate: (person: MockParticipant) => boolean) {
+  const gone = new Set(db.participants.filter(predicate).map((p) => p.id))
+  if (gone.size === 0) return
+  removeWhere(db.participants, (p) => gone.has(p.id))
+  removeWhere(db.featurePeople, (link) => gone.has(link.memberId))
+}
+
 const maskEmail = (email: string) => {
   const at = email.indexOf('@')
   return at <= 0 ? '***' : `${email.slice(0, 1)}***${email.slice(at)}`
@@ -1020,7 +1044,7 @@ export function createMockWorkshop(deps: WorkshopDeps) {
           taken.add(key)
           fresh.push(name.trim().slice(0, 100))
         }
-        removeWhere(db.participants, (p) => p.tableId === t.id && p.userId === null)
+        removeParticipants(db, (p) => p.tableId === t.id && p.userId === null)
         const start = kept.reduce((max, p) => Math.max(max, p.sortOrder + 1), 0)
         fresh.forEach((name, index) => {
           db.participants.push({
@@ -1104,18 +1128,17 @@ export function createMockWorkshop(deps: WorkshopDeps) {
               a.table.name.localeCompare(b.table.name),
           )
           .slice(0, 50)
-        // Every open UAT the person takes part in, with the scenarios of their group's features
-        // (all scenarios of the UAT while they have no group yet).
-        const runs = mine
-          .flatMap((p) => {
-            const run = db.runs.find((r) => r.id === p.runId)
+        // Every open UAT the person takes part in, with the scenarios of their features (their
+        // group's and the ones assigned to them by name) or assigned to them (ADR 0020).
+        const runs = [...new Set(mine.map((p) => p.runId))]
+          .flatMap((runId) => {
+            const run = db.runs.find((r) => r.id === runId)
             const project = run ? projectById(run.projectId) : undefined
             if (!run || !project || project.archived) return []
             if (run.status_code !== 'PLANNED' && run.status_code !== 'ACTIVE') return []
-            const group = p.tableId ? db.tables.find((t) => t.id === p.tableId) : undefined
+            const features = personFeatureIds(db, run.id, me)
             const cases = runCasesOf(run.id).filter(
-              (rc) =>
-                !p.tableId || Boolean(group?.moduleIds.includes(caseOf(rc.caseId)?.moduleId ?? '')),
+              (rc) => rc.assignedTo === me || features.has(caseOf(rc.caseId)?.moduleId ?? ''),
             )
             const open = cases
               .filter((rc) => statusOf(rc.id) === 'NOT_RUN')

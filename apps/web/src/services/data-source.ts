@@ -105,6 +105,10 @@ import type {
   TestRunDetail,
   TestRunSummary,
   TestType,
+  PhaseTransferInput,
+  PhaseTransferResult,
+  UatFeatureAssigneesInput,
+  UatFeatureAssignmentDto,
 } from '@testboard/shared'
 import type { ApiClient } from './api-client'
 
@@ -542,6 +546,11 @@ export interface DataSource {
     cycleId: string,
     input: PhaseFeatureInput,
   ): Promise<PhaseTreeDto>
+  /** Copy or move whole feature folders to another Fase, like in Google Drive (ADR 0020). */
+  transferPhaseFeatures(
+    projectCode: string,
+    input: PhaseTransferInput,
+  ): Promise<PhaseTransferResult>
 
   // UAT (ADR 0019): a Pengguna gets only the UATs they take part in ------------------------
   listUats(projectCode: string): Promise<UatSummaryDto[]>
@@ -561,6 +570,15 @@ export interface DataSource {
     input: { name?: string; group_id?: string | null },
   ): Promise<UatParticipantDto>
   removeUatParticipant(projectCode: string, uatId: string, participantId: string): Promise<void>
+  /** Who works on each feature of a UAT: groups and people (ADR 0020). */
+  listUatAssignments(projectCode: string, uatId: string): Promise<UatFeatureAssignmentDto[]>
+  /** The whole assignment of one feature (replaces what was there). */
+  setFeatureAssignees(
+    projectCode: string,
+    uatId: string,
+    moduleId: string,
+    input: UatFeatureAssigneesInput,
+  ): Promise<UatFeatureAssignmentDto>
   getWorkshopBoard(projectCode: string, uatId: string): Promise<WorkshopBoardDto>
   updateUatPublic(
     projectCode: string,
@@ -866,6 +884,7 @@ export function createHttpDataSource(client: ApiClient): DataSource {
     getPhaseTree: (code) => client.get(`${p(code)}/phases`),
     addPhaseFeature: (code, cycleId, input) =>
       client.post(`${p(code)}/phases/${seg(cycleId)}/features`, input),
+    transferPhaseFeatures: (code, input) => client.post(`${p(code)}/phases/transfer`, input),
 
     listUats: (code) => client.get(`${p(code)}/uats`),
     getUat: (code, uatId) => client.get(`${p(code)}/uats/${seg(uatId)}`),
@@ -878,6 +897,9 @@ export function createHttpDataSource(client: ApiClient): DataSource {
       client.patch(`${p(code)}/uats/${seg(uatId)}/participants/${seg(participantId)}`, input),
     removeUatParticipant: (code, uatId, participantId) =>
       client.delete(`${p(code)}/uats/${seg(uatId)}/participants/${seg(participantId)}`),
+    listUatAssignments: (code, uatId) => client.get(`${p(code)}/uats/${seg(uatId)}/assignments`),
+    setFeatureAssignees: (code, uatId, moduleId, input) =>
+      client.put(`${p(code)}/uats/${seg(uatId)}/features/${seg(moduleId)}/assignees`, input),
     getWorkshopBoard: (code, uatId) => client.get(`${p(code)}/uats/${seg(uatId)}/board`),
     updateUatPublic: (code, uatId, input) =>
       client.put(`${p(code)}/uats/${seg(uatId)}/public`, input),

@@ -1,29 +1,19 @@
 import { TEST_CASE_PRIORITIES, type BulkResult, type CaseBulkInput } from '@testboard/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check } from 'lucide-react'
+import { Check, Copy, FolderInput } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useCycles, useModules } from '../../hooks/queries'
+import { useModules } from '../../hooks/queries'
 import { apiErrorText } from '../../lib/api-errors'
 import { useDataSource } from '../../services/use-data-source'
 import { BULK_SELECT } from '../ui/BulkBar'
 import { Button } from '../ui/Button'
 import { ConfirmDialog } from '../ui/Dialog'
 import { MergeDialog, type MergeCandidate } from './MergeDialog'
+import { ScenarioTransferDialog } from './ScenarioTransferDialog'
 import { useToast } from '../ui/toast-context'
 
-type CaseAction =
-  | 'ready'
-  | 'draft'
-  | 'copy_to_phase'
-  | 'move_to_phase'
-  | 'set_module'
-  | 'set_priority'
-  | 'merge'
-  | 'archive'
-
-/** "Belum masuk fase" in the Fase list of "Pindahkan ke Fase". */
-const NO_PHASE = 'none'
+type CaseAction = 'ready' | 'draft' | 'set_module' | 'set_priority' | 'merge' | 'archive'
 
 /**
  * Bulk actions on selected scenarios (ADR 0013, 0019): mark ready / draft, copy or move to a
@@ -47,19 +37,14 @@ export function CaseBulkActions({
   const toast = useToast()
   const queryClient = useQueryClient()
   const modules = useModules(code)
-  const cycles = useCycles(code)
   const [action, setAction] = useState<CaseAction>('ready')
+  // Copy / move to a Fase get their own buttons and a Fase picker (owner, 2026-11-24).
+  const [transfer, setTransfer] = useState<'copy' | 'move' | null>(null)
   const [value, setValue] = useState('')
   const [confirmArchive, setConfirmArchive] = useState(false)
   const [merging, setMerging] = useState(false)
 
-  const phases = (cycles.data ?? []).map((c) => ({
-    value: c.id,
-    label: `${c.cycle_code} - ${c.title}`,
-  }))
   const valueOptions: Partial<Record<CaseAction, { value: string; label: string }[]>> = {
-    copy_to_phase: phases,
-    move_to_phase: [...phases, { value: NO_PHASE, label: t('phases.unassigned') }],
     set_module: (modules.data ?? []).map((m) => ({
       value: m.module_code,
       label: `${m.module_code} - ${m.name}`,
@@ -82,21 +67,13 @@ export function CaseBulkActions({
             }
           : action === 'archive'
             ? { action: 'archive', case_ids: ids }
-            : action === 'copy_to_phase'
-              ? { action: 'copy_to_phase', case_ids: ids, cycle_id: value }
-              : action === 'move_to_phase'
-                ? {
-                    action: 'move_to_phase',
-                    case_ids: ids,
-                    cycle_id: value === NO_PHASE ? null : value,
-                  }
-                : action === 'set_module'
-                  ? { action: 'set_module', case_ids: ids, module_code: value }
-                  : {
-                      action: 'set_priority',
-                      case_ids: ids,
-                      priority_code: value as (typeof TEST_CASE_PRIORITIES)[number],
-                    }
+            : action === 'set_module'
+              ? { action: 'set_module', case_ids: ids, module_code: value }
+              : {
+                  action: 'set_priority',
+                  case_ids: ids,
+                  priority_code: value as (typeof TEST_CASE_PRIORITIES)[number],
+                }
       return ds.bulkTestCases(code, input)
     },
     onSuccess: async (result) => {
@@ -124,8 +101,6 @@ export function CaseBulkActions({
   const actions: CaseAction[] = [
     'ready',
     'draft',
-    'copy_to_phase',
-    'move_to_phase',
     'set_module',
     'set_priority',
     ...(ids.length >= 2 ? (['merge'] as const) : []),
@@ -133,6 +108,12 @@ export function CaseBulkActions({
   ]
   return (
     <>
+      <Button variant="secondary" icon={Copy} onClick={() => setTransfer('copy')}>
+        {t('phases.transfer.bulkCopy')}
+      </Button>
+      <Button variant="secondary" icon={FolderInput} onClick={() => setTransfer('move')}>
+        {t('phases.transfer.bulkMove')}
+      </Button>
       <select
         aria-label={t('bulk.action')}
         className={BULK_SELECT}
@@ -177,6 +158,15 @@ export function CaseBulkActions({
       >
         {t('bulk.apply', { count: ids.length })}
       </Button>
+      {transfer && (
+        <ScenarioTransferDialog
+          code={code}
+          ids={ids}
+          mode={transfer}
+          onClose={() => setTransfer(null)}
+          onDone={onDone}
+        />
+      )}
       {merging && (
         <MergeDialog
           open

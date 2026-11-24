@@ -44,6 +44,8 @@ export const AUDIT_ACTIONS = [
   'CONFIRM',
   'REVIEW',
   'ACTIVATE',
+  'COPY',
+  'MOVE',
 ] as const
 
 type AuditEntity = (typeof SITE_AUDIT_ENTITIES)[number]

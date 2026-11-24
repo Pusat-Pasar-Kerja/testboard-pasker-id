@@ -107,6 +107,11 @@ export interface UatSummaryDto {
     /** The features this group works on (its scenarios are the ones to try). */
     modules?: ModuleRef[]
   } | null
+  /**
+   * For a Pengguna: the features they work on in this UAT, through their group or assigned to
+   * them by name (ADR 0020). Only these scenarios are theirs to try.
+   */
+  my_features?: ModuleRef[]
 }
 
 export interface UatParticipantDto {
@@ -195,6 +200,61 @@ export const uatParticipantUpdateSchema = z
 
 /** A group (kelompok) gets an optional table number printed on its card. */
 export const tableNumberSchema = z.number().int().min(1).max(999).nullable().optional()
+
+// ---- Feature assignments (ADR 0020) ---------------------------------------------------------
+
+export interface UatGroupRef {
+  id: IdString
+  name: string
+  table_number: number | null
+}
+
+/**
+ * Who works on one feature of a UAT (owner, 2026-11-24): groups and people, as many as needed.
+ * Only those listed try its scenarios.
+ */
+export interface UatFeatureAssignmentDto {
+  module: ModuleRef
+  groups: UatGroupRef[]
+  people: { id: IdString; name: string; user_id: IdString | null; group: UatGroupRef | null }[]
+}
+
+/** The whole assignment of one feature (replaces what was there). */
+export const uatFeatureAssigneesSchema = z.object({
+  group_ids: z.array(idString).max(200),
+  member_ids: z.array(idString).max(1000),
+})
+export type UatFeatureAssigneesInput = z.input<typeof uatFeatureAssigneesSchema>
+
+// ---- Moving feature folders between Fase (ADR 0020) ----------------------------------------
+
+/**
+ * Copy or move whole feature folders (with every scenario in them) from one Fase to another,
+ * like Salin / Pindahkan in Google Drive. null = "Belum masuk Fase".
+ */
+export const phaseTransferSchema = z
+  .object({
+    from_cycle_id: idString.nullable(),
+    to_cycle_id: idString.nullable(),
+    module_ids: z.array(idString).min(1).max(100),
+    mode: z.enum(['copy', 'move']),
+  })
+  .refine((v) => v.from_cycle_id !== v.to_cycle_id, {
+    path: ['to_cycle_id'],
+    message: 'SAME_PHASE',
+  })
+  .refine((v) => v.mode === 'move' || v.to_cycle_id !== null, {
+    path: ['to_cycle_id'],
+    message: 'COPY_NEEDS_PHASE',
+  })
+export type PhaseTransferInput = z.input<typeof phaseTransferSchema>
+
+export interface PhaseTransferResult {
+  /** Feature folders handled. */
+  features: number
+  /** Scenarios copied or moved. */
+  scenarios: number
+}
 
 // ---- Bug Reporting --------------------------------------------------------------------------
 

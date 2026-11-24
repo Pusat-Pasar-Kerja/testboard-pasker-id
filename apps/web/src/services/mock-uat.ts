@@ -4,16 +4,20 @@ import {
   normalizePublicFields,
   phaseFeatureSchema,
   uatCreateSchema,
+  uatFeatureAssigneesSchema,
   uatParticipantsAddSchema,
   uatParticipantUpdateSchema,
   uatUpdateSchema,
   workshopFeatureStateSchema,
   workshopTableCreateSchema,
   workshopTableUpdateSchema,
+  type ModuleRef,
   type PhaseDto,
   type PhaseFeatureDto,
   type PhaseTreeDto,
   type UatDetailDto,
+  type UatFeatureAssignmentDto,
+  type UatGroupRef,
   type UatParticipantDto,
   type UatRef,
   type UatSummaryDto,
@@ -26,8 +30,10 @@ import {
   byNumericId,
   invalid,
   notFound,
+  personFeatureIds,
   problem,
   refuse,
+  removeParticipants,
   removeWhere,
   tableOrder,
   uatOrder,
@@ -53,6 +59,8 @@ type UatMethods = Pick<
   | 'addUatParticipants'
   | 'updateUatParticipant'
   | 'removeUatParticipant'
+  | 'listUatAssignments'
+  | 'setFeatureAssignees'
   | 'getWorkshopBoard'
   | 'updateUatPublic'
   | 'updateWorkshopFeature'
@@ -79,8 +87,9 @@ export function takesPart(db: MockDb, runId: string, userId: string): boolean {
 }
 
 /**
- * Recording a result: a Pengguna answers the scenarios of their own UAT - those of their
- * group's features when they sit in a group, every scenario while they have none.
+ * Recording a result (ADR 0020, "only those listed in the assignment"): a Pengguna answers a
+ * scenario assigned to them, or one of a feature of their group or assigned to them by name.
+ * Someone without a group no longer gets every feature.
  */
 export function mayAnswer(
   db: MockDb,
@@ -93,15 +102,7 @@ export function mayAnswer(
   if (!rc || !run) return false
   if (rc.assignedTo === userId) return true
   const moduleId = db.cases.find((c) => c.id === rc.caseId)?.moduleId
-  return db.participants.some(
-    (p) =>
-      p.runId === run.id &&
-      p.userId === userId &&
-      (p.tableId === null ||
-        Boolean(
-          moduleId && db.tables.find((t) => t.id === p.tableId)?.moduleIds.includes(moduleId),
-        )),
-  )
+  return Boolean(moduleId) && personFeatureIds(db, run.id, userId).has(moduleId ?? '')
 }
 
 /** Empty values first, like MariaDB sorts NULL in ascending order. */
@@ -265,10 +266,24 @@ export function createMockUat(deps: WorkshopDeps, core: WorkshopCore) {
   /**
    * The features of a UAT: kept features keep their state, removed ones take their untried
    * scenarios with them (scenarios with results always stay), new ones bring their scenarios.
+   * A removed feature is no longer assigned to any group or person of the UAT (ADR 0020); a
+   * new one is assigned to nobody until an Admin says who works on it.
    */
   const setUatFeatures = (runId: string, moduleIds: string[]) => {
     const wanted = [...new Set(moduleIds)]
-    removeWhere(db.uatFeatures, (f) => f.runId === runId && !wanted.includes(f.moduleId))
+    const dropped = new Set(
+      db.uatFeatures
+        .filter((f) => f.runId === runId && !wanted.includes(f.moduleId))
+        .map((f) => f.moduleId),
+    )
+    removeWhere(db.uatFeatures, (f) => f.runId === runId && dropped.has(f.moduleId))
+    if (dropped.size > 0) {
+      for (const t of db.tables) {
+        if (t.runId === runId) t.moduleIds = t.moduleIds.filter((id) => !dropped.has(id))
+      }
+      const people = new Set(db.participants.filter((p) => p.runId === runId).map((p) => p.id))
+      removeWhere(db.featurePeople, (f) => people.has(f.memberId) && dropped.has(f.moduleId))
+    }
     for (const moduleId of wanted) {
       if (!db.uatFeatures.some((f) => f.runId === runId && f.moduleId === moduleId)) {
         db.uatFeatures.push({ runId, moduleId, state: 'OPEN' })
@@ -331,6 +346,15 @@ export function createMockUat(deps: WorkshopDeps, core: WorkshopCore) {
       : null
   }
 
+  const byName = (a: ModuleRef, b: ModuleRef) => a.name.localeCompare(b.name, 'id')
+
+  /** The features a Pengguna works on here: their group's and the ones assigned by name. */
+  const myFeaturesOf = (run: MockRun, userId: string): ModuleRef[] =>
+    [...personFeatureIds(db, run.id, userId)]
+      .map((id) => core.moduleRef(id))
+      .filter((m): m is ModuleRef => m !== null)
+      .sort(byName)
+
   const summaryOf = (run: MockRun, viewer?: string): UatSummaryDto => ({
     ...uatRef(run),
     starts_at: run.starts_at,
@@ -340,7 +364,7 @@ export function createMockUat(deps: WorkshopDeps, core: WorkshopCore) {
     groups: db.tables.filter((t) => t.runId === run.id).length,
     participants: db.participants.filter((p) => p.runId === run.id).length,
     progress: core.uatTotals(run.id),
-    ...(viewer ? { my_group: myGroupOf(run, viewer) } : {}),
+    ...(viewer ? { my_group: myGroupOf(run, viewer), my_features: myFeaturesOf(run, viewer) } : {}),
   })
 
   /** One UAT as its page shows it (for a Pengguna: with their own group). */
@@ -457,6 +481,51 @@ export function createMockUat(deps: WorkshopDeps, core: WorkshopCore) {
       if (p.tableId === tableId && !kept.includes(p.id)) p.tableId = null
     }
   }
+
+  // ---- who works on each feature (ADR 0020) --------------------------------------------------
+  const groupRef = (t: MockTable): UatGroupRef => ({
+    id: t.id,
+    name: t.name,
+    table_number: t.tableNumber,
+  })
+  /** By table number (none last), then by name. */
+  const byNumberThenName = (a: MockTable, b: MockTable) =>
+    (a.tableNumber === null ? 1 : 0) - (b.tableNumber === null ? 1 : 0) ||
+    (a.tableNumber ?? 0) - (b.tableNumber ?? 0) ||
+    a.name.localeCompare(b.name)
+
+  const assignmentOf = (runId: string, module: ModuleRef): UatFeatureAssignmentDto => {
+    const listed = new Set(
+      db.featurePeople.filter((f) => f.moduleId === module.id).map((f) => f.memberId),
+    )
+    return {
+      module,
+      groups: db.tables
+        .filter((t) => t.runId === runId && t.moduleIds.includes(module.id))
+        .sort(byNumberThenName)
+        .map(groupRef),
+      people: db.participants
+        .filter((p) => p.runId === runId && listed.has(p.id))
+        .sort((a, b) => a.name.localeCompare(b.name) || byNumericId(a.id, b.id))
+        .map((p) => {
+          const group = p.tableId ? db.tables.find((t) => t.id === p.tableId) : undefined
+          return {
+            id: p.id,
+            name: p.name,
+            user_id: p.userId,
+            group: group ? groupRef(group) : null,
+          }
+        }),
+    }
+  }
+
+  /** The features of a UAT that still exist, by name. */
+  const uatModules = (runId: string) =>
+    db.uatFeatures
+      .filter((f) => f.runId === runId)
+      .map((f) => core.moduleRef(f.moduleId))
+      .filter((m): m is ModuleRef => m !== null)
+      .sort(byName)
 
   // ---- groups (kelompok / meja) --------------------------------------------------------------
   const groupsOf = (runId: string) => db.tables.filter((t) => t.runId === runId).sort(tableOrder)
@@ -668,7 +737,56 @@ export function createMockUat(deps: WorkshopDeps, core: WorkshopCore) {
         const { run } = staffUat(code, uatId)
         const p =
           db.participants.find((x) => x.id === participantId && x.runId === run.id) ?? notFound()
-        removeWhere(db.participants, (x) => x.id === p.id)
+        // Their features assigned by name go with them.
+        removeParticipants(db, (x) => x.id === p.id)
+      }),
+
+    /** Who works on each feature of a UAT: groups and people (ADR 0020). */
+    listUatAssignments: (code, uatId) =>
+      delay(() => {
+        const { run } = staffUat(code, uatId)
+        return uatModules(run.id).map((module) => assignmentOf(run.id, module))
+      }),
+
+    /**
+     * The whole assignment of one feature, like sharing a folder: the groups and people listed
+     * work on it, everyone else of the UAT no longer does.
+     */
+    setFeatureAssignees: (code, uatId, moduleId, input) =>
+      delay(() => {
+        const { run } = staffUat(code, uatId)
+        const parsed = uatFeatureAssigneesSchema.safeParse(input)
+        if (!parsed.success) return invalid(parsed.error.issues)
+        const module =
+          (db.uatFeatures.some((f) => f.runId === run.id && f.moduleId === moduleId)
+            ? core.moduleRef(moduleId)
+            : null) ?? problem(422, 'VALIDATION_ERROR', 'module_id', 'Feature not in this UAT')
+        const groupIds = new Set(parsed.data.group_ids)
+        const memberIds = new Set(parsed.data.member_ids)
+        const groups = db.tables.filter((t) => t.runId === run.id)
+        const people = db.participants.filter((p) => p.runId === run.id)
+        if ([...groupIds].some((id) => !groups.some((t) => t.id === id))) {
+          problem(422, 'VALIDATION_ERROR', 'group_ids', 'Group not found in this UAT')
+        }
+        if ([...memberIds].some((id) => !people.some((p) => p.id === id))) {
+          problem(422, 'VALIDATION_ERROR', 'member_ids', 'Person not found in this UAT')
+        }
+        for (const t of groups) {
+          const has = t.moduleIds.includes(module.id)
+          if (groupIds.has(t.id) && !has) t.moduleIds = [...t.moduleIds, module.id]
+          if (!groupIds.has(t.id) && has) t.moduleIds = t.moduleIds.filter((id) => id !== module.id)
+        }
+        const everyone = new Set(people.map((p) => p.id))
+        removeWhere(
+          db.featurePeople,
+          (f) => f.moduleId === module.id && everyone.has(f.memberId) && !memberIds.has(f.memberId),
+        )
+        for (const memberId of memberIds) {
+          if (!db.featurePeople.some((f) => f.memberId === memberId && f.moduleId === module.id)) {
+            db.featurePeople.push({ memberId, moduleId: module.id })
+          }
+        }
+        return assignmentOf(run.id, module)
       }),
 
     getWorkshopBoard: (code, uatId) =>

@@ -6,6 +6,7 @@ import {
   textCloseness,
   uatCreateSchema,
   uatParticipantsAddSchema,
+  uatFeatureAssigneesSchema,
   uatParticipantUpdateSchema,
   uatUpdateSchema,
   workshopFeatureStateSchema,
@@ -44,7 +45,9 @@ import {
   participantDto,
   participantRows,
   placeParticipant,
+  featureAssignments,
   saveGroupMembers,
+  setFeatureAssignees,
   setUatFeatures,
   uatFeatures,
   uatPublicFields,
@@ -352,6 +355,46 @@ export function uatRoutes(pool: Pool) {
       return c.body(null, 204)
     },
   )
+
+  // ---- Feature assignments (ADR 0020): groups and people per feature -------------------
+  routes.get('/:runId/assignments', requirePermission('run.write'), async (c) => {
+    const project = c.get('project')
+    const uat = await loadUat(pool, project.id, idParam(c, 'runId'))
+    c.header('Cache-Control', 'no-store')
+    return c.json(await featureAssignments(pool, String(uat.id)))
+  })
+
+  routes.put('/:runId/features/:moduleId/assignees', requirePermission('run.write'), async (c) => {
+    const project = c.get('project')
+    const runId = idParam(c, 'runId')
+    const moduleId = idParam(c, 'moduleId')
+    const input = await parseBody(c, uatFeatureAssigneesSchema)
+    await withTransaction(pool, async (conn) => {
+      const uat = await loadUat(conn, project.id, runId)
+      if (uat.status_code === 'LOCKED') {
+        throw new AppError(409, 'CONFLICT', 'The UAT is locked and cannot be changed.')
+      }
+      const [before] = await featureAssignments(conn, runId, moduleId)
+      await setFeatureAssignees(conn, runId, moduleId, input)
+      await writeAudit(conn, c, {
+        projectId: project.id,
+        entityType: 'test_run',
+        entityId: runId,
+        action: 'UPDATE',
+        oldValues: before
+          ? {
+              feature: before.module.name,
+              groups: before.groups.map((g) => g.name),
+              people: before.people.map((p) => p.name),
+            }
+          : undefined,
+        newValues: { feature_id: moduleId, ...input },
+      })
+    })
+    const [after] = await featureAssignments(pool, runId, moduleId)
+    if (!after) throw new AppError(404, 'NOT_FOUND', 'Not found.')
+    return c.json(after)
+  })
 
   // ---- Live board ----------------------------------------------------------------------
   routes.get('/:runId/board', requirePermission('run.write'), async (c) => {

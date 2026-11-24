@@ -7,7 +7,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Pencil, Save } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { invalidateStructure, usePhaseTree } from '../../../hooks/structure-queries'
+import {
+  invalidateStructure,
+  usePhaseTree,
+  useUatAssignments,
+  useUatParticipants,
+} from '../../../hooks/structure-queries'
+import { useWorkshopTables } from '../../../hooks/workshop-queries'
 import { apiErrorText } from '../../../lib/api-errors'
 import { useDataSource } from '../../../services/use-data-source'
 import { Button } from '../../ui/Button'
@@ -15,6 +21,7 @@ import { ConfirmDialog } from '../../ui/Dialog'
 import { FormAlert } from '../../ui/Form'
 import { EmptyState } from '../../ui/States'
 import { useToast } from '../../ui/toast-context'
+import { FeatureAssignees } from '../../uat/FeatureAssignees'
 import { ProgressMeter } from '../ProgressMeter'
 
 type Pending = { module_id: string; name: string; state_code: WorkshopFeatureState }
@@ -119,8 +126,9 @@ function UatFeaturesEditor({ code, board }: { code: string; board: WorkshopBoard
 }
 
 /**
- * The features of a UAT: which ones it tests, and which are open, finished, or hidden from
- * the public. Every state change is confirmed first (audit 2026-11-24).
+ * The features of a UAT: which ones it tests, who works on each one (groups and people,
+ * ADR 0020), and which are open, finished, or hidden from the public. Every state change is
+ * confirmed first (audit 2026-11-24).
  */
 export function FeaturesTab({
   code,
@@ -136,6 +144,9 @@ export function FeaturesTab({
   const toast = useToast()
   const queryClient = useQueryClient()
   const [pending, setPending] = useState<Pending | null>(null)
+  const assignments = useUatAssignments(code, board.uat.id, canManage)
+  const groups = useWorkshopTables(code, board.uat.id, canManage)
+  const people = useUatParticipants(code, board.uat.id, canManage)
   const change = useMutation({
     mutationFn: (input: Pending) =>
       ds.updateWorkshopFeature(code, board.uat.id, {
@@ -164,40 +175,55 @@ export function FeaturesTab({
         {board.features.map((feature) => (
           <li
             key={feature.module.id}
-            className="grid gap-3 rounded-xl border border-line bg-surface p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-center"
+            className="space-y-3 rounded-xl border border-line bg-surface p-4 shadow-xs"
           >
-            <p className="font-semibold">{feature.module.name}</p>
-            <ProgressMeter counts={feature.progress} size="sm" />
-            <div
-              role="radiogroup"
-              aria-label={t('workshop.features.stateFor', { name: feature.module.name })}
-              className="flex gap-1"
-            >
-              {WORKSHOP_FEATURE_STATES.map((state) => (
-                <button
-                  key={state}
-                  type="button"
-                  role="radio"
-                  aria-checked={feature.state === state}
-                  disabled={!canManage || change.isPending}
-                  onClick={() => {
-                    if (feature.state === state) return
-                    setPending({
-                      module_id: feature.module.id,
-                      name: feature.module.name,
-                      state_code: state,
-                    })
-                  }}
-                  className={`min-h-10 rounded-lg px-3 text-sm font-semibold ${
-                    feature.state === state
-                      ? 'bg-brand-700 text-white'
-                      : 'border border-line-strong bg-surface hover:bg-neutral-soft disabled:opacity-60'
-                  }`}
-                >
-                  {t(`workshop.features.state.${state}`)}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-lg font-semibold">{feature.module.name}</h3>
+              <div
+                role="radiogroup"
+                aria-label={t('workshop.features.stateFor', { name: feature.module.name })}
+                className="flex gap-1"
+              >
+                {WORKSHOP_FEATURE_STATES.map((state) => (
+                  <button
+                    key={state}
+                    type="button"
+                    role="radio"
+                    aria-checked={feature.state === state}
+                    disabled={!canManage || change.isPending}
+                    onClick={() => {
+                      if (feature.state === state) return
+                      setPending({
+                        module_id: feature.module.id,
+                        name: feature.module.name,
+                        state_code: state,
+                      })
+                    }}
+                    className={`min-h-10 rounded-lg px-3 text-sm font-semibold ${
+                      feature.state === state
+                        ? 'bg-brand-700 text-white'
+                        : 'border border-line-strong bg-surface hover:bg-neutral-soft disabled:opacity-60'
+                    }`}
+                  >
+                    {t(`workshop.features.state.${state}`)}
+                  </button>
+                ))}
+              </div>
             </div>
+            <ProgressMeter counts={feature.progress} size="sm" />
+            {(() => {
+              const assignment = assignments.data?.find((a) => a.module.id === feature.module.id)
+              return assignment ? (
+                <FeatureAssignees
+                  code={code}
+                  uatId={board.uat.id}
+                  assignment={assignment}
+                  groups={groups.data ?? []}
+                  people={people.data ?? []}
+                  canManage={canManage}
+                />
+              ) : null
+            })()}
           </li>
         ))}
       </ul>

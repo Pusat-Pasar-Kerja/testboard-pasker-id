@@ -205,7 +205,7 @@ async function followPhase(conn: PoolConnection, projectId: string, row: CaseRow
  * Copy a scenario (Drive "Buat salinan"): a new code, Draft, the same definition and reference
  * files, saved in the given Fase.
  */
-async function copyCase(
+export async function copyCase(
   conn: PoolConnection,
   c: Context<AppEnv>,
   sourceId: string,
@@ -349,7 +349,7 @@ type CaseUpdateInput = Partial<z.output<typeof testCaseUpdateSchema>>
  * Save one test case edit: a new version + immutable revision + audit (TB-CASE-003).
  * Returns false when nothing changed. Validation happens before any write.
  */
-async function applyCaseUpdate(
+export async function applyCaseUpdate(
   conn: PoolConnection,
   c: Context<AppEnv>,
   caseId: string,

@@ -469,10 +469,11 @@ export function RunDetailPage() {
   const isLead = canWrite
 
   const assigneeOf = (row: RunCaseRow) => row.assigned_to?.id ?? ''
-  // A Pengguna sees the scenarios of their group's features and those given to them.
+  // A Pengguna sees the scenarios of the features they are listed for (through their group
+  // or by name, ADR 0020) and those given to them.
   const groupCodes =
-    !isLead && uat.data?.my_group?.modules
-      ? new Set(uat.data.my_group.modules.map((m) => m.module_code))
+    !isLead && uat.data?.my_features
+      ? new Set(uat.data.my_features.map((m) => m.module_code))
       : null
   const mine = (row: RunCaseRow) =>
     !groupCodes ||
