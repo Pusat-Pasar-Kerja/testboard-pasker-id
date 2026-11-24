@@ -87,7 +87,32 @@ export function ResultPicker({
   )
 }
 
-/** Per-step outcome: compact segmented control, icon-only on phones. */
+/**
+ * Says once, in words, what the step icons mean (owner, 2026-11-24: users first). The
+ * step buttons show icons only until the screen is very wide.
+ */
+export function StepResultLegend() {
+  const { t } = useTranslation()
+  return (
+    <p className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
+      <span>{t('pages.execution.stepLegend')}</span>
+      {(['PASSED', 'FAILED', 'BLOCKED', 'SKIPPED'] as const).map((result) => {
+        const { icon: Icon } = STYLE[result]
+        return (
+          <span key={result} className="inline-flex items-center gap-1">
+            <Icon aria-hidden="true" className="size-3.5" />
+            {t(`codes.execution.${result}`)}
+          </span>
+        )
+      })}
+    </p>
+  )
+}
+
+/**
+ * Per-step outcome: five equal buttons in one row that never wraps (icon-only until the
+ * screen is very wide; StepResultLegend explains the icons).
+ */
 export function StepResultPicker({
   stepNumber,
   value,
@@ -102,11 +127,11 @@ export function StepResultPicker({
   return (
     <fieldset className="mt-2">
       <legend className="sr-only">{t('pages.execution.stepResult', { n: stepNumber })}</legend>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="grid max-w-xs grid-cols-5 gap-1 2xl:max-w-2xl">
         {STEP_RESULTS.map((result) => {
           const { icon: Icon, checked } = STYLE[result]
           return (
-            <label key={result} className="block" title={t(`codes.execution.${result}`)}>
+            <label key={result} className="block min-w-0" title={t(`codes.execution.${result}`)}>
               <input
                 type="radio"
                 name={name}
@@ -115,7 +140,7 @@ export function StepResultPicker({
                 onChange={() => onChange(result)}
                 className="peer sr-only"
               />
-              <span className={`${OPTION} min-h-11 min-w-11 px-2.5 text-xs ${checked}`}>
+              <span className={`${OPTION} min-h-11 px-1 text-xs ${checked}`}>
                 <Icon aria-hidden="true" className="size-4" />
                 <span className="sr-only 2xl:not-sr-only">{t(`codes.execution.${result}`)}</span>
               </span>

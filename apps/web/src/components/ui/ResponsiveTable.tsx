@@ -18,13 +18,19 @@ export interface Column<T> {
   key: string
   header: string
   render: (row: T) => ReactNode
-  /** Hide below this breakpoint in the table view (cards always show `cardFields`). */
+  /**
+   * Hide when the list is narrower than this (lg = 56rem, xl = 64rem of the list's own
+   * width, not the screen's); the cards always show `cardFields`.
+   */
   hideBelow?: 'lg' | 'xl'
   className?: string
 }
 
 /**
- * Table on md+ screens, stacked cards on phones (no horizontal page overflow at 375px).
+ * A table when the list has room, stacked cards when it does not (owner, 2026-11-24: users
+ * first). It measures its own width (container queries), not the screen's: next to the left
+ * panel a laptop leaves far less room than its screen size suggests, and a squeezed table
+ * with four-line titles and cut-off columns is hard to read.
  * `rowLink` makes the primary cell a real link so rows are keyboard-reachable.
  */
 export function ResponsiveTable<T>({
@@ -46,10 +52,10 @@ export function ResponsiveTable<T>({
   caption: string
   selection?: RowSelection<T>
 }) {
-  const hide = { lg: 'hidden lg:table-cell', xl: 'hidden xl:table-cell' }
+  const hide = { lg: 'hidden @4xl:table-cell', xl: 'hidden @5xl:table-cell' }
   return (
-    <>
-      <div className="hidden overflow-x-auto md:block">
+    <div className="@container">
+      <div className="hidden overflow-x-auto @3xl:block">
         <table className="w-full border-collapse text-left text-sm">
           <caption className="sr-only">{caption}</caption>
           <thead>
@@ -122,7 +128,7 @@ export function ResponsiveTable<T>({
         </table>
       </div>
 
-      <ul className="space-y-3 md:hidden" aria-label={caption}>
+      <ul className="space-y-3 @3xl:hidden" aria-label={caption}>
         {rows.map((row) => {
           const head = primary(row)
           return (
@@ -152,6 +158,6 @@ export function ResponsiveTable<T>({
           )
         })}
       </ul>
-    </>
+    </div>
   )
 }

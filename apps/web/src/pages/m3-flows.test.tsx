@@ -143,6 +143,8 @@ describe('execution workspace (TB-EXEC-001..004)', () => {
     const { run, rc } = freshCase(db, 'RUN-S2-20261109')
     const { router } = renderRoute(`${P}/runs/${run.id}/cases/${rc.id}`, { dataSource })
     await screen.findByRole('heading', { name: 'Catat hasil' })
+    // The step icons are explained once, in words (owner, 2026-11-24).
+    expect(screen.getByText('Tandai tiap langkah (tidak wajib):')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Tandai semua langkah sesuai' }))
     const result = screen.getByRole('group', { name: 'Hasil uji' })

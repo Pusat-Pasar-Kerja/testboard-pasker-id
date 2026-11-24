@@ -8,6 +8,7 @@ import { PageHelp } from '../components/help/PageHelp'
 import { Tour } from '../components/help/Tour'
 import { useCurrentUser, usePublicSettings, useRecoverySummary } from '../hooks/queries'
 import { projectPath } from '../hooks/route-state'
+import { homeOf } from '../lib/home'
 import { HEADER_FIELD, HEADER_ICON } from './header-styles'
 import { MobileDrawer } from './MobileDrawer'
 import { ProjectSwitcher } from './ProjectSwitcher'
@@ -97,6 +98,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
   const { pathname, search } = useLocation()
   // "Buka TestBoard" on the guide and the public pages comes back to this very page.
   useEffect(() => rememberPage('app', pathname + search), [pathname, search])
+  const me = useCurrentUser()
   const siteName = usePublicSettings().data?.['site.name'] ?? 'TestBoard PASKER ID'
   const [menuOpen, setMenuOpen] = useState(false)
   // Every drawer link calls closeMenu, so navigation from the drawer always closes it.
@@ -113,7 +115,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
 
       <TopBar
         frame="app"
-        home="/projects"
+        home={homeOf(me.data)}
         homeLabel={siteName}
         menuButton={
           <button

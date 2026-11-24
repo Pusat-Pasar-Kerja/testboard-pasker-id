@@ -133,9 +133,11 @@ function FeatureFolders({
                 <Folder className="size-5" />
               </span>
               <div className="min-w-0 flex-1">
+                {/* Up to two lines (owner, 2026-11-24): a cut-off name is hard to recognise. */}
                 <Link
                   to={projectPath(code, `${base}/fitur/${id}`)}
-                  className="block truncate font-semibold after:absolute after:inset-0 after:rounded-xl focus:outline-none"
+                  title={name}
+                  className="line-clamp-2 font-semibold break-words after:absolute after:inset-0 after:rounded-xl focus:outline-none"
                 >
                   {name}
                 </Link>

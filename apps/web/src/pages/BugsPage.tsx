@@ -62,6 +62,16 @@ function BugList() {
     cycle: values.cycle || undefined,
     page,
   })
+  // Search and the status chips are always in view; the rest sit behind "Saring lebih
+  // lanjut" and count here while in use (a quick status is already visible as a chip).
+  const quickStatus = QUICK_STATUSES.includes(values.status as DefectStatus | 'open')
+  const moreActive = [
+    quickStatus ? '' : values.status,
+    values.severity,
+    values.priority,
+    values.assignee,
+    values.cycle,
+  ].filter(Boolean).length
   const canBulk = can('defect.update')
   const selected = useRowSelection<DefectListItem>(
     defects.data?.data ?? [],
@@ -75,60 +85,70 @@ function BugList() {
 
   return (
     <>
-      <FilterBar onReset={active ? reset : undefined}>
+      <FilterBar
+        onReset={active ? reset : undefined}
+        moreActive={moreActive}
+        more={
+          <>
+            <SelectFilter
+              label={t('filters.status')}
+              value={values.status}
+              onChange={(value) => setFilter('status', value)}
+              options={STATUS_FILTERS.map((s) => ({
+                value: s,
+                label: s === 'open' ? t('filters.openOnly') : t(`codes.defectStatus.${s}`),
+              }))}
+            />
+            <SelectFilter
+              label={t('filters.severity')}
+              value={values.severity}
+              onChange={(value) => setFilter('severity', value)}
+              options={DEFECT_SEVERITIES.map((s) => ({
+                value: s,
+                label: t(`codes.severity.${s}`),
+              }))}
+            />
+            <SelectFilter
+              label={t('filters.priority')}
+              value={values.priority}
+              onChange={(value) => setFilter('priority', value)}
+              options={DEFECT_PRIORITIES.map((p) => ({
+                value: p,
+                label: t(`codes.defectPriority.${p}`),
+              }))}
+            />
+            <SelectFilter
+              label={t('pages.bugs.assigneeFilter')}
+              value={values.assignee}
+              onChange={(value) => setFilter('assignee', value)}
+              options={[
+                ...(me.data ? [{ value: 'me', label: t('pages.bugs.mine') }] : []),
+                { value: 'none', label: t('pages.bugs.unassigned') },
+                ...(members.data ?? [])
+                  .filter((m) => m.role_code !== 'VIEWER')
+                  .map((m) => ({ value: m.user.id, label: m.user.display_name })),
+              ]}
+            />
+            <SelectFilter
+              label={t('filters.cycle')}
+              value={values.cycle}
+              onChange={(value) => setFilter('cycle', value)}
+              options={[
+                { value: 'none', label: t('pages.bugs.noCycle') },
+                ...(cycles.data ?? []).map((cy) => ({
+                  value: cy.id,
+                  label: `${cy.cycle_code} - ${cy.title}`,
+                })),
+              ]}
+            />
+          </>
+        }
+      >
         <SearchField
           label={t('filters.keyword')}
           placeholder={t('pages.bugs.searchPlaceholder')}
           value={values.q}
           onSearch={(value) => setFilter('q', value)}
-        />
-        <SelectFilter
-          label={t('filters.status')}
-          value={values.status}
-          onChange={(value) => setFilter('status', value)}
-          options={STATUS_FILTERS.map((s) => ({
-            value: s,
-            label: s === 'open' ? t('filters.openOnly') : t(`codes.defectStatus.${s}`),
-          }))}
-        />
-        <SelectFilter
-          label={t('filters.severity')}
-          value={values.severity}
-          onChange={(value) => setFilter('severity', value)}
-          options={DEFECT_SEVERITIES.map((s) => ({ value: s, label: t(`codes.severity.${s}`) }))}
-        />
-        <SelectFilter
-          label={t('filters.priority')}
-          value={values.priority}
-          onChange={(value) => setFilter('priority', value)}
-          options={DEFECT_PRIORITIES.map((p) => ({
-            value: p,
-            label: t(`codes.defectPriority.${p}`),
-          }))}
-        />
-        <SelectFilter
-          label={t('pages.bugs.assigneeFilter')}
-          value={values.assignee}
-          onChange={(value) => setFilter('assignee', value)}
-          options={[
-            ...(me.data ? [{ value: 'me', label: t('pages.bugs.mine') }] : []),
-            { value: 'none', label: t('pages.bugs.unassigned') },
-            ...(members.data ?? [])
-              .filter((m) => m.role_code !== 'VIEWER')
-              .map((m) => ({ value: m.user.id, label: m.user.display_name })),
-          ]}
-        />
-        <SelectFilter
-          label={t('filters.cycle')}
-          value={values.cycle}
-          onChange={(value) => setFilter('cycle', value)}
-          options={[
-            { value: 'none', label: t('pages.bugs.noCycle') },
-            ...(cycles.data ?? []).map((cy) => ({
-              value: cy.id,
-              label: `${cy.cycle_code} - ${cy.title}`,
-            })),
-          ]}
         />
       </FilterBar>
       <div className="mb-4">

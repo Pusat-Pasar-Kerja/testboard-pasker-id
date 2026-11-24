@@ -2,6 +2,18 @@
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [SemVer](https://semver.org/lang/id/). Setiap entri sesuai dengan satu tag Git.
 
+## [1.1.0] - 2026-11-24
+
+Penelusuran UX per peran (Admin, Pengguna UAT, peserta meja, pengunjung publik), lalu perbaikan yang paling terasa. Tanpa migration.
+
+### Diubah
+
+- **Pengguna UAT langsung ke "Tugas saya"** setelah masuk, dan saat menekan logo: skenario yang menunggu mereka, dengan tombol Lanjutkan. Admin dan Super Admin tetap ke Proyek, kartu meja tetap ke Mode Mudah.
+- **Daftar menyesuaikan ruang yang tersedia**, bukan ukuran layar. Di samping panel kiri, laptop menampilkan daftar sebagai kartu yang mudah dibaca (judul utuh), bukan tabel yang terjepit. Kolom tambahan muncul saat ruangnya cukup. Berlaku untuk semua daftar: masalah, skenario, UAT, dan lainnya.
+- **Bug Reporting lebih tenang**: yang tampil hanya pencarian dan tombol status. Status lengkap, Tingkat dampak, Prioritas, Penugasan, dan Fase pindah ke "Saring lebih lanjut", yang terbuka sendiri bila salah satunya sedang dipakai.
+- **Tanda per langkah lebih jelas**: lima tombol sama lebar dalam satu baris, dengan keterangan arti ikonnya di atas ("Tandai tiap langkah (tidak wajib): Sesuai, Tidak sesuai, Tidak bisa dicoba, Dilewati").
+- **Nama folder fitur tidak terpotong** lagi di halaman Fase (boleh dua baris). Nama proyek di panel kiri tampil lengkap saat disorot.
+
 ## [1.0.0] - 2026-11-24
 
 **Versi 1.** Ditetapkan oleh pemilik: TestBoard PASKER ID sudah live di `paskerid.kemnaker.go.id/testboard` dan dipakai untuk UAT bersama. Isi versi 1, singkatnya:

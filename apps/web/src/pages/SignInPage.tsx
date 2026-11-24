@@ -17,6 +17,7 @@ import { WelcomeIllustration } from '../components/illustrations/WelcomeIllustra
 import { Button } from '../components/ui/Button'
 import { CheckboxField, FormAlert, TextField } from '../components/ui/Form'
 import { useCurrentUser, usePublicSettings } from '../hooks/queries'
+import { homeOf } from '../lib/home'
 import { storeLocale } from '../i18n'
 import { PublicSiteLayout } from '../layout/PublicSiteLayout'
 import { ApiClientError } from '../services/api-client'
@@ -44,15 +45,18 @@ function rememberWay(way: SignInWay) {
   }
 }
 
-/** Only same-app paths are allowed as a post-login target (no open redirect). */
-function safeNext(value: string | null): string {
+/**
+ * Only same-app paths are allowed as a post-login target (no open redirect). Without one,
+ * each person goes to their own start page (homeOf).
+ */
+function safeNext(value: string | null): string | null {
   return value &&
     value.startsWith('/') &&
     !value.startsWith('//') &&
     !value.startsWith('/login') &&
     !value.startsWith('/masuk')
     ? value
-    : '/projects'
+    : null
 }
 
 const digitsOf = (value: string) => value.replace(/\D/g, '').slice(0, 6)
@@ -194,7 +198,7 @@ function DemoLogin() {
 }
 
 /** "Akun Pengguna": e-mail + password for Super Admin, Admin and Users. */
-function PasswordForm({ next }: { next: string }) {
+function PasswordForm({ next }: { next: string | null }) {
   const { t, i18n } = useTranslation()
   const publicSettings = usePublicSettings()
   const ds = useDataSource()
@@ -214,7 +218,7 @@ function PasswordForm({ next }: { next: string }) {
       queryClient.setQueryData(['me'], user)
       await i18n.changeLanguage(user.preferred_locale)
       storeLocale(user.preferred_locale)
-      navigate(next, { replace: true })
+      navigate(next ?? homeOf(user), { replace: true })
     },
     onError: () => setPassword(''),
   })
@@ -330,10 +334,15 @@ export function SignInPage({ way: fixedWay }: { way?: SignInWay }) {
 
   // Already signed in: a person goes on to where they were heading, a table to Mode Mudah.
   if (!demo && me.data && me.data.account_kind !== 'TABLE' && way === 'pengguna') {
-    return <Navigate to={next} replace />
+    return <Navigate to={next ?? homeOf(me.data)} replace />
   }
   if (!fixedWay && me.data) {
-    return <Navigate to={me.data.account_kind === 'TABLE' ? '/meja/kerja' : next} replace />
+    return (
+      <Navigate
+        to={me.data.account_kind === 'TABLE' ? homeOf(me.data) : (next ?? homeOf(me.data))}
+        replace
+      />
+    )
   }
 
   function choose(target: SignInWay) {

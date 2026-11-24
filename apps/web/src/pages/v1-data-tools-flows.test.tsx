@@ -64,6 +64,8 @@ describe('bulk actions and bug cycle (ADR 0013)', () => {
     expect(bug.cycle).toMatchObject({ id: cycle.id, cycle_code: cycle.cycle_code })
     renderRoute('/projects/DEMO-KARIR/bugs', { dataSource })
     const label = `${cycle.cycle_code} - ${cycle.title}`
+    // The Fase filter sits behind "Saring lebih lanjut" (owner, 2026-11-24).
+    await user.click(await screen.findByRole('button', { name: /Saring lebih lanjut/ }))
     await screen.findByRole('option', { name: label })
     await user.selectOptions(screen.getByLabelText('Fase'), label)
     await waitFor(() =>

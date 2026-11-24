@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useBlocker, useNavigate, useParams } from 'react-router'
 import {
   ResultPicker,
+  StepResultLegend,
   StepResultPicker,
   type StepResult,
 } from '../components/execution/ResultPicker'
@@ -581,52 +582,57 @@ function Workspace({ detail }: { detail: RunCaseDetail }) {
               <p className="mt-1 text-xs text-ink-muted">{t('pages.execution.noSteps')}</p>
             </>
           ) : (
-            <ol className="space-y-2">
-              {snap.steps.map((step) => {
-                const state = steps[step.step_number]
-                return (
-                  <li key={step.step_number} className="rounded-lg border border-line p-3">
-                    <div className="flex gap-3">
-                      <span
-                        aria-hidden="true"
-                        className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700"
-                      >
-                        {step.step_number}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="break-words">
-                          <span className="sr-only">
-                            {t('pages.execution.stepLabel', { n: step.step_number })}:{' '}
-                          </span>
-                          {step.instruction}
-                        </p>
-                        {step.expected_result && (
-                          <p className="mt-0.5 text-xs text-ink-muted">
-                            {t('pages.execution.stepExpected')} {step.expected_result}
+            <>
+              {canRecord && <StepResultLegend />}
+              <ol className="space-y-2">
+                {snap.steps.map((step) => {
+                  const state = steps[step.step_number]
+                  return (
+                    <li key={step.step_number} className="rounded-lg border border-line p-3">
+                      <div className="flex gap-3">
+                        <span
+                          aria-hidden="true"
+                          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700"
+                        >
+                          {step.step_number}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="break-words">
+                            <span className="sr-only">
+                              {t('pages.execution.stepLabel', { n: step.step_number })}:{' '}
+                            </span>
+                            {step.instruction}
                           </p>
-                        )}
-                        {canRecord && (
-                          <StepResultPicker
-                            stepNumber={step.step_number}
-                            value={state?.status ?? 'NOT_RUN'}
-                            onChange={(status) => setStep(step.step_number, { status })}
-                          />
-                        )}
-                        {canRecord && state?.status === 'FAILED' && (
-                          <TextArea
-                            className="mt-2"
-                            label={t('pages.execution.stepActual', { n: step.step_number })}
-                            rows={2}
-                            value={state.actual}
-                            onChange={(e) => setStep(step.step_number, { actual: e.target.value })}
-                          />
-                        )}
+                          {step.expected_result && (
+                            <p className="mt-0.5 text-xs text-ink-muted">
+                              {t('pages.execution.stepExpected')} {step.expected_result}
+                            </p>
+                          )}
+                          {canRecord && (
+                            <StepResultPicker
+                              stepNumber={step.step_number}
+                              value={state?.status ?? 'NOT_RUN'}
+                              onChange={(status) => setStep(step.step_number, { status })}
+                            />
+                          )}
+                          {canRecord && state?.status === 'FAILED' && (
+                            <TextArea
+                              className="mt-2"
+                              label={t('pages.execution.stepActual', { n: step.step_number })}
+                              rows={2}
+                              value={state.actual}
+                              onChange={(e) =>
+                                setStep(step.step_number, { actual: e.target.value })
+                              }
+                            />
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                )
-              })}
-            </ol>
+                    </li>
+                  )
+                })}
+              </ol>
+            </>
           )}
         </div>
         <div>

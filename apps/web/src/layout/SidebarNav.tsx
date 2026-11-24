@@ -184,7 +184,9 @@ function HomeNav({ onNavigate }: { onNavigate?: () => void }) {
                   onClick={onNavigate}
                 >
                   <Folder aria-hidden="true" className="size-5 shrink-0 text-brand-600" />
-                  <span className="min-w-0 flex-1 truncate">{p.name}</span>
+                  <span className="min-w-0 flex-1 truncate" title={p.name}>
+                    {p.name}
+                  </span>
                 </NavLink>
               </li>
             ))}

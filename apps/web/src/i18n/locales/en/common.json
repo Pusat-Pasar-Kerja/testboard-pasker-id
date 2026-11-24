@@ -143,7 +143,8 @@
     "openOnly": "Not done yet",
     "fileStatus": "File status",
     "cycle": "Phase",
-    "phase": "Phase"
+    "phase": "Phase",
+    "more": "More filters"
   },
   "codes": {
     "execution": {
@@ -785,7 +786,8 @@
       "linked": "Problem {{code}} linked to attempt #{{n}}.",
       "bugsHint": "A \"Not as expected\" result does not become a problem report by itself. Report a new problem or link an existing one.",
       "bugsNeedAttempt": "Record a test result first to report or link a problem.",
-      "evidenceHeading": "Evidence (screenshots, documents, logs)"
+      "evidenceHeading": "Evidence (screenshots, documents, logs)",
+      "stepLegend": "Mark each step (optional):"
     },
     "bugForm": {
       "newTitle": "Report a problem",
